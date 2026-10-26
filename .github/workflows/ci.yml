@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout v7.0.1
@@ -46,7 +46,8 @@ jobs:
         run: uv run --locked python -m benchmarks.performance_profile --dimension 4 --evaluations 8 --profile
       - name: Bounded decision recording fixed-work smoke
         run: uv run --locked python -m benchmarks.decision_traces --evaluations 20 --dimension 8 --repeats 1
-      - name: Native-thread launch smoke
+      - name: Native-thread launch smoke (skipped on macOS, whose Accelerate BLAS threadpoolctl cannot identify)
+        if: runner.os != 'macOS'
         run: uv run --locked --with threadpoolctl==3.7.0 python benchmarks/native_threads.py --repeats 1 --dimension 8 --evaluations 2 --workers 1
       - name: IPR fixed-work diagnostic smoke
         run: uv run --locked python benchmarks/ipr_diagnosis.py --evaluations 64 --seeds 1 --dimension 20
@@ -80,6 +81,40 @@ jobs:
             uv run --isolated --no-project --with "$artifact" python -I tools/smoke_installed.py
             uv run --isolated --no-project --with "$artifact" python -I tools/smoke_tracing_installed.py
           done
+
+  minimum-numpy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Sync locked dependencies
+        run: uv sync --locked --group dev
+      - name: Install the oldest supported NumPy
+        run: uv pip install "numpy==2.3.2"
+      - name: Show the versions under test
+        run: uv run --no-sync python -c "import numpy; print('numpy', numpy.__version__); assert numpy.__version__ == '2.3.2'"
+      - name: Full test suite on the minimum NumPy
+        run: uv run --no-sync pytest src/rko_solver/tests -q --ignore=src/rko_solver/tests/test_documentation_site.py
+
+  minimum-rust:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Install the declared minimum Rust toolchain
+        run: rustup toolchain install 1.90 --profile minimal
+      - name: Sync locked dependencies
+        run: uv sync --locked --group dev
+      - name: Point PyO3 at the project interpreter
+        run: echo "PYO3_PYTHON=$(uv run --locked python -c 'import sys; print(sys.executable)')" >> "$GITHUB_ENV"
+      - name: Whole workspace compiles on Rust 1.90
+        run: cargo +1.90 check --workspace --all-targets --release
+      - name: Core tests pass on Rust 1.90
+        run: cargo +1.90 test --release
 
   quality-gate:
     runs-on: ubuntu-latest
