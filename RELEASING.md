@@ -12,7 +12,8 @@ NOTICE as an owner attestation, not an independent legal certification. Source u
 reference fixtures retain MIT, hence the combined distribution expression
 `Apache-2.0 AND MIT`. Review new third-party additions before every release.
 
-The initial candidate is **0.3.0a1**. The payload is **one CPython 3.14 abi3
+The initial candidate is **0.3.0a2**. (0.3.0a1 reached TestPyPI only, where its post-upload
+check failed on a test-harness bug; an index version can never be reused, so it is superseded.) The payload is **one CPython 3.14 abi3
 wheel per platform plus the sdist**: Linux x86_64 and aarch64 (`manylinux_2_28`, with
 the optional C++ reference engine and its OpenMP runtime bundled), Windows x86_64 and
 ARM64, and macOS arm64 and x86_64. Core is NumPy-only; reports are optional. The
@@ -101,7 +102,7 @@ temporary installation wheel; it does not replace the publication payload.
 Existing independent quality builds are not publication artifacts.
 
 After the reviewed candidate is merged to protected main, the owner creates the
-matching immutable tag (initially `v0.3.0a1`). No tag is created by these tools.
+matching immutable tag (initially `v0.3.0a2`). No tag is created by these tools.
 The resolver accepts canonical alpha/beta/RC tags reachable from main and checks
 the tagged pyproject version; stable/dev/local/post tags are intentionally rejected.
 
