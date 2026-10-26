@@ -138,6 +138,18 @@ jobs:
       - name: Rust engine line coverage (benchmark runners excluded)
         run: cargo llvm-cov -p rko-core -p rko-cpp --release --ignore-filename-regex '(bench|/bin/)' --fail-under-lines 93 --summary-only
 
+  engine-ratio:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Sync locked dependencies
+        run: uv sync --locked --group dev
+      - name: Rust over Python throughput ratio stays within 30 percent of the reference
+        run: uv run --locked python -m benchmarks.engine_ratio --reference benchmarks/engine-ratio-reference.json
+
   quality-gate:
     runs-on: ubuntu-latest
     steps:

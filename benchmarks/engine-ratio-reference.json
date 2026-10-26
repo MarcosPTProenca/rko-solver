@@ -1,0 +1,74 @@
+{
+  "models": {
+    "AMD EPYC 7763 64-Core Processor": {
+      "algorithms": {
+        "BRKGA": {
+          "ratio": 43.38,
+          "spread": 0.028
+        },
+        "ILS": {
+          "ratio": 80.61,
+          "spread": 0.059
+        },
+        "SA": {
+          "ratio": 47.51,
+          "spread": 0.042
+        }
+      },
+      "samples": 8
+    },
+    "AMD EPYC 9V45 96-Core Processor": {
+      "algorithms": {
+        "BRKGA": {
+          "ratio": 31.89,
+          "spread": 0.03
+        },
+        "ILS": {
+          "ratio": 74.53,
+          "spread": 0.047
+        },
+        "SA": {
+          "ratio": 33.23,
+          "spread": 0.06
+        }
+      },
+      "samples": 2
+    },
+    "AMD EPYC 9V74 80-Core Processor": {
+      "algorithms": {
+        "BRKGA": {
+          "ratio": 35.55,
+          "spread": 0.0
+        },
+        "ILS": {
+          "ratio": 72.23,
+          "spread": 0.0
+        },
+        "SA": {
+          "ratio": 41.17,
+          "spread": 0.0
+        }
+      },
+      "samples": 1
+    },
+    "INTEL(R) XEON(R) PLATINUM 8573C": {
+      "algorithms": {
+        "BRKGA": {
+          "ratio": 35.97,
+          "spread": 0.0
+        },
+        "ILS": {
+          "ratio": 63.97,
+          "spread": 0.0
+        },
+        "SA": {
+          "ratio": 37.54,
+          "spread": 0.0
+        }
+      },
+      "samples": 1
+    }
+  },
+  "provenance": "Ratios measured by the CI job engine-ratio on GitHub-hosted ubuntu-latest runners (pull request 13), one entry per processor model because the ratio depends on the processor: EPYC 9V45 reads about 28 percent below EPYC 7763 for BRKGA and SA. `samples` is the number of independent runs behind each median and `spread` the (max-min)/median across them. Regenerate on the runner, never on a development machine.",
+  "schema_version": 2
+}
