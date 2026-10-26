@@ -25,6 +25,20 @@ required: an image alone does not cap CPU/RAM/PIDs/disk. This is not an untruste
 sandbox, durable distributed queue or hardened public SaaS; native Windows service
 supervision and arbitrary-adapter capacity guarantees are not provided.
 
+## Experimental decoder evolution
+
+The opt-in [Self-Evolve pilot](self-evolve.md) provides seed-backed Pi file exchange,
+rootless Podman evaluation, three fixed problem adapters, bounded campaign records
+and experimental artifact export/offline replay. The [locked-study tooling](confirmation-study.md)
+adds frozen panels and paired analysis, not a completed confirmation experiment.
+It changes no shared RKO engine
+methods and makes no measured superiority claim. Linux/WSL live qualification is
+required; ordinary unit tests do not certify isolation. Same-interpreter evaluator
+integrity is not guaranteed against hostile Python. Automated Pi/subscription and
+API transports, mathematical-model integration, sealed-test statistical confirmation
+and production promotion remain deferred. Experimental exports are not production
+defaults or proof that program evolution improves a problem family.
+
 ## Outstanding
 
 The [performance target](performance.md) is to match or exceed pinned C++ RKO

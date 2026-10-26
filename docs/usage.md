@@ -334,7 +334,7 @@ regression tests or repeat a run.
 ```python
 result = RKO(decode, cost, n_variables, execution="sequential", max_evaluations=5000,
              random_state=42).solve(time_limit=60.0)
-assert {s.n_evaluations for s in result.searches} == {5000}
+assert all(0 < s.n_evaluations <= 5000 for s in result.searches)
 ```
 
 Measured on a 60-item Knapsack with the default portfolio and a generous time limit, every

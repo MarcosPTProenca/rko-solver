@@ -79,6 +79,7 @@ jobs:
         run: |
           for artifact in dist/*.whl dist/*.tar.gz; do
             uv run --isolated --no-project --with "$artifact" python -I tools/smoke_installed.py
+            uv run --isolated --no-project --with "$artifact" python -I tools/smoke_self_evolve_installed.py
             uv run --isolated --no-project --with "$artifact" python -I tools/smoke_tracing_installed.py
           done
 

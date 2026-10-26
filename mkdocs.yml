@@ -53,6 +53,8 @@ nav:
       - Optional solution checks: solution-validation.md
       - Static decoder diagrams: decoder-diagrams.md
       - Observed decoder decisions: decision-traces.md
+      - Experimental decoder evolution: self-evolve.md
+      - Locked artifact studies: confirmation-study.md
       - Private FastAPI/Docker service: service.md
   - Analyze:
       - Interactive reports: reporting.md
