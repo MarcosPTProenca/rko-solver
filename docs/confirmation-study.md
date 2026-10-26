@@ -131,7 +131,10 @@ failed/interrupted jobs retain it. Startup is charged separately for persistent
 sessions, including requalification restarts, and never refunded as free compute.
 
 SQLite commits a conservative reservation before launching each job and replaces
-it with the charged upper bound only after a complete result. Pausing between jobs
+it with the charged upper bound only after a complete result. Known consumption is
+never clipped to the reservation: an overrun retains its full charge, disables the
+runtime and durably blocks further collection and inference as an infrastructure
+error, even when it exceeds the entire allocation. Pausing between jobs
 with `--max-jobs` is resumable; the elapsed clock is not reset. Failures/timeouts
 remain observations with loss one and consume their full reserve. An interrupted
 controller leaves an unknown cell reserved: it is not silently retried, dropped or

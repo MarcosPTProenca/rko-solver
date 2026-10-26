@@ -146,7 +146,9 @@ not artifact preparation. It continues across sessions; stopped controllers do n
 reset budgets. A conservative CPU upper bound uses externally measured job wall
 time plus quota-period slack, never less than reported process CPU; failures and
 interrupted jobs retain their full reserved allowance. Report actual worker CPU
-separately rather than calling the charged upper bound a measurement.
+separately rather than calling the charged upper bound a measurement. Known cell
+consumption is never clipped to its reservation; an overrun retains the full charge
+and durably stops the campaign as an infrastructure error.
 
 The initial fixed development table uses three instance sizes, two solver seeds,
 0.1-second inner allowances, serial SA, fixed adaptation, pool size four and no
@@ -176,7 +178,8 @@ uv run python -m rko_solver.experimental.self_evolve replay /tmp/kp-export /tmp/
 ```
 
 The instance JSON is `{"family": "knapsack", "data": {...}}`, using the contract
-above. Export writes decoder source, manifest and hash-bound evidence. Loading
+above. Export preserves the exact UTF-8 decoder source bytes, including line endings,
+and writes a manifest and hash-bound evidence. Loading
 checks source/schema/contract/runtime metadata without importing source on the host;
 execution still uses a qualified isolated runner. An evidence-backed export
 requires its pinned runtime image. Preserve that runtime before pruning local

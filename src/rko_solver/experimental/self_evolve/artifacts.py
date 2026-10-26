@@ -272,7 +272,7 @@ class DecoderArtifact:
         if verified.digest != self.digest or self.status != "experimental":
             raise ValueError("Artifact hash/status mismatch.")
         path.mkdir(parents=True, exist_ok=False, mode=0o700)
-        (path / "decoder.py").write_text(self.source, encoding="utf-8")
+        (path / "decoder.py").write_bytes(self.source.encode("utf-8"))
         (path / "manifest.json").write_text(json.dumps(self.metadata(), indent=2), encoding="utf-8")
 
     @classmethod
@@ -301,7 +301,7 @@ class DecoderArtifact:
             raise ValueError("Unsupported artifact schema/status.")
         artifact = cls.create(
             cast(str, metadata.get("family")),
-            source_path.read_text(encoding="utf-8"),
+            source_path.read_bytes().decode("utf-8"),
             metadata.get("parent"),
         )
         if artifact.digest != metadata.get("sha256"):

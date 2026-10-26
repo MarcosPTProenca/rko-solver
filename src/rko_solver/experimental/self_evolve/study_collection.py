@@ -28,6 +28,7 @@ from .problems import Problem
 from .sandbox import JOB_GRACE_SECONDS
 from .sandbox import PodmanRunner
 from .sandbox import SandboxError
+from .sandbox_evidence import WorkerEvidence
 from .study_state import StudyState
 from typing import Any
 
@@ -127,6 +128,7 @@ class StudyCollection(StudyState):
                 result = self._measure(db, runner, job_id, reserve)
                 completed += 1
                 if result["status"] in {"reference_error", "infrastructure_error"}:
+                    runner.qualified = False
                     raise ValueError("Reference/runtime integrity failed; stop the entire study.")
                 if getattr(runner, "needs_restart", False):
                     break
@@ -169,10 +171,8 @@ class StudyCollection(StudyState):
             evidence = runner.run(
                 artifact, problem, mode=mode, seconds=self.spec["seconds"], seed=seed
             )
-            charge = min(
-                reserve, max(evidence["cpu_seconds"], evidence["outer_wall_seconds"] + 0.1)
-            )
             result = self._score(evidence, family, role, entry["optimum"])
+            charge = WorkerEvidence(result).charge(reserve)
         except SandboxError as error:
             charge = reserve
             result = {

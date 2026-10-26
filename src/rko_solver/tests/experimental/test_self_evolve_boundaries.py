@@ -52,7 +52,7 @@ class ExpensiveRunner(FixtureRunner):
             dict[str, Any]: Valid evidence with a high charge.
         """
         result = super().run(artifact, problem, mode=mode, seed=seed, seconds=seconds)
-        return {**result, "cpu_seconds": 100, "outer_wall_seconds": 100}
+        return {**result, "cpu_seconds": 50, "outer_wall_seconds": 50}
 
 
 def test_baseline_budget_stops_before_overspending(tmp_path: Path) -> None:
@@ -68,6 +68,30 @@ def test_baseline_budget_stops_before_overspending(tmp_path: Path) -> None:
     assert not any(e["kind"] == "calibrated" for e in campaign.events())
     with pytest.raises(ValueError, match="Calibrate"):
         campaign.request()
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r", "mixed"])
+@pytest.mark.parametrize("large", [False, True])
+def test_artifact_preserves_exact_source_bytes(tmp_path: Path, newline: str, large: bool) -> None:
+    """Source identities survive export/load without platform newline translation.
+
+    Args:
+        tmp_path (Path): New artifact destination outside the repository.
+        newline (str): Original newline convention, including mixed line endings.
+        large (bool): Whether source bytes approach the maximum artifact size.
+    """
+    padding = "x" * (32000 if large else 1)
+    source = f'def decode(keys, instance):\n    """{padding}"""\n    return []\n'
+    source = (
+        source.replace("\n", "\r\n", 1) if newline == "mixed" else source.replace("\n", newline)
+    )
+    artifact = DecoderArtifact.create("knapsack", source)
+    output = tmp_path / "artifact"
+    artifact.export(output)
+    assert (output / "decoder.py").read_bytes() == source.encode("utf-8")
+    loaded = DecoderArtifact.load(output)
+    assert loaded.source == source
+    assert loaded.digest == artifact.digest
 
 
 def test_exported_evidence_is_hash_bound(tmp_path: Path) -> None:

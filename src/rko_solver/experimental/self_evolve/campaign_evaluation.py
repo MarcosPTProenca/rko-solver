@@ -32,6 +32,7 @@ from rko_solver.experimental.self_evolve.problems import Problem
 from rko_solver.experimental.self_evolve.sandbox import JOB_GRACE_SECONDS
 from rko_solver.experimental.self_evolve.sandbox import PodmanRunner
 from rko_solver.experimental.self_evolve.sandbox import SandboxError
+from rko_solver.experimental.self_evolve.sandbox_evidence import WorkerEvidence
 
 
 @dataclass(frozen=True)
@@ -132,6 +133,7 @@ class CampaignEvaluation:
         self._reference_loss(record, problem.family, entry["optimum"])
         self.append(record)
         if record["status"] in {"infrastructure_error", "reference_error"}:
+            runner.qualified = False
             raise ValueError("Runtime/reference integrity failed; stop the entire campaign.")
         return record
 
@@ -153,7 +155,7 @@ class CampaignEvaluation:
             record = runner.run(
                 job.artifact, problem, mode=job.mode, seed=job.seed, seconds=self.spec["seconds"]
             )
-            charge = min(reserve, max(record["cpu_seconds"], record["outer_wall_seconds"] + 0.1))
+            charge = WorkerEvidence(record).charge(reserve)
         except SandboxError as error:
             record = {
                 "status": "error" if runner.qualified else "infrastructure_error",

@@ -16,6 +16,7 @@ Inputs/Outputs:
 """
 
 import importlib
+import json
 import pytest
 import sqlite3
 import sys
@@ -23,6 +24,7 @@ from pathlib import Path
 from rko_solver.experimental.self_evolve import DecoderArtifact
 from rko_solver.experimental.self_evolve import Problem
 from rko_solver.experimental.self_evolve import study as study_module
+from rko_solver.experimental.self_evolve.campaign import Campaign
 from rko_solver.experimental.self_evolve.sandbox import PodmanRunner
 from rko_solver.experimental.self_evolve.sandbox import SandboxError
 from rko_solver.tests.experimental.test_confirmation_study import create_study
@@ -271,3 +273,92 @@ def test_cleanup_overrun_is_charged_and_blocks_reuse(
     assert study.progress()["session_startup_upper_bound"] == pytest.approx(79.2)
     with pytest.raises(ValueError, match="setup"), study.runtime(approved_spec=study.digest):
         pytest.fail("Cleanup overrun must durably invalidate collection.")
+
+
+@pytest.mark.parametrize("field", ["cpu_seconds", "outer_wall_seconds"])
+@pytest.mark.parametrize("usage", [75.0, 6000.0])
+@pytest.mark.parametrize("completed_before", [0, 71])
+def test_study_overrun_retains_full_charge_and_blocks_resume(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    usage: float,
+    completed_before: int,
+) -> None:
+    """Known cell overruns retain full charges and durably block collection and inference.
+
+    Args:
+        tmp_path (Path): Isolated study journal.
+        monkeypatch (pytest.MonkeyPatch): Controlled trusted runner evidence seam.
+        field (str): Resource field exceeding the per-cell reservation.
+        usage (float): Known consumption, possibly exceeding the entire allocation.
+        completed_before (int): Whether the overrun is the first or last panel cell.
+    """
+    study = create_study(tmp_path / "study")
+    if completed_before:
+        study.run(FixtureRunner(), approved_spec=study.digest, max_jobs=completed_before)
+    previous_charge = study.progress()["charged_cpu_upper_bound"]
+    runner = FixtureRunner()
+    run = runner.run
+    monkeypatch.setattr(
+        runner, "run", lambda *args, **kwargs: {**run(*args, **kwargs), field: usage}
+    )
+    with pytest.raises(ValueError, match="integrity"):
+        study.run(runner, approved_spec=study.digest)
+    assert runner.qualified is False
+    reopened = type(study)(study.path)
+    progress = reopened.progress()
+    expected = previous_charge + usage + (0.1 if field == "outer_wall_seconds" else 0)
+    assert progress["charged_cpu_upper_bound"] == pytest.approx(expected)
+    assert progress["complete"] == completed_before + 1
+    assert progress["pending"] == 71 - completed_before
+    assert progress["inference_available"] is False
+    with sqlite3.connect(study.path / "measurements.sqlite") as db:
+        result = db.execute(
+            "SELECT result FROM jobs WHERE json_extract(result, '$.status')='infrastructure_error'"
+        ).fetchone()[0]
+    record = json.loads(result)
+    assert record["status"] == "infrastructure_error"
+    assert record["error_reason"] == "resource_overrun"
+    assert reopened.report()["status"] == "incomplete_no_inference"
+    with pytest.raises(ValueError, match="integrity"):
+        reopened.run(FixtureRunner(), approved_spec=reopened.digest)
+    assert reopened.progress() == progress
+
+
+@pytest.mark.parametrize("field", ["cpu_seconds", "outer_wall_seconds"])
+@pytest.mark.parametrize("usage", [75.0, 6000.0])
+def test_campaign_overrun_retains_full_charge_and_blocks_resume(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, field: str, usage: float
+) -> None:
+    """Known overruns cannot become successful baseline cells or free resumed work.
+
+    Args:
+        tmp_path (Path): Isolated campaign ledger.
+        monkeypatch (pytest.MonkeyPatch): Controlled trusted runner evidence seam.
+        field (str): Resource field exceeding the per-cell reservation.
+        usage (float): Known consumption, possibly exceeding the entire allocation.
+    """
+    campaign = make_campaign(tmp_path / "campaign")
+    runner = FixtureRunner()
+    run = runner.run
+    monkeypatch.setattr(
+        runner, "run", lambda *args, **kwargs: {**run(*args, **kwargs), field: usage}
+    )
+    with pytest.raises(ValueError, match="integrity"):
+        campaign.calibrate(runner)
+    assert runner.qualified is False
+    reopened = Campaign(campaign.path)
+    events = reopened.events()
+    expected = usage + (0.1 if field == "outer_wall_seconds" else 0)
+    assert sum(event.get("charge", 0) for event in events) == pytest.approx(expected)
+    records = [event for event in events if event["kind"] == "evaluation"]
+    assert len(records) == 1
+    assert records[0]["status"] == "infrastructure_error"
+    assert records[0]["error_reason"] == "resource_overrun"
+    assert not any(event["kind"] == "calibrated" for event in events)
+    with pytest.raises(ValueError, match="integrity"):
+        reopened.calibrate(FixtureRunner())
+    with pytest.raises(ValueError, match="integrity"):
+        reopened.request()
+    assert reopened.events() == events
