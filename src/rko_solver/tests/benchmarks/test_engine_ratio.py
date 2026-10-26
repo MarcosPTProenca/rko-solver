@@ -68,10 +68,10 @@ def test_a_short_measurement_has_the_documented_fields_and_positive_rates() -> N
     assert entry["ratio"] == pytest.approx(entry["rust_per_second"] / entry["python_per_second"])
 
 
-def test_command_line_passes_against_itself_and_fails_against_an_unreachable_reference(
+def test_command_line_gates_the_known_processor_and_only_notices_an_unknown_one(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """The entry point exits 0 within tolerance and 1 when the reference is far higher.
+    """The entry point exits 0 within tolerance, 1 on a regression and 0 with a notice otherwise.
 
     Args:
         tmp_path (Path): Directory for the reference files.
@@ -81,9 +81,29 @@ def test_command_line_passes_against_itself_and_fails_against_an_unreachable_ref
     assert EngineRatio.main(arguments) == 0
     measured = json.loads(capsys.readouterr().out)
     assert set(measured) == {"schema_version", "environment", "algorithms"}
-    easy, hard = tmp_path / "easy.json", tmp_path / "hard.json"
-    easy.write_text(json.dumps({"algorithms": {"SA": {"ratio": 0.001}}}), encoding="utf-8")
-    hard.write_text(json.dumps({"algorithms": {"SA": {"ratio": 1e9}}}), encoding="utf-8")
-    assert EngineRatio.main([*arguments, "--reference", str(easy)]) == 0
-    assert EngineRatio.main([*arguments, "--reference", str(hard)]) == 1
+    cpu = measured["environment"]["cpu_model"]
+
+    def reference(name: str, model: str, ratio: float) -> Path:
+        """Write a reference holding one processor model and one ratio.
+
+        Args:
+            name (str): File name.
+            model (str): Processor model key.
+            ratio (float): Reference ratio for SA.
+
+        Returns:
+            Path: The written file.
+        """
+        path = tmp_path / name
+        content = {"models": {model: {"algorithms": {"SA": {"ratio": ratio}}}}}
+        path.write_text(json.dumps(content), encoding="utf-8")
+        return path
+
+    assert (
+        EngineRatio.main([*arguments, "--reference", str(reference("easy.json", cpu, 0.001))]) == 0
+    )
+    assert EngineRatio.main([*arguments, "--reference", str(reference("hard.json", cpu, 1e9))]) == 1
     assert "REGRESSION SA" in capsys.readouterr().err
+    other = reference("other.json", "some other processor", 1e9)
+    assert EngineRatio.main([*arguments, "--reference", str(other)]) == 0
+    assert "NOTICE no reference for processor" in capsys.readouterr().err

@@ -13,8 +13,8 @@ Technical approach:
 - Each engine is measured several times after a short warm-up and the median rate is kept.
   The ratio of the two medians is machine-independent to first order, which is why a ratio and
   not an absolute rate is compared with a versioned reference.
-- A check fails only when a ratio falls more than the allowed fraction below the reference; a
-  higher ratio is reported but never fails.
+- A check fails only when a ratio falls more than the allowed fraction below the reference for
+  the same processor model; a higher ratio is reported but never fails.
 
 Flow (pseudocode):
 1. Warm both engines up, then measure `repeats` runs per engine and algorithm.
@@ -22,10 +22,11 @@ Flow (pseudocode):
 3. Print and optionally write the JSON report, or compare it with a reference file.
 
 Important criteria:
-- The reference records the machine that produced it; it is produced on the CI runner, not on a
-  development machine, because absolute throughput and cache effects differ between them.
-- The default allowed drop is 30 percent, set from the measured run-to-run spread, which is far
-  smaller.
+- The ratio depends on the processor (a hosted runner pool mixes several), so the reference
+  holds one entry per processor model, produced on CI runners. An unknown model is reported and
+  not gated, instead of being compared with another model's numbers.
+- The default allowed drop is 30 percent. Within one processor model the measured spread was
+  3 to 6 percent; across models it reached 35 percent, which is why the reference is per model.
 - This is a regression gate, not a speed claim; native performance claims need the studies in
   `benchmarks/native_study.py`.
 
@@ -240,17 +241,18 @@ class EngineRatio:
         if args.reference is None:
             return 0
         stored = json.loads(args.reference.read_text(encoding="utf-8"))
-        failures = cls.compare(report["algorithms"], stored["algorithms"], args.max_drop)
-        for message in failures:
-            print(f"REGRESSION {message}", file=sys.stderr)
-        if failures:
-            before = stored.get("environment", {}).get("cpu_model", "unknown")
+        cpu = report["environment"]["cpu_model"]
+        known = stored["models"].get(cpu)
+        if known is None:
             print(
-                f"Reference CPU: {before}. Current CPU: {report['environment']['cpu_model']}. "
-                "A different processor model can move the ratio; regenerate the reference on "
-                "the runner if the hardware changed.",
+                f"NOTICE no reference for processor {cpu!r}; ratios were measured but not "
+                f"gated. Known models: {sorted(stored['models'])}.",
                 file=sys.stderr,
             )
+            return 0
+        failures = cls.compare(report["algorithms"], known["algorithms"], args.max_drop)
+        for message in failures:
+            print(f"REGRESSION {message}", file=sys.stderr)
         return 1 if failures else 0
 
 
