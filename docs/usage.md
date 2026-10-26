@@ -77,7 +77,12 @@ The first three arguments are required in the short form. The others are keyword
 | `trace=None` | Opt-in bounded original-decoder events with `TraceConfig`; see [observed decisions](decision-traces.md) |
 | `hyperparameters=None` | Partial named scalar overrides, requiring `control=0` |
 
-`solve(time_limit)` requires positive finite seconds. Invalid dimensions/settings,
+`solve(time_limit)` requires positive finite seconds, at most one year (31,536,000 s). Other
+upper bounds, checked before any engine starts and with the same message on every engine:
+`auto_time` the same year; `max_evaluations` at most 2^63 - 1; `pool_size` and the population
+sizes `p`, `size_pop` and `p_size` (including every value of an online grid) at most 1,000,000;
+and each of those times the number of keys at most 100,000,000 values (about 800 MB of
+`float64`). They exist to stop absurd or hostile values, not real runs. Invalid dimensions/settings,
 callback serialization and nonfinite costs are rejected, not silently repaired.
 Process worker failures can surface as `RuntimeError` with their original cause;
 startup/execution watchdogs can raise `TimeoutError`. Parameter I/O can raise

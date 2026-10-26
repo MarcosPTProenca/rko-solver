@@ -5,6 +5,10 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ## Unreleased
 
+- Upper bounds on `time_limit`, `auto_time` (one year), `max_evaluations`, `pool_size` and the
+  population sizes, plus a bound on population times dimension, rejected with a `ValueError`
+  before any engine starts. Previously `time_limit=1e300` made the Rust engine panic and a
+  population of 10^12 tried to allocate terabytes.
 - `max_evaluations` (RKO and every single-algorithm solver): stops each algorithm after exactly
   that many completed evaluations on the Python, Rust and C++ engines, with the new search stop
   reason `max_evaluations` and `RKOResult.max_evaluations`. Reproducible only where no

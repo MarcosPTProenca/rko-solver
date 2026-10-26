@@ -25,6 +25,7 @@
 //! - Input: a `Problem`, algorithm `Spec`s and a `Config`.
 //! - Output: `PortfolioResult` with best keys/cost and per-search reports.
 
+pub use crate::config::Config;
 use crate::mh::{Context, Spec};
 use crate::pool::Pool;
 use crate::problem::Problem;
@@ -32,28 +33,6 @@ use crate::rng::{Rng, derive_seed};
 use crate::search::{HistoryPoint, Search, Stop};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
-
-/// Portfolio execution settings.
-#[derive(Clone, Debug)]
-pub struct Config {
-    /// Search seconds shared by all searches.
-    pub time_limit: f64,
-    /// Base seed from which per-search streams are derived.
-    pub seed: u64,
-    /// Elite pool capacity.
-    pub pool_size: usize,
-    /// Worker threads; `None` runs one thread per search.
-    pub threads: Option<usize>,
-    /// Per-search incumbent history cap; zero disables it.
-    pub history_limit: usize,
-    /// Local-search sweep strategy: 1 sequential acceptance, 2 fixed-base best.
-    pub ls_strategy: u8,
-    /// Fill the pool with `pool_size` random evaluated vectors before searches start.
-    pub prefill: bool,
-    /// Completed evaluations after which each search stops; `None` leaves only the time
-    /// limit. It applies to every search separately and not to the prefill.
-    pub max_evaluations: Option<u64>,
-}
 
 /// Work done filling the shared pool before the searches.
 #[derive(Clone, Copy, Debug)]
@@ -154,28 +133,9 @@ pub fn run_portfolio(
             "at least one algorithm is required".to_owned(),
         ));
     }
-    if !(config.time_limit.is_finite() && config.time_limit > 0.0) {
-        return Err(EngineError::Invalid(
-            "time_limit must be positive and finite".to_owned(),
-        ));
-    }
+    config.validate()?;
     for spec in specs {
         spec.validate().map_err(EngineError::Invalid)?;
-    }
-    if !(1..=2).contains(&config.ls_strategy) {
-        return Err(EngineError::Invalid(
-            "ls_strategy must be 1 or 2".to_owned(),
-        ));
-    }
-    if config.pool_size == 0 {
-        return Err(EngineError::Invalid(
-            "pool_size must be positive".to_owned(),
-        ));
-    }
-    if config.max_evaluations == Some(0) {
-        return Err(EngineError::Invalid(
-            "max_evaluations must be positive".to_owned(),
-        ));
     }
     let workers = config.threads.unwrap_or(specs.len()).clamp(1, specs.len());
     let started = Instant::now();
