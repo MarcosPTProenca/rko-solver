@@ -304,7 +304,7 @@ def main() -> None:
     graph_report = OptimizationReport(standalone, decoder_diagram=diagram).to_dict()
     assert graph_report["decoder_diagram"] == diagram.to_dict()
     assert "plotly" not in sys.modules
-    executable = shutil.which("rko-solver")
+    executable = shutil.which("rko-solver", path=str(Path(sys.executable).parent))
     assert executable is not None
     with tempfile.TemporaryDirectory(prefix="rko-installed-cli-") as temporary:
         pipeline = subprocess.run(

@@ -3,10 +3,15 @@
 Candidate entries describe source changes, not proof of an index upload. Published
 versions must be verified against their tag, manifest and package-index metadata.
 
-## 0.3.0a1 — prerelease changes
+## 0.3.0a2 — prerelease changes
 
-First intended prerelease, distributed as `rko-solver` and imported as `rko_solver`.
-See the [release procedure](RELEASING.md).
+First prerelease intended for PyPI, distributed as `rko-solver` and imported as `rko_solver`.
+It contains everything listed below under 0.3.0a1, which was uploaded to TestPyPI only: its
+after-upload check could not find the `rko-solver` command because the installed-index smoke
+script searched the caller's `PATH` instead of the tested environment. The script now looks
+next to the tested interpreter. See the [release procedure](RELEASING.md).
+
+## 0.3.0a1 — TestPyPI only, superseded
 
 - Distribution `rko-solver`, import package `rko_solver`, commands `rko-solver` and
   `rko-solver-service`.
