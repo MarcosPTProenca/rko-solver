@@ -180,6 +180,7 @@ def _worker(
     initialization_random_state: int | None = None,
     history_limit: int = 0,
     trace: TraceConfig | None = None,
+    max_evaluations: int | None = None,
 ) -> None:
     """Run assigned searches sequentially without extending the common deadline.
 
@@ -201,6 +202,7 @@ def _worker(
         initialization_random_state (int | None): Source for the reserved startup stream.
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decoder recording.
+        max_evaluations (int | None): Completed evaluations after which each search stops.
     """
     name = "startup"
     try:
@@ -271,6 +273,7 @@ def _worker(
                     deadline=search_deadline,
                     random_state=streams.seed,
                     history_limit=history_limit,
+                    max_evaluations=max_evaluations,
                 )
             if collect_metadata:
                 assert session.metadata is not None
@@ -315,6 +318,7 @@ def run_processes(
     initialization_metadata: list[PoolInitializationMetadata] | None = None,
     history_limit: int = 0,
     trace: TraceConfig | None = None,
+    max_evaluations: int | None = None,
 ) -> tuple[list[float], float]:
     """Execute a selected portfolio with a common start and managed pool.
 
@@ -335,6 +339,7 @@ def run_processes(
         initialization_metadata (list | None): Separate opt-in startup report collector.
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decoder recording.
+        max_evaluations (int | None): Completed evaluations after which each search stops.
 
     Returns:
         tuple[list[float], float]: Best keys and minimization objective.
@@ -406,6 +411,7 @@ def run_processes(
                         random_state,
                         history_limit,
                         trace,
+                        max_evaluations,
                     ),
                 )
                 processes.append(process)

@@ -3,6 +3,13 @@
 Candidate entries describe source changes, not proof of an index upload. Published
 versions must be verified against their tag, manifest and package-index metadata.
 
+## Unreleased
+
+- `max_evaluations` (RKO and every single-algorithm solver): stops each algorithm after exactly
+  that many completed evaluations on the Python, Rust and C++ engines, with the new search stop
+  reason `max_evaluations` and `RKOResult.max_evaluations`. Reproducible only where no
+  concurrent pool exchange exists; see the usage guide.
+
 ## 0.3.0a2 — prerelease changes
 
 First prerelease intended for PyPI, distributed as `rko-solver` and imported as `rko_solver`.

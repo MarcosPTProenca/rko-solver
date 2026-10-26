@@ -42,6 +42,7 @@ def run_metaheuristics_parallel(
     search_metadata: list[SearchMetadata] | None = None,
     history_limit: int = 0,
     trace: TraceConfig | None = None,
+    max_evaluations: int | None = None,
 ) -> list[RunResult]:
     """Run thread searches with callback-budget and failure cancellation checks.
 
@@ -52,6 +53,7 @@ def run_metaheuristics_parallel(
         search_metadata (list[SearchMetadata] | None): Optional completed report collector.
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decision recorder.
+        max_evaluations (int | None): Completed evaluations after which each search stops.
 
     Returns:
         list[RunResult]: Search outcomes in portfolio order.
@@ -88,6 +90,7 @@ def run_metaheuristics_parallel(
                     cancelled=cancelled,
                     random_state=streams[index].seed,
                     history_limit=history_limit,
+                    max_evaluations=max_evaluations,
                 )
                 reports[index] = session.metadata
         except BaseException as exc:

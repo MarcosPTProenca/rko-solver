@@ -101,6 +101,8 @@ problem means implementing the `Problem` trait in `engines/rust/rko-core` (optio
   threads than algorithms each worker splits its remaining time among its searches.
 - Seeds make a single-worker run reproducible only up to timing, as in every engine.
   Random streams are the engine's own, so trajectories differ from the Python engine.
+- `max_evaluations=N` stops each search after exactly `N` completed evaluations (block
+  objectives score only the rows that fit before reporting the stop); the time limit still applies.
 - `prefill_pool=True` fills the pool with `pool_size` random evaluated vectors first and
   reports it as `PoolInitializationMetadata`; the default stays off.
 - Nelder-Mead takes its two pool vertices from the best pool entries for SA, GA, LNS, PSO
@@ -157,6 +159,10 @@ Differences from the Rust engine, all imposed by the reference code:
 - IPR needs at least 10 keys: the reference computes its block size as `dimension / 10` and
   crashes the process with a division by zero below that, so the wrapper rejects it first.
 - Runs are serialized inside a process (the reference keeps its elite pool in a global).
+- `max_evaluations` is enforced by the driver without touching the reference headers: the stop
+  flag they poll also reports a per-thread limit, and the first objective call after the limit
+  throws a private exception that ends that algorithm (the reference's IPR polls only its own
+  timer). Counts are exact, and algorithms that reach their limit stop while the others go on.
 - Scalar history and trajectory telemetry are not recorded, and every search reports the shared engine seed; the reference
   also draws part of its local-search neighborhood from an unseeded `rand()`, so equal
   `random_state` values do not give equal results.

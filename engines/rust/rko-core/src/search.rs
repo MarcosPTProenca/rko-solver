@@ -1,19 +1,22 @@
 //! Budgeted evaluation wrapper shared by every metaheuristic.
 //!
 //! Objective:
-//! - Apply deadline, cancellation, finite-cost validation and incumbent retention at
-//!   the single boundary every operator uses to score a candidate.
+//! - Apply deadline, evaluation limit, cancellation, finite-cost validation and incumbent
+//!   retention at the single boundary every operator uses to score a candidate.
 //!
 //! Technical approach:
 //! - `Search::eval` counts completed evaluations, retains the best completed
 //!   candidate and aborts with `Stop` once the budget is exhausted.
+//! - An optional evaluation limit is exact: no evaluation beyond it is ever performed or
+//!   counted, and a block call scores only the rows that fit before reporting the stop.
 //! - Wall-clock reads are amortized over `check_stride` evaluations; the cancel flag
 //!   is an atomic relaxed load on every call.
 //! - Scalar incumbent samples are optionally retained in a bounded, deterministically
 //!   compacted history for later reporting.
 //!
 //! Flow (pseudocode):
-//! 1. Reject the call if cancelled or, after the first valid result, past deadline.
+//! 1. Reject the call if cancelled, at the evaluation limit or, after the first valid result,
+//!    past deadline.
 //! 2. Score the keys and reject non-finite costs.
 //! 3. Update the evaluation counter, incumbent and history.
 //!
@@ -34,6 +37,8 @@ use std::time::{Duration, Instant};
 pub enum Stop {
     /// The wall-clock budget elapsed.
     TimeLimit,
+    /// The configured number of evaluations was reached.
+    MaxEvaluations,
     /// A peer failed or the caller requested cancellation.
     Cancelled,
     /// The objective returned a non-finite value.
@@ -46,6 +51,7 @@ impl Stop {
     pub fn label(self) -> &'static str {
         match self {
             Self::TimeLimit => "time_limit",
+            Self::MaxEvaluations => "max_evaluations",
             Self::Cancelled => "cancelled",
             Self::InvalidCost => "invalid_cost",
         }
@@ -72,6 +78,7 @@ pub struct Search<'a> {
     stride: u32,
     tick: u32,
     evaluations: u64,
+    max_evaluations: u64,
     best_cost: f64,
     best_keys: Vec<f64>,
     history_limit: usize,
@@ -98,6 +105,7 @@ impl<'a> Search<'a> {
             stride: problem.check_stride().max(1),
             tick: 0,
             evaluations: 0,
+            max_evaluations: u64::MAX,
             best_cost: f64::INFINITY,
             best_keys: Vec::new(),
             history_limit,
@@ -105,6 +113,13 @@ impl<'a> Search<'a> {
             history_observations: 0,
             incremental: None,
         }
+    }
+
+    /// Caps the completed evaluations of this search at `limit` (at least one).
+    #[must_use]
+    pub fn with_max_evaluations(mut self, limit: u64) -> Self {
+        self.max_evaluations = limit.max(1);
+        self
     }
 
     /// Number of keys in the underlying problem.
@@ -153,6 +168,9 @@ impl<'a> Search<'a> {
         if self.cancel.load(Ordering::Relaxed) {
             return Err(Stop::Cancelled);
         }
+        if self.evaluations >= self.max_evaluations {
+            return Err(Stop::MaxEvaluations);
+        }
         if self.best_cost.is_finite() && Instant::now() >= self.deadline {
             return Err(Stop::TimeLimit);
         }
@@ -164,6 +182,9 @@ impl<'a> Search<'a> {
     pub fn eval(&mut self, keys: &[f64]) -> Result<f64, Stop> {
         if self.cancel.load(Ordering::Relaxed) {
             return Err(Stop::Cancelled);
+        }
+        if self.evaluations >= self.max_evaluations {
+            return Err(Stop::MaxEvaluations);
         }
         self.tick += 1;
         if self.tick >= self.stride {
@@ -199,7 +220,9 @@ impl<'a> Search<'a> {
     ///
     /// The deadline and cancellation are checked once before the block, so a block is
     /// never interrupted; callers keep blocks within `batch_size`. Every row counts as
-    /// one completed evaluation and the best row updates the incumbent.
+    /// one completed evaluation and the best row updates the incumbent. When fewer rows
+    /// remain under the evaluation limit than the block holds, only that prefix is scored
+    /// (and counted) before `Stop::MaxEvaluations` is returned.
     pub fn eval_batch(&mut self, keys: &[f64], out: &mut [f64]) -> Result<(), Stop> {
         let width = self.problem.dimension();
         debug_assert_eq!(keys.len(), out.len() * width);
@@ -209,9 +232,20 @@ impl<'a> Search<'a> {
         if self.cancel.load(Ordering::Relaxed) {
             return Err(Stop::Cancelled);
         }
+        let remaining = self.max_evaluations.saturating_sub(self.evaluations);
+        if remaining == 0 {
+            return Err(Stop::MaxEvaluations);
+        }
         if self.best_cost.is_finite() && Instant::now() >= self.deadline {
             return Err(Stop::TimeLimit);
         }
+        let truncated = remaining < out.len() as u64;
+        let rows = if truncated {
+            remaining as usize
+        } else {
+            out.len()
+        };
+        let (keys, out) = (&keys[..rows * width], &mut out[..rows]);
         self.problem.evaluate_batch(keys, out);
         if out.iter().any(|value| !value.is_finite()) {
             return Err(Stop::InvalidCost);
@@ -231,6 +265,9 @@ impl<'a> Search<'a> {
             if self.history_limit > 0 {
                 self.record_history();
             }
+        }
+        if truncated {
+            return Err(Stop::MaxEvaluations);
         }
         Ok(())
     }
@@ -281,6 +318,9 @@ impl<'a> Search<'a> {
     pub fn probe(&mut self, keys: &mut [f64], changes: &[(usize, f64)]) -> Result<f64, Stop> {
         if self.cancel.load(Ordering::Relaxed) {
             return Err(Stop::Cancelled);
+        }
+        if self.evaluations >= self.max_evaluations {
+            return Err(Stop::MaxEvaluations);
         }
         self.tick += 1;
         if self.tick >= self.stride {
@@ -466,6 +506,64 @@ mod tests {
             );
             assert_eq!(search.evaluations(), 3);
         }
+    }
+
+    #[test]
+    fn evaluation_limit_is_exact_for_eval_probe_and_check() {
+        let problem = fixture();
+        let cancel = AtomicBool::new(false);
+        let now = Instant::now();
+        let mut search = Search::new(&problem, &cancel, now, now + Duration::from_secs(5), 0)
+            .with_max_evaluations(3);
+        let mut keys = vec![0.9, 0.9, 0.1];
+        assert!(search.eval(&keys).is_ok());
+        assert!(search.probe(&mut keys, &[(2, 0.8)]).is_ok());
+        assert!(search.check().is_ok());
+        assert!(search.eval(&keys).is_ok());
+        assert_eq!(search.check(), Err(Stop::MaxEvaluations));
+        assert_eq!(search.eval(&keys), Err(Stop::MaxEvaluations));
+        assert_eq!(search.probe(&mut keys, &[]), Err(Stop::MaxEvaluations));
+        assert_eq!(search.evaluations(), 3);
+        assert_eq!(Stop::MaxEvaluations.label(), "max_evaluations");
+    }
+
+    #[test]
+    fn a_zero_limit_is_raised_to_one_and_cancellation_wins() {
+        let problem = fixture();
+        let cancel = AtomicBool::new(false);
+        let now = Instant::now();
+        let mut search = Search::new(&problem, &cancel, now, now + Duration::from_secs(5), 0)
+            .with_max_evaluations(0);
+        assert!(search.eval(&[0.9, 0.1, 0.1]).is_ok());
+        assert_eq!(search.eval(&[0.9, 0.1, 0.1]), Err(Stop::MaxEvaluations));
+        cancel.store(true, Ordering::Relaxed);
+        assert_eq!(search.eval(&[0.9, 0.1, 0.1]), Err(Stop::Cancelled));
+    }
+
+    #[test]
+    fn a_block_is_truncated_at_the_limit_and_reports_the_stop() {
+        use crate::problem::test_support::BatchKnapsack;
+        let problem = BatchKnapsack::new(fixture(), 4);
+        let cancel = AtomicBool::new(false);
+        let now = Instant::now();
+        let mut search = Search::new(&problem, &cancel, now, now + Duration::from_secs(5), 0)
+            .with_max_evaluations(6);
+        let rows = [0.9, 0.1, 0.1, 0.9, 0.9, 0.1, 0.1, 0.1, 0.1, 0.1, 0.9, 0.9];
+        let mut out = [0.0; 4];
+        assert!(search.eval_batch(&rows, &mut out).is_ok());
+        assert_eq!(search.evaluations(), 4);
+        assert_eq!(
+            search.eval_batch(&rows, &mut out),
+            Err(Stop::MaxEvaluations)
+        );
+        assert_eq!(search.evaluations(), 6);
+        assert_eq!(out[..2], [-10.0, -30.0]);
+        assert_eq!(
+            search.eval_batch(&rows, &mut out),
+            Err(Stop::MaxEvaluations)
+        );
+        assert_eq!(search.evaluations(), 6);
+        assert_eq!(search.best_cost(), -30.0);
     }
 
     #[test]

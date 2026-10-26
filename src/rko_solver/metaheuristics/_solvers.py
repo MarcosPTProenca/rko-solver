@@ -80,6 +80,7 @@ class _SingleAlgorithmSolver(RKO):
         hyperparameters: Hyperparameters | None = None,
         history_limit: int = 0,
         trace: TraceConfig | None = None,
+        max_evaluations: int | None = None,
     ) -> None:
         """Store the same settings as RKO with a fixed single-algorithm selection.
 
@@ -106,6 +107,7 @@ class _SingleAlgorithmSolver(RKO):
                 mapping as RKO; fixed adaptation is required for scalar overrides.
             history_limit (int): Per-search scalar history cap; zero disables recording.
             trace (TraceConfig | None): Opt-in bounded original-decoder decisions.
+            max_evaluations (int | None): Per-algorithm evaluation limit, as for RKO.
         """
         engine, execution = EngineSelection.request(engine, execution, backend, stacklevel=3)
         super().__init__(
@@ -129,6 +131,7 @@ class _SingleAlgorithmSolver(RKO):
             hyperparameters=hyperparameters,
             history_limit=history_limit,
             trace=trace,
+            max_evaluations=max_evaluations,
         )
 
     @property

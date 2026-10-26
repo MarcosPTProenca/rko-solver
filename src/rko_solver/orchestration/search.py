@@ -4,23 +4,27 @@ Objective:
 - Bound nested search work and preserve the best evaluated candidate on stopping.
 
 Technical approach:
-- Carry a monotonic deadline through the callbacks already passed to every operator.
+- Carry a monotonic deadline and an optional evaluation limit through the callbacks already
+  passed to every operator.
 - Pair decoded payloads with copied keys without changing user callback payloads.
 - Optionally retain bounded scalar incumbent samples, never candidate histories.
 - Stop between callbacks and retain completed evaluations, including initialization.
 
 Flow (pseudocode):
 1. Bind a fresh session to one algorithm's decoder and objective.
-2. Check deadline/cancellation before each callback after the first valid result.
+2. Check deadline, evaluation limit and cancellation before each callback after the first
+   valid result.
 3. Catch internal budget exhaustion and return the best completed candidate.
 
 Important criteria:
 - User callbacks remain trusted and cannot be interrupted while executing.
 - A first evaluation is permitted even if initialization consumed the budget.
+- The evaluation limit is exact: no objective call is made once `n_evaluations` reaches it.
 - Sessions are private to one sequential search, never shared between workers.
 
 Inputs/Outputs:
-- Input: algorithm, positive duration, optional absolute deadline/cancellation event.
+- Input: algorithm, positive duration, optional absolute deadline, evaluation limit and
+  cancellation event.
 - Output: incumbent-preserving algorithm result or the original callback exception.
 """
 
@@ -84,6 +88,7 @@ class SearchSession:
         cost (CostFn): Original objective callback.
         deadline (float): Absolute monotonic stop time.
         cancelled (threading.Event | None): Optional portfolio failure signal.
+        max_evaluations (int | None): Completed evaluations after which the search stops.
         best (tuple[np.ndarray, float] | None): Detached best completed evaluation.
         n_evaluations (int): Completed finite objective evaluations in this search.
         metadata (SearchMetadata | None): Immutable report after a successful search.
@@ -111,6 +116,7 @@ class SearchSession:
         self.cost = cost
         self.deadline = math.inf
         self.cancelled: threading.Event | None = None
+        self.max_evaluations: int | None = None
         self.best: tuple[np.ndarray, float] | None = None
         self.n_evaluations = 0
         self.metadata: SearchMetadata | None = None
@@ -137,10 +143,13 @@ class SearchSession:
         """Stop after a valid result exists or when another worker failed.
 
         Raises:
-            _BudgetExpired: If cancellation or the callback deadline is reached.
+            _BudgetExpired: If cancellation, the evaluation limit or the deadline is reached.
         """
         if self.cancelled is not None and self.cancelled.is_set():
             self._stop_reason = "cancelled"
+            raise _BudgetExpired
+        if self.max_evaluations is not None and self.n_evaluations >= self.max_evaluations:
+            self._stop_reason = "max_evaluations"
             raise _BudgetExpired
         if self.best is not None and time.perf_counter() >= self.deadline:
             self._stop_reason = "time_limit"
@@ -214,6 +223,7 @@ class SearchSession:
         cancelled: threading.Event | None = None,
         random_state: int | None = None,
         history_limit: int = 0,
+        max_evaluations: int | None = None,
     ) -> RunResult:
         """Execute an algorithm using budget-aware callbacks and preserve its incumbent.
 
@@ -224,19 +234,24 @@ class SearchSession:
             cancelled (threading.Event | None): Shared peer-failure signal.
             random_state (int | None): Actual assigned seed for this search report.
             history_limit (int): Per-search scalar sample cap, zero disables capture.
+            max_evaluations (int | None): Positive completed-evaluation limit, or None.
 
         Returns:
             RunResult: Extras, best evaluated keys and objective; an unevaluated
                 cancelled peer has empty keys and infinite cost.
 
         Raises:
-            ValueError: If the requested history cap is not zero or between 2 and 10000.
+            ValueError: If the history cap or the evaluation limit is invalid.
             Exception: Original decoder, objective or algorithm failure is propagated.
         """
         if type(history_limit) is not int or (
             history_limit != 0 and not 2 <= history_limit <= 10000
         ):
             raise ValueError("history_limit must be 0 or an integer from 2 to 10000.")
+        if max_evaluations is not None and (
+            type(max_evaluations) is not int or max_evaluations < 1
+        ):
+            raise ValueError("max_evaluations must be a positive integer or None.")
         if self._trace_config is not None:
             self._trace_store = _TraceStore(self._trace_config, algorithm.name)
         started = time.perf_counter()
@@ -250,6 +265,7 @@ class SearchSession:
         self._stop_reason = "completed"
         self.deadline = started + duration if deadline is None else deadline
         self.cancelled = cancelled
+        self.max_evaluations = max_evaluations
         original_decoder, original_cost = algorithm.decoder, algorithm.cost
         original_cancelled = algorithm._cancelled
         algorithm.decoder, algorithm.cost = self.decode, self.evaluate

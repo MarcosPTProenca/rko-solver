@@ -72,6 +72,7 @@ The first three arguments are required in the short form. The others are keyword
 | `n_jobs=None` | Process or Rust worker cap; process default uses discovered CPU capacity, Rust default one thread per algorithm |
 | `random_state=None` | Nonnegative library seed, or fresh assigned seeds |
 | `verbose=False` | Opt-in lifecycle/shared-pool progress to stdout |
+| `max_evaluations=None` | Positive number of completed evaluations after which **each** algorithm stops, in every engine; see [evaluation limit](#evaluation-limit-and-reproducibility) |
 | `history_limit=0` | Opt-in per-search scalar history cap, 2–10000; see [interactive reports](reporting.md) |
 | `trace=None` | Opt-in bounded original-decoder events with `TraceConfig`; see [observed decisions](decision-traces.md) |
 | `hyperparameters=None` | Partial named scalar overrides, requiring `control=0` |
@@ -294,12 +295,14 @@ fields. Legacy manually constructed six-argument results have unknown accounting
 unchanged.
 
 Search reasons are `completed` (returned before its deadline, **not** a convergence
-claim), `time_limit` (deadline stopping or deadline elapsed by return), `cancelled`
+claim), `time_limit` (deadline stopping or deadline elapsed by return), `max_evaluations`
+(the [evaluation limit](#evaluation-limit-and-reproducibility) was reached), `cancelled`
 (peer-failure signal), and `not_started` (queued search had no remaining budget;
 its assigned `time_limit` is zero). Process search limits are actual allocations
 computed at dispatch, not equal fixed fractions or the requested portfolio budget.
 The portfolio reason is `time_limit` if any search used its budget or could not
-start; detailed reports preserve the distinction. Unstarted entries retain their
+start, otherwise `max_evaluations` if any search reached its limit; detailed reports
+preserve the distinction. Unstarted entries retain their
 nominal slice but have zero evaluations and zero elapsed search time. Cancelled peers normally belong
 to a failed portfolio, which raises instead of returning a result. Session elapsed
 time excludes startup and queueing; `result.elapsed_seconds` remains end-to-end.
@@ -309,6 +312,32 @@ replay artifact: callback/data identities, development commit hashes, callback R
 state, adaptive trajectories and cooperative scheduling are not captured. Owned
 seeds do not promise identical timed portfolio results. Callback overruns can still
 exceed a reported budget.
+
+### Evaluation limit and reproducibility
+
+`max_evaluations=N` stops **each** algorithm after exactly `N` completed objective
+evaluations, on the Python, Rust and C++ engines alike; `time_limit` still applies and
+whichever comes first ends the search (`search.stop_reason` says which). It does not count
+the opt-in pool prefill, which is reported separately, and the C++ reference's own
+mandatory 10-vector prefill is likewise reported only under `result.initialization`.
+Because it does not depend on machine speed, it is the way to compare engines, write
+regression tests or repeat a run.
+
+```python
+result = RKO(decode, cost, n_variables, execution="sequential", max_evaluations=5000,
+             random_state=42).solve(time_limit=60.0)
+assert {s.n_evaluations for s in result.searches} == {5000}
+```
+
+Measured on a 60-item Knapsack with the default portfolio and a generous time limit, every
+search ended at exactly the limit in all five configurations (Python sequential, thread and
+process, Rust and C++), with block objectives truncated at the limit instead of overshooting
+it. Two runs with the same `random_state` returned identical keys, costs and counters for
+Python **sequential**, Python **process with `n_jobs=1`** and Rust with one worker (the default
+for Python callbacks and block objectives); they differed for Python **thread**, for several
+concurrent Rust threads and for **C++**, where algorithms exchange elites concurrently or
+(C++) draw part of the descent from an unseeded generator. The limit is exact for every
+configuration; only reproducibility depends on the worker setup.
 
 ### Adapting a custom problem
 

@@ -128,6 +128,7 @@ class OptimizationReport:
                 "elapsed_seconds": result.elapsed_seconds,
                 "n_evaluations": result.n_evaluations,
                 "stop_reason": result.stop_reason,
+                "max_evaluations": result.max_evaluations,
                 "pool_size": result.pool_size,
                 "n_jobs": result.n_jobs,
                 "n_workers": result.n_workers,
