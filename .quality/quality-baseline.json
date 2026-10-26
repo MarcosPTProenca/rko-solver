@@ -4,10 +4,10 @@
     "benchmarks/native_problem_study.py": 842,
     "benchmarks/native_report.py": 1185,
     "benchmarks/native_study.py": 717,
-    "engines/rust/rko-core/src/engine.rs": 699,
+    "engines/rust/rko-core/src/engine.rs": 659,
     "engines/rust/rko-core/src/local_search.rs": 605,
     "src/rko_solver/reporting.py": 674,
-    "src/rko_solver/solver.py": 857,
+    "src/rko_solver/solver.py": 844,
     "tools/release.py": 751
   },
   "functions": {
@@ -204,8 +204,8 @@
       "nloc": 134
     },
     "engines/rust/rko-core/src/engine.rs::run_portfolio": {
-      "cyclomatic_complexity": 27,
-      "nloc": 180
+      "cyclomatic_complexity": 23,
+      "nloc": 161
     },
     "engines/rust/rko-core/src/engine.rs::small_spec": {
       "cyclomatic_complexity": 11
@@ -501,8 +501,8 @@
       "parameter_count": 8
     },
     "src/rko_solver/solver.py::RKO.solve": {
-      "cyclomatic_complexity": 52,
-      "nloc": 138
+      "cyclomatic_complexity": 42,
+      "nloc": 126
     },
     "src/rko_solver/tracing.py::DecisionTrace.__post_init__": {
       "cyclomatic_complexity": 40

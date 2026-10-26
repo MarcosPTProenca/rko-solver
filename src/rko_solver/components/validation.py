@@ -22,6 +22,7 @@ Inputs/Outputs:
 """
 
 import math
+from ..orchestration.limits import RunLimits
 from ..parameters.loader import _NAME_TO_FILE
 from ..parameters.loader import _ONLINE_AXES
 from collections.abc import Callable
@@ -86,6 +87,7 @@ class ParameterValidator:
             if type(values[key]) is not int:
                 raise ValueError(f"{name}: offline '{key}' must be an integer.")
         cls._values(name, values)
+        cls._allocation(name, values, dimension)
         if control == 1:
             grid = algorithm.parameters
             if (
@@ -96,6 +98,7 @@ class ParameterValidator:
                 raise ValueError(f"{name}: parameters must contain nonempty axes {axes}.")
             for state in product(*grid):
                 cls._values(name, values | dict(zip(axes, state, strict=True)), check_joint=False)
+            cls._allocation(name, dict(zip(axes, map(max, grid), strict=True)), dimension)
 
             def feasible(state: list[float]) -> bool:
                 """Check a joint state without changing its parameter meanings.
@@ -116,6 +119,23 @@ class ParameterValidator:
                 raise ValueError(f"{name}: online parameters contain no feasible states.")
             return feasible
         return None
+
+    @staticmethod
+    def _allocation(name: str, values: dict[str, object], dimension: int) -> None:
+        """Bound the population-like values and the memory their key vectors need.
+
+        Args:
+            name (str): Canonical algorithm identifier.
+            values (dict[str, object]): Named parameter values, possibly non-numeric.
+            dimension (int): Number of random keys.
+
+        Raises:
+            ValueError: If a population-like value exceeds the allocation bounds.
+        """
+        for key in RunLimits.POPULATION_KEYS & values.keys():
+            value = values[key]
+            if isinstance(value, Real) and not isinstance(value, bool) and math.isfinite(value):
+                RunLimits.allocation(f"{name}.{key}", float(value), dimension)
 
     @classmethod
     def _values(

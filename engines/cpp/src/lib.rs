@@ -78,6 +78,7 @@ pub fn run_portfolio(
     for spec in specs {
         spec.validate().map_err(EngineError::Invalid)?;
     }
+    config.validate()?;
     if !(config.time_limit.is_finite() && config.time_limit >= 0.05) {
         return Err(EngineError::Invalid(
             "the C++ engine needs a time_limit of at least 0.05 seconds".to_owned(),
@@ -92,11 +93,6 @@ pub fn run_portfolio(
     if config.pool_size < 2 {
         return Err(EngineError::Invalid(
             "the C++ engine needs pool_size of at least 2".to_owned(),
-        ));
-    }
-    if config.max_evaluations == Some(0) {
-        return Err(EngineError::Invalid(
-            "max_evaluations must be positive".to_owned(),
         ));
     }
     if problem.dimension() < 10 && specs.iter().any(|spec| spec.algorithm == Algorithm::Ipr) {

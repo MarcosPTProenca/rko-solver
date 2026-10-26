@@ -27,7 +27,6 @@ Inputs/Outputs:
 from __future__ import annotations
 
 import copy
-import math
 import numpy as np
 import os
 import platform
@@ -52,6 +51,7 @@ from .orchestration.execution import select_best_result
 from .orchestration.factory import build_metaheuristic
 from .orchestration.factory import normalize_hyperparameters
 from .orchestration.initialization import initialize_pool
+from .orchestration.limits import RunLimits
 from .orchestration.processes import run_processes
 from .orchestration.search import SearchSession
 from .orchestration.types import CostFn
@@ -72,7 +72,6 @@ from dataclasses import dataclass
 from dataclasses import replace
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version
-from numbers import Real
 from pathlib import Path
 from typing import Literal
 
@@ -488,23 +487,14 @@ class RKO:
         started = time.perf_counter()
         if type(self.n_variables) is not int or self.n_variables <= 0:
             raise ValueError("'n_variables' must be a positive integer.")
-        if (
-            isinstance(time_limit, bool)
-            or not isinstance(time_limit, Real)
-            or not math.isfinite(time_limit)
-            or time_limit <= 0
-        ):
-            raise ValueError("'time_limit' must be positive and finite.")
+        RunLimits.seconds("time_limit", time_limit)
         if type(self.history_limit) is not int or (
             self.history_limit != 0 and not 2 <= self.history_limit <= 10000
         ):
             raise ValueError("'history_limit' must be 0 (disabled) or an integer from 2 to 10000.")
         if self.trace is not None and not isinstance(self.trace, TraceConfig):
             raise ValueError("'trace' must be TraceConfig or None.")
-        if self.max_evaluations is not None and (
-            type(self.max_evaluations) is not int or self.max_evaluations < 1
-        ):
-            raise ValueError("'max_evaluations' must be a positive integer or None.")
+        RunLimits.evaluations(self.max_evaluations)
         if type(self.verbose) is not bool:
             raise ValueError("'verbose' must be a boolean.")
         execution = EngineSelection.validate(self.engine, self.execution)
@@ -513,13 +503,8 @@ class RKO:
                 f"{type(self._native_problem).__name__} runs only on the compiled engines; "
                 "use engine='rust', 'cpp' or 'auto'."
             )
-        if self.auto_time is not None and (
-            isinstance(self.auto_time, bool)
-            or not isinstance(self.auto_time, Real)
-            or not math.isfinite(self.auto_time)
-            or self.auto_time <= 0
-        ):
-            raise ValueError("'auto_time' must be positive and finite, or None.")
+        if self.auto_time is not None:
+            RunLimits.seconds("auto_time", self.auto_time)
         if not callable(self.decoder) or not callable(self.cost):
             raise ValueError("'decoder' and 'cost' must be callable.")
         if self.random_state is not None and (
@@ -536,7 +521,8 @@ class RKO:
         if self.engine == "auto":
             return self._solve_auto(time_limit, started)
         raw = load_config(self.params_dir)
-        if not isinstance(raw.get("run"), dict):
+        run_section = raw.get("run")
+        if not isinstance(run_section, dict):
             raise ValueError("Configuration section 'run' must be a table.")
         if self.algorithms is not None:
             if isinstance(self.algorithms, (str, bytes)) or not isinstance(
@@ -546,15 +532,16 @@ class RKO:
             raw["active_metaheuristics"] = {"list": list(self.algorithms)}
         control = normalize_adaptation(self.adaptation, self.control)
         if control is not None:
-            raw["run"].pop("adaptation", None)
-        for key, value in (
+            run_section.pop("adaptation", None)
+        for key, setting in (
             ("control", control),
             ("pool_size", self.pool_size),
             ("prefill_pool", self.prefill_pool),
         ):
-            if value is not None:
-                raw["run"][key] = value
+            if setting is not None:
+                run_section[key] = setting
         config = parse_run_config(raw)
+        RunLimits.allocation("pool_size", config.pool_size, self.n_variables)
         hyperparameters = normalize_hyperparameters(
             self.hyperparameters, config.active_metaheuristics, config.control
         )
