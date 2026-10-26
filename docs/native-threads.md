@@ -29,6 +29,7 @@ explicit environment rather than changing a live application's native pools.
 This template preserves the caller's environment; replace `your_solver_module`
 with your application's guarded module:
 
+<!-- doc-test: skip launcher template for the reader's own your_solver_module -->
 ```python
 import os
 import subprocess

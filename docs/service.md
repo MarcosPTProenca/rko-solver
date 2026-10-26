@@ -52,6 +52,7 @@ this schema/binding with your own trusted reader/construction logic and callback
 
 The optional service wiring is:
 
+<!-- doc-test: skip needs the generated service project with its adapter module and the service extra -->
 ```python
 import os
 from adapter import InstanceInput

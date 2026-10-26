@@ -247,6 +247,7 @@ unchanged. Replace only the solver block inside `main`.
 
 **Through the main RKO API**, select one algorithm:
 
+<!-- doc-test: skip fragment that replaces the solver block inside main() of the first program, whose names are local to main -->
 ```python
 solver = RKO(
     decoder=decode, cost=cost, n_variables=data["lower"].size,
@@ -259,6 +260,7 @@ result = solver.solve(time_limit=1.0)
 **Through the direct algorithm API**, import `SA` from `rko_solver.metaheuristics`
 alongside the other imports, then use:
 
+<!-- doc-test: skip fragment that replaces the solver block inside main() of the first program, whose names are local to main -->
 ```python
 solver = SA(
     decoder=decode, cost=cost, n_variables=data["lower"].size,
@@ -335,6 +337,7 @@ To plot convergence, add `history_limit=1000` to the solve call above. Import
 `OptimizationReport` from `rko_solver.reporting` alongside your other imports, then add
 this after assessment inside `main`:
 
+<!-- doc-test: skip uses result and assessment, which are local to main() of the first program -->
 ```python
 report = OptimizationReport(result, assessment=assessment)
 report.write_html("run.html")

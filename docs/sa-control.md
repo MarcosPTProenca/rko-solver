@@ -13,13 +13,15 @@ candidate-trace regression. Standalone `SA(...)` still defaults to control zero.
 No new runtime dependency or global native/RNG setting is introduced.
 
 ```python
+from rko_solver import RKO
+
 solver = RKO(decoder, objective, dimension, algorithms=["SA"], control=1,
              random_state=42)
 result = solver.solve(30.0)
 print(result.searches[0].control, result.searches[0].parameter_grid)
 ```
 
-This assumes the usual imported `RKO` and your own decoder/objective/dimension.
+This assumes your own decoder, objective and dimension.
 As with other adaptive algorithms, grids remain configured through named TOML
 axes; nonempty programmatic scalar overrides still require `control=0`.
 
