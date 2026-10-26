@@ -35,10 +35,21 @@ cargo clippy --workspace --all-targets --release -- -D warnings
 cargo test --release
 uv run --locked ruff check .
 uv run --locked ruff format --check .
+uv run --locked python tools/quality_gate.py
+uv run --locked vulture
+cargo deny check
 uv run --locked pytest src/rko_solver/tests -q
 uv run --locked pre-commit run --all-files
 uv build
 ```
+
+The quality gate keeps files under 600 lines and functions under complexity 10, 100 lines and
+6 parameters (Python and Rust, tests excluded), forbids explanatory comments inside functions and
+stops `mypy` errors from growing per file. Code that predates these limits is recorded in
+`.quality/*.json`: it may stay but never get worse, and a new violation always fails. After
+improving a recorded function, run `uv run python tools/quality_gate.py --tighten` and commit
+the smaller baseline. Do not regenerate the baselines with `--write-baseline` to make a failure
+pass; refactor instead. `--skip-types` runs the fast subset used by the pre-commit hook.
 
 [CI](.github/workflows/ci.yml) checks Ubuntu/Windows, benchmark diagnostics, and
 isolated wheel/sdist installations using `tools/smoke_installed.py`. A source-tree
