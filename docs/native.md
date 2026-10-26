@@ -26,6 +26,9 @@ controlled comparison):
 **Python callbacks (compatible).** The decoder and objective you already have:
 
 ```python
+import rko_solver
+from rko_solver import RKO
+
 result = RKO(
     rko_solver.Callbacks(decoder, cost, n_variables), engine="rust", random_state=42
 ).solve(10.0)
@@ -40,6 +43,9 @@ interpreter lock, so worker threads take turns: the engine removes its own overh
 returns one finite cost per row (a NumPy array or a list):
 
 ```python
+import numpy as np
+
+
 def batch_objective(keys):
     chosen = keys > 0.5
     return 100000.0 * np.maximum(0.0, chosen @ weights - capacity) - chosen @ profits
@@ -61,6 +67,7 @@ interrupted. The Python engine accepts the same function and calls it with one r
 **Compiled objective (Numba).** An `@njit` function of one key vector; the engine calls its
 machine code from every worker thread without the interpreter lock:
 
+<!-- doc-test: requires numba -->
 ```python
 import numba
 
@@ -138,9 +145,9 @@ or OpenMP:
 RKO_BUILD_CPP=1 uv sync        # Linux, g++ with OpenMP (libgomp)
 ```
 
+<!-- doc-test: requires cpp -->
 ```python
-from rko_solver import RKO
-
+problem = rko_solver.problems.Knapsack(profits.tolist(), weights.tolist(), capacity)
 solver = RKO(problem, engine="cpp", random_state=7)
 result = solver.solve(10)
 ```
@@ -175,8 +182,6 @@ Differences from the Rust engine, all imposed by the reference code:
 candidate that can run it, then runs the full budget on the winner:
 
 ```python
-from rko_solver import RKO
-
 solver = RKO(
     rko_solver.Callbacks(decoder, cost, n_variables), engine="auto", auto_time=2.0, random_state=7
 )

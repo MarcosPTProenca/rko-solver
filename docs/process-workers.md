@@ -43,6 +43,8 @@ worker count, but timed/cooperative final results need not match.
 Choose a portfolio explicitly and request its size:
 
 ```python
+from rko_solver import RKO
+
 algorithms = ["SA", "GA", "PSO"]
 optimizer = RKO(decoder, objective, dimension, algorithms=algorithms,
                 n_jobs=len(algorithms))

@@ -41,7 +41,7 @@ jobs:
       - name: Full test suite
         run: uv run --locked pytest src/rko_solver/tests -q
       - name: Optional interactive reports
-        run: uv run --locked --extra reports pytest src/rko_solver/tests/rko/test_reporting.py src/rko_solver/tests/rko/test_tracing.py -q
+        run: uv run --locked --extra reports pytest src/rko_solver/tests/rko/test_reporting.py src/rko_solver/tests/rko/test_tracing.py src/rko_solver/tests/test_documentation_examples.py -q
       - name: Source-identified profile diagnostic smoke
         run: uv run --locked python -m benchmarks.performance_profile --dimension 4 --evaluations 8 --profile
       - name: Bounded decision recording fixed-work smoke

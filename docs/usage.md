@@ -181,6 +181,8 @@ infeasible grid is rejected. No scalar value is silently truncated.
 Use the existing offline parameter names, grouped by selected algorithm:
 
 ```python
+from rko_solver import RKO
+
 solver = RKO(
     decode, objective, n_variables=64,
     algorithms=["PSO", "GA"], adaptation="fixed",
@@ -262,6 +264,7 @@ affinity later does not rewrite earlier resource accounting. The derived
 `n_workers` excludes pool managers and native numeric threads; it is configured
 search concurrency, not measured CPU utilization.
 
+<!-- doc-test: skip prints the result of the complete program above, which runs as its own script -->
 ```python
 print(result.n_evaluations, result.stop_reason, result.n_workers)
 for search in result.searches:

@@ -72,6 +72,7 @@ For example, a capacity check can return this report from your checker:
 from rko_solver import ValidationCheck
 from rko_solver import ValidationReport
 
+total_weight, capacity = 18.0, 20.0
 check = ValidationCheck(
     name="capacity",
     status="passed" if total_weight <= capacity else "failed",
@@ -137,6 +138,7 @@ original exception; the successful numerical result is not cleared or overwritte
 
 ## Include diagnostics in HTML and JSON
 
+<!-- doc-test: skip continues the program above, whose names are local to main() -->
 ```python
 from rko_solver.reporting import OptimizationReport
 

@@ -51,6 +51,17 @@ improving a recorded function, run `uv run python tools/quality_gate.py --tighte
 the smaller baseline. Do not regenerate the baselines with `--write-baseline` to make a failure
 pass; refactor instead. `--skip-types` runs the fast subset used by the pre-commit hook.
 
+Every Python block in the README and `docs/*.md` is executed by
+`src/rko_solver/tests/test_documentation_examples.py`: complete programs (with an
+`if __name__ == "__main__":` guard) run as scripts, fragments run in order on their page with
+`decode`, `objective`, `n_variables` and Knapsack data predefined, and `RKO.solve` is capped
+at half a second. A block that cannot run in CI carries an invisible comment right before its
+fence, `<!-- doc-test: skip <reason> -->` or `<!-- doc-test: requires cpp|numba|plotly -->`.
+`test_golden_runs.py` freezes seeded results of every algorithm on the reproducible
+configurations; if a behavior change is intended, regenerate with
+`RKO_UPDATE_GOLDEN=1 uv run pytest src/rko_solver/tests/test_golden_runs.py` and review the
+diff of `golden/runs.json`.
+
 [CI](.github/workflows/ci.yml) checks Ubuntu/Windows, benchmark diagnostics, and
 isolated wheel/sdist installations using `tools/smoke_installed.py`. A source-tree
 import alone does not prove an installed package works. CI currently uses Python

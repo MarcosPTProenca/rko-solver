@@ -133,6 +133,7 @@ metaheuristics, not trained models that need their own input-file loader.
 
 To use a portfolio, replace only the solver call in `main`:
 
+<!-- doc-test: skip continues the program above, whose names are local to main() -->
 ```python
 from rko_solver import RKO
 
@@ -204,6 +205,7 @@ A class is convenient for related callback state, not mandatory. Module-level
 functions bound with `functools.partial` also work. With the concrete adapter above,
 these are explicit equivalents of its bound methods:
 
+<!-- doc-test: skip continues the program above, whose names are local to main() -->
 ```python
 from functools import partial
 

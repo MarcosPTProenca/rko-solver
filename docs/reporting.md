@@ -23,6 +23,7 @@ release; use the checked-out repository and its lockfile.
 
 Using the decoder/objective from [getting started](getting-started.md):
 
+<!-- doc-test: requires plotly -->
 ```python
 from rko_solver.metaheuristics import SA
 from rko_solver.reporting import OptimizationReport
@@ -54,6 +55,7 @@ files several megabytes even for small runs; the library is embedded only once.
 
 ## Portfolios use the same API
 
+<!-- doc-test: requires plotly -->
 ```python
 from rko_solver import RKO
 
@@ -96,6 +98,7 @@ JSON import, automatic experiment aggregation or programmatic PDF conversion.
 
 Explicitly request a diagram after solving and attach it separately:
 
+<!-- doc-test: requires plotly -->
 ```python
 from rko_solver.explain import DecoderDiagram
 
@@ -168,6 +171,7 @@ no boxplots, confidence intervals or significance tests pretending to do that wo
 
 Pass values you have already computed and validated yourself:
 
+<!-- doc-test: requires plotly -->
 ```python
 report = OptimizationReport(
     result,

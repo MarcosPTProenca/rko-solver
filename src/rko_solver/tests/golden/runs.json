@@ -1,0 +1,598 @@
+{
+ "python-sequential/BRKGA/adaptive": {
+  "cost": -1893.0,
+  "keys_sha256": "3e48d9720ab9ca82",
+  "searches": [
+   [
+    "BRKGA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/BRKGA/fixed": {
+  "cost": -1868.0,
+  "keys_sha256": "46df63c2908481bd",
+  "searches": [
+   [
+    "BRKGA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/BRKGA_CS/adaptive": {
+  "cost": -1757.0,
+  "keys_sha256": "36094115ae3b8be2",
+  "searches": [
+   [
+    "BRKGA_CS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/BRKGA_CS/fixed": {
+  "cost": -1758.0,
+  "keys_sha256": "bd80b2f2653ace33",
+  "searches": [
+   [
+    "BRKGA_CS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/GA/adaptive": {
+  "cost": -2032.0,
+  "keys_sha256": "1b8f041dd634982c",
+  "searches": [
+   [
+    "GA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/GA/fixed": {
+  "cost": -1890.0,
+  "keys_sha256": "dccd1d29032e916e",
+  "searches": [
+   [
+    "GA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/GRASP/adaptive": {
+  "cost": -1478.0,
+  "keys_sha256": "7a903033b7c6d6dd",
+  "searches": [
+   [
+    "GRASP",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/GRASP/fixed": {
+  "cost": -1430.0,
+  "keys_sha256": "ef193c662d37f65b",
+  "searches": [
+   [
+    "GRASP",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/ILS/adaptive": {
+  "cost": -1742.0,
+  "keys_sha256": "f544fc6ec3991981",
+  "searches": [
+   [
+    "ILS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/ILS/fixed": {
+  "cost": -1867.0,
+  "keys_sha256": "36d096a6a30ab24b",
+  "searches": [
+   [
+    "ILS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/IPR/adaptive": {
+  "cost": -1480.0,
+  "keys_sha256": "03e2b4a1bacff6d9",
+  "searches": [
+   [
+    "IPR",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/IPR/fixed": {
+  "cost": -1480.0,
+  "keys_sha256": "03e2b4a1bacff6d9",
+  "searches": [
+   [
+    "IPR",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/LNS/adaptive": {
+  "cost": -1980.0,
+  "keys_sha256": "15eb03a0ff444d41",
+  "searches": [
+   [
+    "LNS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/LNS/fixed": {
+  "cost": -1742.0,
+  "keys_sha256": "2ca7622f5ac06a19",
+  "searches": [
+   [
+    "LNS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/MultiStart/adaptive": {
+  "cost": -1643.0,
+  "keys_sha256": "6772ef3b576b556d",
+  "searches": [
+   [
+    "MultiStart",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/MultiStart/fixed": {
+  "cost": -1643.0,
+  "keys_sha256": "6772ef3b576b556d",
+  "searches": [
+   [
+    "MultiStart",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/PSO/adaptive": {
+  "cost": -1878.0,
+  "keys_sha256": "61be43ef8bc3d699",
+  "searches": [
+   [
+    "PSO",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/PSO/fixed": {
+  "cost": -1911.0,
+  "keys_sha256": "3683e8308f447c9f",
+  "searches": [
+   [
+    "PSO",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/SA/adaptive": {
+  "cost": -1810.0,
+  "keys_sha256": "e7970a689a223183",
+  "searches": [
+   [
+    "SA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/SA/fixed": {
+  "cost": -1586.0,
+  "keys_sha256": "a0f11f34e2ba1faa",
+  "searches": [
+   [
+    "SA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/VNS/adaptive": {
+  "cost": 14098409.0,
+  "keys_sha256": "91958d9e71d4891b",
+  "searches": [
+   [
+    "VNS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/VNS/fixed": {
+  "cost": 17898250.0,
+  "keys_sha256": "b3be7de6da9facc9",
+  "searches": [
+   [
+    "VNS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "python-sequential/default-portfolio": {
+  "cost": -1926.0,
+  "keys_sha256": "726fd4828bd80a68",
+  "searches": [
+   [
+    "SA",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "ILS",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "VNS",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "LNS",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "BRKGA",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "BRKGA_CS",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "PSO",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "GA",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "GRASP",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "IPR",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/BRKGA/adaptive": {
+  "cost": -1973.0,
+  "keys_sha256": "432d38e0a04fcb38",
+  "searches": [
+   [
+    "BRKGA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/BRKGA/fixed": {
+  "cost": -1851.0,
+  "keys_sha256": "09230af8eac729be",
+  "searches": [
+   [
+    "BRKGA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/BRKGA_CS/adaptive": {
+  "cost": -1617.0,
+  "keys_sha256": "1d3f77490d6b816a",
+  "searches": [
+   [
+    "BRKGA_CS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/BRKGA_CS/fixed": {
+  "cost": -1663.0,
+  "keys_sha256": "0176887c54856b7d",
+  "searches": [
+   [
+    "BRKGA_CS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/GA/adaptive": {
+  "cost": -1797.0,
+  "keys_sha256": "740be8f40b9b1587",
+  "searches": [
+   [
+    "GA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/GA/fixed": {
+  "cost": -1959.0,
+  "keys_sha256": "6e6952edd9107dd0",
+  "searches": [
+   [
+    "GA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/GRASP/adaptive": {
+  "cost": -1501.0,
+  "keys_sha256": "d8a040c7701b9115",
+  "searches": [
+   [
+    "GRASP",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/GRASP/fixed": {
+  "cost": -1544.0,
+  "keys_sha256": "fe48d1c52ec2aace",
+  "searches": [
+   [
+    "GRASP",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/ILS/adaptive": {
+  "cost": -1496.0,
+  "keys_sha256": "b104fed845fbec37",
+  "searches": [
+   [
+    "ILS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/ILS/fixed": {
+  "cost": -1423.0,
+  "keys_sha256": "5dfa72c5cfd8aff7",
+  "searches": [
+   [
+    "ILS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/IPR/adaptive": {
+  "cost": -1778.0,
+  "keys_sha256": "8d7186680658941e",
+  "searches": [
+   [
+    "IPR",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/IPR/fixed": {
+  "cost": -1778.0,
+  "keys_sha256": "8d7186680658941e",
+  "searches": [
+   [
+    "IPR",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/LNS/adaptive": {
+  "cost": -1834.0,
+  "keys_sha256": "7a8d8ff45c8b2b27",
+  "searches": [
+   [
+    "LNS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/LNS/fixed": {
+  "cost": -1722.0,
+  "keys_sha256": "fd1d0d74f5d275c4",
+  "searches": [
+   [
+    "LNS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/MultiStart/adaptive": {
+  "cost": -1724.0,
+  "keys_sha256": "cd5faca029408a4f",
+  "searches": [
+   [
+    "MultiStart",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/MultiStart/fixed": {
+  "cost": -1724.0,
+  "keys_sha256": "cd5faca029408a4f",
+  "searches": [
+   [
+    "MultiStart",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/PSO/adaptive": {
+  "cost": -1964.0,
+  "keys_sha256": "1a9a4b4b4df6af7c",
+  "searches": [
+   [
+    "PSO",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/PSO/fixed": {
+  "cost": -2016.0,
+  "keys_sha256": "7abe987bd465d080",
+  "searches": [
+   [
+    "PSO",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/SA/adaptive": {
+  "cost": -1709.0,
+  "keys_sha256": "d246ec6cc0d314e7",
+  "searches": [
+   [
+    "SA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/SA/fixed": {
+  "cost": -1802.0,
+  "keys_sha256": "85687521d7bb3895",
+  "searches": [
+   [
+    "SA",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/VNS/adaptive": {
+  "cost": -1561.0,
+  "keys_sha256": "e988b1bd8bddf120",
+  "searches": [
+   [
+    "VNS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/VNS/fixed": {
+  "cost": -1331.0,
+  "keys_sha256": "6c8644cc5f798674",
+  "searches": [
+   [
+    "VNS",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ },
+ "rust-one-worker/default-portfolio": {
+  "cost": -2014.0,
+  "keys_sha256": "db7258db1b738ddd",
+  "searches": [
+   [
+    "SA",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "ILS",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "VNS",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "LNS",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "BRKGA",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "BRKGA_CS",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "PSO",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "GA",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "GRASP",
+    400,
+    "max_evaluations"
+   ],
+   [
+    "IPR",
+    400,
+    "max_evaluations"
+   ]
+  ]
+ }
+}
