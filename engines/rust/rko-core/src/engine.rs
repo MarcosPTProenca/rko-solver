@@ -50,6 +50,9 @@ pub struct Config {
     pub ls_strategy: u8,
     /// Fill the pool with `pool_size` random evaluated vectors before searches start.
     pub prefill: bool,
+    /// Completed evaluations after which each search stops; `None` leaves only the time
+    /// limit. It applies to every search separately and not to the prefill.
+    pub max_evaluations: Option<u64>,
 }
 
 /// Work done filling the shared pool before the searches.
@@ -169,6 +172,11 @@ pub fn run_portfolio(
             "pool_size must be positive".to_owned(),
         ));
     }
+    if config.max_evaluations == Some(0) {
+        return Err(EngineError::Invalid(
+            "max_evaluations must be positive".to_owned(),
+        ));
+    }
     let workers = config.threads.unwrap_or(specs.len()).clamp(1, specs.len());
     let started = Instant::now();
     let deadline = started + Duration::from_secs_f64(config.time_limit);
@@ -232,7 +240,8 @@ pub fn run_portfolio(
                                 search_started,
                                 search_deadline,
                                 config.history_limit,
-                            );
+                            )
+                            .with_max_evaluations(config.max_evaluations.unwrap_or(u64::MAX));
                             let spec = &specs[index];
                             let mut context = Context {
                                 search: &mut search,
@@ -379,6 +388,7 @@ mod tests {
             history_limit: 16,
             ls_strategy: 1,
             prefill: false,
+            max_evaluations: None,
         }
     }
 
@@ -510,6 +520,82 @@ mod tests {
                 assert!(best_known < -400.0, "portfolio cost {best_known}");
             }
         }
+    }
+
+    #[test]
+    fn evaluation_limit_stops_every_algorithm_exactly() {
+        use crate::problem::test_support::BatchKnapsack;
+        let _guard = serial();
+        let scalar = instance();
+        let blocks = BatchKnapsack::new(instance(), 16);
+        let problems: [(&str, &dyn Problem); 2] = [("scalar", &scalar), ("blocks", &blocks)];
+        for (label, problem) in problems {
+            for adaptive in [false, true] {
+                let specs: Vec<Spec> = Algorithm::all()
+                    .into_iter()
+                    .map(|algorithm| small_spec(algorithm, adaptive))
+                    .collect();
+                let mut settings = config(None);
+                settings.time_limit = 20.0;
+                settings.max_evaluations = Some(300);
+                let result = run_portfolio(problem, &specs, &settings).unwrap();
+                for report in &result.reports {
+                    assert!(
+                        report.evaluations <= 300,
+                        "{label} {} used {}",
+                        report.algorithm,
+                        report.evaluations
+                    );
+                    assert_eq!(
+                        report.stop,
+                        Stop::MaxEvaluations,
+                        "{label} {}",
+                        report.algorithm
+                    );
+                    assert_eq!(report.evaluations, 300, "{label} {}", report.algorithm);
+                    assert!(report.elapsed < 10.0);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn a_single_worker_with_a_limit_is_reproducible() {
+        let _guard = serial();
+        let problem = instance();
+        let specs: Vec<Spec> = Algorithm::all()
+            .into_iter()
+            .map(|algorithm| small_spec(algorithm, false))
+            .collect();
+        let mut settings = config(Some(1));
+        settings.time_limit = 30.0;
+        settings.max_evaluations = Some(250);
+        let first = run_portfolio(&problem, &specs, &settings).unwrap();
+        let second = run_portfolio(&problem, &specs, &settings).unwrap();
+        assert_eq!(first.best_cost, second.best_cost);
+        assert_eq!(first.best_keys, second.best_keys);
+        for (left, right) in first.reports.iter().zip(&second.reports) {
+            assert_eq!(left.evaluations, right.evaluations, "{}", left.algorithm);
+            assert_eq!(left.best_cost, right.best_cost, "{}", left.algorithm);
+        }
+    }
+
+    #[test]
+    fn a_zero_limit_is_rejected_and_prefill_ignores_the_limit() {
+        let _guard = serial();
+        let problem = instance();
+        let mut settings = config(None);
+        settings.max_evaluations = Some(0);
+        assert!(matches!(
+            run_portfolio(&problem, &specs(false), &settings),
+            Err(EngineError::Invalid(message)) if message.contains("max_evaluations")
+        ));
+        settings.max_evaluations = Some(40);
+        settings.prefill = true;
+        settings.pool_size = 25;
+        let result = run_portfolio(&problem, &specs(false), &settings).unwrap();
+        assert_eq!(result.initialization.unwrap().evaluations, 25);
+        assert!(result.reports.iter().all(|report| report.evaluations <= 40));
     }
 
     #[test]

@@ -77,6 +77,7 @@ def test_run_executes_orchestration_flow(monkeypatch: pytest.MonkeyPatch) -> Non
         *,
         search_metadata: list[object] | None = None,
         history_limit: int = 0,
+        max_evaluations: int | None = None,
     ) -> list[tuple[list[object], list[float], float]]:
         """Record dispatch settings and verify stream allocation cardinality.
 
@@ -86,12 +87,13 @@ def test_run_executes_orchestration_flow(monkeypatch: pytest.MonkeyPatch) -> Non
             streams (list[object]): One owned stream pair per search.
             search_metadata (list[object] | None): Optional unused report collector.
             history_limit (int): Disabled history capture in the compatibility API.
+            max_evaluations (int | None): Unused evaluation limit, always None here.
 
         Returns:
             list[tuple]: One synthetic successful search outcome.
         """
         assert len(streams) == len(metaheuristics)
-        assert history_limit == 0
+        assert history_limit == 0 and max_evaluations is None
         captured["metaheuristics"] = metaheuristics
         captured["limit_time"] = limit_time
         return [([], [0.2, 0.3], 12.0)]

@@ -161,6 +161,7 @@ class NativeRunner:
         history_limit: int,
         search_metadata: list[SearchMetadata] | None,
         initialization_metadata: list[PoolInitializationMetadata] | None = None,
+        max_evaluations: int | None = None,
     ) -> tuple[list[float], float]:
         """Run the portfolio and publish metadata.
 
@@ -175,6 +176,7 @@ class NativeRunner:
             history_limit (int): Per-search history cap; zero disables recording.
             search_metadata (list[SearchMetadata] | None): Optional report collector.
             initialization_metadata (list | None): Optional prefill report collector.
+            max_evaluations (int | None): Completed evaluations after which each search stops.
 
         Returns:
             tuple[list[float], float]: Best keys and objective.
@@ -205,6 +207,7 @@ class NativeRunner:
             1,
             self.config.prefill_pool,
             self.engine,
+            max_evaluations=max_evaluations,
         )
         self.workers = int(result["workers"])
         if search_metadata is not None:

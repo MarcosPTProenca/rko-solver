@@ -26,6 +26,10 @@
 //! - Budgets are at least 0.05 s (the reference counts whole seconds, so a fractional budget
 //!   becomes a shortened last second), runs are serialized per process, and
 //!   history is not recorded; the pool prefill is part of the reference and always happens.
+//! - A per-algorithm evaluation limit is enforced by the driver: the stop flag the headers poll
+//!   also reports a thread-local limit, and the first objective call after the limit throws a
+//!   private exception that ends that algorithm (the reference's IPR polls only its own timer),
+//!   so the count is exact while the headers stay byte-identical.
 //! - The reference draws the descent neighborhood with an unseeded `rand()`, so that part of
 //!   its behavior does not depend on the seed.
 //!
@@ -90,6 +94,11 @@ pub fn run_portfolio(
             "the C++ engine needs pool_size of at least 2".to_owned(),
         ));
     }
+    if config.max_evaluations == Some(0) {
+        return Err(EngineError::Invalid(
+            "max_evaluations must be positive".to_owned(),
+        ));
+    }
     if problem.dimension() < 10 && specs.iter().any(|spec| spec.algorithm == Algorithm::Ipr) {
         return Err(EngineError::Invalid(
             "the C++ reference's IPR needs at least 10 keys: its block size is dimension / 10 and \
@@ -146,6 +155,7 @@ mod imp {
         seed: u64,
         pool_size: i32,
         strategy: i32,
+        max_evaluations: u64,
     }
 
     #[repr(C)]
@@ -154,6 +164,7 @@ mod imp {
         evaluations: u64,
         elapsed: f64,
         best_cost: f64,
+        hit_limit: i32,
     }
 
     type EvalFn = extern "C" fn(*const f64, usize, *mut c_void) -> f64;
@@ -233,6 +244,7 @@ mod imp {
             seed: config.seed,
             pool_size: i32::try_from(config.pool_size).unwrap_or(i32::MAX),
             strategy: i32::from(config.ls_strategy),
+            max_evaluations: config.max_evaluations.unwrap_or(0),
         };
         let mut reports = vec![RawReport::default(); specs.len()];
         let mut report_keys = vec![0.0_f64; specs.len() * dimension];
@@ -288,7 +300,11 @@ mod imp {
                 evaluations: reports[index].evaluations,
                 elapsed: reports[index].elapsed,
                 budget: config.time_limit,
-                stop: Stop::TimeLimit,
+                stop: if reports[index].hit_limit != 0 {
+                    Stop::MaxEvaluations
+                } else {
+                    Stop::TimeLimit
+                },
                 best_cost: reports[index].best_cost,
                 best_keys: report_keys[index * dimension..(index + 1) * dimension].to_vec(),
                 history: Vec::new(),
@@ -314,6 +330,8 @@ mod imp {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(rko_cpp)]
+    use rko_core::search::Stop;
 
     #[test]
     fn simulated_annealing_order_matches_the_reference_reader() {
@@ -356,6 +374,7 @@ mod tests {
             history_limit: 0,
             ls_strategy: 1,
             prefill: false,
+            max_evaluations: None,
         };
         assert!(!available());
         assert!(matches!(
@@ -373,6 +392,7 @@ mod tests {
             history_limit: 0,
             ls_strategy: 1,
             prefill: false,
+            max_evaluations: None,
         }
     }
 
@@ -513,6 +533,34 @@ mod tests {
                 assert_eq!(problem.evaluate(&report.best_keys), report.best_cost);
             }
         }
+    }
+
+    #[cfg(rko_cpp)]
+    #[test]
+    fn the_evaluation_limit_is_exact_per_algorithm_and_leaves_peers_running() {
+        let problem = knapsack();
+        let specs: Vec<Spec> = Algorithm::all()
+            .into_iter()
+            .map(|algorithm| spec(algorithm, false))
+            .collect();
+        let mut settings = config(10.0);
+        settings.max_evaluations = Some(400);
+        let result = run_portfolio(&problem, &specs, &settings).unwrap();
+        assert!(result.elapsed < 8.0, "elapsed {}", result.elapsed);
+        for report in &result.reports {
+            assert_eq!(report.evaluations, 400, "{}", report.algorithm);
+            assert_eq!(report.stop, Stop::MaxEvaluations, "{}", report.algorithm);
+            assert_eq!(
+                problem.evaluate(&report.best_keys),
+                report.best_cost,
+                "{}",
+                report.algorithm
+            );
+        }
+        assert_eq!(result.initialization.unwrap().evaluations, 10);
+        let mut zero = config(1.0);
+        zero.max_evaluations = Some(0);
+        assert!(run_portfolio(&problem, &specs, &zero).is_err());
     }
 
     #[cfg(rko_cpp)]

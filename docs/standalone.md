@@ -89,6 +89,7 @@ All options below have **the same names, defaults and meanings as RKO**:
 | `random_state=None` | Nonnegative library seed or fresh assigned seeds |
 | `verbose=False` | Opt-in lifecycle/shared-pool output |
 | `hyperparameters=None` | Nested per-algorithm scalar overrides, exactly as in RKO |
+| `max_evaluations=None` | Per-algorithm completed-evaluation limit, exactly as for `RKO` |
 | `history_limit=0` | Disabled history, or 2–10000 retained observations per search |
 
 Call `.solve(time_limit=...)` with positive finite seconds; it returns `RKOResult`,

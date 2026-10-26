@@ -24,7 +24,35 @@
 
 #include "Data.h"
 
-std::atomic<bool> stop_execution(false);
+struct ThreadStats
+{
+    uint64_t evaluations = 0;
+    uint64_t limit = std::numeric_limits<uint64_t>::max();
+    bool hit_limit = false;
+    double best_cost = std::numeric_limits<double>::infinity();
+    std::vector<double> best_keys;
+};
+
+thread_local ThreadStats *t_stats = nullptr;
+
+class StopFlag
+{
+public:
+    bool load() const
+    {
+        return global_.load() || (t_stats != nullptr && t_stats->hit_limit);
+    }
+    void store(bool value) { global_.store(value); }
+
+private:
+    std::atomic<bool> global_{false};
+};
+
+StopFlag stop_execution;
+
+struct EvaluationLimitReached
+{
+};
 thread_local std::mt19937 *t_engine = nullptr;
 
 struct EngineRng
@@ -49,17 +77,13 @@ static rko_cpp_eval_fn g_eval = nullptr;
 static void *g_user = nullptr;
 static std::atomic<int> g_failure(0);
 
-struct ThreadStats
-{
-    uint64_t evaluations = 0;
-    double best_cost = std::numeric_limits<double>::infinity();
-    std::vector<double> best_keys;
-};
-
-thread_local ThreadStats *t_stats = nullptr;
-
 double Decoder(TSol &s, const TProblemData &data)
 {
+    if (t_stats != nullptr && t_stats->evaluations >= t_stats->limit)
+    {
+        t_stats->hit_limit = true;
+        throw EvaluationLimitReached{};
+    }
     double value = g_eval(s.rk.data(), s.rk.size(), g_user);
     if (!std::isfinite(value))
     {
@@ -70,6 +94,10 @@ double Decoder(TSol &s, const TProblemData &data)
     if (t_stats != nullptr)
     {
         t_stats->evaluations++;
+        if (t_stats->evaluations >= t_stats->limit)
+        {
+            t_stats->hit_limit = true;
+        }
         if (value < t_stats->best_cost)
         {
             t_stats->best_cost = value;
@@ -182,6 +210,7 @@ extern "C"
         uint64_t seed;
         int32_t pool_size;
         int32_t strategy;
+        uint64_t max_evaluations;
     };
 
     struct rko_cpp_report
@@ -189,6 +218,7 @@ extern "C"
         uint64_t evaluations;
         double elapsed;
         double best_cost;
+        int32_t hit_limit;
     };
 }
 
@@ -275,6 +305,7 @@ extern "C" int32_t rko_cpp_run(const rko_cpp_config *config, const rko_cpp_spec 
     initialization->evaluations = init_stats.evaluations;
     initialization->elapsed = init_elapsed;
     initialization->best_cost = pool[0].ofv;
+    initialization->hit_limit = 0;
 
     std::vector<ThreadStats> stats(spec_count);
     std::vector<double> elapsed(spec_count, 0.0);
@@ -299,12 +330,20 @@ extern "C" int32_t rko_cpp_run(const rko_cpp_config *config, const rko_cpp_spec 
     {
         t_spec = &data_specs[i];
         t_stats = &stats[i];
+        if (config->max_evaluations > 0)
+        {
+            t_stats->limit = config->max_evaluations;
+        }
         std::mt19937 engine;
         seed_engine(engine, config->seed, (uint32_t)i);
         double started = get_time_in_seconds();
         try
         {
             run_algorithm(data_specs[i].algorithm, run, data);
+        }
+        catch (const EvaluationLimitReached &)
+        {
+            stats[i].hit_limit = true;
         }
         catch (const std::exception &failure)
         {
@@ -355,6 +394,7 @@ extern "C" int32_t rko_cpp_run(const rko_cpp_config *config, const rko_cpp_spec 
         reports[i].evaluations = stats[i].evaluations;
         reports[i].elapsed = elapsed[i];
         reports[i].best_cost = stats[i].best_cost;
+        reports[i].hit_limit = stats[i].hit_limit ? 1 : 0;
         if (stats[i].best_keys.size() == dimension)
         {
             std::copy(stats[i].best_keys.begin(), stats[i].best_keys.end(), report_keys + i * dimension);

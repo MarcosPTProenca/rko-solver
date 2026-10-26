@@ -304,6 +304,7 @@ pub fn run(name: &str, engine: Engine) {
         history_limit: 0,
         ls_strategy: strategy,
         prefill,
+        max_evaluations: None,
     };
     let (result, extra) = if kind == "rastrigin" {
         let function = Rastrigin::parse(&text).expect("instance malformed");

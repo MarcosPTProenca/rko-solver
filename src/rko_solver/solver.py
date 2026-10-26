@@ -110,6 +110,7 @@ class RKOResult:
         auto (AutoSelection | None): How `engine="auto"` chose the executed engine.
         execution (str | None): Python-engine scheduling (process, thread or sequential);
             None for the Rust and C++ engines.
+        max_evaluations (int | None): Requested per-algorithm evaluation limit, if any.
     """
 
     keys: tuple[float, ...]
@@ -130,6 +131,7 @@ class RKOResult:
     trace: DecisionTrace | None = None
     auto: AutoSelection | None = None
     execution: str | None = None
+    max_evaluations: int | None = None
 
     @property
     def backend(self) -> str:
@@ -164,13 +166,17 @@ class RKOResult:
         """Summarize whether any search exhausted its assigned budget.
 
         Returns:
-            str: Cancelled, time_limit, completed, or unknown without reports.
+            str: Cancelled, time_limit, max_evaluations, completed, or unknown without reports.
+                The first applicable value in that order wins, so max_evaluations means every
+                search that was stopped reached its evaluation limit before the deadline.
         """
         reasons = {report.stop_reason for report in self.searches}
         if "cancelled" in reasons:
             return "cancelled"
         if reasons.intersection(("time_limit", "not_started")):
             return "time_limit"
+        if "max_evaluations" in reasons:
+            return "max_evaluations"
         return "completed" if reasons else "unknown"
 
     @property
@@ -226,6 +232,8 @@ class RKO:
         verbose (bool): Print lifecycle and attributed shared-pool updates; default False.
         hyperparameters (Hyperparameters | None): Partial named offline scalar overrides.
         history_limit (int): Per-search scalar history cap; zero disables recording.
+        max_evaluations (int | None): Completed evaluations after which each algorithm stops;
+            None leaves only the time limit.
         result_ (RKOResult | None): Last successful solve; cleared before each attempt.
     """
 
@@ -253,6 +261,7 @@ class RKO:
         hyperparameters: Hyperparameters | None = None,
         history_limit: int = 0,
         trace: TraceConfig | None = None,
+        max_evaluations: int | None = None,
     ) -> None:
         """Store problem and solver settings without I/O or search execution.
 
@@ -301,6 +310,11 @@ class RKO:
             history_limit (int): Zero disables history; 2 through 10000 bounds retained
                 scalar observations per search. Compacted curves are approximate.
             trace (TraceConfig | None): Opt-in bounded decoder decisions; None disables capture.
+            max_evaluations (int | None): Positive number of completed objective evaluations
+                after which EACH algorithm stops, in every engine. The time limit still applies
+                and the first of the two to be reached ends the search; opt-in pool prefill is
+                not counted. It makes runs independent of machine speed, and with one worker
+                and a fixed seed reproducible.
 
         Raises:
             TypeError: If a problem object is combined with `cost` or `n_variables`, the
@@ -349,6 +363,7 @@ class RKO:
         self.hyperparameters = hyperparameters
         self.history_limit = history_limit
         self.trace = trace
+        self.max_evaluations = max_evaluations
         self.result_: RKOResult | None = None
         self._native_workers: int | None = None
 
@@ -486,6 +501,10 @@ class RKO:
             raise ValueError("'history_limit' must be 0 (disabled) or an integer from 2 to 10000.")
         if self.trace is not None and not isinstance(self.trace, TraceConfig):
             raise ValueError("'trace' must be TraceConfig or None.")
+        if self.max_evaluations is not None and (
+            type(self.max_evaluations) is not int or self.max_evaluations < 1
+        ):
+            raise ValueError("'max_evaluations' must be a positive integer or None.")
         if type(self.verbose) is not bool:
             raise ValueError("'verbose' must be a boolean.")
         execution = EngineSelection.validate(self.engine, self.execution)
@@ -588,6 +607,7 @@ class RKO:
             available_cpus=available_cpus,
             initialization=initialization[0] if initialization else None,
             trace=DecisionTrace.selected(value, keys) if self.trace is not None else None,
+            max_evaluations=self.max_evaluations,
             versions=(
                 ("rko-solver", package_version),
                 ("python", platform.python_version()),
@@ -743,6 +763,7 @@ class RKO:
                 self.history_limit,
                 search_metadata,
                 initialization_metadata,
+                self.max_evaluations,
             )
             self._native_workers = runner.workers
             return outcome
@@ -780,6 +801,7 @@ class RKO:
                 search_metadata=search_metadata,
                 initialization_metadata=initialization_metadata,
                 history_limit=self.history_limit,
+                max_evaluations=self.max_evaluations,
                 **({"trace": self.trace} if self.trace is not None else {}),
             )
         pool.start_progress()
@@ -805,6 +827,7 @@ class RKO:
                         streams,
                         search_metadata=search_metadata,
                         history_limit=self.history_limit,
+                        max_evaluations=self.max_evaluations,
                         **({"trace": self.trace} if self.trace is not None else {}),
                     ),
                     pool,
@@ -823,6 +846,7 @@ class RKO:
                             time_limit,
                             random_state=stream.seed,
                             history_limit=self.history_limit,
+                            max_evaluations=self.max_evaluations,
                         )
                     )
                     if search_metadata is not None:
