@@ -4,6 +4,7 @@ version = "0.3.0-dev"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
+publish = false
 description = "PyO3 bindings exposing the native RKO engine as rko_solver._native."
 
 [lib]

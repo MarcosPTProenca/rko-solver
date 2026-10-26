@@ -4,6 +4,7 @@ version = "0.3.0-dev"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
+publish = false
 description = "Native random-key optimizer engine: operators, metaheuristics, Q-learning and portfolio scheduler."
 
 [lints]

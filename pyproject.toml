@@ -91,6 +91,10 @@ dev = [
     "pre-commit>=4.2.0",
     "pytest>=9.0.2",
     "ruff==0.15.7",
+    "lizard>=1.21,<2",
+    "mypy==1.19.1",
+    "vulture==2.14",
+    "pip-audit==2.10.0",
 ]
 docs = [
     "mkdocs>=1.6,<2",
@@ -158,3 +162,17 @@ pytest_add_cli_args_test_selection = [
     "-k",
     "not test_solution_pool_implements_search_protocols",
 ]
+
+[tool.mypy]
+python_version = "3.14"
+ignore_missing_imports = true
+exclude = ["src/rko_solver/tests/"]
+
+[tool.vulture]
+paths = ["src/rko_solver", "tools"]
+exclude = ["src/rko_solver/tests/"]
+min_confidence = 80
+ignore_names = ["page"]
+
+[tool.quality]
+type-paths = ["src/rko_solver", "tools"]

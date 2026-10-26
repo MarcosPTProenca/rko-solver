@@ -4,6 +4,7 @@ version = "0.3.0-dev"
 edition.workspace = true
 license = "Apache-2.0 AND MIT"
 rust-version.workspace = true
+publish = false
 description = "Optional engine that runs the vendored RKO C++ v2.0 reference algorithms behind the rko-core problem interface."
 build = "build.rs"
 

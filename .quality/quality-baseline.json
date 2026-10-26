@@ -1,0 +1,532 @@
+{
+  "files": {
+    "benchmarks/cpp_python_knapsack.py": 1814,
+    "benchmarks/native_problem_study.py": 842,
+    "benchmarks/native_report.py": 1185,
+    "benchmarks/native_study.py": 717,
+    "engines/rust/rko-core/src/engine.rs": 699,
+    "engines/rust/rko-core/src/local_search.rs": 605,
+    "src/rko_solver/reporting.py": 674,
+    "src/rko_solver/solver.py": 857,
+    "tools/release.py": 751
+  },
+  "functions": {
+    "benchmarks/auto_engine_study.py::AutoEngineStudy.__init__": {
+      "parameter_count": 8
+    },
+    "benchmarks/auto_engine_study.py::AutoEngineStudy.attempt": {
+      "parameter_count": 7
+    },
+    "benchmarks/auto_engine_study.py::AutoEngineStudy.summarize": {
+      "cyclomatic_complexity": 19
+    },
+    "benchmarks/blending_work.py::BlendingStudy.run": {
+      "cyclomatic_complexity": 19
+    },
+    "benchmarks/blending_work.py::BlendingStudy.validate": {
+      "cyclomatic_complexity": 16
+    },
+    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._execute_process": {
+      "cyclomatic_complexity": 11
+    },
+    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._failure_record": {
+      "parameter_count": 11
+    },
+    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._patch_cpp_source": {
+      "cyclomatic_complexity": 11,
+      "nloc": 108
+    },
+    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._record_trial": {
+      "cyclomatic_complexity": 26,
+      "nloc": 129,
+      "parameter_count": 12
+    },
+    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._run_python_trial": {
+      "parameter_count": 7
+    },
+    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._write_summary": {
+      "cyclomatic_complexity": 30,
+      "nloc": 114
+    },
+    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark.run": {
+      "cyclomatic_complexity": 15
+    },
+    "benchmarks/elite_pair.py::main": {
+      "cyclomatic_complexity": 21
+    },
+    "benchmarks/fixed_work.py::_run": {
+      "parameter_count": 7
+    },
+    "benchmarks/fixed_work.py::main": {
+      "cyclomatic_complexity": 17
+    },
+    "benchmarks/ga_population_memory.py::_SingleGenerationGA.__init__": {
+      "parameter_count": 8
+    },
+    "benchmarks/ipr.py::ScalarIPR._relink": {
+      "cyclomatic_complexity": 12
+    },
+    "benchmarks/ipr.py::main": {
+      "cyclomatic_complexity": 19
+    },
+    "benchmarks/ipr_diagnosis.py::IPRProbe.__init__": {
+      "parameter_count": 7
+    },
+    "benchmarks/knapsack.py::main": {
+      "cyclomatic_complexity": 17,
+      "nloc": 116
+    },
+    "benchmarks/native_problem_study.py::ProblemStudy.__init__": {
+      "parameter_count": 14
+    },
+    "benchmarks/native_problem_study.py::ProblemStudy._run_rust": {
+      "parameter_count": 7
+    },
+    "benchmarks/native_problem_study.py::ProblemStudy.run": {
+      "cyclomatic_complexity": 33,
+      "nloc": 108
+    },
+    "benchmarks/native_problem_study.py::ProblemStudy.summary_rows": {
+      "cyclomatic_complexity": 17
+    },
+    "benchmarks/native_report.py::NativeReport.analyze": {
+      "cyclomatic_complexity": 39
+    },
+    "benchmarks/native_report.py::NativeReport.bottom_line": {
+      "cyclomatic_complexity": 21
+    },
+    "benchmarks/native_report.py::NativeReport.detail": {
+      "cyclomatic_complexity": 11
+    },
+    "benchmarks/native_report.py::NativeReport.forest_svg": {
+      "cyclomatic_complexity": 13
+    },
+    "benchmarks/native_report.py::NativeReport.scoreboard": {
+      "cyclomatic_complexity": 26
+    },
+    "benchmarks/native_report.py::NativeReport.scoreboard_svg": {
+      "cyclomatic_complexity": 15
+    },
+    "benchmarks/native_study.py::NativeStudy.__init__": {
+      "parameter_count": 13
+    },
+    "benchmarks/native_study.py::NativeStudy._run_rust_trial": {
+      "parameter_count": 7
+    },
+    "benchmarks/native_study.py::NativeStudy.run": {
+      "cyclomatic_complexity": 27,
+      "nloc": 140
+    },
+    "benchmarks/native_study.py::NativeStudy.summarize": {
+      "cyclomatic_complexity": 19
+    },
+    "benchmarks/native_threads.py::main": {
+      "cyclomatic_complexity": 26,
+      "nloc": 147
+    },
+    "benchmarks/performance_profile.py::PerformanceProbe.provenance": {
+      "cyclomatic_complexity": 14
+    },
+    "benchmarks/performance_profile.py::PerformanceProbe.run": {
+      "cyclomatic_complexity": 17,
+      "parameter_count": 7
+    },
+    "benchmarks/performance_report.py::PerformanceReport.summarize": {
+      "cyclomatic_complexity": 25,
+      "nloc": 103
+    },
+    "benchmarks/performance_report.py::PerformanceReport.validate": {
+      "cyclomatic_complexity": 48
+    },
+    "benchmarks/prefill_report.py::compile_report": {
+      "cyclomatic_complexity": 79,
+      "nloc": 195
+    },
+    "benchmarks/prefill_work.py::Trial.__init__": {
+      "parameter_count": 8
+    },
+    "benchmarks/prefill_work.py::Trial.run": {
+      "cyclomatic_complexity": 11
+    },
+    "benchmarks/prefill_work.py::main": {
+      "cyclomatic_complexity": 11
+    },
+    "benchmarks/process_budget.py::main": {
+      "cyclomatic_complexity": 22,
+      "nloc": 111
+    },
+    "benchmarks/pso.py::ScalarPSO._move_particle": {
+      "parameter_count": 7
+    },
+    "benchmarks/pso.py::main": {
+      "cyclomatic_complexity": 17
+    },
+    "benchmarks/q_learning.py::PairwiseController._create_states": {
+      "cyclomatic_complexity": 16
+    },
+    "benchmarks/q_learning.py::main": {
+      "cyclomatic_complexity": 25,
+      "nloc": 113
+    },
+    "benchmarks/q_state_memory.py::main": {
+      "cyclomatic_complexity": 31,
+      "nloc": 125
+    },
+    "benchmarks/random_streams.py::main": {
+      "cyclomatic_complexity": 24,
+      "nloc": 120
+    },
+    "benchmarks/scheduling.py::main": {
+      "cyclomatic_complexity": 36,
+      "nloc": 159
+    },
+    "benchmarks/startup_stages.py::StartupProbe.run": {
+      "cyclomatic_complexity": 11
+    },
+    "engines/cpp/src/lib.rs::rko_cpp_run": {
+      "parameter_count": 13
+    },
+    "engines/cpp/src/lib.rs::run#2": {
+      "nloc": 121
+    },
+    "engines/cpp/src/lib.rs::run_portfolio": {
+      "cyclomatic_complexity": 11
+    },
+    "engines/cpp/src/lib.rs::spec": {
+      "cyclomatic_complexity": 11
+    },
+    "engines/rust/rko-core/src/bench.rs::grid": {
+      "cyclomatic_complexity": 24,
+      "nloc": 131
+    },
+    "engines/rust/rko-core/src/bench.rs::run": {
+      "cyclomatic_complexity": 15,
+      "nloc": 134
+    },
+    "engines/rust/rko-core/src/engine.rs::run_portfolio": {
+      "cyclomatic_complexity": 27,
+      "nloc": 180
+    },
+    "engines/rust/rko-core/src/engine.rs::small_spec": {
+      "cyclomatic_complexity": 11
+    },
+    "engines/rust/rko-core/src/local_search.rs::rvnd": {
+      "cyclomatic_complexity": 11,
+      "parameter_count": 7
+    },
+    "engines/rust/rko-core/src/local_search.rs::sweep": {
+      "cyclomatic_complexity": 22
+    },
+    "engines/rust/rko-core/src/mh/brkga.rs::run": {
+      "cyclomatic_complexity": 16,
+      "nloc": 127
+    },
+    "engines/rust/rko-core/src/mh/brkga_cs.rs::run": {
+      "cyclomatic_complexity": 27,
+      "nloc": 145
+    },
+    "engines/rust/rko-core/src/mh/ga.rs::run": {
+      "cyclomatic_complexity": 32,
+      "nloc": 166
+    },
+    "engines/rust/rko-core/src/mh/grasp.rs::line_search": {
+      "cyclomatic_complexity": 15
+    },
+    "engines/rust/rko-core/src/mh/grasp.rs::run": {
+      "cyclomatic_complexity": 18,
+      "nloc": 101
+    },
+    "engines/rust/rko-core/src/mh/ipr.rs::run": {
+      "cyclomatic_complexity": 21
+    },
+    "engines/rust/rko-core/src/mh/lns.rs::run": {
+      "cyclomatic_complexity": 18
+    },
+    "engines/rust/rko-core/src/mh/mod.rs::name": {
+      "cyclomatic_complexity": 11
+    },
+    "engines/rust/rko-core/src/mh/mod.rs::parse": {
+      "cyclomatic_complexity": 12
+    },
+    "engines/rust/rko-core/src/mh/mod.rs::run": {
+      "cyclomatic_complexity": 11
+    },
+    "engines/rust/rko-core/src/mh/mod.rs::validate_values": {
+      "cyclomatic_complexity": 43
+    },
+    "engines/rust/rko-core/src/mh/pso.rs::run": {
+      "cyclomatic_complexity": 22,
+      "nloc": 125
+    },
+    "engines/rust/rko-core/src/mh/sa.rs::run": {
+      "cyclomatic_complexity": 27,
+      "nloc": 134
+    },
+    "engines/rust/rko-core/src/operators.rs::run": {
+      "cyclomatic_complexity": 17
+    },
+    "engines/rust/rko-core/src/operators.rs::step_scalar": {
+      "cyclomatic_complexity": 14
+    },
+    "engines/rust/rko-core/src/search.rs::eval_batch": {
+      "cyclomatic_complexity": 13
+    },
+    "engines/rust/rko-core/src/search.rs::probe": {
+      "cyclomatic_complexity": 15
+    },
+    "engines/rust/rko-py/src/lib.rs::result_to_dict": {
+      "cyclomatic_complexity": 24
+    },
+    "engines/rust/rko-py/src/lib.rs::run": {
+      "cyclomatic_complexity": 16,
+      "parameter_count": 12
+    },
+    "src/rko_solver/assessment.py::ValidationCheck.__post_init__": {
+      "cyclomatic_complexity": 17
+    },
+    "src/rko_solver/assessment.py::ValidationReport.__post_init__": {
+      "cyclomatic_complexity": 19
+    },
+    "src/rko_solver/components/adaptive_control/q_learning.py::QLearningController.__init__": {
+      "parameter_count": 7
+    },
+    "src/rko_solver/components/adaptive_control/q_learning.py::QLearningController._create_states": {
+      "cyclomatic_complexity": 24
+    },
+    "src/rko_solver/components/local_search/farey_ls.py::farey_ls": {
+      "cyclomatic_complexity": 11
+    },
+    "src/rko_solver/components/local_search/mirror_ls.py::mirror_ls": {
+      "cyclomatic_complexity": 11
+    },
+    "src/rko_solver/components/local_search/nelder_mead_ls.py::nelder_mead_search": {
+      "cyclomatic_complexity": 28,
+      "nloc": 116
+    },
+    "src/rko_solver/components/local_search/swap_ls.py::swap_ls": {
+      "cyclomatic_complexity": 11
+    },
+    "src/rko_solver/components/solution_pool.py::SolutionPool.insert": {
+      "cyclomatic_complexity": 16
+    },
+    "src/rko_solver/components/validation.py::ParameterValidator._values": {
+      "cyclomatic_complexity": 24
+    },
+    "src/rko_solver/components/validation.py::ParameterValidator.check": {
+      "cyclomatic_complexity": 21
+    },
+    "src/rko_solver/engines/rust/runner.py::NativeRunner.run": {
+      "cyclomatic_complexity": 13,
+      "parameter_count": 9
+    },
+    "src/rko_solver/examples/instance_pipeline.py::SchedulingProblem.validate": {
+      "cyclomatic_complexity": 21
+    },
+    "src/rko_solver/examples/instance_pipeline.py::read_data": {
+      "cyclomatic_complexity": 15
+    },
+    "src/rko_solver/examples/run_kp_cpp_instances.py::parse_args": {
+      "cyclomatic_complexity": 13
+    },
+    "src/rko_solver/examples/run_kp_cpp_instances.py::run_single_instance": {
+      "parameter_count": 9
+    },
+    "src/rko_solver/explain.py::DecoderDiagram.__post_init__": {
+      "cyclomatic_complexity": 42
+    },
+    "src/rko_solver/explain.py::_SourceDiagram.__init__": {
+      "cyclomatic_complexity": 26
+    },
+    "src/rko_solver/explain.py::_SourceDiagram._block": {
+      "cyclomatic_complexity": 37,
+      "nloc": 102
+    },
+    "src/rko_solver/metaheuristics/_solvers.py::_SingleAlgorithmSolver.__init__": {
+      "parameter_count": 22
+    },
+    "src/rko_solver/metaheuristics/brkga.py::BRKGA.__init__": {
+      "parameter_count": 13
+    },
+    "src/rko_solver/metaheuristics/brkga.py::BRKGA.solve": {
+      "cyclomatic_complexity": 20
+    },
+    "src/rko_solver/metaheuristics/brkga_cs.py::BRKGA_CS.__init__": {
+      "parameter_count": 14
+    },
+    "src/rko_solver/metaheuristics/brkga_cs.py::BRKGA_CS._identify_promising": {
+      "cyclomatic_complexity": 14
+    },
+    "src/rko_solver/metaheuristics/brkga_cs.py::BRKGA_CS.solve": {
+      "cyclomatic_complexity": 29,
+      "nloc": 112
+    },
+    "src/rko_solver/metaheuristics/ga.py::GeneticAlgorithm.__init__": {
+      "parameter_count": 12
+    },
+    "src/rko_solver/metaheuristics/ga.py::GeneticAlgorithm.solve": {
+      "cyclomatic_complexity": 25,
+      "nloc": 101
+    },
+    "src/rko_solver/metaheuristics/grasp.py::GRASP.__init__": {
+      "parameter_count": 11
+    },
+    "src/rko_solver/metaheuristics/grasp.py::GRASP._line_search": {
+      "cyclomatic_complexity": 13
+    },
+    "src/rko_solver/metaheuristics/grasp.py::GRASP.solve": {
+      "cyclomatic_complexity": 15
+    },
+    "src/rko_solver/metaheuristics/ils.py::ILS.__init__": {
+      "parameter_count": 12
+    },
+    "src/rko_solver/metaheuristics/ils.py::ILS.solve": {
+      "cyclomatic_complexity": 12
+    },
+    "src/rko_solver/metaheuristics/ipr.py::IPR._relink": {
+      "cyclomatic_complexity": 12
+    },
+    "src/rko_solver/metaheuristics/lns.py::LNS.__init__": {
+      "parameter_count": 13
+    },
+    "src/rko_solver/metaheuristics/lns.py::LNS.solve": {
+      "cyclomatic_complexity": 16
+    },
+    "src/rko_solver/metaheuristics/pso.py::PSO.__init__": {
+      "parameter_count": 13
+    },
+    "src/rko_solver/metaheuristics/pso.py::PSO._move_particle": {
+      "parameter_count": 7
+    },
+    "src/rko_solver/metaheuristics/pso.py::PSO.solve": {
+      "cyclomatic_complexity": 21
+    },
+    "src/rko_solver/metaheuristics/sa.py::SA.__init__": {
+      "parameter_count": 15
+    },
+    "src/rko_solver/metaheuristics/sa.py::SA.solve": {
+      "cyclomatic_complexity": 19
+    },
+    "src/rko_solver/metaheuristics/vns.py::VNS.__init__": {
+      "parameter_count": 12
+    },
+    "src/rko_solver/metaheuristics/vns.py::VNS.solve": {
+      "cyclomatic_complexity": 14
+    },
+    "src/rko_solver/orchestration/auto.py::AutoEngine.candidates": {
+      "cyclomatic_complexity": 12
+    },
+    "src/rko_solver/orchestration/auto.py::AutoEngine.select": {
+      "cyclomatic_complexity": 16,
+      "parameter_count": 7
+    },
+    "src/rko_solver/orchestration/configuration.py::parse_run_config": {
+      "cyclomatic_complexity": 19
+    },
+    "src/rko_solver/orchestration/execution.py::run_metaheuristics_parallel": {
+      "cyclomatic_complexity": 21,
+      "parameter_count": 7
+    },
+    "src/rko_solver/orchestration/factory.py::build_metaheuristic": {
+      "cyclomatic_complexity": 13,
+      "parameter_count": 8
+    },
+    "src/rko_solver/orchestration/factory.py::normalize_hyperparameters": {
+      "cyclomatic_complexity": 14
+    },
+    "src/rko_solver/orchestration/initialization.py::initialize_pool": {
+      "parameter_count": 8
+    },
+    "src/rko_solver/orchestration/processes.py::_worker": {
+      "cyclomatic_complexity": 21,
+      "nloc": 115,
+      "parameter_count": 18
+    },
+    "src/rko_solver/orchestration/processes.py::run_processes": {
+      "cyclomatic_complexity": 39,
+      "nloc": 149,
+      "parameter_count": 16
+    },
+    "src/rko_solver/orchestration/search.py::SearchSession.evaluate": {
+      "cyclomatic_complexity": 12
+    },
+    "src/rko_solver/orchestration/search.py::SearchSession.solve": {
+      "cyclomatic_complexity": 19,
+      "parameter_count": 8
+    },
+    "src/rko_solver/reporting.py::OptimizationReport.__init__": {
+      "cyclomatic_complexity": 22
+    },
+    "src/rko_solver/reporting.py::OptimizationReport._charts": {
+      "cyclomatic_complexity": 18
+    },
+    "src/rko_solver/reporting.py::OptimizationReport._decoder_figure": {
+      "cyclomatic_complexity": 25,
+      "nloc": 109
+    },
+    "src/rko_solver/reporting.py::OptimizationReport.write_html": {
+      "cyclomatic_complexity": 17
+    },
+    "src/rko_solver/rko_main.py::run": {
+      "parameter_count": 12
+    },
+    "src/rko_solver/service/boundary.py::RequestBoundary.__call__": {
+      "cyclomatic_complexity": 19
+    },
+    "src/rko_solver/service/boundary.py::RequestBoundary.check_json": {
+      "cyclomatic_complexity": 11
+    },
+    "src/rko_solver/service/manager.py::JobManager._execute": {
+      "cyclomatic_complexity": 18
+    },
+    "src/rko_solver/service/manager.py::JobManager.start": {
+      "cyclomatic_complexity": 20
+    },
+    "src/rko_solver/service/models.py::ServiceLimits.__post_init__": {
+      "cyclomatic_complexity": 14
+    },
+    "src/rko_solver/service/scaffold.py::ServiceScaffold.create": {
+      "cyclomatic_complexity": 20
+    },
+    "src/rko_solver/service/worker.py::JobWorker.run": {
+      "cyclomatic_complexity": 19,
+      "nloc": 126
+    },
+    "src/rko_solver/solver.py::RKO.__init__": {
+      "cyclomatic_complexity": 13,
+      "parameter_count": 23
+    },
+    "src/rko_solver/solver.py::RKO._execute": {
+      "cyclomatic_complexity": 19,
+      "nloc": 124,
+      "parameter_count": 8
+    },
+    "src/rko_solver/solver.py::RKO.solve": {
+      "cyclomatic_complexity": 52,
+      "nloc": 138
+    },
+    "src/rko_solver/tracing.py::DecisionTrace.__post_init__": {
+      "cyclomatic_complexity": 40
+    },
+    "tools/release.py::ReleaseManager._artifact": {
+      "cyclomatic_complexity": 67,
+      "nloc": 141
+    },
+    "tools/release.py::ReleaseManager.create": {
+      "cyclomatic_complexity": 12
+    },
+    "tools/release.py::ReleaseManager.verify": {
+      "cyclomatic_complexity": 14
+    },
+    "tools/release.py::main": {
+      "cyclomatic_complexity": 18
+    },
+    "tools/smoke_installed.py::main": {
+      "cyclomatic_complexity": 31,
+      "nloc": 256
+    },
+    "tools/third_party_licenses.py::ThirdPartyLicenses.render": {
+      "cyclomatic_complexity": 19
+    }
+  },
+  "version": 1
+}
