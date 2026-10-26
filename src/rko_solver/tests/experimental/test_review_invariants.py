@@ -15,6 +15,7 @@ Inputs/Outputs:
 - Output: explicit durable rejection and retained conservative reservations.
 """
 
+import contextlib
 import importlib
 import json
 import pytest
@@ -167,7 +168,7 @@ def test_runtime_setup_is_reserved_before_construction(
             Args:
                 image (str): Pinned test image, not actually launched.
             """
-            with sqlite3.connect(study.path / "measurements.sqlite") as db:
+            with contextlib.closing(sqlite3.connect(study.path / "measurements.sqlite")) as db:
                 assert db.execute("SELECT value FROM state WHERE key='setup_pending'").fetchone()
                 assert (
                     float(
@@ -219,8 +220,9 @@ def test_exhausted_study_does_not_construct_runtime(
         monkeypatch (pytest.MonkeyPatch): Constructor must remain unreachable.
     """
     study = create_study(tmp_path / "study")
-    with sqlite3.connect(study.path / "measurements.sqlite") as db:
+    with contextlib.closing(sqlite3.connect(study.path / "measurements.sqlite")) as db:
         db.execute("INSERT INTO state VALUES ('setup_charge',?)", (str(study.spec["cpu_budget"]),))
+        db.commit()
     monkeypatch.setattr(
         study_module, "PodmanRunner", lambda *args: pytest.fail("Unreserved startup.")
     )
@@ -313,7 +315,7 @@ def test_study_overrun_retains_full_charge_and_blocks_resume(
     assert progress["complete"] == completed_before + 1
     assert progress["pending"] == 71 - completed_before
     assert progress["inference_available"] is False
-    with sqlite3.connect(study.path / "measurements.sqlite") as db:
+    with contextlib.closing(sqlite3.connect(study.path / "measurements.sqlite")) as db:
         result = db.execute(
             "SELECT result FROM jobs WHERE json_extract(result, '$.status')='infrastructure_error'"
         ).fetchone()[0]
