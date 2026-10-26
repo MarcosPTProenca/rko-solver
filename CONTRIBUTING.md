@@ -67,7 +67,17 @@ configurations; if a behavior change is intended, regenerate with
 `RKO_UPDATE_GOLDEN=1 uv run pytest src/rko_solver/tests/test_golden_runs.py` and review the
 diff of `golden/runs.json`.
 
-[CI](.github/workflows/ci.yml) checks Ubuntu/Windows, benchmark diagnostics, and
+Supported minimums, each tested in CI: Python 3.14, NumPy 2.3.2 (the first release with a
+Python 3.14 wheel; the previous `>=2.0.0` bound could never be installed or tested on 3.14) and
+Rust 1.90 (`rust-version`; the code compiles on 1.88 but not 1.85, and 1.90 is the tested floor).
+The main job runs on Ubuntu, Windows and macOS. [Scheduled deep checks](.github/workflows/scheduled.yml)
+run every night and on demand: the property and fuzz tests at 20x the example count and a larger
+paired comparison of the C++ engine with the pinned C++ reference on TSP and Rastrigin (raw trials
+are kept for 14 days). The comparison job asserts that every trial completed and was verified; it
+does not assert statistical equivalence, so read the printed summary. A failed scheduled run only
+marks the workflow red.
+
+[CI](.github/workflows/ci.yml) checks Ubuntu/Windows/macOS, benchmark diagnostics, and
 isolated wheel/sdist installations using `tools/smoke_installed.py`. A source-tree
 import alone does not prove an installed package works. CI currently uses Python
 3.14; additional interpreter/platform support needs explicit coverage.

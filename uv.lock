@@ -1659,7 +1659,7 @@ service-test = [
 requires-dist = [
     { name = "fastapi", marker = "extra == 'service'", specifier = ">=0.135,<1" },
     { name = "numba", marker = "extra == 'compiled'", specifier = ">=0.68" },
-    { name = "numpy", specifier = ">=2.0.0" },
+    { name = "numpy", specifier = ">=2.3.2" },
     { name = "plotly", marker = "extra == 'reports'", specifier = ">=6.0" },
     { name = "threadpoolctl", marker = "extra == 'service'", specifier = ">=3.7,<4" },
     { name = "uvicorn", marker = "extra == 'service'", specifier = ">=0.41,<1" },
