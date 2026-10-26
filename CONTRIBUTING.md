@@ -67,6 +67,17 @@ configurations; if a behavior change is intended, regenerate with
 `RKO_UPDATE_GOLDEN=1 uv run pytest src/rko_solver/tests/test_golden_runs.py` and review the
 diff of `golden/runs.json`.
 
+Coverage is a ratchet from measured values, not a target: the Python package must keep at least
+88 percent combined line and branch coverage (measured 90.9 with the service and reports extras and
+the C++ engine installed; the floor is `fail_under` in `pyproject.toml`) and the Rust engines at
+least 93 percent line coverage from the Rust tests alone (measured 96.7, benchmark runners
+excluded). Raise a floor when a change durably improves the measurement; never lower one to make
+a change pass. Run `uv run --extra service --extra reports --group service-test pytest
+src/rko_solver/tests --cov` and `cargo llvm-cov -p rko-core -p rko-cpp --release
+--ignore-filename-regex '(bench|/bin/)' --summary-only` locally. Code that runs only in spawned
+processes or the generated service container counts less than it should, so a number below the
+floor needs a look at what is actually untested before anything else.
+
 Supported minimums, each tested in CI: Python 3.14, NumPy 2.3.2 (the first release with a
 Python 3.14 wheel; the previous `>=2.0.0` bound could never be installed or tested on 3.14) and
 Rust 1.90 (`rust-version`; the code compiles on 1.88 but not 1.85, and 1.90 is the tested floor).

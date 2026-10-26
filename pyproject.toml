@@ -95,6 +95,7 @@ dev = [
     "mypy==1.19.1",
     "vulture==2.14",
     "pip-audit==2.10.0",
+    "pytest-cov>=7",
 ]
 docs = [
     "mkdocs>=1.6,<2",
@@ -176,3 +177,12 @@ ignore_names = ["page"]
 
 [tool.quality]
 type-paths = ["src/rko_solver", "tools"]
+
+[tool.coverage.run]
+source = ["rko_solver"]
+branch = true
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+fail_under = 88
+skip_covered = true
