@@ -116,6 +116,28 @@ jobs:
       - name: Core tests pass on Rust 1.90
         run: cargo +1.90 test --release
 
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      RKO_BUILD_CPP: "1"
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Sync locked dependencies with every optional extra
+        run: uv sync --locked --group dev --group service-test --extra service --extra reports
+      - name: Point PyO3 at the project interpreter
+        run: echo "PYO3_PYTHON=$(uv run --locked python -c 'import sys; print(sys.executable)')" >> "$GITHUB_ENV"
+      - name: Python line and branch coverage (floor in pyproject.toml)
+        run: uv run --locked --extra service --extra reports --group service-test pytest src/rko_solver/tests -q --cov
+      - name: Install the Rust coverage tool
+        run: |
+          rustup component add llvm-tools-preview
+          cargo install cargo-llvm-cov --locked --version 0.9.1
+      - name: Rust engine line coverage (benchmark runners excluded)
+        run: cargo llvm-cov -p rko-core -p rko-cpp --release --ignore-filename-regex '(bench|/bin/)' --fail-under-lines 93 --summary-only
+
   quality-gate:
     runs-on: ubuntu-latest
     steps:
