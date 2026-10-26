@@ -28,10 +28,12 @@ import threading
 from ..components.random_streams import RandomStreams
 from ..components.solution_pool import ElitePool
 from ..metaheuristics.base import MetaheuristicBase
-from ..tracing import TraceConfig
+from .search import SearchReporting
 from .search import SearchSession
+from .types import ModelCallbackOptions
 from .types import RunResult
 from .types import SearchMetadata
+from typing import Unpack
 
 
 def run_metaheuristics_parallel(
@@ -41,8 +43,8 @@ def run_metaheuristics_parallel(
     *,
     search_metadata: list[SearchMetadata] | None = None,
     history_limit: int = 0,
-    trace: TraceConfig | None = None,
     max_evaluations: int | None = None,
+    **callback_options: Unpack[ModelCallbackOptions],
 ) -> list[RunResult]:
     """Run thread searches with callback-budget and failure cancellation checks.
 
@@ -52,8 +54,8 @@ def run_metaheuristics_parallel(
         streams (list[RandomStreams] | None): Owned streams in portfolio order.
         search_metadata (list[SearchMetadata] | None): Optional completed report collector.
         history_limit (int): Per-search scalar history cap; zero disables capture.
-        trace (TraceConfig | None): Optional bounded original-decision recorder.
         max_evaluations (int | None): Completed evaluations after which each search stops.
+        callback_options (ModelCallbackOptions): Optional trace and bounded model-witness capture.
 
     Returns:
         list[RunResult]: Search outcomes in portfolio order.
@@ -62,6 +64,8 @@ def run_metaheuristics_parallel(
         ValueError: If stream count does not match the portfolio.
         RuntimeError: If any worker fails or returns no outcome.
     """
+    trace = callback_options.get("trace")
+    model_evidence = callback_options.get("model_evidence")
     streams = streams if streams is not None else [RandomStreams(None) for _ in metaheuristics]
     if len(streams) != len(metaheuristics):
         raise ValueError("One random stream pair is required per search.")
@@ -93,6 +97,7 @@ def run_metaheuristics_parallel(
                     max_evaluations=max_evaluations,
                 )
                 reports[index] = session.metadata
+                SearchReporting.collect(session, model_evidence)
         except BaseException as exc:
             errors[index] = exc
             cancelled.set()

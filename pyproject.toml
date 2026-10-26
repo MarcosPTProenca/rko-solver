@@ -41,6 +41,9 @@ Issues = "https://github.com/MarcosPTProenca/rko-solver/issues"
 Documentation = "https://marcosptproenca.github.io/rko-solver/"
 
 [project.optional-dependencies]
+pyomo = ["pyomo==6.10.1"]
+pulp = ["pulp==4.2.0"]
+mathopt = ["ortools==9.15.6755"]
 reports = [
     "plotly>=6.0",
 ]
@@ -98,6 +101,9 @@ dev = [
 ]
 docs = [
     "mkdocs>=1.6,<2",
+]
+model-validation = [
+    "scipy==1.18.1",
 ]
 service-test = [
     "httpx2>=2,<3",

@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "kind": "local_functional_platform_qualification",
+  "baseline_revision": "13b6934800066b6acbf6ad711fabea99805c611f",
+  "repair": "continuous",
+  "repair_max_sweeps": 1024,
+  "qualified_source_sha256": {
+    "src/rko/batch.py": "c599ca62c6846d1cbf73ab199b06b7c7c70c295071f19dea0257c179eaf4456e",
+    "src/rko/rko_main.py": "6e418e58cb4568e3bdda443abfe7987bafff2a26d6c28e57dbdeb0981f1734f9",
+    "src/rko/assessment.py": "1ea23fb0bec28bd61aaa6197fd31779ee6ac0b9e6f813f0b323c02dd245589d2",
+    "src/rko/__init__.py": "7979e82ae7be35f6d973e390df490cc89e23201baf881b900dd74e3d76dc02ea",
+    "src/rko/native.py": "cbc67d5a050533d6a46da8405e4d1f5e1aae4cba9b87c58addc7880c63772d9d",
+    "src/rko/reporting.py": "ace804fb04ad26823299896dc0f6d1c9ad932dc83a026c14ba4eaee720290446",
+    "src/rko/explain.py": "2d702e7d92066c431986a1854a8f015ffe637e2e8392a1fd3418a6140acd4d2f",
+    "src/rko/tracing.py": "05d9066aae406548cbd61d4368e90176d17b73f2de84b4830bd9f815a3c93b63",
+    "src/rko/solver.py": "72cc8b634acb8a930077a64ba87deb31089bf22f5fc5db5671499cea99c4ebdc",
+    "src/rko/compiled.py": "1e59b1609bd5d7e6f4367461e74040847e362a082349ba0c1f44797e0a83ef49",
+    "src/rko/examples/model_conversion.py": "e705875e7eea2e3f603f4fb29204889ffd7fec9ff4a5ffcc59fb0530bf54c33e",
+    "src/rko/examples/analysis_report.py": "8f1146dbc829fe3de410af59f7a09cc310d041bcdffd0a09de7fa3dfc509a821",
+    "src/rko/examples/__init__.py": "8f9bd93bba448c77bf14dcb36af3767a28cc301540947d42e017474cbb031b7c",
+    "src/rko/examples/run_kp_cpp_instances.py": "17294e347d2eda0412ad4f4ef2237fc8eda7b68ac283b32a8f79b96c68a355c1",
+    "src/rko/examples/decision_trace.py": "e77913097cc63412562e7e3df229437cd2e29f7dba5782b68be516d31d6d4082",
+    "src/rko/examples/instance_pipeline.py": "b4e80c795db88240ce05c323c06fc18994449fde95937d4a3acc1a6b1b1cfa7c",
+    "src/rko/examples/decoder_diagram.py": "4cf53e621e3f59d0359d921d0948b8efb8a630f6a9051983f20bfc5be58b777b",
+    "src/rko/modeling/__init__.py": "ecae07eb0d7adb0c216a8b63b401ca7b3e8fdf18ff59b7cc8d8a26ddb0487f8c",
+    "src/rko/modeling/adapters.py": "33d8027bff588d5377e1473aa918b6d20ba97e695b92b26e71579c2a3c7fb878",
+    "src/rko/modeling/linear.py": "3e025f8f48a9df04898283d8b71795c98a5bf5086aaa675d34e7db66e9f3e119",
+    "src/rko/modeling/results.py": "417e3c3ee260dfd9b5d19831b428fdf55713b4ebd7aa6643e5b8612bab25acbf",
+    "src/rko/orchestration/configuration.py": "0a4aab14f3f24811b75e0e6b7395eadd55e6b09a140bc862977d9c832f46d20a",
+    "src/rko/orchestration/types.py": "0320dee8bb7a2e8d64cb097d48d7d14aec5891463b6c17732c5bfbca7156f38e",
+    "src/rko/orchestration/search.py": "0a20551da57710dc2204860b792490a3b004d220e07dc72bfa8b2dd5306d6823",
+    "src/rko/orchestration/__init__.py": "837843867fdac46b24475b80d3e8b50e42048dbd13d868b4f34f4eb2cfb2c5af",
+    "src/rko/orchestration/initialization.py": "c0f314dc0869dc03acd3484648612dd2e7705feb3cd12e266567d8fdd5bed9db",
+    "src/rko/orchestration/adaptation.py": "303aed140f6e0997171c485f5995d82221cadfe68ff6c57aa1fba3bd6d34fd3e",
+    "src/rko/orchestration/execution.py": "8e2fbffad391dd81c6b840e1527c0febbe856b4abac70565fe527b2da4926df9",
+    "src/rko/orchestration/native.py": "c438d2def93809e6c063c08dfed155213c1e3ee0fb394eec4a47a8707afdfff4",
+    "src/rko/orchestration/factory.py": "6c9abbba16da1c52abbd8d3086c9d14f2ae1740456202685f4d5a44dfcb8fffb",
+    "src/rko/orchestration/processes.py": "0d2bbc155b5b056f2d055686ac9fa29e2e4b548f7ad780c08053c0d66df98a6d",
+    "src/rko/parameters/__init__.py": "7bb5626954c28477fa586ca5ea95db453f3bb10968a47592e9bf2306a6ac2592",
+    "src/rko/parameters/loader.py": "fe2a695b6a011c6fa318cfd426363b8e6a22d83a3e57d397387097729e38ee01",
+    "src/rko/components/validation.py": "34aef5be9dbe65eca14d7677b8f2dd3c1cc637ecc033f537ed1aa964ab917cdb",
+    "src/rko/components/__init__.py": "b0c1b969a67b549ce4db12111d44c6e053b9b3fcf24135e8e660194c0004a523",
+    "src/rko/components/solution_pool.py": "f8110ca75b3784793426a37555a547eba9b184d10c246994a3a76907d44aaf94",
+    "src/rko/components/random_streams.py": "eeb1f6e10cd475231d53cff49bfa770f479a1cda52d56d6ddb1bbb7dca860366",
+    "src/rko/service/models.py": "0197187d438ae6da6e0cabf5c4562ef1f2ffedf7011d48b795f969755e07d9bc",
+    "src/rko/service/manager.py": "dc99a111596c7d06495ca1625228efcf2cff2eeff9c0f1ad377877bb2f0e82dd",
+    "src/rko/service/__init__.py": "bc09d5dd3c0dc98a87873a33e6cf124aefcab4e607d9a1d798c564cc226fecba",
+    "src/rko/service/api.py": "cb757d5598c9e0dd14e6ac1eeeaeadec4d9ebf8a6551197bf4f0c4f76a1f408e",
+    "src/rko/service/worker.py": "b7bee7312f6abc64a775aaa5bd10c4b0563213a6785f7f855b3350021e0692f8",
+    "src/rko/service/scaffold.py": "018ee849bf5179ab5dd2f785fdcb671c2981297c99a12dd07a585da8c42af90e",
+    "src/rko/service/boundary.py": "2b25a11eb142f0eeae2075e4db726c2eb7e55b60309034e3921f98d3b3d06111",
+    "src/rko/metaheuristics/vns.py": "c61adb2d830f5542e46032f118da8c87de182244dba198c2f9ac6c7d2475bd9b",
+    "src/rko/metaheuristics/lns.py": "49cb09579eef92ee239f5c4b51591811eddeec52b302214be0dea15bfb28a665",
+    "src/rko/metaheuristics/base.py": "03aa4cd9f7fdb664c799d89dda18e1417da41c951f132d541fb34f411840dba6",
+    "src/rko/metaheuristics/pso.py": "5ec4e1278003fbc1a87caf8719e68ad2f01fd08c25f14c64100fb0afaffe65c7",
+    "src/rko/metaheuristics/__init__.py": "83e2635a38bfa6a5b06a22a6936679dab0cfcf4db339ada1d5b73eaf97b58dd7",
+    "src/rko/metaheuristics/multi_start.py": "101b7b44c59ab19dfe11595670ab202f1e52af0dcebcdc454bde8a3daa866736",
+    "src/rko/metaheuristics/brkga_cs.py": "36aea803e8cb467fb0f745de33b65185b80e660d0cdc83ae5c9cdf795d6d4be4",
+    "src/rko/metaheuristics/grasp.py": "d7494d6d476fc207a7592397ecf008e3329dac5fc02e5ad1665b6694a9793a54",
+    "src/rko/metaheuristics/ils.py": "8a0ab830eb66f6b2bc93da6379a668624c7233266ff493accfa8f4c00dbf97f6",
+    "src/rko/metaheuristics/ipr.py": "3c6ebcbf11c116d5bac338de6b8836c486121813213b3e205b11c2c0f6887f7e",
+    "src/rko/metaheuristics/ga.py": "57a882eeb799dc42e18a31ec8c5b5f1ea07c7825cc9a22ad2f182c862c81121a",
+    "src/rko/metaheuristics/sa.py": "6cef47efc705f1e952ab743ffc6584fb205697fb0df0b2ff4ad78525c47d2f73",
+    "src/rko/metaheuristics/_solvers.py": "2dcc68a4dd609e797eb564abb5549efed08a6cfaa71ba8447a1d5cc1bd735819",
+    "src/rko/metaheuristics/brkga.py": "e7410409a41b434ca7c0d65f77149ab488212872f0e48030f537328c5ec55d1f",
+    "src/rko/service/templates/app.py": "fe4f71ba4333da1cdb028ca9428a711978e51cf03698fee3490ce04e7edb4c3c",
+    "src/rko/service/templates/adapter.py": "1b294446b99b915d768190002c0e5ae207cdba7fa61bd5957b14244d28c6d07b",
+    "src/rko/components/local_search/nelder_mead_ls.py": "b0d953863433af96de9789d56f26dc2412011911a45f1cdf697d07c0cb1af287",
+    "src/rko/components/local_search/farey_ls.py": "44df4d20bb84d308643aedd99405d84ccd8ccc23dee457e9138948df813f4308",
+    "src/rko/components/local_search/swap_ls.py": "16b7a62a0a5c6426340c65cd6c94f76d74ed53378f5dc2da621b3b8465a08e83",
+    "src/rko/components/local_search/rvnd.py": "eabd74a9038cfbbd083799743eedcfe955bd743c302d16bbf6a8c78e6f7012cc",
+    "src/rko/components/local_search/mirror_ls.py": "c254645323675b2fdbc802b9bcbd34afddea111301492343c008e5ac82a3669b",
+    "src/rko/components/blending/blending.py": "08d74f4c64dad1bb00c0e3b2002748d7bd841fea466d4b5665d37b298862206b",
+    "src/rko/components/initialization/initialization.py": "e526b260b86ccf699cf25e4ac38720234d034c288ef9ae3b42a0576c021b686a",
+    "src/rko/components/adaptive_control/q_learning.py": "fe669540ef03c4a8a1b828af77fcddabbb3deb08dca8f0862211e71deedf9fa0",
+    "src/rko/components/shaking/neighbor_swap.py": "386005f37070d8d00d62cc984b5c312a158d2420c0342f6b16642f123b28f2c6",
+    "src/rko/components/shaking/swap.py": "86210cb8871f93aea61d97484a864bcfba3773af522454b319636cdd20bfc76b",
+    "src/rko/components/shaking/random.py": "443aabf993f8ed68b7007f492dceac8a47a37cb14884f9f1f82b6071198e7f73",
+    "src/rko/components/shaking/mirror.py": "59d31a7ce4a6657ad9ea2f44fc5c04df96b917926379d4319bf0c2774d3ed121",
+    "pyproject.toml": "ae4cd3a9334e33cc28e8152ecc49893caa9bf9cd586c030e559a2a5f56398391",
+    "uv.lock": "a8d9a48fa59a90268852ff8d6a24da2b69f9717561174eb9c722c19b8f6a4faa",
+    "Cargo.toml": "593a60c61b9e2be33fd8ce21896618e0b4821617ab2e9541496b4e661b0a6955",
+    "Cargo.lock": "8294f1be8de9ee747d1272585f291c19c5db3745c6b506bc042ce85229e8c7c5",
+    "tools/smoke_modeling_installed.py": "31bb91dfa254dceff02d7ae4218f5bdc4eb981ff48363f43ca9f5bdaa776779b",
+    "benchmarks/modeling_cases.py": "25db9b4e7e2295500544a7bcdf40de9034afa29831c65e462536d5effafda15c",
+    "benchmarks/modeling_validation.py": "10b588034a5c7d1fc4884e365d1c295e59dffd779e14f645f3135673476fb8b2",
+    "benchmarks/modeling_overhead.py": "5f6e70a03a1ee013cc9e03a9983d5e5c93db5721ca24f926d7a690bc74225964",
+    "crates/rko-cpp/build.rs": "f18639d03cb662e4b0d6359622995cc2b6d0ec0226257e2d929d6ede4db8faf3",
+    "crates/rko-py/src/compiled.rs": "0ce70375e0f0fa8f4b01d7a9199b8b182e18f65d0fa43bad32dcab90c8bc75f7",
+    "crates/rko-py/src/lib.rs": "04ddbfd68788307553b1121923c3be4817adadde3fc0691f5b859bc045494cd6",
+    "crates/rko-cpp/src/lib.rs": "321c040d3f7f1fed7f1164a99072d23295fda215f64e7315a0f51d4ed8698065",
+    "crates/rko-cpp/src/bin/rko_bench_cpp.rs": "e145a09b05013954b573ab96df22fb47f9bfdc10cac8ce9e04babe48594f217c",
+    "crates/rko-core/src/rng.rs": "542c32952bd359e7c5c133a9f6654c930372a80bd6c749d2ef05ea8492a1aa7c",
+    "crates/rko-core/src/search.rs": "30f504eadf06c750f1209d723f049024c8718c11ff52a295b44c832cc9470089",
+    "crates/rko-core/src/problem.rs": "7325329fcb5086fc1dcac482ef2b00c6049eba9651f747dc12ca78d02e234341",
+    "crates/rko-core/src/lib.rs": "f495fe723d3f54e378b6c264cba36e4125b99599ad2d9818a2543cb6716983a2",
+    "crates/rko-core/src/pool.rs": "139edcbd8d93069318e1308b65728982e8f01affd9b0aafb245e05adc8dde442",
+    "crates/rko-core/src/engine.rs": "bef9e0904cec2f7fe2b1b72060b03140d66df53cf7923274a8bb37f7d5890ba9",
+    "crates/rko-core/src/qlearning.rs": "96d4da8f6804da5871b3661ee775b2f4b94b716a20643128cc110621b09a37db",
+    "crates/rko-core/src/bench.rs": "27ccc4c452171a831e98913b4dbbd06f314402acd7f21320f4614a2c096cc4e5",
+    "crates/rko-core/src/operators.rs": "f7241d6c47326267de9be8b51e7901c402e6a6dbf65cfaf79bb365bee9aaee16",
+    "crates/rko-core/src/local_search.rs": "c590a921dd7d9953e5e88777209b9b507b1acf60b210a1bb2d9f9fc620bb6d85",
+    "crates/rko-core/src/bin/rko_bench.rs": "b9f0e91344a8f8969ee5c83e304c54c89e4834a1fee0cf23e128420eadb46505",
+    "crates/rko-core/src/mh/multi_start.rs": "5ef54fc3cf5a2e66dbe6730492439818df6dfe4670b7b77df3a9b0130800942d",
+    "crates/rko-core/src/mh/population.rs": "47c9d34ab327b27fa132f0b2a69ae033e191635e7374539026bdd7f170c9c585",
+    "crates/rko-core/src/mh/brkga_cs.rs": "29506f8cf3ddde04ba674370708e40a768b9f23b3da268425953a6b7b05811f4",
+    "crates/rko-core/src/mh/ils.rs": "eafcadf086770fa9f0d0159be71924765d7ce7d966f0197a3c290e739c7c4499",
+    "crates/rko-core/src/mh/pso.rs": "2b594c9f99e17acf2b7b25c98a12acc8c16f43af3160f84c131d3252a6505d3c",
+    "crates/rko-core/src/mh/ga.rs": "ef36aaf449502d392a63245fe02f54c65e904b8e5edfb5617551398d50fef075",
+    "crates/rko-core/src/mh/grasp.rs": "288e5a8584b4808bb7a1fc5af66f7d8a7344fae4c2a9849df18b6d73a72a23c2",
+    "crates/rko-core/src/mh/vns.rs": "168b0e208e14c3dcb29a0707bf52c0bc5903fe3cf9d767681d0cfb7e910e9c01",
+    "crates/rko-core/src/mh/sa.rs": "5ab19594b2937149584deaa2303195675ed615d942a7244c6bad91efbd566fea",
+    "crates/rko-core/src/mh/mod.rs": "1404b46a9e9f9667f9da90e06dbca468950f9ef6968327fd121af43dbac4d467",
+    "crates/rko-core/src/mh/lns.rs": "8aa0177cadd0faca23107221bf9be59539a150fb0ea52b29a9530347d3030fd2",
+    "crates/rko-core/src/mh/brkga.rs": "e769294801c4f0486a3c55a8139d52a578390890636d6dc0565919c3be99ff2e",
+    "crates/rko-core/src/mh/ipr.rs": "e650334a19e73513fe2e0a2a8edb24833c7bda37236cba851968ecf6ed708341"
+  },
+  "linux": {
+    "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.14.8",
+    "numpy": "2.4.3",
+    "full_optional_tests": {
+      "passed": 1576,
+      "skipped": 6,
+      "seconds": 337.98
+    },
+    "clean_core_tests": {
+      "passed": 1409,
+      "skipped": 173,
+      "seconds": 237.42
+    },
+    "strict_docs": true,
+    "ruff": true,
+    "format": true,
+    "build_wheel_sdist": true,
+    "isolated_frontend_artifact_smokes_passed": 8,
+    "core_frontend_scipy_plotly_absence_confirmed": true
+  },
+  "windows": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.3",
+    "numpy": "2.4.3",
+    "full_optional_tests": {
+      "passed": 1572,
+      "skipped": 7,
+      "seconds": 602.73
+    },
+    "clean_core_tests": {
+      "passed": 1407,
+      "skipped": 172,
+      "seconds": 345.78
+    },
+    "final_repair_tests": {
+      "passed": 22,
+      "skipped": 0,
+      "seconds": 54.97
+    },
+    "count_scope_note": "Full Windows suite precedes two added write-back characterization cases and one policy-reference parametrization; final repair suite includes both write-back cases. Counts are not relabeled as one later full run.",
+    "native_execution": true,
+    "strict_docs": true,
+    "ruff": true,
+    "format": true,
+    "build_wheel_sdist": true,
+    "isolated_frontend_artifact_smokes_passed": 8,
+    "core_frontend_scipy_plotly_absence_confirmed": true,
+    "full_suite_skip_reasons": [
+      "five C++ backend tests: optional C++ build feature not enabled",
+      "optional httpx2 unavailable",
+      "host does not allow test symlinks"
+    ],
+    "completed_steps": [
+      {
+        "name": "sync-all",
+        "exit_code": 0
+      },
+      {
+        "name": "ruff",
+        "exit_code": 0
+      },
+      {
+        "name": "format",
+        "exit_code": 0
+      },
+      {
+        "name": "tests-all",
+        "exit_code": 0
+      },
+      {
+        "name": "docs",
+        "exit_code": 0
+      },
+      {
+        "name": "build",
+        "exit_code": 0
+      },
+      {
+        "name": "installed-pyomo-wheel",
+        "exit_code": 0
+      },
+      {
+        "name": "installed-pyomo-sdist",
+        "exit_code": 0
+      },
+      {
+        "name": "installed-pulp-wheel",
+        "exit_code": 0
+      },
+      {
+        "name": "installed-pulp-sdist",
+        "exit_code": 0
+      },
+      {
+        "name": "installed-mathopt-wheel",
+        "exit_code": 0
+      },
+      {
+        "name": "installed-mathopt-sdist",
+        "exit_code": 0
+      },
+      {
+        "name": "installed-combined-wheel",
+        "exit_code": 0
+      },
+      {
+        "name": "installed-combined-sdist",
+        "exit_code": 0
+      },
+      {
+        "name": "sync-core",
+        "exit_code": 0
+      },
+      {
+        "name": "core-absence",
+        "exit_code": 0
+      },
+      {
+        "name": "tests-core",
+        "exit_code": 0
+      },
+      {
+        "name": "repair-final-sync-all",
+        "exit_code": 0
+      },
+      {
+        "name": "repair-final-tests",
+        "exit_code": 0
+      },
+      {
+        "name": "repair-final-ruff",
+        "exit_code": 0
+      },
+      {
+        "name": "repair-final-format",
+        "exit_code": 0
+      }
+    ]
+  },
+  "rust_toolchains": {
+    "linux": {
+      "channel_date": "2026-10-15",
+      "host": "x86_64-unknown-linux-gnu",
+      "components": [
+        {
+          "component": "cargo",
+          "version": "0.100.0 (5f94df478 2026-08-27)",
+          "url": "https://static.rust-lang.org/dist/2026-10-15/cargo-1.99.1-x86_64-unknown-linux-gnu.tar.xz",
+          "sha256": "53f3521949404d595efb06a55c12c5658d4ed1c75566f33d3d514eaebe70bd8a"
+        },
+        {
+          "component": "rustc",
+          "version": "1.99.1 (58cf8f9c3 2026-10-13)",
+          "url": "https://static.rust-lang.org/dist/2026-10-15/rustc-1.99.1-x86_64-unknown-linux-gnu.tar.xz",
+          "sha256": "2ff05ff9c08a90861e7f6e4065b40a8b87463b4576186fd613871c3e37f2091f"
+        },
+        {
+          "component": "rust-std",
+          "version": "1.99.1 (58cf8f9c3 2026-10-13)",
+          "url": "https://static.rust-lang.org/dist/2026-10-15/rust-std-1.99.1-x86_64-unknown-linux-gnu.tar.xz",
+          "sha256": "109b074225bf5b9ea3820890876bfdf4ed161adbfaf94b2b4b5984c85ee5d958"
+        }
+      ]
+    },
+    "windows": {
+      "channel_date": "2026-10-15",
+      "host": "x86_64-pc-windows-msvc",
+      "components": [
+        {
+          "component": "cargo",
+          "version": "0.100.0 (5f94df478 2026-08-27)",
+          "url": "https://static.rust-lang.org/dist/2026-10-15/cargo-1.99.1-x86_64-pc-windows-msvc.tar.xz",
+          "sha256": "4adb46c3707dee790682f7769d86983841148111695f561c843c33daa2af0c9b"
+        },
+        {
+          "component": "rustc",
+          "version": "1.99.1 (58cf8f9c3 2026-10-13)",
+          "url": "https://static.rust-lang.org/dist/2026-10-15/rustc-1.99.1-x86_64-pc-windows-msvc.tar.xz",
+          "sha256": "7da83c2af1f209606b0160f25174d2867c7c7b73667c32c9e5fbcef4f5f45348"
+        },
+        {
+          "component": "rust-std",
+          "version": "1.99.1 (58cf8f9c3 2026-10-13)",
+          "url": "https://static.rust-lang.org/dist/2026-10-15/rust-std-1.99.1-x86_64-pc-windows-msvc.tar.xz",
+          "sha256": "4fe09430ded40b8b3092b49f0a651178eb1f8154ef4d1f1a73f2a3595b2d956f"
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Local functional qualification only; hosted CI unexecuted for this branch.",
+    "Scheduling/Knapsack disabled-path intervals remain inconclusive against1.05 threshold.",
+    "Restoration freezes integer choices, has a finite work cap and is not a complete MILP solver.",
+    "No industrial or owner-sanitized model acceptance claim.",
+    "No publication/release authorization."
+  ]
+}

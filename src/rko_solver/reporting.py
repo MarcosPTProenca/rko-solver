@@ -1,8 +1,7 @@
 """Offline interactive analysis of completed random-key optimization runs.
 
 Objective:
-- Export honest single-run summaries and bounded convergence traces as standalone HTML.
-- Preserve data-only provenance without leaking chromosomes or calling problem callbacks.
+- Export offline single-run summaries with owned provenance, no chromosomes or callback replay.
 
 Technical approach:
 - Snapshot immutable result metadata into a versioned JSON-compatible document.
@@ -38,6 +37,7 @@ import os
 from .assessment import SolutionAssessment
 from .assessment import ValidationReport
 from .explain import DecoderDiagram
+from .modeling.reporting import ModelReportSection
 from .solver import RKOResult
 from .tracing import DecisionTrace
 from collections import deque
@@ -113,7 +113,7 @@ class OptimizationReport:
             ):
                 raise ValueError("Decision evidence belongs to a different numerical observation.")
         self.title = title
-        data = {
+        data: dict[str, Any] = {
             "schema_version": 1,
             "title": title,
             "summary": {
@@ -148,6 +148,7 @@ class OptimizationReport:
                 "validation": ValidationReport().to_dict(),
             },
         }
+        ModelReportSection.attach(data, result.model)
         self._data = json.loads(json.dumps(data, allow_nan=False))
 
     def to_dict(self) -> dict[str, Any]:
@@ -397,11 +398,8 @@ class OptimizationReport:
                         line={"shape": "hv"},
                     )
                 )
-            figure.update_layout(
-                title="Best observed objective — independent local search axes",
-                xaxis_title=label,
-                yaxis_title="Objective (minimize)",
-            )
+            title, vertical_label = ModelReportSection.axes(self._data)
+            figure.update_layout(title=title, xaxis_title=label, yaxis_title=vertical_label)
             figures.append(figure)
         if searches:
             labels = [escape(search["algorithm"]) for search in searches]
@@ -612,6 +610,7 @@ class OptimizationReport:
                 for index, event in enumerate(trace["events"] if trace else [], start=1)
             ],
         )
+        model_section, subtitle = ModelReportSection.html(data, self._table)
         heading = escape(self.title)
         document = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
@@ -622,7 +621,7 @@ h1,h2{{line-height:1.2}}.notice{{background:#fff3cd;padding:16px;border-left:4px
 th,td{{text-align:left;padding:8px;border:1px solid #dfe1e6;vertical-align:top}}
 th{{background:#f4f5f7}}nav a{{margin-right:16px}}section{{margin-top:32px}}
 @media print{{body{{max-width:none}}nav{{display:none}}.table{{overflow:visible}}}}
-</style></head><body><header><h1>{heading}</h1><p>Single-run observations · minimized objective</p>
+</style></head><body><header><h1>{heading}</h1><p>{subtitle}</p>
 <nav><a href="#summary">Summary</a><a href="#analysis">Charts</a>
 <a href="#validation">Validation</a><a href="#decoder">Decoder</a>
 <a href="#decisions">Observed decisions</a>
@@ -634,6 +633,7 @@ Completed does not mean converged. Timed runs depend on scheduling.</p>
 <section id="summary"><h2>Run summary</h2>{summary}<h3>User-supplied domain metrics</h3>
 <p>Values below are supplied by the caller, not independently verified by this report.</p>
 {domain}</section>
+{model_section}
 <section id="validation"><h2>Optional solution validation</h2>{validation_summary}
 {validation_checks}<p>Checks are supplied by the application, not a proof of complete
 constraint coverage or global optimality. None means unknown: neither feasible nor infeasible

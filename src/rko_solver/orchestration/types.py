@@ -24,14 +24,76 @@ from __future__ import annotations
 
 import numpy as np
 from ..metaheuristics.base import MetaheuristicBase
+from ..modeling.linear import ModelEvidence
+from ..tracing import TraceConfig
 from collections.abc import Callable
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 from typing import Literal
 from typing import Protocol
+from typing import Required
+from typing import TypedDict
 
 RunResult = tuple[list[object], list[float], float]
+
+
+class ModelEvidenceOptions(TypedDict, total=False):
+    """Describe optional generated-model evidence forwarding.
+
+    Responsibilities:
+    - Keep bounded collector forwarding separate from trace configuration.
+
+    Attributes:
+        model_evidence (list[ModelEvidence] | None): Completed witness collector.
+    """
+
+    model_evidence: list[ModelEvidence] | None
+
+
+class WorkerCaptureOptions(TypedDict, total=False):
+    """Describe optional process-worker capture and successful-completion controls.
+
+    Responsibilities:
+    - Keep bounded generated-model transport independent of positional worker arguments.
+
+    Attributes:
+        max_evaluations (int | None): Per-search successful-completion cap.
+        collect_model_evidence (bool): Whether to transport bounded generated-model witnesses.
+    """
+
+    max_evaluations: int | None
+    collect_model_evidence: bool
+
+
+class ExecutionMetadata(ModelEvidenceOptions, total=False):
+    """Describe lifecycle context forwarded to the private execution boundary.
+
+    Responsibilities:
+    - Preserve the required monotonic origin and optional generated-model archive.
+
+    Attributes:
+        started_at (float): Parent monotonic solve origin.
+        model_evidence (list[ModelEvidence] | None): Bounded completed-model collector.
+    """
+
+    started_at: Required[float]
+
+
+class ModelCallbackOptions(ModelEvidenceOptions, total=False):
+    """Type the optional trace and bounded model-evidence forwarding keys.
+
+    Responsibilities:
+    - Preserve optional keyword forwarding without erasing callback collector types.
+
+    Attributes:
+        trace (TraceConfig): Explicit bounded trace configuration when enabled.
+        model_evidence (list[ModelEvidence]): Owned collector for completed model witnesses.
+    """
+
+    trace: TraceConfig | None
+
+
 DecoderFn = Callable[[np.ndarray], Any]
 CostFn = Callable[[Any], float]
 Hyperparameters = Mapping[str, Mapping[str, int | float]]

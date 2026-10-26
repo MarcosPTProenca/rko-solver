@@ -34,6 +34,9 @@ import math
 import numpy as np
 import threading
 import time
+from ..modeling.linear import CompiledLinearModel
+from ..modeling.linear import ModelEvaluation
+from ..modeling.linear import ModelEvidence
 from ..tracing import _ACTIVE_STORE
 from ..tracing import _CURRENT
 from ..tracing import TraceConfig
@@ -43,14 +46,17 @@ from ..tracing import _TraceStore
 from .types import CostFn
 from .types import DecoderFn
 from .types import HistoryPoint
+from .types import ModelCallbackOptions
 from .types import RunResult
 from .types import SearchMetadata
 from dataclasses import dataclass
 from dataclasses import replace
+from functools import partial
 from typing import TYPE_CHECKING
 from typing import Any
 
 if TYPE_CHECKING:
+    from ..components.random_streams import RandomStreams
     from ..metaheuristics.base import MetaheuristicBase
 
 
@@ -110,9 +116,20 @@ class SearchSession:
             trace (TraceConfig | None): Opt-in bounded original-decoder recording.
             trace_source (str): Initial phase/search label.
         """
+        owner = getattr(decoder, "__self__", None)
+        self._model = (
+            owner if isinstance(owner, CompiledLinearModel) and cost is owner.cost else None
+        )
+        self._model_incumbent: ModelEvaluation | None = None
+        self._model_feasible: ModelEvaluation | None = None
+        self._model_first_feasible_at: float | None = None
         self._trace_config = trace
         self._trace_store = _TraceStore(trace, trace_source) if trace is not None else None
-        self.decoder = decoder
+        self.decoder = (
+            partial(self._model.decode, _budget_check=self._check)
+            if self._model is not None and self._model._repair_free
+            else decoder
+        )
         self.cost = cost
         self.deadline = math.inf
         self.cancelled: threading.Event | None = None
@@ -125,6 +142,20 @@ class SearchSession:
         self._history: list[HistoryPoint] = []
         self._history_observations = 0
         self._started_at = 0.0
+
+    @property
+    def model_evidence(self) -> ModelEvidence | None:
+        """Return only bounded successfully completed generated-model witnesses.
+
+        Returns:
+            ModelEvidence | None: Score and independent feasible incumbents, or None
+                for ordinary callbacks and sessions without a completed evaluation.
+        """
+        if self._model_incumbent is None:
+            return None
+        return ModelEvidence(
+            self._model_incumbent, self._model_feasible, self._model_first_feasible_at
+        )
 
     def _record_history(self, elapsed: float) -> None:
         """Retain an incumbent sample and compact deterministically at the configured cap.
@@ -201,18 +232,29 @@ class SearchSession:
         if not math.isfinite(value):
             raise ValueError("Objective callbacks must return finite costs.")
         self.n_evaluations += 1
+        if self._model is not None:
+            self._record_model(candidate.payload, value)
         if candidate.trace is not None:
             candidate.trace.seal(candidate.keys, value)
             value = _ObservedCost(value, candidate.trace)
         if self.best is None or value < self.best[1]:
-            if self.best is not None and isinstance(self.best[1], _ObservedCost):
-                self.best[1]._cell.pinned = False
-            if candidate.trace is not None:
-                candidate.trace.pinned = True
-            self.best = (candidate.keys, value)
-            if self._history_limit:
-                self._record_history(time.perf_counter() - self._started_at)
+            self._record_improvement(candidate, value)
         return value
+
+    def _record_improvement(self, candidate: _DecodedCandidate, value: float) -> None:
+        """Retain a strict completed improvement and update optional bounded capture.
+
+        Args:
+            candidate (_DecodedCandidate): Completed payload and its originating keys.
+            value (float): Finite strictly improving observed score.
+        """
+        if self.best is not None and isinstance(self.best[1], _ObservedCost):
+            self.best[1]._cell.pinned = False
+        if candidate.trace is not None:
+            candidate.trace.pinned = True
+        self.best = (candidate.keys, value)
+        if self._history_limit:
+            self._record_history(time.perf_counter() - self._started_at)
 
     def solve(
         self,
@@ -260,6 +302,9 @@ class SearchSession:
         self._history = []
         self._history_observations = 0
         self.best = None
+        self._model_incumbent = None
+        self._model_feasible = None
+        self._model_first_feasible_at = None
         self.n_evaluations = 0
         self.metadata = None
         self._stop_reason = "completed"
@@ -276,8 +321,7 @@ class SearchSession:
                 result = algorithm.solve(duration)
             except _BudgetExpired:
                 result = ([], [], math.inf)
-            if self.best is not None and self.best[1] < result[2]:
-                result = (result[0], self.best[0].tolist(), self.best[1])
+            result = self._selected_result(result)
             finished = time.perf_counter()
             reason = self._stop_reason
             if reason == "completed":
@@ -304,3 +348,106 @@ class SearchSession:
             _ACTIVE_STORE.reset(trace_token)
             algorithm.decoder, algorithm.cost = original_decoder, original_cost
             algorithm._cancelled = original_cancelled
+
+    def _record_model(self, evidence: ModelEvaluation, value: float) -> None:
+        """Admit only completed generated-model invocation evidence.
+
+        Args:
+            evidence (ModelEvaluation): Original decoded payload; ignored for ordinary callbacks.
+            value (float): Successfully completed finite scalar score.
+        """
+        if self._model is not None:
+            if evidence.feasible and (
+                self._model_feasible is None
+                or (
+                    evidence.objective > self._model_feasible.objective
+                    if self._model.maximize
+                    else evidence.objective < self._model_feasible.objective
+                )
+            ):
+                if self._model_feasible is None:
+                    self._model_first_feasible_at = time.perf_counter()
+                self._model_feasible = evidence
+            if self._model_incumbent is None or value < self._model_incumbent.score:
+                self._model_incumbent = evidence
+
+    def _selected_result(self, result: RunResult) -> RunResult:
+        """Keep exact completed generated-model identity even when scores tie.
+
+        Args:
+            result (RunResult): Algorithm-returned scalar search outcome.
+
+        Returns:
+            RunResult: Completed observed incumbent when required by score or model identity.
+        """
+        if self.best is not None and (
+            self.best[1] < result[2] or (self._model is not None and self.best[1] == result[2])
+        ):
+            result = (result[0], self.best[0].tolist(), self.best[1])
+        return result
+
+
+class SearchReporting:
+    """Forward optional capture and completed report data outside execution sessions.
+
+    Responsibilities:
+    - Keep ordinary callback execution independent of disabled model-evidence capture.
+    - Preserve bounded generated-model witnesses and unstarted queued metadata.
+    """
+
+    @staticmethod
+    def collect(session: SearchSession, collector: list[ModelEvidence] | None) -> None:
+        """Append only a completed model witness when capture is explicitly enabled.
+
+        Args:
+            session (SearchSession): Completed owned search session.
+            collector (list[ModelEvidence] | None): Optional bounded solve/worker archive.
+        """
+        if collector is None:
+            return
+        evidence = session.model_evidence
+        if evidence is not None:
+            collector.append(evidence)
+
+    @staticmethod
+    def callback_options(
+        trace: TraceConfig | None, collector: list[ModelEvidence] | None
+    ) -> ModelCallbackOptions:
+        """Build optional generated-callback metadata without altering ordinary call signatures.
+
+        Args:
+            trace (TraceConfig | None): Explicit original-decision capture policy.
+            collector (list[ModelEvidence] | None): Optional bounded completed-model archive.
+
+        Returns:
+            ModelCallbackOptions: Only explicitly enabled trace/evidence forwarding keys.
+        """
+        options: ModelCallbackOptions = {}
+        if trace is not None:
+            options["trace"] = trace
+        if collector is not None:
+            options["model_evidence"] = collector
+        return options
+
+    @staticmethod
+    def queued_reports(
+        queued: list[tuple[MetaheuristicBase, RandomStreams]], history_limit: int
+    ) -> list[SearchMetadata]:
+        """Describe unstarted queued searches without manufacturing evaluation evidence.
+
+        Args:
+            queued (list[tuple]): Fresh queued algorithms and their independent streams.
+            history_limit (int): Requested bounded scalar history cap.
+
+        Returns:
+            list[SearchMetadata]: Zero-time unstarted records in portfolio order.
+        """
+        return [
+            replace(
+                algorithm._search_metadata or SearchMetadata(algorithm=algorithm.name),
+                random_state=stream.seed,
+                time_limit=0.0,
+                history_limit=history_limit,
+            )
+            for algorithm, stream in queued
+        ]

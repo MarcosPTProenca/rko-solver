@@ -50,6 +50,8 @@ nav:
       - Elite diversity: elite-diversity.md
   - Integrate:
       - Application data pipeline: problem-adapters.md
+      - Bounded model conversion: modeling.md
+      - Historical model qualification: model-validation.md
       - Optional solution checks: solution-validation.md
       - Static decoder diagrams: decoder-diagrams.md
       - Observed decoder decisions: decision-traces.md

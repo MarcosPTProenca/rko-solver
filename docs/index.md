@@ -6,6 +6,11 @@ development library, not a claim of release readiness or C++ equivalence.
 
 ## Learn
 
+Development port: [bounded model conversion](modeling.md) and
+[historical qualification](model-validation.md). Current source uses `rko_solver`
+and explicit Python engine/execution settings; historical measurements are not
+relabeled as qualification of the renamed port.
+
 1. [Getting started](getting-started.md): solve your first problem with one algorithm.
 2. [Read instance data and bind callbacks](problem-adapters.md): a complete file-to-solution tutorial, representations and constraints.
 3. [Parameter reference](parameters.md): choose fixed or adaptive settings and understand each knob.

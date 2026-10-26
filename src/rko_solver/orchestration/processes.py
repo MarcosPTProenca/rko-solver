@@ -35,20 +35,23 @@ import time
 import traceback
 from ..components.random_streams import RandomStreams
 from ..components.solution_pool import SolutionPool
+from ..modeling.linear import ModelEvidence
 from ..tracing import TraceConfig
 from .execution import select_best_result
 from .factory import build_metaheuristic
 from .factory import normalize_hyperparameters
 from .initialization import initialize_pool
+from .search import SearchReporting
 from .search import SearchSession
 from .types import CostFn
 from .types import DecoderFn
 from .types import Hyperparameters
+from .types import ModelCallbackOptions
 from .types import PoolInitializationMetadata
 from .types import RunConfig
 from .types import RunResult
 from .types import SearchMetadata
-from dataclasses import replace
+from .types import WorkerCaptureOptions
 from multiprocessing.connection import Connection
 from multiprocessing.connection import wait
 from multiprocessing.managers import BaseManager
@@ -56,6 +59,8 @@ from multiprocessing.managers import BaseProxy
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event
 from pathlib import Path
+from typing import Unpack
+from typing import cast
 
 
 class PoolProxy(BaseProxy):
@@ -180,7 +185,7 @@ def _worker(
     initialization_random_state: int | None = None,
     history_limit: int = 0,
     trace: TraceConfig | None = None,
-    max_evaluations: int | None = None,
+    **capture_options: Unpack[WorkerCaptureOptions],
 ) -> None:
     """Run assigned searches sequentially without extending the common deadline.
 
@@ -203,7 +208,13 @@ def _worker(
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decoder recording.
         max_evaluations (int | None): Completed evaluations after which each search stops.
+        capture_options (WorkerCaptureOptions): Evaluation cap and bounded model transport policy.
     """
+    max_evaluations = capture_options.get("max_evaluations")
+    model_evidence: list[ModelEvidence] | None = (
+        [] if capture_options.get("collect_model_evidence", False) else None
+    )
+    callback_options = SearchReporting.callback_options(trace, model_evidence)
     name = "startup"
     try:
         prepared = []
@@ -234,7 +245,7 @@ def _worker(
                 config.pool_size,
                 initialization_duration,
                 initialization_random_state,
-                **({"trace": trace} if trace is not None else {}),
+                **callback_options,
             )
             connection.send(("initialized", report))
         start.wait()
@@ -251,15 +262,7 @@ def _worker(
             remaining = search_deadline - now
             if remaining <= 0:
                 if collect_metadata:
-                    reports.extend(
-                        replace(
-                            queued._search_metadata or SearchMetadata(algorithm=queued.name),
-                            random_state=queued_streams.seed,
-                            time_limit=0.0,
-                            history_limit=history_limit,
-                        )
-                        for queued, queued_streams in prepared[index:]
-                    )
+                    reports.extend(SearchReporting.queued_reports(prepared[index:], history_limit))
                 break
             with streams.activate():
                 session = (
@@ -275,6 +278,7 @@ def _worker(
                     history_limit=history_limit,
                     max_evaluations=max_evaluations,
                 )
+            SearchReporting.collect(session, model_evidence)
             if collect_metadata:
                 assert session.metadata is not None
                 reports.append(session.metadata)
@@ -288,6 +292,8 @@ def _worker(
             raise TimeoutError("Search deadline elapsed before worker execution.")
         if collect_metadata:
             connection.send(("metadata", reports))
+        if model_evidence is not None:
+            connection.send(("model_evidence", model_evidence))
         connection.send(("result", best))
     except BaseException as exc:
         details = f"{name}:\n{traceback.format_exc()}"
@@ -299,6 +305,39 @@ def _worker(
         connection.send(("error", (cause, details)))
     finally:
         connection.close()
+
+
+class ProcessAssignments:
+    """Partition independent seeded searches across available process workers.
+
+    Responsibilities:
+    - Preserve algorithm-order seed derivation and round-robin worker grouping.
+
+    """
+
+    @staticmethod
+    def groups(
+        names: tuple[str, ...], random_state: int | None, n_jobs: int | None
+    ) -> list[tuple[tuple[str, int], ...]]:
+        """Build original seeded assignments without changing CPU fallback behavior.
+
+        Args:
+            names (tuple[str, ...]): Validated nonempty active portfolio names.
+            random_state (int | None): Existing seed source.
+            n_jobs (int | None): Validated optional positive worker override.
+
+        Returns:
+            list[tuple]: Round-robin algorithm/seed assignments per worker.
+        """
+        seeds = np.random.SeedSequence(random_state).spawn(len(names))
+        assignments = tuple(
+            (name, int(sequence.generate_state(1)[0]))
+            for name, sequence in zip(names, seeds, strict=True)
+        )
+        worker_count = min(
+            max(1, os.process_cpu_count() or 1) if n_jobs is None else n_jobs, len(names)
+        )
+        return [assignments[index::worker_count] for index in range(worker_count)]
 
 
 def run_processes(
@@ -317,8 +356,8 @@ def run_processes(
     search_metadata: list[SearchMetadata] | None = None,
     initialization_metadata: list[PoolInitializationMetadata] | None = None,
     history_limit: int = 0,
-    trace: TraceConfig | None = None,
     max_evaluations: int | None = None,
+    **callback_options: Unpack[ModelCallbackOptions],
 ) -> tuple[list[float], float]:
     """Execute a selected portfolio with a common start and managed pool.
 
@@ -340,6 +379,7 @@ def run_processes(
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decoder recording.
         max_evaluations (int | None): Completed evaluations after which each search stops.
+        callback_options (ModelCallbackOptions): Optional trace and bounded model-witness capture.
 
     Returns:
         tuple[list[float], float]: Best keys and minimization objective.
@@ -349,6 +389,8 @@ def run_processes(
         RuntimeError: If a worker fails or exits without returning a result.
         TimeoutError: If startup or search exceeds its allowed grace period.
     """
+    trace = callback_options.get("trace")
+    model_evidence = callback_options.get("model_evidence")
     names = config.active_metaheuristics
     hyperparameters = normalize_hyperparameters(hyperparameters, names, config.control)
     if n_jobs is not None and (type(n_jobs) is not int or n_jobs < 1):
@@ -362,15 +404,7 @@ def run_processes(
         ) from exc
 
     context = mp.get_context("spawn")
-    seeds = np.random.SeedSequence(random_state).spawn(len(names))
-    assignments = tuple(
-        (name, int(sequence.generate_state(1)[0]))
-        for name, sequence in zip(names, seeds, strict=True)
-    )
-    worker_count = min(
-        max(1, os.process_cpu_count() or 1) if n_jobs is None else n_jobs, len(names)
-    )
-    groups = [assignments[index::worker_count] for index in range(worker_count)]
+    groups = ProcessAssignments.groups(names, random_state, n_jobs)
     with PoolManager(ctx=context) as manager:
         pool = manager.SolutionPool(config.pool_size, verbose=verbose, started_at=started_at)
         start = context.Event()
@@ -411,8 +445,11 @@ def run_processes(
                         random_state,
                         history_limit,
                         trace,
-                        max_evaluations,
                     ),
+                    kwargs={
+                        "max_evaluations": max_evaluations,
+                        "collect_model_evidence": model_evidence is not None,
+                    },
                 )
                 processes.append(process)
                 try:
@@ -447,13 +484,16 @@ def run_processes(
                         initialization_done = True
                         if initialization_metadata is not None:
                             initialization_metadata.append(payload)
+                    elif status == "model_evidence":
+                        assert model_evidence is not None
+                        model_evidence.extend(cast(list[ModelEvidence], payload))
                     elif status == "metadata":
                         assert search_metadata is not None
                         search_metadata.extend(payload)
                     else:
                         results.append(payload)
                         del pending[connection]
-                if not start.is_set() and len(ready) == worker_count:
+                if not start.is_set() and len(ready) == len(groups):
                     if initialization_done:
                         deadline.value = time.perf_counter() + limit_time
                         expires = deadline.value + 5.0

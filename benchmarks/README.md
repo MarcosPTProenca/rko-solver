@@ -9,6 +9,34 @@ See [the C++ acceptance target and native-backend gates](../docs/performance.md)
 for end-to-end quality/time/resource criteria; historical Python results must not
 be merged with corrected-revision observations as if they were one experiment.
 
+## Bounded model decoder development port
+
+`modeling_cases.py`, `modeling_validation.py` and `modeling_overhead.py` now use
+`rko_solver`. Model execution is explicitly Python with sequential/thread/process
+scheduling; repair defaults to continuous with a common 1,024-sweep cap.
+
+```bash
+uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt python -m benchmarks.modeling_validation --repair continuous --repair-max-sweeps 1024 --seeds 10 --time-limit 0.5 --output docs/audits/my-renamed-model-validation.jsonl
+uv run --locked python -m benchmarks.modeling_overhead --baseline 8917000 --repeats 51 --target-seconds 0.8 --output docs/audits/my-renamed-model-overhead.json
+```
+
+Preserved **historical**, unmodified evidence from the qualified pre-rename source:
+
+- [Restored campaign](modeling-validation-reference-13b6934.jsonl): 480 runs,
+  420 feasible, zero semantic/execution errors; exact-demand transport60/60.
+- [Same-source box control](modeling-validation-box-reference-13b6934.jsonl):
+  480 runs,314 feasible, exact-demand0/60 at identical tolerances/models/budgets.
+- [Archive/IPC and feature costs](modeling-overhead-reference-13b6934.json) and
+  [platform qualification](modeling-platform-reference-13b6934.json) identify
+  their original13b6934 source, not the renamed port.
+
+No historical JSON source hashes or package paths were rewritten. Current feature
+and API tests run in the canonical checkout, but the stricter structure/type gate
+still fails on transferred code. Refactor without weakening its ratchet, then
+refresh full platform/package/performance evidence before calling the port ready.
+[Model contracts](../docs/modeling.md) and [historical results](../docs/model-validation.md)
+explain bounds, integer limits, independent checks and publication restrictions.
+
 ## Original-decoder decision recording overhead
 
 `decision_traces.py` compares disabled/enabled bounded recording at identical completed

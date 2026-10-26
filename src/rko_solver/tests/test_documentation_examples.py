@@ -88,6 +88,8 @@ _solve = rko_solver.RKO.solve
 
 
 def _capped(self, time_limit):
+    if self.max_evaluations is not None:
+        return _solve(self, time_limit)
     return _solve(self, min(time_limit, 0.5))
 
 
@@ -116,7 +118,9 @@ sys.path.insert(0, ".")
 import rko_solver
 
 _solve = rko_solver.RKO.solve
-rko_solver.RKO.solve = lambda self, time_limit: _solve(self, min(time_limit, 0.5))
+rko_solver.RKO.solve = lambda self, time_limit: _solve(
+    self, time_limit if self.max_evaluations is not None else min(time_limit, 0.5)
+)
 """
 
 
