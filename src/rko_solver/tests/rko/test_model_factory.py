@@ -364,7 +364,9 @@ def test_model_html_uses_distinct_original_objective_and_score_labels(tmp_path: 
         adaptation="fixed",
         history_limit=2,
     ).solve(0.01)
-    output = OptimizationReport(result).write_html(tmp_path / "model.html").read_text()
+    output = (
+        OptimizationReport(result).write_html(tmp_path / "model.html").read_text(encoding="utf-8")
+    )
     assert "minimized search score" in output
     assert "Model solution — separate from search score" in output
     assert "Best feasible original objective" in output

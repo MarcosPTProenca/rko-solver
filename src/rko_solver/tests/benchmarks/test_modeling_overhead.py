@@ -33,7 +33,7 @@ from rko_solver.orchestration.search import SearchSession
 
 def test_fixed_work_controls_preserve_unchanged_callbacks_and_costs() -> None:
     """Run all unchanged callback regimes through exact original/current boundaries."""
-    baseline, digest = ModelOverheadProbe.baseline("8917000")
+    baseline, digest = ModelOverheadProbe.baseline("bdee82a")
     assert len(digest) == 64
     for workload in ModelOverheadProbe.workloads():
         before = workload.keys.copy()
