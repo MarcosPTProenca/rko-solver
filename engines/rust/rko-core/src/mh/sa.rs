@@ -28,6 +28,9 @@ use crate::operators::{NelderMead, PoolPolicy, random_keys, shake};
 use crate::qlearning::QLearning;
 use crate::search::Stop;
 
+/// Temperature multiplier of the first annealing pass and of every later reannealing pass.
+const RESTART_SCALE: [f64; 2] = [1.0, 0.3];
+
 #[derive(Clone, Copy)]
 struct Parameters {
     sa_max: usize,
@@ -82,11 +85,8 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
     let mut searcher = NelderMead::new(PoolPolicy::Elite);
     let mut reannealing = false;
     loop {
-        let mut temperature = if reannealing {
-            params.t0 * 0.3
-        } else {
-            params.t0
-        };
+        context.search.check()?;
+        let mut temperature = params.t0 * RESTART_SCALE[usize::from(reannealing)];
         while temperature > 0.0001 {
             let previous_best = best_cost;
             let mut action = 0;
