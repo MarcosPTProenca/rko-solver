@@ -1,0 +1,89 @@
+"""Contract tests for the Rust/Python throughput ratio gate.
+
+Objective:
+- Verify that the comparison rule fails only on a drop larger than the allowance and that the
+  measurement produces a well-formed report.
+
+Technical approach:
+- Exercise the pure comparison with synthetic ratios, then run a very short real measurement.
+
+Flow (pseudocode):
+1. Compare synthetic reports at, inside and outside the allowed drop.
+2. Measure one algorithm for a few milliseconds and check the report fields.
+3. Run the command line against a reference written from that measurement.
+
+Important criteria:
+- A higher ratio never fails; a missing algorithm always does.
+- The short real run asserts structure and positivity, never a speed.
+
+Inputs/Outputs:
+- Input: synthetic ratio mappings and a 0.05 second measurement.
+- Output: exact comparison messages and report structure.
+"""
+
+import json
+import pytest
+from benchmarks.engine_ratio import EngineRatio
+from pathlib import Path
+
+native = pytest.importorskip("rko_solver._native")
+
+
+def report(ratio: float) -> dict[str, dict[str, float]]:
+    """Build a one-algorithm report with the given ratio.
+
+    Args:
+        ratio (float): Rust over Python throughput.
+
+    Returns:
+        dict[str, dict[str, float]]: Report mapping.
+    """
+    return {"SA": {"ratio": ratio}}
+
+
+def test_only_a_drop_beyond_the_allowance_is_a_regression() -> None:
+    """The boundary is inclusive, improvements pass and a missing algorithm fails."""
+    reference = report(40.0)
+    assert EngineRatio.compare(report(40.0), reference, 0.30) == []
+    assert EngineRatio.compare(report(28.0), reference, 0.30) == []
+    assert EngineRatio.compare(report(100.0), reference, 0.30) == []
+    failed = EngineRatio.compare(report(27.9), reference, 0.30)
+    assert len(failed) == 1 and "SA" in failed[0] and "27.9" in failed[0]
+    assert EngineRatio.compare({}, reference, 0.30) == ["SA: missing from the current measurement"]
+    assert EngineRatio.compare(report(27.9), reference, 0.50) == []
+
+
+def test_a_short_measurement_has_the_documented_fields_and_positive_rates() -> None:
+    """The real measurement returns rates, a ratio and spreads for the requested algorithm."""
+    result = EngineRatio().measure(["SA"], seconds=0.05, repeats=1)
+    entry = result["SA"]
+    assert set(entry) == {
+        "python_per_second",
+        "rust_per_second",
+        "ratio",
+        "python_spread",
+        "rust_spread",
+    }
+    assert entry["python_per_second"] > 0 and entry["rust_per_second"] > 0
+    assert entry["ratio"] == pytest.approx(entry["rust_per_second"] / entry["python_per_second"])
+
+
+def test_command_line_passes_against_itself_and_fails_against_an_unreachable_reference(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The entry point exits 0 within tolerance and 1 when the reference is far higher.
+
+    Args:
+        tmp_path (Path): Directory for the reference files.
+        capsys (pytest.CaptureFixture[str]): Captured output.
+    """
+    arguments = ["--seconds", "0.05", "--repeats", "1", "--algorithms", "SA"]
+    assert EngineRatio.main(arguments) == 0
+    measured = json.loads(capsys.readouterr().out)
+    assert set(measured) == {"schema_version", "environment", "algorithms"}
+    easy, hard = tmp_path / "easy.json", tmp_path / "hard.json"
+    easy.write_text(json.dumps({"algorithms": {"SA": {"ratio": 0.001}}}), encoding="utf-8")
+    hard.write_text(json.dumps({"algorithms": {"SA": {"ratio": 1e9}}}), encoding="utf-8")
+    assert EngineRatio.main([*arguments, "--reference", str(easy)]) == 0
+    assert EngineRatio.main([*arguments, "--reference", str(hard)]) == 1
+    assert "REGRESSION SA" in capsys.readouterr().err
