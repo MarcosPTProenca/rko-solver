@@ -20,6 +20,8 @@ are owner-approved, not automatic publication from main.
 - [Interactive reports](reporting.md): offline HTML charts, bounded histories and JSON export.
 - [Static decoder diagrams](decoder-diagrams.md): optional declared logic or supported Python structure, not execution traces.
 - [Observed decoder decisions](decision-traces.md): bounded opt-in authored events from an original evaluation, without replay.
+- [Experimental decoder evolution](self-evolve.md): bounded Pi-assisted seed modifications, isolated evaluation and saved-artifact replay.
+- [Locked artifact studies](confirmation-study.md): frozen test panels, bounded collection and instance-paired analysis without interim significance peeking.
 - [Private FastAPI/Docker service](service.md): optional authenticated, bounded Linux reference and no-overwrite scaffold.
 - [Documentation website](documentation-site.md): local preview, publication boundaries and Pages setup.
 - [Architecture](architecture.md): the public API, the three engines and where each lives.
