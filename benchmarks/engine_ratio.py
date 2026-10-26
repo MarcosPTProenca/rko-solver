@@ -187,6 +187,21 @@ class EngineRatio:
                 )
         return problems_found
 
+    @staticmethod
+    def cpu_model() -> str:
+        """Return the processor model name when the platform exposes it.
+
+        Returns:
+            str: Model name from `/proc/cpuinfo`, or the machine architecture as a fallback.
+        """
+        try:
+            for line in Path("/proc/cpuinfo").read_text(encoding="utf-8").splitlines():
+                if line.startswith("model name"):
+                    return line.split(":", 1)[1].strip()
+        except OSError:
+            pass
+        return platform.machine()
+
     @classmethod
     def main(cls, argv: Sequence[str] | None = None) -> int:
         """Measure, print the report and optionally compare it with a reference.
@@ -214,6 +229,7 @@ class EngineRatio:
                 "python": platform.python_version(),
                 "numpy": np.__version__,
                 "platform": platform.platform(),
+                "cpu_model": cls.cpu_model(),
                 "cpus": os.process_cpu_count(),
                 "seconds": args.seconds,
                 "repeats": args.repeats,
@@ -223,10 +239,18 @@ class EngineRatio:
         print(json.dumps(report, indent=2, sort_keys=True))
         if args.reference is None:
             return 0
-        reference = json.loads(args.reference.read_text(encoding="utf-8"))["algorithms"]
-        failures = cls.compare(report["algorithms"], reference, args.max_drop)
+        stored = json.loads(args.reference.read_text(encoding="utf-8"))
+        failures = cls.compare(report["algorithms"], stored["algorithms"], args.max_drop)
         for message in failures:
             print(f"REGRESSION {message}", file=sys.stderr)
+        if failures:
+            before = stored.get("environment", {}).get("cpu_model", "unknown")
+            print(
+                f"Reference CPU: {before}. Current CPU: {report['environment']['cpu_model']}. "
+                "A different processor model can move the ratio; regenerate the reference on "
+                "the runner if the hardware changed.",
+                file=sys.stderr,
+            )
         return 1 if failures else 0
 
 

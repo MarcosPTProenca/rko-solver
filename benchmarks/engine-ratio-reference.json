@@ -1,0 +1,29 @@
+{
+  "algorithms": {
+    "BRKGA": {
+      "python_per_second": 56034,
+      "ratio": 43.31,
+      "rust_per_second": 2426638
+    },
+    "ILS": {
+      "python_per_second": 159793,
+      "ratio": 80.3,
+      "rust_per_second": 12836939
+    },
+    "SA": {
+      "python_per_second": 105012,
+      "ratio": 47.31,
+      "rust_per_second": 4967605
+    }
+  },
+  "environment": {
+    "cpus": 4,
+    "numpy": "2.4.3",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "python": "3.14.9",
+    "repeats": 5,
+    "seconds": 1.0
+  },
+  "provenance": "Median of three consecutive measurements on a GitHub-hosted ubuntu-latest runner (CI run of pull request 13); regenerate on the runner, never on a development machine.",
+  "schema_version": 1
+}

@@ -147,11 +147,8 @@ jobs:
         uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
       - name: Sync locked dependencies
         run: uv sync --locked --group dev
-      - name: Measure the Rust over Python throughput ratio three times
-        run: |
-          for round in 1 2 3; do
-            uv run --locked python -m benchmarks.engine_ratio | tee "$RUNNER_TEMP/ratio-$round.json"
-          done
+      - name: Rust over Python throughput ratio stays within 30 percent of the reference
+        run: uv run --locked python -m benchmarks.engine_ratio --reference benchmarks/engine-ratio-reference.json
 
   quality-gate:
     runs-on: ubuntu-latest
