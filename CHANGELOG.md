@@ -5,6 +5,9 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ## Unreleased
 
+- The NumPy lower bound is now `>=2.3.2`, the oldest release that ships a Python 3.14 wheel; the
+  declared `>=2.0.0` could not be installed on the required Python and was never tested.
+
 - Upper bounds on `time_limit`, `auto_time` (one year), `max_evaluations`, `pool_size` and the
   population sizes, plus a bound on population times dimension, rejected with a `ValueError`
   before any engine starts. Previously `time_limit=1e300` made the Rust engine panic and a

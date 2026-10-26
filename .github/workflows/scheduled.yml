@@ -1,0 +1,67 @@
+name: Scheduled deep checks
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/scheduled.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deep-fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Sync locked dependencies
+        run: uv sync --locked --group dev
+      - name: Property and fuzz tests at 20x the example count
+        env:
+          RKO_FUZZ_SCALE: "20"
+        run: uv run --locked pytest src/rko_solver/tests/test_property_fuzz.py -q
+
+  cpp-statistical-comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      RKO_BUILD_CPP: "1"
+    strategy:
+      fail-fast: false
+      matrix:
+        problem: [tsp, rastrigin]
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Sync locked dependencies with the C++ backend
+        run: uv sync --locked --group dev
+      - name: Point PyO3 at the project interpreter
+        run: echo "PYO3_PYTHON=$(uv run --locked python -c 'import sys; print(sys.executable)')" >> "$GITHUB_ENV"
+      - name: Paired comparison with the pinned C++ reference
+        run: uv run --locked python -m benchmarks.native_problem_study --problem ${{ matrix.problem }} --sizes 100 --per-size 2 --repetitions 3 --budget-seconds 4 --solvers SA,ILS,BRKGA,GA,PSO --implementations cpp64,cpp-engine --output "$RUNNER_TEMP/${{ matrix.problem }}.csv" --subject cpp-engine --reference cpp64
+      - name: Every trial completed and verified
+        run: |
+          uv run --locked python - "$RUNNER_TEMP/${{ matrix.problem }}.csv" <<'PY'
+          import csv
+          import sys
+
+          rows = list(csv.DictReader(open(sys.argv[1], encoding="utf-8")))
+          failed = [row for row in rows if row["status"] != "ok"]
+          assert len(rows) == 60 and not failed, (len(rows), failed)
+          PY
+      - name: Keep the raw trials for inspection v7.0.2
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: cpp-comparison-${{ matrix.problem }}
+          path: ${{ runner.temp }}/${{ matrix.problem }}.csv
+          if-no-files-found: warn
+          retention-days: 14

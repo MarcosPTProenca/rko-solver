@@ -27,7 +27,7 @@ use super::{Adapter, Context, Spec};
 use crate::local_search::{FAREY, LocalSearch};
 use crate::operators::{PoolPolicy, random_keys};
 use crate::qlearning::QLearning;
-use crate::search::Stop;
+use crate::search::{Search, Stop};
 
 /// Runs LNS until the search budget ends.
 pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
@@ -52,6 +52,7 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
     let mut row_costs: Vec<f64> = Vec::new();
     let mut first_pass = true;
     loop {
+        context.search.check()?;
         let mut temperature = if first_pass {
             adapter.params()[2]
         } else {
@@ -79,25 +80,14 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
                 candidate[positions[index]] = 0.0;
             }
             let mut candidate_cost = context.search.eval(&candidate)?;
-            for &position in &positions[..intensity] {
-                let steps = FAREY.len() - 1;
-                rows.clear();
-                for &value in &FAREY[..steps] {
-                    let offset = rows.len();
-                    rows.extend_from_slice(&candidate);
-                    rows[offset + position] = value;
-                }
-                row_costs.resize(steps, 0.0);
-                context.search.eval_rows(&rows, &mut row_costs)?;
-                let mut best_value = candidate[position];
-                for (&value, &cost) in FAREY[..steps].iter().zip(&row_costs) {
-                    if cost < candidate_cost {
-                        candidate_cost = cost;
-                        best_value = value;
-                    }
-                }
-                candidate[position] = best_value;
-            }
+            candidate_cost = repair(
+                &mut candidate,
+                candidate_cost,
+                &positions[..intensity],
+                &mut rows,
+                &mut row_costs,
+                context.search,
+            )?;
             candidate_cost = local.nelder_mead(
                 &mut candidate,
                 candidate_cost,
@@ -121,4 +111,35 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
             adapter.finish(QLearning::relative_reward(previous_best, candidate_cost));
         }
     }
+}
+
+/// Re-sets each destroyed position to the best of the Farey values, one position at a time.
+fn repair(
+    candidate: &mut [f64],
+    mut candidate_cost: f64,
+    destroyed: &[usize],
+    rows: &mut Vec<f64>,
+    row_costs: &mut Vec<f64>,
+    search: &mut Search<'_>,
+) -> Result<f64, Stop> {
+    let steps = FAREY.len() - 1;
+    for &position in destroyed {
+        rows.clear();
+        for &value in &FAREY[..steps] {
+            let offset = rows.len();
+            rows.extend_from_slice(candidate);
+            rows[offset + position] = value;
+        }
+        row_costs.resize(steps, 0.0);
+        search.eval_rows(rows, row_costs)?;
+        let mut best_value = candidate[position];
+        for (&value, &cost) in FAREY[..steps].iter().zip(row_costs.iter()) {
+            if cost < candidate_cost {
+                candidate_cost = cost;
+                best_value = value;
+            }
+        }
+        candidate[position] = best_value;
+    }
+    Ok(candidate_cost)
 }

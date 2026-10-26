@@ -240,7 +240,7 @@
       "cyclomatic_complexity": 21
     },
     "engines/rust/rko-core/src/mh/lns.rs::run": {
-      "cyclomatic_complexity": 18
+      "cyclomatic_complexity": 15
     },
     "engines/rust/rko-core/src/mh/mod.rs::name": {
       "cyclomatic_complexity": 11
@@ -501,7 +501,7 @@
       "parameter_count": 8
     },
     "src/rko_solver/solver.py::RKO.solve": {
-      "cyclomatic_complexity": 42,
+      "cyclomatic_complexity": 41,
       "nloc": 126
     },
     "src/rko_solver/tracing.py::DecisionTrace.__post_init__": {

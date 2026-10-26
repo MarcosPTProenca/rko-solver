@@ -57,12 +57,47 @@ Every Python block in the README and `docs/*.md` is executed by
 `decode`, `objective`, `n_variables` and Knapsack data predefined, and `RKO.solve` is capped
 at half a second. A block that cannot run in CI carries an invisible comment right before its
 fence, `<!-- doc-test: skip <reason> -->` or `<!-- doc-test: requires cpp|numba|plotly -->`.
+`test_property_fuzz.py` generates configurations, objective values and mutated parameter files
+with Hypothesis; `RKO_FUZZ_SCALE=20` multiplies every example count for a deeper run (about a
+minute at 20x). Failing examples are reproducible because Hypothesis runs derandomized. The Rust
+core has seeded property tests in `engines/rust/rko-core/tests/properties.rs`; the crate stays
+dependency-free, so they use its own `Rng` instead of `proptest`.
 `test_golden_runs.py` freezes seeded results of every algorithm on the reproducible
 configurations; if a behavior change is intended, regenerate with
 `RKO_UPDATE_GOLDEN=1 uv run pytest src/rko_solver/tests/test_golden_runs.py` and review the
 diff of `golden/runs.json`.
 
-[CI](.github/workflows/ci.yml) checks Ubuntu/Windows, benchmark diagnostics, and
+Coverage is a ratchet from measured values, not a target: the Python package must keep at least
+88 percent combined line and branch coverage (measured 90.9 with the service and reports extras and
+the C++ engine installed; the floor is `fail_under` in `pyproject.toml`) and the Rust engines at
+least 93 percent line coverage from the Rust tests alone (measured 96.7, benchmark runners
+excluded). Raise a floor when a change durably improves the measurement; never lower one to make
+a change pass. Run `uv run --extra service --extra reports --group service-test pytest
+src/rko_solver/tests --cov` and `cargo llvm-cov -p rko-core -p rko-cpp --release
+--ignore-filename-regex '(bench|/bin/)' --summary-only` locally. Code that runs only in spawned
+processes or the generated service container counts less than it should, so a number below the
+floor needs a look at what is actually untested before anything else.
+
+A performance gate (`benchmarks/engine_ratio.py`, CI job `engine-ratio`) fails when the Rust engine's
+throughput relative to the Python engine on the same Knapsack falls more than 30 percent below the
+reference for the same processor model. The ratio depends on the processor: hosted runners mix AMD
+EPYC 7763, 9V45, 9V74 and Intel Xeon 8573C, and BRKGA and SA read about 28 percent lower on a 9V45
+than on a 7763, while one model repeats within 3 to 6 percent. So `benchmarks/engine-ratio-reference.json`
+has one entry per model, built from CI runs, and an unknown model is measured and reported but not
+gated. If a new model appears in the log, add its median from several CI runs; do not copy another
+model's numbers. This is a regression gate and says nothing about absolute speed.
+
+Supported minimums, each tested in CI: Python 3.14, NumPy 2.3.2 (the first release with a
+Python 3.14 wheel; the previous `>=2.0.0` bound could never be installed or tested on 3.14) and
+Rust 1.90 (`rust-version`; the code compiles on 1.88 but not 1.85, and 1.90 is the tested floor).
+The main job runs on Ubuntu, Windows and macOS. [Scheduled deep checks](.github/workflows/scheduled.yml)
+run every night and on demand: the property and fuzz tests at 20x the example count and a larger
+paired comparison of the C++ engine with the pinned C++ reference on TSP and Rastrigin (raw trials
+are kept for 14 days). The comparison job asserts that every trial completed and was verified; it
+does not assert statistical equivalence, so read the printed summary. A failed scheduled run only
+marks the workflow red.
+
+[CI](.github/workflows/ci.yml) checks Ubuntu/Windows/macOS, benchmark diagnostics, and
 isolated wheel/sdist installations using `tools/smoke_installed.py`. A source-tree
 import alone does not prove an installed package works. CI currently uses Python
 3.14; additional interpreter/platform support needs explicit coverage.
