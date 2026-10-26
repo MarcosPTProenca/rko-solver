@@ -6,8 +6,9 @@ Objective:
 
 Technical approach:
 - Every case that would allocate or wait absurdly runs in one child interpreter whose address
-  space is capped where the platform allows it (Linux; macOS refuses the cap and Windows has none), so a regression fails a test with a `MemoryError` instead of
-  exhausting the machine. The child prints one JSON line mapping each case to its outcome.
+  space is capped where the platform allows it (Linux; macOS refuses the cap and Windows has
+  none), so a regression fails a test with a `MemoryError` instead of exhausting the machine.
+  The child prints one JSON line mapping each case to its outcome.
 - Direct calls into the native extension check the defense-in-depth validation of the Rust
   `Config`, which must raise instead of panicking.
 
