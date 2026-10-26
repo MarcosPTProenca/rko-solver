@@ -6,7 +6,7 @@ Objective:
 
 Technical approach:
 - Every case that would allocate or wait absurdly runs in one child interpreter whose address
-  space is capped on POSIX, so a regression fails a test with a `MemoryError` instead of
+  space is capped where the platform allows it (Linux; macOS refuses the cap and Windows has none), so a regression fails a test with a `MemoryError` instead of
   exhausting the machine. The child prints one JSON line mapping each case to its outcome.
 - Direct calls into the native extension check the defense-in-depth validation of the Rust
   `Config`, which must raise instead of panicking.
@@ -40,7 +40,10 @@ if sys.platform != "win32":
     import resource
 
     limit = 3 * 1024**3
-    resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
+    try:
+        resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
+    except (ValueError, OSError):
+        pass
 
 import numpy as np
 from rko_solver import RKO, Callbacks, _native
