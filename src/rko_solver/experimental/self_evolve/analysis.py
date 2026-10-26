@@ -121,49 +121,14 @@ class PairedAnalysis:
             left, right = np.asarray(baseline, dtype=float), np.asarray(candidate, dtype=float)
         except (ValueError, TypeError) as error:
             raise ValueError("Loss panels must be rectangular numeric matrices.") from error
-        if (
-            left.ndim != 2
-            or left.shape != right.shape
-            or not 2 <= left.shape[0] <= 1000
-            or not 1 <= left.shape[1] <= 100
-            or not np.isfinite(left).all()
-            or not np.isfinite(right).all()
-            or np.any(left < 0)
-            or np.any(left > 1)
-            or np.any(right < 0)
-            or np.any(right > 1)
-        ):
-            raise ValueError("Need complete finite paired instance-by-seed losses in [0, 1].")
+        self._validate_panels(left, right)
         differences = (left - right).mean(axis=1)
         n = len(differences)
         groups = self.strata_indices(n, strata)
         effect = float(differences.mean())
-        rng = RandomStreams(self.random_state).numpy
-        bootstrap = np.empty(self.bootstrap_samples)
-        for start in range(0, self.bootstrap_samples, 256):
-            stop = min(start + 256, self.bootstrap_samples)
-            indices = np.empty((stop - start, n), dtype=int)
-            for positions in groups.values():
-                draws = rng.randint(0, len(positions), size=(stop - start, len(positions)))
-                indices[:, positions] = np.asarray(positions)[draws]
-            bootstrap[start:stop] = differences[indices].mean(axis=1)
+        bootstrap = self._bootstrap(differences, groups)
         interval = np.quantile(bootstrap, [0.025, 0.975]).tolist()
-        tolerance = 100 * np.finfo(float).eps * max(1.0, abs(effect))
-        count = 0
-        exact = n <= 16
-        draws = 1 << n if exact else self.permutation_samples
-        rng = RandomStreams(self.random_state ^ 0x51F15E).numpy
-        for start in range(0, draws, 256):
-            stop = min(start + 256, draws)
-            if exact:
-                masks = np.arange(start, stop, dtype=np.uint64)[:, None]
-                bits = np.arange(n, dtype=np.uint64)[None, :]
-                signs = 2 * ((masks >> bits) & 1).astype(float) - 1
-            else:
-                signs = 2 * rng.randint(0, 2, size=(stop - start, n)) - 1
-            simulated = (signs * differences).mean(axis=1)
-            count += int(np.count_nonzero(simulated >= effect - tolerance))
-        p_value = count / draws if exact else (count + 1) / (draws + 1)
+        p_value, exact, draws = self._sign_flip(differences, effect)
         return {
             "n_instances": n,
             "strata_counts": {label: len(indices) for label, indices in groups.items()},
@@ -187,6 +152,90 @@ class PairedAnalysis:
             "assumptions": "Independent instances and exchangeable/symmetric paired null effects. "
             "Seeds are averaged within instances, not counted as independent units.",
         }
+
+    @staticmethod
+    def _validate_panels(left: np.ndarray, right: np.ndarray) -> None:
+        """Validate paired matrix dimensions before checking the numeric domains.
+
+        Args:
+            left (np.ndarray): Baseline matrix.
+            right (np.ndarray): Candidate matrix.
+
+        Raises:
+            ValueError: If matrices are not bounded paired loss panels.
+        """
+        if (
+            left.ndim != 2
+            or left.shape != right.shape
+            or not 2 <= left.shape[0] <= 1000
+            or not 1 <= left.shape[1] <= 100
+            or not PairedAnalysis._bounded_losses(left)
+            or not PairedAnalysis._bounded_losses(right)
+        ):
+            raise ValueError("Need complete finite paired instance-by-seed losses in [0, 1].")
+
+    @staticmethod
+    def _bounded_losses(panel: np.ndarray) -> bool:
+        """Check finite entries against the fixed utility domain.
+
+        Args:
+            panel (np.ndarray): Numeric loss panel.
+
+        Returns:
+            bool: Whether all losses are finite and in [0, 1].
+        """
+        return bool(np.isfinite(panel).all() and not np.any(panel < 0) and not np.any(panel > 1))
+
+    def _bootstrap(self, differences: np.ndarray, groups: dict[str, list[int]]) -> np.ndarray:
+        """Resample paired instance effects in fixed-size stratified batches.
+
+        Args:
+            differences (np.ndarray): Seed-averaged paired effects.
+            groups (dict[str, list[int]]): Ordered stratum positions.
+
+        Returns:
+            np.ndarray: Bootstrap means in original draw order.
+        """
+        n = len(differences)
+        rng = RandomStreams(self.random_state).numpy
+        bootstrap = np.empty(self.bootstrap_samples)
+        for start in range(0, self.bootstrap_samples, 256):
+            stop = min(start + 256, self.bootstrap_samples)
+            indices = np.empty((stop - start, n), dtype=int)
+            for positions in groups.values():
+                draws = rng.randint(0, len(positions), size=(stop - start, len(positions)))
+                indices[:, positions] = np.asarray(positions)[draws]
+            bootstrap[start:stop] = differences[indices].mean(axis=1)
+        return bootstrap
+
+    def _sign_flip(self, differences: np.ndarray, effect: float) -> tuple[float, bool, int]:
+        """Enumerate or sample paired signs using an independent fixed stream.
+
+        Args:
+            differences (np.ndarray): Seed-averaged paired effects.
+            effect (float): Observed paired mean.
+
+        Returns:
+            tuple[float, bool, int]: One-sided p-value, exactness and draw count.
+        """
+        n = len(differences)
+        tolerance = 100 * np.finfo(float).eps * max(1.0, abs(effect))
+        count = 0
+        exact = n <= 16
+        draws = 1 << n if exact else self.permutation_samples
+        rng = RandomStreams(self.random_state ^ 0x51F15E).numpy
+        for start in range(0, draws, 256):
+            stop = min(start + 256, draws)
+            if exact:
+                masks = np.arange(start, stop, dtype=np.uint64)[:, None]
+                bits = np.arange(n, dtype=np.uint64)[None, :]
+                signs = 2 * ((masks >> bits) & 1).astype(float) - 1
+            else:
+                signs = 2 * rng.randint(0, 2, size=(stop - start, n)) - 1
+            simulated = (signs * differences).mean(axis=1)
+            count += int(np.count_nonzero(simulated >= effect - tolerance))
+        p_value = count / draws if exact else (count + 1) / (draws + 1)
+        return p_value, exact, draws
 
     @staticmethod
     def holm(p_values: list[float]) -> list[float]:

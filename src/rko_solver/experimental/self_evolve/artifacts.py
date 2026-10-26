@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
+from typing import cast
 
 FAMILIES = ("knapsack", "scheduling", "set_cover")
 MAX_SOURCE = 32768
@@ -79,6 +80,26 @@ def validate_source(source: str) -> None:
         tree = ast.parse(source)
     except (SyntaxError, RecursionError) as error:
         raise ValueError("Decoder source is not valid Python.") from error
+    decoders = _source_functions(tree)
+    if len(decoders) != 1:
+        raise ValueError("Exactly one decode(keys, instance) function is required.")
+    _validate_signature(decoders[0].args)
+    for node in ast.walk(tree):
+        _validate_node(node)
+
+
+def _source_functions(tree: ast.Module) -> list[ast.FunctionDef]:
+    """Validate module scope and collect declared decoder functions.
+
+    Args:
+        tree (ast.Module): Parsed untrusted module.
+
+    Returns:
+        list[ast.FunctionDef]: Top-level functions named decode.
+
+    Raises:
+        ValueError: If module scope contains unauthorized statements or defaults.
+    """
     decoders = []
     for node in tree.body:
         if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant):
@@ -87,15 +108,36 @@ def validate_source(source: str) -> None:
             if any(alias.name not in {"numpy", "math"} for alias in node.names):
                 raise ValueError("Only numpy and math imports are permitted.")
         elif isinstance(node, ast.FunctionDef):
-            if node.decorator_list or node.args.defaults or node.args.kw_defaults:
-                raise ValueError("Decorators and argument defaults are not permitted.")
+            _validate_function_declaration(node)
             if node.name == "decode":
                 decoders.append(node)
         else:
             raise ValueError("Module scope permits only imports, docstrings and functions.")
-    if len(decoders) != 1:
-        raise ValueError("Exactly one decode(keys, instance) function is required.")
-    args = decoders[0].args
+    return decoders
+
+
+def _validate_function_declaration(node: ast.FunctionDef) -> None:
+    """Reject decorators and argument defaults on top-level functions.
+
+    Args:
+        node (ast.FunctionDef): Parsed function declaration.
+
+    Raises:
+        ValueError: If definition-time behavior violates the source policy.
+    """
+    if node.decorator_list or node.args.defaults or node.args.kw_defaults:
+        raise ValueError("Decorators and argument defaults are not permitted.")
+
+
+def _validate_signature(args: ast.arguments) -> None:
+    """Enforce the decoder's two positional argument interface.
+
+    Args:
+        args (ast.arguments): Decoder argument declaration.
+
+    Raises:
+        ValueError: If the signature differs from decode(keys, instance).
+    """
     if (
         [a.arg for a in args.posonlyargs + args.args] != ["keys", "instance"]
         or args.vararg
@@ -103,26 +145,44 @@ def validate_source(source: str) -> None:
         or args.kwonlyargs
     ):
         raise ValueError("Decoder signature must be decode(keys, instance).")
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import) and any(
-            a.name not in {"numpy", "math"} for a in node.names
-        ):
-            raise ValueError(
-                "Only numpy and math imports are permitted, including inside functions."
-            )
-        if isinstance(
-            node, (ast.ImportFrom, ast.Global, ast.Nonlocal, ast.ClassDef, ast.AsyncFunctionDef)
-        ):
-            raise ValueError("Unsupported decoder construct.")
-        name = (
-            node.id
-            if isinstance(node, ast.Name)
-            else (node.attr if isinstance(node, ast.Attribute) else "")
-        )
-        if isinstance(node, ast.Attribute) and isinstance(node.ctx, (ast.Store, ast.Del)):
-            raise ValueError("Attribute mutation/persistent function state is not permitted.")
-        if "__" in name or name in _FORBIDDEN:
-            raise ValueError(f"Forbidden decoder name: {name}")
+
+
+def _validate_node(node: ast.AST) -> None:
+    """Reject unauthorized constructs at every depth of the decoder tree.
+
+    Args:
+        node (ast.AST): One node in traversal order.
+
+    Raises:
+        ValueError: If imports, state mutation or names violate the policy.
+    """
+    if isinstance(node, ast.Import) and any(a.name not in {"numpy", "math"} for a in node.names):
+        raise ValueError("Only numpy and math imports are permitted, including inside functions.")
+    if isinstance(
+        node, (ast.ImportFrom, ast.Global, ast.Nonlocal, ast.ClassDef, ast.AsyncFunctionDef)
+    ):
+        raise ValueError("Unsupported decoder construct.")
+    _validate_node_name(node)
+
+
+def _validate_node_name(node: ast.AST) -> None:
+    """Reject forbidden names and persistent attribute mutation.
+
+    Args:
+        node (ast.AST): One syntax node.
+
+    Raises:
+        ValueError: If a name or attribute context is unauthorized.
+    """
+    name = (
+        node.id
+        if isinstance(node, ast.Name)
+        else (node.attr if isinstance(node, ast.Attribute) else "")
+    )
+    if isinstance(node, ast.Attribute) and isinstance(node.ctx, (ast.Store, ast.Del)):
+        raise ValueError("Attribute mutation/persistent function state is not permitted.")
+    if "__" in name or name in _FORBIDDEN:
+        raise ValueError(f"Forbidden decoder name: {name}")
 
 
 @dataclass(frozen=True)
@@ -240,11 +300,28 @@ class DecoderArtifact:
         ):
             raise ValueError("Unsupported artifact schema/status.")
         artifact = cls.create(
-            metadata.get("family"), source_path.read_text(encoding="utf-8"), metadata.get("parent")
+            cast(str, metadata.get("family")),
+            source_path.read_text(encoding="utf-8"),
+            metadata.get("parent"),
         )
         if artifact.digest != metadata.get("sha256"):
             raise ValueError("Artifact source hash mismatch.")
-        expected = artifact.metadata()
+        cls._validate_contract(metadata, artifact.metadata())
+        image = cls._qualified_image(metadata)
+        cls._validate_evidence(path, metadata)
+        return replace(artifact, qualified_image=image)
+
+    @staticmethod
+    def _validate_contract(metadata: dict[str, Any], expected: dict[str, Any]) -> None:
+        """Verify the portable input/output and runtime declarations.
+
+        Args:
+            metadata (dict[str, Any]): Loaded manifest.
+            expected (dict[str, Any]): Reconstructed artifact contract.
+
+        Raises:
+            ValueError: If contract or runtime requirements differ.
+        """
         for key in ("entrypoint", "solution", "dimension"):
             if metadata.get(key) != expected[key]:
                 raise ValueError("Incompatible artifact input/output contract.")
@@ -255,6 +332,20 @@ class DecoderArtifact:
             or runtime.get("numpy") != ">=2"
         ):
             raise ValueError("Incompatible artifact runtime requirements.")
+
+    @staticmethod
+    def _qualified_image(metadata: dict[str, Any]) -> str | None:
+        """Validate an optional content-addressed runtime image identity.
+
+        Args:
+            metadata (dict[str, Any]): Loaded manifest.
+
+        Returns:
+            str | None: Validated image digest, if present.
+
+        Raises:
+            ValueError: If the image identity is malformed.
+        """
         image = metadata.get("qualified_image")
         if image is not None and (
             not isinstance(image, str)
@@ -263,10 +354,23 @@ class DecoderArtifact:
             or any(c not in "0123456789abcdef" for c in image[7:])
         ):
             raise ValueError("Invalid qualified runtime image identity.")
+        return image
+
+    @staticmethod
+    def _validate_evidence(path: Path, metadata: dict[str, Any]) -> None:
+        """Verify bounded evidence bytes against the optional manifest digest.
+
+        Args:
+            path (Path): Artifact bundle directory.
+            metadata (dict[str, Any]): Loaded manifest.
+
+        Raises:
+            ValueError: If evidence is too large or its digest differs.
+            OSError: If evidence cannot be read.
+        """
         if "evidence_sha256" in metadata:
             evidence = path / "evidence.json"
             if evidence.stat().st_size > 1048576:
                 raise ValueError("Artifact evidence exceeds 1 MiB.")
             if hashlib.sha256(evidence.read_bytes()).hexdigest() != metadata["evidence_sha256"]:
                 raise ValueError("Artifact evidence hash mismatch.")
-        return replace(artifact, qualified_image=image)

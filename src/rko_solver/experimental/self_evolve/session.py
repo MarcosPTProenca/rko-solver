@@ -97,14 +97,14 @@ class PersistentPodmanRunner(PodmanRunner):
 
     def __exit__(
         self,
-        exception_type: type[BaseException] | None,
+        _exception_type: type[BaseException] | None,
         exception: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:
         """Remove the exact owned session, never unrelated containers.
 
         Args:
-            exception_type (type | None): Propagating exception type.
+            _exception_type (type | None): Propagating exception type, intentionally unused.
             exception (BaseException | None): Propagating exception instance.
             traceback (TracebackType | None): Original traceback.
 
@@ -198,6 +198,8 @@ class PersistentPodmanRunner(PodmanRunner):
             list[str]: Explicit command vector with safely separated guard arguments.
         """
         self._ensure_started()
+        if self._container is None:
+            raise SandboxError("Leased runtime did not start.")
         if self._expires - time.monotonic() < max(1.0, timeout) + 2:
             self.qualified = False
             raise SandboxError(

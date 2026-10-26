@@ -215,6 +215,31 @@ panel remains unchanged alongside it, without inference. Approve a fresh resourc
 allocation and practical effect/power design before a new sealed study;
 these calibration instances are now exposed and cannot be reused as sealed tests.
 
+## Separately frozen fresh exploratory panel
+
+The later panel `ae4fda0487ac51fedf336689d8827454e7158db683679d40c9b3d5d950d93eaf`
+completed **1080/1080 cells**, with thirty new independent cases per family, ten
+cases in each fixed size stratum, and two declared solver seeds. There were no
+failed or interrupted cells. It used **1778.240/2700 charged seconds**, including
+prepaid setup/cleanup, within **1720.412/5400 collection seconds**. The owner
+explicitly approved the new allocation and **0.001 absolute normalized-loss**
+practical target before collection.
+
+All six predeclared exploratory numerical checks passed, with the strict candidate
+and constructive gates true. This is **not powered confirmation or promotion**.
+Random-key controls had lower descriptive mean loss for knapsack/scheduling and
+tied set cover, so added value from RKO search is still not established.
+
+The measured controller was `d189d12`/version `0.3.0a1` in the former repository,
+with image `sha256:36b2082b7a44d5b6972395dd865b7e2bf1e235ea9d2bf08754d62a34194c801c`.
+These are not measurements of this standalone repository's `0.3.0a2` integration
+or subsequent structure refactors. That integration has its own validation.
+Exact protocol, source bundles, raw cells, complete numerical report, packages,
+OCI archive and checksums are preserved at
+`~/.local/share/rko/self-evolve/study-2026-10-26-prepublication/`.
+The earlier invalid panel remains unchanged; none of its cells were replaced.
+All these instances are now exposed, not reusable sealed tests.
+
 Implementation references: [SciPy permutation-test documentation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.permutation_test.html)
 for exact/randomized paired resampling and the conservative plus-one convention;
 [SciPy bootstrap documentation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html)

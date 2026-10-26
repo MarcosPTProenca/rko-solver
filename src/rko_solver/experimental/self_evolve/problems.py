@@ -59,23 +59,80 @@ class Problem:
         if set(data) != expected:
             raise ValueError("Instance fields do not match the problem contract.")
         for name, value in data.items():
-            sequence = name not in {"capacity", "universe_size"}
-            if sequence and (not isinstance(value, list) or len(value) > 1000):
-                raise ValueError("Instance sequences must be bounded lists.")
-            if not sequence and type(value) is not int:
+            self._validate_field(name, value)
+        count = self._validate_dimensions()
+        if not 1 <= count <= 1000:
+            raise ValueError("Pilot dimension must lie between 1 and 1000.")
+        encoded = json.dumps(data, allow_nan=False)
+        if len(encoded.encode("utf-8")) > 24576:
+            raise ValueError("Instance data exceed the 24 KiB worker envelope.")
+        object.__setattr__(self, "data", json.loads(encoded))
+
+    @staticmethod
+    def _validate_field(name: str, value: object) -> None:
+        """Validate one scalar or sequence before family-level alignment checks.
+
+        Args:
+            name (str): Declared instance field.
+            value (object): Untrusted field contents.
+
+        Raises:
+            ValueError: If container sizes or integer domains are invalid.
+        """
+        if name in {"capacity", "universe_size"}:
+            if type(value) is not int:
                 raise ValueError("Instance scalar fields must be integers.")
-            if name == "subsets" and any(not isinstance(v, list) or len(v) > 10000 for v in value):
-                raise ValueError("Subsets must be bounded lists.")
-            if name == "subsets" and sum(map(len, value)) > 8192:
-                raise ValueError("Set cover input exceeds the bounded membership envelope.")
-            flat = (
-                [v for subset in value for v in subset]
-                if name == "subsets"
-                else (value if isinstance(value, list) else [value])
-            )
-            minimum = 0 if name in {"due_dates", "subsets"} else 1
-            if not flat or any(type(v) is not int or not minimum <= v <= 100000 for v in flat):
-                raise ValueError("Instance values must be bounded integers in their domains.")
+            Problem._validate_integers(name, [value])
+            return
+        if not isinstance(value, list) or len(value) > 1000:
+            raise ValueError("Instance sequences must be bounded lists.")
+        if name == "subsets":
+            Problem._validate_subsets(value)
+            flat = [v for subset in value for v in subset]
+        else:
+            flat = value
+        Problem._validate_integers(name, flat)
+
+    @staticmethod
+    def _validate_subsets(value: list[Any]) -> None:
+        """Check nested set-cover containers and the total membership envelope.
+
+        Args:
+            value (list[Any]): Untrusted subset containers.
+
+        Raises:
+            ValueError: If subsets are not bounded lists or contain too many members.
+        """
+        if any(not isinstance(v, list) or len(v) > 10000 for v in value):
+            raise ValueError("Subsets must be bounded lists.")
+        if sum(map(len, value)) > 8192:
+            raise ValueError("Set cover input exceeds the bounded membership envelope.")
+
+    @staticmethod
+    def _validate_integers(name: str, flat: list[Any]) -> None:
+        """Check the strict integer domain of a flattened field.
+
+        Args:
+            name (str): Declared field name.
+            flat (list[Any]): Scalar values in input order.
+
+        Raises:
+            ValueError: If values are absent or outside the field domain.
+        """
+        minimum = 0 if name in {"due_dates", "subsets"} else 1
+        if not flat or any(type(v) is not int or not minimum <= v <= 100000 for v in flat):
+            raise ValueError("Instance values must be bounded integers in their domains.")
+
+    def _validate_dimensions(self) -> int:
+        """Check family alignment after all individual fields are validated.
+
+        Returns:
+            int: Number of items, jobs or subsets.
+
+        Raises:
+            ValueError: If parallel arrays or set-cover domains do not align.
+        """
+        data = self.data
         if self.family == "knapsack":
             count = len(data["weights"])
             if count != len(data["profits"]):
@@ -88,19 +145,21 @@ class Problem:
             count = len(data["costs"])
             if count != len(data["subsets"]) or data["universe_size"] > 10000:
                 raise ValueError("Set cover dimensions exceed the supported envelope.")
-            for subset in data["subsets"]:
-                if len(subset) != len(set(subset)) or any(
-                    v >= data["universe_size"] for v in subset
-                ):
-                    raise ValueError("Set cover contains duplicate/out-of-range elements.")
-            if set().union(*map(set, data["subsets"])) != set(range(data["universe_size"])):
-                raise ValueError("Pilot set cover instances must have full coverage available.")
-        if not 1 <= count <= 1000:
-            raise ValueError("Pilot dimension must lie between 1 and 1000.")
-        encoded = json.dumps(data, allow_nan=False)
-        if len(encoded.encode("utf-8")) > 24576:
-            raise ValueError("Instance data exceed the 24 KiB worker envelope.")
-        object.__setattr__(self, "data", json.loads(encoded))
+            self._validate_coverage()
+        return count
+
+    def _validate_coverage(self) -> None:
+        """Require unique in-range memberships and full available universe coverage.
+
+        Raises:
+            ValueError: If a subset is malformed or the union omits an element.
+        """
+        data = self.data
+        for subset in data["subsets"]:
+            if len(subset) != len(set(subset)) or any(v >= data["universe_size"] for v in subset):
+                raise ValueError("Set cover contains duplicate/out-of-range elements.")
+        if set().union(*map(set, data["subsets"])) != set(range(data["universe_size"])):
+            raise ValueError("Pilot set cover instances must have full coverage available.")
 
     @property
     def dimension(self) -> int:
@@ -132,6 +191,20 @@ class Problem:
             or len(solution) != len(set(solution))
         ):
             raise ValueError("Solution must contain unique in-range integer indices.")
+        return self._evaluate_indices(solution)
+
+    def _evaluate_indices(self, solution: list[int] | tuple[int, ...]) -> dict[str, Any]:
+        """Compute family evidence after strict decision-index validation.
+
+        Args:
+            solution (list[int] | tuple[int, ...]): Validated unique indices.
+
+        Returns:
+            dict[str, Any]: Original objective and feasibility-first score.
+
+        Raises:
+            ValueError: If a scheduling permutation is incomplete.
+        """
         data = self.data
         if self.family == "knapsack":
             objective = sum(data["profits"][i] for i in solution)
@@ -216,30 +289,14 @@ class Problem:
         """
         data, n = self.data, self.dimension
         if self.family == "knapsack":
-            capacity = data["capacity"]
-            if n * capacity > 2000000:
-                raise ValueError("Knapsack reference exceeds the exact-work envelope.")
-            values = [0] * (capacity + 1)
-            for weight, profit in zip(data["weights"], data["profits"], strict=True):
-                for size in range(capacity, weight - 1, -1):
-                    values[size] = max(values[size], values[size - weight] + profit)
-            return values[-1]
+            return self._knapsack_optimum()
         size = n if self.family == "scheduling" else data["universe_size"]
         if size > 16 or n * (1 << size) > 2000000:
             raise ValueError("Reference exceeds the exact-work envelope.")
         values = [math.inf] * (1 << size)
         values[0] = 0
         if self.family == "scheduling":
-            elapsed = [0] * (1 << n)
-            for mask in range(1, 1 << n):
-                bit = mask & -mask
-                elapsed[mask] = elapsed[mask ^ bit] + data["processing_times"][bit.bit_length() - 1]
-                for i in range(n):
-                    if mask & (1 << i):
-                        values[mask] = min(
-                            values[mask],
-                            values[mask ^ (1 << i)] + max(0, elapsed[mask] - data["due_dates"][i]),
-                        )
+            self._scheduling_reference(values, n)
         else:
             masks = [sum(1 << x for x in subset) for subset in data["subsets"]]
             for mask in range(1 << size):
@@ -248,6 +305,44 @@ class Problem:
                         values[mask | subset], values[mask] + data["costs"][i]
                     )
         return int(values[-1])
+
+    def _knapsack_optimum(self) -> int:
+        """Solve bounded knapsack by reverse-capacity dynamic programming.
+
+        Returns:
+            int: Exact maximum profit.
+
+        Raises:
+            ValueError: If capacity work exceeds the reference envelope.
+        """
+        data = self.data
+        capacity = data["capacity"]
+        if self.dimension * capacity > 2000000:
+            raise ValueError("Knapsack reference exceeds the exact-work envelope.")
+        values = [0] * (capacity + 1)
+        for weight, profit in zip(data["weights"], data["profits"], strict=True):
+            for size in range(capacity, weight - 1, -1):
+                values[size] = max(values[size], values[size - weight] + profit)
+        return values[-1]
+
+    def _scheduling_reference(self, values: list[float], n: int) -> None:
+        """Fill subset-state tardiness costs in increasing mask order.
+
+        Args:
+            values (list[float]): Dynamic-programming costs updated in place.
+            n (int): Validated bounded job count.
+        """
+        data = self.data
+        elapsed = [0] * (1 << n)
+        for mask in range(1, 1 << n):
+            bit = mask & -mask
+            elapsed[mask] = elapsed[mask ^ bit] + data["processing_times"][bit.bit_length() - 1]
+            for i in range(n):
+                if mask & (1 << i):
+                    values[mask] = min(
+                        values[mask],
+                        values[mask ^ (1 << i)] + max(0, elapsed[mask] - data["due_dates"][i]),
+                    )
 
     @classmethod
     def generate(cls, family: str, seed: int, size: int = 12) -> Problem:
@@ -264,13 +359,7 @@ class Problem:
         Raises:
             ValueError: If dimensions/family are unsupported.
         """
-        if (
-            type(seed) is not int
-            or not 0 <= seed < 2**32
-            or type(size) is not int
-            or not 2 <= size <= 100
-        ):
-            raise ValueError("Invalid generator seed/size.")
+        cls._validate_generation(seed, size)
         rng = RandomStreams(seed).numpy
         if family == "knapsack":
             weights = rng.randint(1, 40, size).tolist()
@@ -302,6 +391,25 @@ class Problem:
         else:
             raise ValueError("Unsupported generator family.")
         return cls(family, data)
+
+    @staticmethod
+    def _validate_generation(seed: int, size: int) -> None:
+        """Validate deterministic fixture seed and dimension bounds.
+
+        Args:
+            seed (int): Requested uint32 stream seed.
+            size (int): Requested problem dimension.
+
+        Raises:
+            ValueError: If either argument is not a strict bounded integer.
+        """
+        if (
+            type(seed) is not int
+            or not 0 <= seed < 2**32
+            or type(size) is not int
+            or not 2 <= size <= 100
+        ):
+            raise ValueError("Invalid generator seed/size.")
 
     @classmethod
     def seed_source(cls, family: str) -> str:

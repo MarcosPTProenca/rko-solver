@@ -56,6 +56,19 @@ def test_worker_uses_supported_explicit_execution() -> None:
     assert evidence["evaluations"] > 0
 
 
+def test_replay_identity_binds_extracted_helpers() -> None:
+    """Moving trusted logic into helpers must not remove it from frozen replay identity."""
+    bound = study_module.ConfirmationStudy._implementation()["code"]
+    assert {
+        "sandbox_evidence.py",
+        "campaign_evaluation.py",
+        "study_collection.py",
+        "study_definition.py",
+        "study_runtime.py",
+        "study_report.py",
+    } <= set(bound)
+
+
 def test_campaign_unknown_reservation_is_not_retried(tmp_path: Path) -> None:
     """Unknown campaign cells retain both their charge and an irreversible collection stop.
 
