@@ -1,0 +1,27 @@
+# Global RKO execution configuration.
+# Edit this file to change run-time behaviour without touching source code.
+
+[run]
+# 0 = offline mode (use single values from each MH's [offline] section)
+# 1 = online mode  (use Q-Learning with lists from each MH's [online] section)
+control = 1
+
+# Number of elite solutions retained in the shared pool
+pool_size = 10
+prefill_pool = false
+
+[active_metaheuristics]
+# Algorithms dispatched through the explicitly selected engine.
+# Remove or comment out entries to disable individual algorithms.
+list = [
+    "SA",
+    "ILS",
+    "VNS",
+    "LNS",
+    "BRKGA",
+    "BRKGA_CS",
+    "PSO",
+    "GA",
+    "GRASP",
+    "IPR",
+]

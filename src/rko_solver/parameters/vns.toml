@@ -1,0 +1,13 @@
+# Parameters for Variable Neighborhood Search (VNS).
+# [offline]  — single values used when control = 0.
+# [online]   — discrete lists that define the Q-Learning parameter grid
+#              (axis order: k_max → beta_min).
+# Note: k_max is stored as float in [online] and cast to int at runtime.
+
+[offline]
+k_max    = 5      # maximum number of neighbourhood structures
+beta_min = 0.05   # base perturbation intensity per neighbourhood level
+
+[online]
+k_max    = [3.0, 5.0, 7.0]
+beta_min = [0.05, 0.10, 0.20]

@@ -1,0 +1,1864 @@
+{
+  "schema_version": 1,
+  "reference_kind": "fixed_work_baseline_screening_not_acceptance",
+  "run_url": "https://github.com/MarcosPTProenca/RKO_Python/actions/runs/39809649686",
+  "producer_git_revision": "731692482e68dd978f7fdbcd5c8558fb5cfd86eb",
+  "producer_pr_head": "fefab38ff908f33ed3e3775121b72abc78ebc3bc",
+  "measurement_limits": [
+    "Three-seed fixed-work synthetic diagnostics; not whole-solver, quality or C++ evidence.",
+    "Profile fractions are biased diagnostics, not unprofiled time shares or Amdahl headroom.",
+    "Search timing excludes construction and startup; full-profile totals include runner setup.",
+    "Dimension shards used different CPU models; no controlled cross-dimension timing claim.",
+    "Large-dimension GRASP can stop during its first construction; completed stages are unavailable.",
+    "Raw shards and host observations are available in run artifacts with 90-day retention."
+  ],
+  "scope": "serial_fixed_work_baseline_screening",
+  "source_sha256": "e771cd3ce91ab771a67cb3d6e82f726f6ae1ce5ac5e2c8168d3aa7bd7b7a1c7a",
+  "python": "3.14.9 (main, Oct 21 2026, 17:48:02) [Clang 23.1.3 ]",
+  "numpy": "2.4.3",
+  "trials": 216,
+  "pairs": 108,
+  "groups": [
+    {
+      "algorithm": "BRKGA",
+      "workload": "ordering",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.009141976999998747,
+      "profile_runner_median_seconds": 0.02730559200000001,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/brkga.py",
+          "line": 130,
+          "function": "_pux",
+          "observations": 3,
+          "median_exclusive_fraction": 0.14962423529945773
+        },
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.10921459603671049
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08164687296197021
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06818047839183472
+        },
+        {
+          "file": "rko/metaheuristics/brkga.py",
+          "line": 158,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.053430691535227656
+        }
+      ]
+    },
+    {
+      "algorithm": "BRKGA",
+      "workload": "ordering",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.04885058999999359,
+      "profile_runner_median_seconds": 0.17757706599999995,
+      "top_functions": [
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.5496782638688145
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.3003231960066393
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'argsort' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.0765117073355514
+        },
+        {
+          "file": "rko/metaheuristics/brkga.py",
+          "line": 130,
+          "function": "_pux",
+          "observations": 3,
+          "median_exclusive_fraction": 0.015376849356006375
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.0061918099614310315
+        }
+      ]
+    },
+    {
+      "algorithm": "BRKGA",
+      "workload": "rugged",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.013783232999998063,
+      "profile_runner_median_seconds": 0.033402557999999985,
+      "top_functions": [
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.17640487294416204
+        },
+        {
+          "file": "rko/metaheuristics/brkga.py",
+          "line": 130,
+          "function": "_pux",
+          "observations": 3,
+          "median_exclusive_fraction": 0.12505449536605934
+        },
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.10198728211064273
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06997981441096499
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.05485557438141629
+        }
+      ]
+    },
+    {
+      "algorithm": "BRKGA",
+      "workload": "rugged",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.04599129699999338,
+      "profile_runner_median_seconds": 0.17435839399999994,
+      "top_functions": [
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.5623422925081544
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.3098650931597823
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.053855471969640814
+        },
+        {
+          "file": "rko/metaheuristics/brkga.py",
+          "line": 130,
+          "function": "_pux",
+          "observations": 3,
+          "median_exclusive_fraction": 0.015547441897176462
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.005947990092177612
+        }
+      ]
+    },
+    {
+      "algorithm": "BRKGA",
+      "workload": "sphere",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.007294954000002463,
+      "profile_runner_median_seconds": 0.024296834,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/brkga.py",
+          "line": 130,
+          "function": "_pux",
+          "observations": 3,
+          "median_exclusive_fraction": 0.1640908864670745
+        },
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.14352691479458674
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09412175537187505
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07190677362993708
+        },
+        {
+          "file": "rko/metaheuristics/brkga.py",
+          "line": 158,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.0564925043320459
+        }
+      ]
+    },
+    {
+      "algorithm": "BRKGA",
+      "workload": "sphere",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.034206329000006974,
+      "profile_runner_median_seconds": 0.166422634,
+      "top_functions": [
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.6032452215791517
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.3248554734926734
+        },
+        {
+          "file": "rko/metaheuristics/brkga.py",
+          "line": 130,
+          "function": "_pux",
+          "observations": 3,
+          "median_exclusive_fraction": 0.018828707914126122
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.0063680639657044446
+        },
+        {
+          "file": "rko/components/local_search/nelder_mead_ls.py",
+          "line": 70,
+          "function": "nelder_mead_search",
+          "observations": 3,
+          "median_exclusive_fraction": 0.004867460440114678
+        }
+      ]
+    },
+    {
+      "algorithm": "GRASP",
+      "workload": "ordering",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.0049133609999998384,
+      "profile_runner_median_seconds": 0.014889446,
+      "top_functions": [
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.11042613674142074
+        },
+        {
+          "file": "rko/metaheuristics/grasp.py",
+          "line": 142,
+          "function": "_line_search",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09422947299450422
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08543588525724867
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'copy' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06661718642856154
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 127,
+          "function": "evaluate",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06378424019268414
+        }
+      ]
+    },
+    {
+      "algorithm": "GRASP",
+      "workload": "ordering",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.008892102000004343,
+      "profile_runner_median_seconds": 0.019177635000000005,
+      "top_functions": [
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'argsort' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.26441273910990587
+        },
+        {
+          "file": "rko/metaheuristics/grasp.py",
+          "line": 142,
+          "function": "_line_search",
+          "observations": 3,
+          "median_exclusive_fraction": 0.14548300663767974
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 245,
+          "function": "_randbelow_with_getrandbits",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07257803164988799
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.05541381927437871
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.05500217664935156
+        }
+      ]
+    },
+    {
+      "algorithm": "GRASP",
+      "workload": "rugged",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.009483735000003435,
+      "profile_runner_median_seconds": 0.020555334999999994,
+      "top_functions": [
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.2724961670534682
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08280671211733055
+        },
+        {
+          "file": "rko/metaheuristics/grasp.py",
+          "line": 142,
+          "function": "_line_search",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07272252210995009
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'reduce' of 'numpy.ufunc' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.05597237894687682
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/.venv/lib/python3.14/site-packages/numpy/_core/fromnumeric.py",
+          "line": 66,
+          "function": "_wrapreduction",
+          "observations": 3,
+          "median_exclusive_fraction": 0.05553234719842807
+        }
+      ]
+    },
+    {
+      "algorithm": "GRASP",
+      "workload": "rugged",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.01190643700000038,
+      "profile_runner_median_seconds": 0.021868108000000008,
+      "top_functions": [
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.3753359001153643
+        },
+        {
+          "file": "rko/metaheuristics/grasp.py",
+          "line": 142,
+          "function": "_line_search",
+          "observations": 3,
+          "median_exclusive_fraction": 0.12458124314559056
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 245,
+          "function": "_randbelow_with_getrandbits",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06278382370658102
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.045518432595997776
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'copy' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.037512664561561514
+        }
+      ]
+    },
+    {
+      "algorithm": "GRASP",
+      "workload": "sphere",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.0029585079999989716,
+      "profile_runner_median_seconds": 0.01135584,
+      "top_functions": [
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.1392343499027813
+        },
+        {
+          "file": "rko/metaheuristics/grasp.py",
+          "line": 142,
+          "function": "_line_search",
+          "observations": 3,
+          "median_exclusive_fraction": 0.11892083720799167
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.10446992687401382
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'copy' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08688489799081353
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 127,
+          "function": "evaluate",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08129174063741652
+        }
+      ]
+    },
+    {
+      "algorithm": "GRASP",
+      "workload": "sphere",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.0032569880000039575,
+      "profile_runner_median_seconds": 0.012203452000000002,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/grasp.py",
+          "line": 142,
+          "function": "_line_search",
+          "observations": 3,
+          "median_exclusive_fraction": 0.2197122745913399
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 245,
+          "function": "_randbelow_with_getrandbits",
+          "observations": 3,
+          "median_exclusive_fraction": 0.11409017710726439
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08082336047210248
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'copy' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06602402336650318
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.061435251342683246
+        }
+      ]
+    },
+    {
+      "algorithm": "GeneticAlgorithm",
+      "workload": "ordering",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.010476805999999783,
+      "profile_runner_median_seconds": 0.036005144,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/ga.py",
+          "line": 123,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.21036397571235946
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.10249120443284905
+        },
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09057639216846797
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 365,
+          "function": "sample",
+          "observations": 3,
+          "median_exclusive_fraction": 0.05735783198089695
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.05175053836538042
+        }
+      ]
+    },
+    {
+      "algorithm": "GeneticAlgorithm",
+      "workload": "ordering",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.04976798999999943,
+      "profile_runner_median_seconds": 0.1879464650000001,
+      "top_functions": [
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.54117984342321
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.30562022541897754
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'argsort' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07303827714982558
+        },
+        {
+          "file": "rko/metaheuristics/ga.py",
+          "line": 123,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.025349659706843594
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.005916179375866418
+        }
+      ]
+    },
+    {
+      "algorithm": "GeneticAlgorithm",
+      "workload": "rugged",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.0150618209999962,
+      "profile_runner_median_seconds": 0.041031888,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/ga.py",
+          "line": 123,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.175102505407306
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.1424705253629713
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09005345181045459
+        },
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08922672684003996
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 365,
+          "function": "sample",
+          "observations": 3,
+          "median_exclusive_fraction": 0.04751920674911386
+        }
+      ]
+    },
+    {
+      "algorithm": "GeneticAlgorithm",
+      "workload": "rugged",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.046327557000005015,
+      "profile_runner_median_seconds": 0.17815928500000003,
+      "top_functions": [
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.5599552167403654
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.30693561180178186
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.05355002027213392
+        },
+        {
+          "file": "rko/metaheuristics/ga.py",
+          "line": 123,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.025786660515616684
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.005855823657942113
+        }
+      ]
+    },
+    {
+      "algorithm": "GeneticAlgorithm",
+      "workload": "sphere",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.008566450000003556,
+      "profile_runner_median_seconds": 0.032201833000000006,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/ga.py",
+          "line": 123,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.2171249736572273
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.11335904387803016
+        },
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.11166954378031832
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 365,
+          "function": "sample",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06389555526233552
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06017958193650998
+        }
+      ]
+    },
+    {
+      "algorithm": "GeneticAlgorithm",
+      "workload": "sphere",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.03441547199999917,
+      "profile_runner_median_seconds": 0.166098495,
+      "top_functions": [
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.5917701374604032
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.33062970673585496
+        },
+        {
+          "file": "rko/metaheuristics/ga.py",
+          "line": 123,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.027424520879420832
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.006140873735845
+        },
+        {
+          "file": "rko/components/local_search/nelder_mead_ls.py",
+          "line": 70,
+          "function": "nelder_mead_search",
+          "observations": 3,
+          "median_exclusive_fraction": 0.00492868403172467
+        }
+      ]
+    },
+    {
+      "algorithm": "IPR",
+      "workload": "ordering",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.005941106000001639,
+      "profile_runner_median_seconds": 0.016441719000000004,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/ipr.py",
+          "line": 111,
+          "function": "_relink",
+          "observations": 3,
+          "median_exclusive_fraction": 0.18489313678210895
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.10125376793022674
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08113075037956796
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'copy' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.0752544791697267
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 127,
+          "function": "evaluate",
+          "observations": 3,
+          "median_exclusive_fraction": 0.05868048225371081
+        }
+      ]
+    },
+    {
+      "algorithm": "IPR",
+      "workload": "ordering",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.013024364999999705,
+      "profile_runner_median_seconds": 0.024027847,
+      "top_functions": [
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'argsort' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.3573996038846094
+        },
+        {
+          "file": "rko/components/solution_pool.py",
+          "line": 233,
+          "function": "<genexpr>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09478011076065201
+        },
+        {
+          "file": "rko/metaheuristics/ipr.py",
+          "line": 111,
+          "function": "_relink",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08736309166609892
+        },
+        {
+          "file": "rko/components/solution_pool.py",
+          "line": 210,
+          "function": "insert",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06989864387439539
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.04531383412966551
+        }
+      ]
+    },
+    {
+      "algorithm": "IPR",
+      "workload": "rugged",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.010997631999998703,
+      "profile_runner_median_seconds": 0.021417706000000005,
+      "top_functions": [
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.2621036071743631
+        },
+        {
+          "file": "rko/metaheuristics/ipr.py",
+          "line": 111,
+          "function": "_relink",
+          "observations": 3,
+          "median_exclusive_fraction": 0.14375588169332426
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07678488069637335
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'copy' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.057455081279397344
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'reduce' of 'numpy.ufunc' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.056767424111620536
+        }
+      ]
+    },
+    {
+      "algorithm": "IPR",
+      "workload": "rugged",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.012363100999998267,
+      "profile_runner_median_seconds": 0.022873391000000007,
+      "top_functions": [
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.3591453884721809
+        },
+        {
+          "file": "rko/components/solution_pool.py",
+          "line": 233,
+          "function": "<genexpr>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09461537753219573
+        },
+        {
+          "file": "rko/metaheuristics/ipr.py",
+          "line": 111,
+          "function": "_relink",
+          "observations": 3,
+          "median_exclusive_fraction": 0.0853374828404533
+        },
+        {
+          "file": "rko/components/solution_pool.py",
+          "line": 210,
+          "function": "insert",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06940099596718641
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'copy' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.043114573767339195
+        }
+      ]
+    },
+    {
+      "algorithm": "IPR",
+      "workload": "sphere",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.004262681999996687,
+      "profile_runner_median_seconds": 0.013134645,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/ipr.py",
+          "line": 111,
+          "function": "_relink",
+          "observations": 3,
+          "median_exclusive_fraction": 0.2308551163735297
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.11928540465482637
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'copy' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09306646658512659
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08733270280286638
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 127,
+          "function": "evaluate",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06942467095891798
+        }
+      ]
+    },
+    {
+      "algorithm": "IPR",
+      "workload": "sphere",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.003743094999997254,
+      "profile_runner_median_seconds": 0.012501517000000004,
+      "top_functions": [
+        {
+          "file": "rko/components/solution_pool.py",
+          "line": 233,
+          "function": "<genexpr>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.16469588649408926
+        },
+        {
+          "file": "rko/metaheuristics/ipr.py",
+          "line": 111,
+          "function": "_relink",
+          "observations": 3,
+          "median_exclusive_fraction": 0.14750481881518854
+        },
+        {
+          "file": "rko/components/solution_pool.py",
+          "line": 210,
+          "function": "insert",
+          "observations": 3,
+          "median_exclusive_fraction": 0.12146837945750613
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07703529099708457
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'copy' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07635777401037426
+        }
+      ]
+    },
+    {
+      "algorithm": "MultiStart",
+      "workload": "ordering",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.004559907999997392,
+      "profile_runner_median_seconds": 0.012820228,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/multi_start.py",
+          "line": 82,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.13172403215911663
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.12848952452327683
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.10037004692993405
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'argsort' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08247369726581667
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 127,
+          "function": "evaluate",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07241010066279634
+        }
+      ]
+    },
+    {
+      "algorithm": "MultiStart",
+      "workload": "ordering",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.02015138200000166,
+      "profile_runner_median_seconds": 0.026077151,
+      "top_functions": [
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'argsort' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.6020873690758014
+        },
+        {
+          "file": "rko/metaheuristics/multi_start.py",
+          "line": 82,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09545801621435951
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.04074440857882558
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.040569012587100044
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 127,
+          "function": "evaluate",
+          "observations": 3,
+          "median_exclusive_fraction": 0.02199379155096594
+        }
+      ]
+    },
+    {
+      "algorithm": "MultiStart",
+      "workload": "rugged",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.009207621999998139,
+      "profile_runner_median_seconds": 0.017993657,
+      "top_functions": [
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.3198503575733181
+        },
+        {
+          "file": "rko/metaheuristics/multi_start.py",
+          "line": 82,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09561750237044248
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09187239974108985
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/.venv/lib/python3.14/site-packages/numpy/_core/fromnumeric.py",
+          "line": 66,
+          "function": "_wrapreduction",
+          "observations": 3,
+          "median_exclusive_fraction": 0.0729296270677666
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'reduce' of 'numpy.ufunc' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06208905647140768
+        }
+      ]
+    },
+    {
+      "algorithm": "MultiStart",
+      "workload": "rugged",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.015461451000000181,
+      "profile_runner_median_seconds": 0.021757501999999998,
+      "top_functions": [
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.5377914170007433
+        },
+        {
+          "file": "rko/metaheuristics/multi_start.py",
+          "line": 82,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.11001449273472018
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.04361566899771504
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/.venv/lib/python3.14/site-packages/numpy/_core/fromnumeric.py",
+          "line": 66,
+          "function": "_wrapreduction",
+          "observations": 3,
+          "median_exclusive_fraction": 0.0354146813361203
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'reduce' of 'numpy.ufunc' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.033551621842850536
+        }
+      ]
+    },
+    {
+      "algorithm": "MultiStart",
+      "workload": "sphere",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.0027618920000023195,
+      "profile_runner_median_seconds": 0.009089881000000001,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/multi_start.py",
+          "line": 82,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.17112217367079852
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.16919689017862546
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.12171310011641279
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 127,
+          "function": "evaluate",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09494887776858685
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'copy' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06501766969780569
+        }
+      ]
+    },
+    {
+      "algorithm": "MultiStart",
+      "workload": "sphere",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.003471359000002394,
+      "profile_runner_median_seconds": 0.008673063999999998,
+      "top_functions": [
+        {
+          "file": "rko/metaheuristics/multi_start.py",
+          "line": 82,
+          "function": "solve",
+          "observations": 3,
+          "median_exclusive_fraction": 0.2873106191629194
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.10741109450237334
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08860428917329644
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 127,
+          "function": "evaluate",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06323565745910954
+        },
+        {
+          "file": "rko/components/solution_pool.py",
+          "line": 233,
+          "function": "<genexpr>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06083535108958838
+        }
+      ]
+    },
+    {
+      "algorithm": "SA",
+      "workload": "ordering",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.009418150000001901,
+      "profile_runner_median_seconds": 0.03692629,
+      "top_functions": [
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 335,
+          "function": "randint",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09904579639563331
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 245,
+          "function": "_randbelow_with_getrandbits",
+          "observations": 3,
+          "median_exclusive_fraction": 0.09530673102492719
+        },
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07382240617338225
+        },
+        {
+          "file": "rko/components/shaking/random.py",
+          "line": 32,
+          "function": "shake",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07248664826892107
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.04892500708844566
+        }
+      ]
+    },
+    {
+      "algorithm": "SA",
+      "workload": "ordering",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.05080331099999569,
+      "profile_runner_median_seconds": 0.19174649800000002,
+      "top_functions": [
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.5278680172257432
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.28005377182951213
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'argsort' of 'numpy.ndarray' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.06655372993047891
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 335,
+          "function": "randint",
+          "observations": 3,
+          "median_exclusive_fraction": 0.01518539342778484
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 245,
+          "function": "_randbelow_with_getrandbits",
+          "observations": 3,
+          "median_exclusive_fraction": 0.013230131279828973
+        }
+      ]
+    },
+    {
+      "algorithm": "SA",
+      "workload": "rugged",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.014096026000004258,
+      "profile_runner_median_seconds": 0.042490771000000004,
+      "top_functions": [
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.13923978894421618
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 335,
+          "function": "randint",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08665302872475532
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 245,
+          "function": "_randbelow_with_getrandbits",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08364277503931383
+        },
+        {
+          "file": "rko/components/shaking/random.py",
+          "line": 32,
+          "function": "shake",
+          "observations": 3,
+          "median_exclusive_fraction": 0.0625392276360436
+        },
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.060598288508344554
+        }
+      ]
+    },
+    {
+      "algorithm": "SA",
+      "workload": "rugged",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.04716150400000174,
+      "profile_runner_median_seconds": 0.19134779500000001,
+      "top_functions": [
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.5366890065286616
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.28874098671522896
+        },
+        {
+          "file": "/home/runner/work/RKO_Python/RKO_Python/benchmarks/fixed_work.py",
+          "line": 102,
+          "function": "score",
+          "observations": 3,
+          "median_exclusive_fraction": 0.04849906118323399
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 335,
+          "function": "randint",
+          "observations": 3,
+          "median_exclusive_fraction": 0.016371957670063563
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 245,
+          "function": "_randbelow_with_getrandbits",
+          "observations": 3,
+          "median_exclusive_fraction": 0.014163466059277036
+        }
+      ]
+    },
+    {
+      "algorithm": "SA",
+      "workload": "sphere",
+      "dimension": 20,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.007380451000003063,
+      "profile_runner_median_seconds": 0.033150136000000024,
+      "top_functions": [
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 335,
+          "function": "randint",
+          "observations": 3,
+          "median_exclusive_fraction": 0.10985262357096116
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 245,
+          "function": "_randbelow_with_getrandbits",
+          "observations": 3,
+          "median_exclusive_fraction": 0.10594444961322659
+        },
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.08603696261284802
+        },
+        {
+          "file": "rko/components/shaking/random.py",
+          "line": 32,
+          "function": "shake",
+          "observations": 3,
+          "median_exclusive_fraction": 0.07633958801674398
+        },
+        {
+          "file": "rko/orchestration/search.py",
+          "line": 111,
+          "function": "decode",
+          "observations": 3,
+          "median_exclusive_fraction": 0.051987509191515804
+        }
+      ]
+    },
+    {
+      "algorithm": "SA",
+      "workload": "sphere",
+      "dimension": 500,
+      "evaluations": 1024,
+      "pairs": 3,
+      "seeds": [
+        200,
+        201,
+        202
+      ],
+      "unprofiled_search_median_seconds": 0.03711830299999974,
+      "profile_runner_median_seconds": 0.17895317200000005,
+      "top_functions": [
+        {
+          "file": "rko/components/blending/blending.py",
+          "line": 29,
+          "function": "blending",
+          "observations": 3,
+          "median_exclusive_fraction": 0.5762278257025983
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'random' of '_random.Random' objects>",
+          "observations": 3,
+          "median_exclusive_fraction": 0.30560048413112223
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 335,
+          "function": "randint",
+          "observations": 3,
+          "median_exclusive_fraction": 0.016929699650166205
+        },
+        {
+          "file": "/home/runner/work/_temp/uv-python-dir/cpython-3.14.9-linux-x86_64-gnu/lib/python3.14/random.py",
+          "line": 245,
+          "function": "_randbelow_with_getrandbits",
+          "observations": 3,
+          "median_exclusive_fraction": 0.014510076705274643
+        },
+        {
+          "file": "rko/components/shaking/random.py",
+          "line": 32,
+          "function": "shake",
+          "observations": 3,
+          "median_exclusive_fraction": 0.007319740081255425
+        }
+      ]
+    }
+  ],
+  "inputs_sha256": {
+    "baseline-20.jsonl": "b585434721d41c4151c1e8ff94641b78e0a56c06d5e49f43e69b080ec0b61edd",
+    "baseline-500.jsonl": "3c8a38e3be6960329c725a9a7db9d4c931799d4e97292a6f90c5d9eee3597c7c"
+  },
+  "analysis_sha256": "fca9918c57c2adb61ed648ffaac1858416bb95cb4f25a72f629530ea82bed401"
+}

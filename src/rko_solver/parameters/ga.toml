@@ -1,0 +1,15 @@
+# Parameters for Genetic Algorithm (GA).
+# [offline]  — single values used when control = 0.
+# [online]   — discrete lists that define the Q-Learning parameter grid
+#              (axis order: size_pop → prob_cros → prob_mut).
+# Note: size_pop is stored as float in [online] and cast to int at runtime.
+
+[offline]
+size_pop  = 50      # population size
+prob_cros = 0.80    # crossover probability (applied per individual pair)
+prob_mut  = 0.02    # per-gene mutation probability
+
+[online]
+size_pop  = [30.0, 50.0, 100.0]
+prob_cros = [0.60, 0.80, 0.90]
+prob_mut  = [0.01, 0.02, 0.05]

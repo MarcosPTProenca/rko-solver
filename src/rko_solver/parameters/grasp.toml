@@ -1,0 +1,15 @@
+# Parameters for GRASP (Greedy Randomised Adaptive Search Procedure).
+# [offline]  — single values used when control = 0.
+#              alpha_grasp is omitted because construction currently does not use it.
+#              The online axis is retained for reference state-graph compatibility.
+# [online]   — discrete lists that define the Q-Learning parameter grid
+#              (axis order: alpha_grasp → hs → he).
+
+[offline]
+hs = 0.125     # initial line-search step size
+he = 0.00098   # minimum line-search step size (halving terminates here)
+
+[online]
+alpha_grasp = [0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90]
+hs          = [0.125, 0.0625]
+he          = [0.00098, 0.00049]

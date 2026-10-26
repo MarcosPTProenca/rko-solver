@@ -1,0 +1,18 @@
+# Parameters for Simulated Annealing (SA).
+# control=0 uses [offline]; control=1 activates the named [online] grid.
+# A selected t0 applies to the next cooling/reannealing schedule.
+
+[offline]
+sa_max   = 1000        # neighbourhood evaluations per temperature level
+t0       = 1000000.0   # initial temperature
+alpha    = 0.99        # geometric cooling factor
+beta_min = 0.01        # minimum perturbation intensity
+beta_max = 0.05        # maximum perturbation intensity
+
+[online]
+# Discrete grid for Q-Learning (order defines parameter axis numbering).
+sa_max   = [250, 500, 750, 1000]
+t0       = [100000.0, 500000.0, 1000000.0]
+alpha    = [0.97, 0.98, 0.99]
+beta_min = [0.01, 0.03, 0.05]
+beta_max = [0.05, 0.08, 0.10]

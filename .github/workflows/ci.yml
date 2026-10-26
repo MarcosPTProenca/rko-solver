@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, rko]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Sync locked dependencies
+        run: uv sync --locked --group dev
+      - name: Point PyO3 at the project interpreter
+        shell: bash
+        run: echo "PYO3_PYTHON=$(uv run --locked python -c 'import sys; print(sys.executable)')" >> "$GITHUB_ENV"
+      - name: Rust format
+        run: cargo fmt --all --check
+      - name: Rust lint
+        run: cargo clippy --workspace --all-targets --release -- -D warnings
+      - name: Rust tests
+        run: cargo test --release
+      - name: Third-party license inventory is current
+        if: runner.os == 'Linux'
+        run: uv run --locked python tools/third_party_licenses.py --check
+      - name: Ruff lint
+        run: uv run --locked ruff check .
+      - name: Ruff format check
+        run: uv run --locked ruff format --check .
+      - name: Full test suite
+        run: uv run --locked pytest src/rko_solver/tests -q
+      - name: Optional interactive reports
+        run: uv run --locked --extra reports pytest src/rko_solver/tests/rko/test_reporting.py src/rko_solver/tests/rko/test_tracing.py -q
+      - name: Source-identified profile diagnostic smoke
+        run: uv run --locked python -m benchmarks.performance_profile --dimension 4 --evaluations 8 --profile
+      - name: Bounded decision recording fixed-work smoke
+        run: uv run --locked python -m benchmarks.decision_traces --evaluations 20 --dimension 8 --repeats 1
+      - name: Native-thread launch smoke
+        run: uv run --locked --with threadpoolctl==3.7.0 python benchmarks/native_threads.py --repeats 1 --dimension 8 --evaluations 2 --workers 1
+      - name: IPR fixed-work diagnostic smoke
+        run: uv run --locked python benchmarks/ipr_diagnosis.py --evaluations 64 --seeds 1 --dimension 20
+      - name: Prefill matched-work diagnostic smoke
+        run: uv run --locked python benchmarks/prefill_work.py --evaluations 64 --seeds 1 --dimension 4 --capacity 3
+      - name: Upload artifact contract v7.0.2
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: ci-artifact-contract-${{ github.run_attempt }}
+          path: pyproject.toml
+          if-no-files-found: error
+          retention-days: 1
+      - name: Download artifact contract v8.0.2
+        if: runner.os == 'Linux'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          pattern: ci-artifact-contract-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/rko-artifact-contract
+          merge-multiple: true
+      - name: Verify artifact round trip
+        if: runner.os == 'Linux'
+        shell: bash
+        run: cmp pyproject.toml "$RUNNER_TEMP/rko-artifact-contract/pyproject.toml"
+      - name: Build distribution artifacts
+        run: uv build
+      - name: Test isolated wheel and sdist installs
+        shell: bash
+        run: |
+          for artifact in dist/*.whl dist/*.tar.gz; do
+            uv run --isolated --no-project --with "$artifact" python -I tools/smoke_installed.py
+            uv run --isolated --no-project --with "$artifact" python -I tools/smoke_tracing_installed.py
+          done
+
+  cpp-backend:
+    runs-on: ubuntu-latest
+    env:
+      RKO_BUILD_CPP: "1"
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Sync locked dependencies with the C++ backend
+        run: uv sync --locked --group dev
+      - name: Point PyO3 at the project interpreter
+        run: echo "PYO3_PYTHON=$(uv run --locked python -c 'import sys; print(sys.executable)')" >> "$GITHUB_ENV"
+      - name: C++ backend is present
+        run: uv run --locked python -c "from rko_solver import _native; assert _native.cpp_available()"
+      - name: Rust tests including the C++ backend
+        run: cargo test -p rko-cpp --release
+      - name: C++ backend contract tests
+        run: uv run --locked pytest src/rko_solver/tests/rko/test_cpp_engine.py -q
+      - name: Equivalence smoke against the pinned C++ reference
+        run: |
+          uv run --locked python -m benchmarks.native_problem_study --problem tsp --sizes 100 --per-size 1 --repetitions 2 --budget-seconds 3 --solvers SA,IPR --implementations cpp64,cpp-engine --output "$RUNNER_TEMP/cpp-equivalence.csv" --subject cpp-engine --reference cpp64
+          uv run --locked python - "$RUNNER_TEMP/cpp-equivalence.csv" <<'PY'
+          import csv
+          import sys
+
+          rows = list(csv.DictReader(open(sys.argv[1], encoding="utf-8")))
+          failed = [row for row in rows if row["status"] != "ok"]
+          assert len(rows) == 8 and not failed, failed
+          PY

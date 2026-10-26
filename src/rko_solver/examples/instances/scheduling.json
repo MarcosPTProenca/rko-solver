@@ -1,0 +1,5 @@
+{
+  "name": "four-job scheduling tutorial",
+  "processing_times": [3, 2, 5, 1],
+  "due_dates": [4, 6, 7, 3]
+}

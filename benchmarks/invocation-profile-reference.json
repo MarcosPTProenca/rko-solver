@@ -1,0 +1,699 @@
+{
+  "reference_kind": "invocation_resource_screening_not_acceptance",
+  "run_url": "https://github.com/MarcosPTProenca/RKO_Python/actions/runs/39843491836",
+  "producer_pr_head": "7c49d7d2288f80a793610b4750a275f0211917df",
+  "aggregation": "Per-case medians of three repetitions/seeds. Callback times are median per-worker values within each trial, then median across three trials. No cross-probe latency comparison.",
+  "limits": [
+    "Fresh probe-process time includes all probe solves, import/instrumentation/I/O; not one cold library call.",
+    "Per-search/stage/callback intervals overlap and must not be summed as portfolio wall time.",
+    "RSS is sampled coordinator/direct-child sum after imports, not unique RAM or an exact peak.",
+    "Native cases stop initialization prefixes; not full-generation, quality or universal thread-policy evidence.",
+    "Probes use different VMs, budgets and controls. No cross-probe scaling, equal-work worker-policy or C++ claim.",
+    "Raw stdout/stderr/host files retained in run artifacts90 days; summary is not a full permanent archive."
+  ],
+  "probes": {
+    "callbacks": {
+      "manifest": {
+        "probe": "callbacks",
+        "run_url": "https://github.com/MarcosPTProenca/RKO_Python/actions/runs/39843491836",
+        "provenance": {
+          "python": "3.14.9 (main, Oct 21 2026, 17:48:02) [Clang 23.1.3 ]",
+          "executable": "/home/runner/work/_temp/setup-uv-cache/builds-v0/.tmpAW4Kkg/bin/python",
+          "numpy": "2.4.3",
+          "numpy_source": "/home/runner/work/RKO_Python/RKO_Python/.venv/lib/python3.14/site-packages/numpy/__init__.py",
+          "rko_source": "/home/runner/work/RKO_Python/RKO_Python/src/rko_solver",
+          "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+          "processor": "x86_64",
+          "logical_cpus": 4,
+          "process_cpus": 4,
+          "affinity": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "cgroup_v2_cpu_max": null,
+          "native_thread_environment": {
+            "OMP_NUM_THREADS": null,
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "VECLIB_MAXIMUM_THREADS": null,
+            "NUMEXPR_NUM_THREADS": null
+          },
+          "git": {
+            "revision": "de383ae911e23bfb3f24a2d9aff2b6ef3eafec9d",
+            "status": "",
+            "diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "files_sha256": {
+            "rko/rko_main.py": "6e418e58cb4568e3bdda443abfe7987bafff2a26d6c28e57dbdeb0981f1734f9",
+            "rko/__init__.py": "fb14917277186b0cff01b0f78b9544116963cc064932f3cee2048d58dc3e43b2",
+            "rko/solver.py": "2aa6d8cf2468c74b49ef9a622c5fed06402084d9d2da109bc2a4eff0e9ef8a19",
+            "rko/orchestration/adaptation.py": "303aed140f6e0997171c485f5995d82221cadfe68ff6c57aa1fba3bd6d34fd3e",
+            "rko/orchestration/factory.py": "6c9abbba16da1c52abbd8d3086c9d14f2ae1740456202685f4d5a44dfcb8fffb",
+            "rko/orchestration/execution.py": "7f127ae42198aad902ca495edc2cc9e17225d820ea1fd8fb589e18689afb8f85",
+            "rko/orchestration/initialization.py": "09cd703a0d79f079dca1c1043499175993608ae99f49de44f3f3bf990ae8cee2",
+            "rko/orchestration/configuration.py": "0a4aab14f3f24811b75e0e6b7395eadd55e6b09a140bc862977d9c832f46d20a",
+            "rko/orchestration/__init__.py": "837843867fdac46b24475b80d3e8b50e42048dbd13d868b4f34f4eb2cfb2c5af",
+            "rko/orchestration/processes.py": "4e032b98e3f38a1b5d2e17a71dbeec03ec80abcc3d52828e14e8dd80bc8c9b12",
+            "rko/orchestration/search.py": "5b274a8309c2cbe12b638855d6e35ffa6add65ebd1636a8e3557f0e063e72db1",
+            "rko/orchestration/types.py": "3a3922dc90ee6338facdcb70452f4d032bd5e20b765de2b38ff856566fb09a75",
+            "rko/metaheuristics/brkga_cs.py": "c6e9093b43ffa34eaae564eec0d11bf9acce892e3df1e23e60a97c1ff7087a6e",
+            "rko/metaheuristics/pso.py": "5ec4e1278003fbc1a87caf8719e68ad2f01fd08c25f14c64100fb0afaffe65c7",
+            "rko/metaheuristics/grasp.py": "d7494d6d476fc207a7592397ecf008e3329dac5fc02e5ad1665b6694a9793a54",
+            "rko/metaheuristics/sa.py": "6cef47efc705f1e952ab743ffc6584fb205697fb0df0b2ff4ad78525c47d2f73",
+            "rko/metaheuristics/brkga.py": "e7410409a41b434ca7c0d65f77149ab488212872f0e48030f537328c5ec55d1f",
+            "rko/metaheuristics/ga.py": "57a882eeb799dc42e18a31ec8c5b5f1ea07c7825cc9a22ad2f182c862c81121a",
+            "rko/metaheuristics/base.py": "a5e19c104bc3e4d1abd54b46ce706255422d335a31bcfd6fe9b5d6d14929973f",
+            "rko/metaheuristics/lns.py": "49cb09579eef92ee239f5c4b51591811eddeec52b302214be0dea15bfb28a665",
+            "rko/metaheuristics/ils.py": "8a0ab830eb66f6b2bc93da6379a668624c7233266ff493accfa8f4c00dbf97f6",
+            "rko/metaheuristics/__init__.py": "c6719a5a00b41a983461203c732abe00c466c721ae784e3a1745bcccf1d2a3a0",
+            "rko/metaheuristics/ipr.py": "3c6ebcbf11c116d5bac338de6b8836c486121813213b3e205b11c2c0f6887f7e",
+            "rko/metaheuristics/vns.py": "c61adb2d830f5542e46032f118da8c87de182244dba198c2f9ac6c7d2475bd9b",
+            "rko/metaheuristics/multi_start.py": "101b7b44c59ab19dfe11595670ab202f1e52af0dcebcdc454bde8a3daa866736",
+            "rko/examples/run_kp_cpp_instances.py": "1b89726b1bb1730f1bcffdffb211aedf88cb54ef858f2eb12c82e326a3af1ed0",
+            "rko/examples/__init__.py": "8f9bd93bba448c77bf14dcb36af3767a28cc301540947d42e017474cbb031b7c",
+            "rko/components/random_streams.py": "eeb1f6e10cd475231d53cff49bfa770f479a1cda52d56d6ddb1bbb7dca860366",
+            "rko/components/__init__.py": "b0c1b969a67b549ce4db12111d44c6e053b9b3fcf24135e8e660194c0004a523",
+            "rko/components/solution_pool.py": "bf37ee3a6368ede267ce34ef32741e0df99a2d5786aef7504303ea763f80d8e5",
+            "rko/components/validation.py": "34aef5be9dbe65eca14d7677b8f2dd3c1cc637ecc033f537ed1aa964ab917cdb",
+            "rko/parameters/ils.toml": "a1ffeb67d2e9d0ca7d4dee51d2ccef565e40abedd5300dffafccdc54b123fe53",
+            "rko/parameters/brkga.toml": "97bdf3b3dc26ab82173d051075db04327cfbeee2706e6aa076b98205935d00a8",
+            "rko/parameters/vns.toml": "4d6f29824fc76303450db2743c784748284de0cd0f95dd748e4c33720f9117e5",
+            "rko/parameters/sa.toml": "05ec154844a36c32399c52901c33b331ad54314d7d4735170765907937501ed2",
+            "rko/parameters/pso.toml": "98e76598cadb78591e5fe0580647bf4aaeba8d7ae53114995dea4f5c7e2c3f3a",
+            "rko/parameters/config.toml": "0da472afc4929c5f289cc72554b40aef6fea0ea26fa34a91970b21271d2a23a4",
+            "rko/parameters/grasp.toml": "e06fcbf572cc3a308242a8190c65b0c163ec9969c3ad07fc00326c9b0ed63439",
+            "rko/parameters/ga.toml": "4aee5177f0e1a108bc307eda52958950c02a978b72c47fedb0d78cfdaf2e2030",
+            "rko/parameters/lns.toml": "6c101dd912a722ab65bd23d5a25c7f98836ef86067b88ce208cfc23b4116dc17",
+            "rko/parameters/multi_start.toml": "88bcd272b1a8ef156be77e7e458ff67463d19b64318b23374fc533bd88d02ad6",
+            "rko/parameters/brkga_cs.toml": "ef659584abdeb68ea0899a2b24aabb1a80cc3d60037feea72dffb2225107a7c4",
+            "rko/parameters/loader.py": "fe2a695b6a011c6fa318cfd426363b8e6a22d83a3e57d397387097729e38ee01",
+            "rko/parameters/__init__.py": "7bb5626954c28477fa586ca5ea95db453f3bb10968a47592e9bf2306a6ac2592",
+            "rko/parameters/ipr.toml": "23a7ef0ad6895419b1da641cd56705c7228eb12f79ccb8a87418e4f62699ac9d",
+            "rko/components/local_search/farey_ls.py": "44df4d20bb84d308643aedd99405d84ccd8ccc23dee457e9138948df813f4308",
+            "rko/components/local_search/mirror_ls.py": "c254645323675b2fdbc802b9bcbd34afddea111301492343c008e5ac82a3669b",
+            "rko/components/local_search/swap_ls.py": "16b7a62a0a5c6426340c65cd6c94f76d74ed53378f5dc2da621b3b8465a08e83",
+            "rko/components/local_search/nelder_mead_ls.py": "22d743f6edae175004502c47d07171cd1ee6f58fbd13d09b83e20f7f4fa62e31",
+            "rko/components/local_search/rvnd.py": "eabd74a9038cfbbd083799743eedcfe955bd743c302d16bbf6a8c78e6f7012cc",
+            "rko/components/initialization/initialization.py": "a06cb9c7fe3df2bd4b00d11e75c91d1886a6276897ba097dd0b32d752968798d",
+            "rko/components/blending/blending.py": "08d74f4c64dad1bb00c0e3b2002748d7bd841fea466d4b5665d37b298862206b",
+            "rko/components/adaptive_control/q_learning.py": "fe669540ef03c4a8a1b828af77fcddabbb3deb08dca8f0862211e71deedf9fa0",
+            "rko/components/shaking/random.py": "443aabf993f8ed68b7007f492dceac8a47a37cb14884f9f1f82b6071198e7f73",
+            "rko/components/shaking/mirror.py": "59d31a7ce4a6657ad9ea2f44fc5c04df96b917926379d4319bf0c2774d3ed121",
+            "rko/components/shaking/swap.py": "86210cb8871f93aea61d97484a864bcfba3773af522454b319636cdd20bfc76b",
+            "rko/components/shaking/neighbor_swap.py": "386005f37070d8d00d62cc984b5c312a158d2420c0342f6b16642f123b28f2c6",
+            "benchmarks/fixed_work.py": "0ad86a2f870b86814e6c9ac61df1d82d30dbcb57022178f0702cb6dbf733b041",
+            "benchmarks/performance_profile.py": "b9dbd0e4d71b725d4aebf48ed54a606f5b78ca476cc30fc3de51b150c3bcbc83",
+            "pyproject.toml": "6581fc565536f3a586c8e1c25f30b3b0c4b893f48f46236bf31b2cfb451c9968",
+            "uv.lock": "e20394c7c2f9a700217fd7d0bb0728d07537c5f3e3f470d8d2bcb6066b17c253",
+            ".python-version": "a876e0b10411037a012498b9fe18d9bc1df32ed8b722a13564dc944ddcfd9135"
+          },
+          "source_sha256": "e771cd3ce91ab771a67cb3d6e82f726f6ae1ce5ac5e2c8168d3aa7bd7b7a1c7a"
+        },
+        "helper_sha256": "2b4f4afffac41a81cd989dd15976db211d2699113ee16a7555ad7364d0fea33e",
+        "command": [
+          "/home/runner/work/_temp/setup-uv-cache/builds-v0/.tmpAW4Kkg/bin/python",
+          "benchmarks/native_threads.py",
+          "--repeats",
+          "3",
+          "--dimension",
+          "128",
+          "--evaluations",
+          "64",
+          "--workers",
+          "1",
+          "4"
+        ],
+        "threadpoolctl": "3.7.0",
+        "child_thread_environment": {
+          "OPENBLAS_NUM_THREADS": null,
+          "OMP_NUM_THREADS": null,
+          "MKL_NUM_THREADS": null,
+          "BLIS_NUM_THREADS": null
+        },
+        "completed": true,
+        "returncode": 0,
+        "validated": true,
+        "fresh_probe_process_seconds": 24.229929724
+      },
+      "host_summary": {
+        "Architecture:": "x86_64",
+        "CPU(s):": "4",
+        "Model name:": "AMD EPYC 9V74 80-Core Processor",
+        "Thread(s) per core:": "2",
+        "Core(s) per socket:": "2",
+        "Socket(s):": "1"
+      },
+      "coverage": {
+        "probe": "callbacks",
+        "validated_trials": 36,
+        "records": 39
+      },
+      "raw_sha256": {
+        "manifest.json": "4c3a0d96dbcd783bc7d9613e7910904ae5c3f8c039953c097a6e3fb2e8685554",
+        "coverage.json": "eda869a740bfa7be9cde82cc445136d7af5e0b11d3368e1b775f825e630ae7e1",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "probe.jsonl": "d6feeb4e215667c6b5ad7dbc62287854ddacc3014f5dcef9df8c1fa9c349cfb9",
+        "host.json": "65f12c33e22051311486d4e6c22ab280b9e6584e63bb3ef925f4b0c2ebb15d60"
+      },
+      "groups": [
+        {
+          "workers": 1,
+          "workload": "sphere",
+          "mode": "inherited",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            4
+          ],
+          "median_per_worker_callback_wall_seconds": 0.00014322999996352337,
+          "median_per_worker_callback_cpu_seconds": 0.00014769399999969846,
+          "median_internal_solve_seconds": 0.3031605259999992
+        },
+        {
+          "workers": 1,
+          "workload": "sphere",
+          "mode": "one",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            1
+          ],
+          "median_per_worker_callback_wall_seconds": 0.00011412700003177179,
+          "median_per_worker_callback_cpu_seconds": 0.00011671499999996171,
+          "median_internal_solve_seconds": 0.2546509259999965
+        },
+        {
+          "workers": 1,
+          "workload": "gemv",
+          "mode": "inherited",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            4
+          ],
+          "median_per_worker_callback_wall_seconds": 0.0003242989999847623,
+          "median_per_worker_callback_cpu_seconds": 0.0003302019999997241,
+          "median_internal_solve_seconds": 0.30586360399999535
+        },
+        {
+          "workers": 1,
+          "workload": "gemv",
+          "mode": "one",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            1
+          ],
+          "median_per_worker_callback_wall_seconds": 0.0002634739999791691,
+          "median_per_worker_callback_cpu_seconds": 0.00026800899999998573,
+          "median_internal_solve_seconds": 0.2588307240000063
+        },
+        {
+          "workers": 1,
+          "workload": "gemm",
+          "mode": "inherited",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            4
+          ],
+          "median_per_worker_callback_wall_seconds": 0.005990879000023597,
+          "median_per_worker_callback_cpu_seconds": 0.023933606999999912,
+          "median_internal_solve_seconds": 0.3084785770000025
+        },
+        {
+          "workers": 1,
+          "workload": "gemm",
+          "mode": "one",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            1
+          ],
+          "median_per_worker_callback_wall_seconds": 0.006801401999936729,
+          "median_per_worker_callback_cpu_seconds": 0.006809827000000032,
+          "median_internal_solve_seconds": 0.2643613200000061
+        },
+        {
+          "workers": 4,
+          "workload": "sphere",
+          "mode": "inherited",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            4
+          ],
+          "median_per_worker_callback_wall_seconds": 0.00015991749997112947,
+          "median_per_worker_callback_cpu_seconds": 0.00016722499999993756,
+          "median_internal_solve_seconds": 0.45051517999999646
+        },
+        {
+          "workers": 4,
+          "workload": "sphere",
+          "mode": "one",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            1
+          ],
+          "median_per_worker_callback_wall_seconds": 0.00016081999998363017,
+          "median_per_worker_callback_cpu_seconds": 0.00016802199999990663,
+          "median_internal_solve_seconds": 0.3152436120000033
+        },
+        {
+          "workers": 4,
+          "workload": "gemv",
+          "mode": "inherited",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            4
+          ],
+          "median_per_worker_callback_wall_seconds": 0.0004317215000000374,
+          "median_per_worker_callback_cpu_seconds": 0.00044209249999994926,
+          "median_internal_solve_seconds": 0.4464156119999956
+        },
+        {
+          "workers": 4,
+          "workload": "gemv",
+          "mode": "one",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            1
+          ],
+          "median_per_worker_callback_wall_seconds": 0.0004507744999742158,
+          "median_per_worker_callback_cpu_seconds": 0.0004588235000000662,
+          "median_internal_solve_seconds": 0.31898270400000683
+        },
+        {
+          "workers": 4,
+          "workload": "gemm",
+          "mode": "inherited",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            4
+          ],
+          "median_per_worker_callback_wall_seconds": 1.3123207650000097,
+          "median_per_worker_callback_cpu_seconds": 1.373547139,
+          "median_internal_solve_seconds": 1.9408176789999914
+        },
+        {
+          "workers": 4,
+          "workload": "gemm",
+          "mode": "one",
+          "observations": 3,
+          "actual_native_team_sizes": [
+            1
+          ],
+          "median_per_worker_callback_wall_seconds": 0.01230185200000733,
+          "median_per_worker_callback_cpu_seconds": 0.01232366,
+          "median_internal_solve_seconds": 0.340789903000001
+        }
+      ],
+      "parent_native_teams": [
+        {
+          "user_api": "blas",
+          "internal_api": "openblas",
+          "num_threads": 4,
+          "prefix": "libscipy_openblas",
+          "filepath": "/home/runner/work/RKO_Python/RKO_Python/.venv/lib/python3.14/site-packages/numpy.libs/libscipy_openblas64_-ff84a88b.so",
+          "version": "0.3.31.dev",
+          "threading_layer": "pthreads",
+          "architecture": "SkylakeX"
+        }
+      ],
+      "inherited_thread_variables": {
+        "OPENBLAS_NUM_THREADS": null,
+        "OMP_NUM_THREADS": null,
+        "MKL_NUM_THREADS": null,
+        "BLIS_NUM_THREADS": null
+      },
+      "negative_controls": [
+        {
+          "workers": 1,
+          "parent_team_sizes": [
+            1
+          ],
+          "child_team_sizes": [
+            4
+          ]
+        },
+        {
+          "workers": 4,
+          "parent_team_sizes": [
+            1
+          ],
+          "child_team_sizes": [
+            4
+          ]
+        }
+      ]
+    },
+    "portfolio": {
+      "stderr_note": "Four NumPy RuntimeWarning occurrences: invalid value encountered in divide during standard-deviation normalization. Finite objective/seed/count checks passed, but the originating caller and internal-decision implications remain undiagnosed. Warnings were retained, not suppressed.",
+      "manifest": {
+        "probe": "portfolio",
+        "run_url": "https://github.com/MarcosPTProenca/RKO_Python/actions/runs/39843491836",
+        "provenance": {
+          "python": "3.14.9 (main, Oct 21 2026, 17:48:02) [Clang 23.1.3 ]",
+          "executable": "/home/runner/work/_temp/setup-uv-cache/builds-v0/.tmp6UGP78/bin/python",
+          "numpy": "2.4.3",
+          "numpy_source": "/home/runner/work/RKO_Python/RKO_Python/.venv/lib/python3.14/site-packages/numpy/__init__.py",
+          "rko_source": "/home/runner/work/RKO_Python/RKO_Python/src/rko_solver",
+          "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+          "processor": "x86_64",
+          "logical_cpus": 4,
+          "process_cpus": 4,
+          "affinity": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "cgroup_v2_cpu_max": null,
+          "native_thread_environment": {
+            "OMP_NUM_THREADS": null,
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "VECLIB_MAXIMUM_THREADS": null,
+            "NUMEXPR_NUM_THREADS": null
+          },
+          "git": {
+            "revision": "de383ae911e23bfb3f24a2d9aff2b6ef3eafec9d",
+            "status": "",
+            "diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "files_sha256": {
+            "rko/solver.py": "2aa6d8cf2468c74b49ef9a622c5fed06402084d9d2da109bc2a4eff0e9ef8a19",
+            "rko/__init__.py": "fb14917277186b0cff01b0f78b9544116963cc064932f3cee2048d58dc3e43b2",
+            "rko/rko_main.py": "6e418e58cb4568e3bdda443abfe7987bafff2a26d6c28e57dbdeb0981f1734f9",
+            "rko/examples/run_kp_cpp_instances.py": "1b89726b1bb1730f1bcffdffb211aedf88cb54ef858f2eb12c82e326a3af1ed0",
+            "rko/examples/__init__.py": "8f9bd93bba448c77bf14dcb36af3767a28cc301540947d42e017474cbb031b7c",
+            "rko/components/solution_pool.py": "bf37ee3a6368ede267ce34ef32741e0df99a2d5786aef7504303ea763f80d8e5",
+            "rko/components/validation.py": "34aef5be9dbe65eca14d7677b8f2dd3c1cc637ecc033f537ed1aa964ab917cdb",
+            "rko/components/random_streams.py": "eeb1f6e10cd475231d53cff49bfa770f479a1cda52d56d6ddb1bbb7dca860366",
+            "rko/components/__init__.py": "b0c1b969a67b549ce4db12111d44c6e053b9b3fcf24135e8e660194c0004a523",
+            "rko/metaheuristics/ipr.py": "3c6ebcbf11c116d5bac338de6b8836c486121813213b3e205b11c2c0f6887f7e",
+            "rko/metaheuristics/ils.py": "8a0ab830eb66f6b2bc93da6379a668624c7233266ff493accfa8f4c00dbf97f6",
+            "rko/metaheuristics/multi_start.py": "101b7b44c59ab19dfe11595670ab202f1e52af0dcebcdc454bde8a3daa866736",
+            "rko/metaheuristics/sa.py": "6cef47efc705f1e952ab743ffc6584fb205697fb0df0b2ff4ad78525c47d2f73",
+            "rko/metaheuristics/pso.py": "5ec4e1278003fbc1a87caf8719e68ad2f01fd08c25f14c64100fb0afaffe65c7",
+            "rko/metaheuristics/lns.py": "49cb09579eef92ee239f5c4b51591811eddeec52b302214be0dea15bfb28a665",
+            "rko/metaheuristics/brkga.py": "e7410409a41b434ca7c0d65f77149ab488212872f0e48030f537328c5ec55d1f",
+            "rko/metaheuristics/ga.py": "57a882eeb799dc42e18a31ec8c5b5f1ea07c7825cc9a22ad2f182c862c81121a",
+            "rko/metaheuristics/grasp.py": "d7494d6d476fc207a7592397ecf008e3329dac5fc02e5ad1665b6694a9793a54",
+            "rko/metaheuristics/__init__.py": "c6719a5a00b41a983461203c732abe00c466c721ae784e3a1745bcccf1d2a3a0",
+            "rko/metaheuristics/base.py": "a5e19c104bc3e4d1abd54b46ce706255422d335a31bcfd6fe9b5d6d14929973f",
+            "rko/metaheuristics/vns.py": "c61adb2d830f5542e46032f118da8c87de182244dba198c2f9ac6c7d2475bd9b",
+            "rko/metaheuristics/brkga_cs.py": "c6e9093b43ffa34eaae564eec0d11bf9acce892e3df1e23e60a97c1ff7087a6e",
+            "rko/parameters/grasp.toml": "e06fcbf572cc3a308242a8190c65b0c163ec9969c3ad07fc00326c9b0ed63439",
+            "rko/parameters/multi_start.toml": "88bcd272b1a8ef156be77e7e458ff67463d19b64318b23374fc533bd88d02ad6",
+            "rko/parameters/config.toml": "0da472afc4929c5f289cc72554b40aef6fea0ea26fa34a91970b21271d2a23a4",
+            "rko/parameters/ils.toml": "a1ffeb67d2e9d0ca7d4dee51d2ccef565e40abedd5300dffafccdc54b123fe53",
+            "rko/parameters/ga.toml": "4aee5177f0e1a108bc307eda52958950c02a978b72c47fedb0d78cfdaf2e2030",
+            "rko/parameters/ipr.toml": "23a7ef0ad6895419b1da641cd56705c7228eb12f79ccb8a87418e4f62699ac9d",
+            "rko/parameters/brkga.toml": "97bdf3b3dc26ab82173d051075db04327cfbeee2706e6aa076b98205935d00a8",
+            "rko/parameters/lns.toml": "6c101dd912a722ab65bd23d5a25c7f98836ef86067b88ce208cfc23b4116dc17",
+            "rko/parameters/brkga_cs.toml": "ef659584abdeb68ea0899a2b24aabb1a80cc3d60037feea72dffb2225107a7c4",
+            "rko/parameters/vns.toml": "4d6f29824fc76303450db2743c784748284de0cd0f95dd748e4c33720f9117e5",
+            "rko/parameters/__init__.py": "7bb5626954c28477fa586ca5ea95db453f3bb10968a47592e9bf2306a6ac2592",
+            "rko/parameters/loader.py": "fe2a695b6a011c6fa318cfd426363b8e6a22d83a3e57d397387097729e38ee01",
+            "rko/parameters/pso.toml": "98e76598cadb78591e5fe0580647bf4aaeba8d7ae53114995dea4f5c7e2c3f3a",
+            "rko/parameters/sa.toml": "05ec154844a36c32399c52901c33b331ad54314d7d4735170765907937501ed2",
+            "rko/orchestration/adaptation.py": "303aed140f6e0997171c485f5995d82221cadfe68ff6c57aa1fba3bd6d34fd3e",
+            "rko/orchestration/execution.py": "7f127ae42198aad902ca495edc2cc9e17225d820ea1fd8fb589e18689afb8f85",
+            "rko/orchestration/types.py": "3a3922dc90ee6338facdcb70452f4d032bd5e20b765de2b38ff856566fb09a75",
+            "rko/orchestration/processes.py": "4e032b98e3f38a1b5d2e17a71dbeec03ec80abcc3d52828e14e8dd80bc8c9b12",
+            "rko/orchestration/initialization.py": "09cd703a0d79f079dca1c1043499175993608ae99f49de44f3f3bf990ae8cee2",
+            "rko/orchestration/__init__.py": "837843867fdac46b24475b80d3e8b50e42048dbd13d868b4f34f4eb2cfb2c5af",
+            "rko/orchestration/search.py": "5b274a8309c2cbe12b638855d6e35ffa6add65ebd1636a8e3557f0e063e72db1",
+            "rko/orchestration/configuration.py": "0a4aab14f3f24811b75e0e6b7395eadd55e6b09a140bc862977d9c832f46d20a",
+            "rko/orchestration/factory.py": "6c9abbba16da1c52abbd8d3086c9d14f2ae1740456202685f4d5a44dfcb8fffb",
+            "rko/components/blending/blending.py": "08d74f4c64dad1bb00c0e3b2002748d7bd841fea466d4b5665d37b298862206b",
+            "rko/components/local_search/rvnd.py": "eabd74a9038cfbbd083799743eedcfe955bd743c302d16bbf6a8c78e6f7012cc",
+            "rko/components/local_search/mirror_ls.py": "c254645323675b2fdbc802b9bcbd34afddea111301492343c008e5ac82a3669b",
+            "rko/components/local_search/nelder_mead_ls.py": "22d743f6edae175004502c47d07171cd1ee6f58fbd13d09b83e20f7f4fa62e31",
+            "rko/components/local_search/farey_ls.py": "44df4d20bb84d308643aedd99405d84ccd8ccc23dee457e9138948df813f4308",
+            "rko/components/local_search/swap_ls.py": "16b7a62a0a5c6426340c65cd6c94f76d74ed53378f5dc2da621b3b8465a08e83",
+            "rko/components/adaptive_control/q_learning.py": "fe669540ef03c4a8a1b828af77fcddabbb3deb08dca8f0862211e71deedf9fa0",
+            "rko/components/initialization/initialization.py": "a06cb9c7fe3df2bd4b00d11e75c91d1886a6276897ba097dd0b32d752968798d",
+            "rko/components/shaking/swap.py": "86210cb8871f93aea61d97484a864bcfba3773af522454b319636cdd20bfc76b",
+            "rko/components/shaking/random.py": "443aabf993f8ed68b7007f492dceac8a47a37cb14884f9f1f82b6071198e7f73",
+            "rko/components/shaking/neighbor_swap.py": "386005f37070d8d00d62cc984b5c312a158d2420c0342f6b16642f123b28f2c6",
+            "rko/components/shaking/mirror.py": "59d31a7ce4a6657ad9ea2f44fc5c04df96b917926379d4319bf0c2774d3ed121",
+            "benchmarks/fixed_work.py": "0ad86a2f870b86814e6c9ac61df1d82d30dbcb57022178f0702cb6dbf733b041",
+            "benchmarks/performance_profile.py": "b9dbd0e4d71b725d4aebf48ed54a606f5b78ca476cc30fc3de51b150c3bcbc83",
+            "pyproject.toml": "6581fc565536f3a586c8e1c25f30b3b0c4b893f48f46236bf31b2cfb451c9968",
+            "uv.lock": "e20394c7c2f9a700217fd7d0bb0728d07537c5f3e3f470d8d2bcb6066b17c253",
+            ".python-version": "a876e0b10411037a012498b9fe18d9bc1df32ed8b722a13564dc944ddcfd9135"
+          },
+          "source_sha256": "e771cd3ce91ab771a67cb3d6e82f726f6ae1ce5ac5e2c8168d3aa7bd7b7a1c7a"
+        },
+        "helper_sha256": "97cd4afb002cb289eba608a8ee813377a93a8145fcc52e71a893b38408baa731",
+        "command": [
+          "/home/runner/work/_temp/setup-uv-cache/builds-v0/.tmp6UGP78/bin/python",
+          "benchmarks/process_budget.py"
+        ],
+        "threadpoolctl": "3.7.0",
+        "child_thread_environment": {
+          "OPENBLAS_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "BLIS_NUM_THREADS": "1"
+        },
+        "completed": true,
+        "returncode": 0,
+        "validated": true,
+        "fresh_probe_process_seconds": 19.212702358999998
+      },
+      "host_summary": {
+        "Architecture:": "x86_64",
+        "CPU(s):": "4",
+        "Model name:": "AMD EPYC 7763 64-Core Processor",
+        "Thread(s) per core:": "2",
+        "Core(s) per socket:": "2",
+        "Socket(s):": "1"
+      },
+      "coverage": {
+        "probe": "portfolio",
+        "validated_trials": 12,
+        "records": 13
+      },
+      "raw_sha256": {
+        "manifest.json": "2d2848ca4adb323a183bce90da9aca3b8f56a5f2dc7453644004792d0b736635",
+        "coverage.json": "b343525f5c32063634c44195f467d0dd4ea70cf92e39f11ed0449f18175b1845",
+        "stderr.txt": "f3496b03ed4b93fea68a7d6cb85da53dd5fcb5dfc3695c30639f29e9cc929d1c",
+        "probe.jsonl": "b028dd062d65e27308c8af1566b262e07fa157b531c9beb7617e877de942adc1",
+        "host.json": "eda047d6a2a8a735ae06c3c4b5fe8cf2f09af8a2646057a1a5bcab415d0b6401"
+      },
+      "groups": [
+        {
+          "workload": "sphere",
+          "n_jobs": null,
+          "actual_search_workers": [
+            4
+          ],
+          "observations": 3,
+          "median_invocation_seconds": 1.4012250870000003,
+          "median_internal_seconds": 1.401186826,
+          "median_outer_minus_internal_seconds": 3.826100000026145e-05,
+          "median_first_decode_seconds": 0.3310568760000052,
+          "median_last_first_decode_seconds": 0.9978563700000009,
+          "median_sampled_peak_parent_children_rss_bytes": 332869632
+        },
+        {
+          "workload": "sphere",
+          "n_jobs": 10,
+          "actual_search_workers": [
+            10
+          ],
+          "observations": 3,
+          "median_invocation_seconds": 1.775488843000005,
+          "median_internal_seconds": 1.7754505110000025,
+          "median_outer_minus_internal_seconds": 3.83320000025833e-05,
+          "median_first_decode_seconds": 0.6304144810000025,
+          "median_last_first_decode_seconds": 0.6324312190000043,
+          "median_sampled_peak_parent_children_rss_bytes": 650207232
+        },
+        {
+          "workload": "ordering",
+          "n_jobs": null,
+          "actual_search_workers": [
+            4
+          ],
+          "observations": 3,
+          "median_invocation_seconds": 1.3963799669999943,
+          "median_internal_seconds": 1.3963389299999989,
+          "median_outer_minus_internal_seconds": 4.1036999995469614e-05,
+          "median_first_decode_seconds": 0.31539475699999997,
+          "median_last_first_decode_seconds": 0.9831685609999994,
+          "median_sampled_peak_parent_children_rss_bytes": 332824576
+        },
+        {
+          "workload": "ordering",
+          "n_jobs": 10,
+          "actual_search_workers": [
+            10
+          ],
+          "observations": 3,
+          "median_invocation_seconds": 1.7654611169999939,
+          "median_internal_seconds": 1.7654233460000057,
+          "median_outer_minus_internal_seconds": 3.854099999500704e-05,
+          "median_first_decode_seconds": 0.6236877349999972,
+          "median_last_first_decode_seconds": 0.6319374899999985,
+          "median_sampled_peak_parent_children_rss_bytes": 651026432
+        }
+      ]
+    },
+    "startup": {
+      "manifest": {
+        "probe": "startup",
+        "run_url": "https://github.com/MarcosPTProenca/RKO_Python/actions/runs/39843491836",
+        "provenance": {
+          "python": "3.14.9 (main, Oct 21 2026, 17:48:02) [Clang 23.1.3 ]",
+          "executable": "/home/runner/work/_temp/setup-uv-cache/builds-v0/.tmpNvTDx8/bin/python",
+          "numpy": "2.4.3",
+          "numpy_source": "/home/runner/work/RKO_Python/RKO_Python/.venv/lib/python3.14/site-packages/numpy/__init__.py",
+          "rko_source": "/home/runner/work/RKO_Python/RKO_Python/src/rko_solver",
+          "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+          "processor": "x86_64",
+          "logical_cpus": 4,
+          "process_cpus": 4,
+          "affinity": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "cgroup_v2_cpu_max": null,
+          "native_thread_environment": {
+            "OMP_NUM_THREADS": null,
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "VECLIB_MAXIMUM_THREADS": null,
+            "NUMEXPR_NUM_THREADS": null
+          },
+          "git": {
+            "revision": "de383ae911e23bfb3f24a2d9aff2b6ef3eafec9d",
+            "status": "",
+            "diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "files_sha256": {
+            "rko/solver.py": "2aa6d8cf2468c74b49ef9a622c5fed06402084d9d2da109bc2a4eff0e9ef8a19",
+            "rko/__init__.py": "fb14917277186b0cff01b0f78b9544116963cc064932f3cee2048d58dc3e43b2",
+            "rko/rko_main.py": "6e418e58cb4568e3bdda443abfe7987bafff2a26d6c28e57dbdeb0981f1734f9",
+            "rko/examples/run_kp_cpp_instances.py": "1b89726b1bb1730f1bcffdffb211aedf88cb54ef858f2eb12c82e326a3af1ed0",
+            "rko/examples/__init__.py": "8f9bd93bba448c77bf14dcb36af3767a28cc301540947d42e017474cbb031b7c",
+            "rko/components/solution_pool.py": "bf37ee3a6368ede267ce34ef32741e0df99a2d5786aef7504303ea763f80d8e5",
+            "rko/components/validation.py": "34aef5be9dbe65eca14d7677b8f2dd3c1cc637ecc033f537ed1aa964ab917cdb",
+            "rko/components/random_streams.py": "eeb1f6e10cd475231d53cff49bfa770f479a1cda52d56d6ddb1bbb7dca860366",
+            "rko/components/__init__.py": "b0c1b969a67b549ce4db12111d44c6e053b9b3fcf24135e8e660194c0004a523",
+            "rko/metaheuristics/ipr.py": "3c6ebcbf11c116d5bac338de6b8836c486121813213b3e205b11c2c0f6887f7e",
+            "rko/metaheuristics/ils.py": "8a0ab830eb66f6b2bc93da6379a668624c7233266ff493accfa8f4c00dbf97f6",
+            "rko/metaheuristics/multi_start.py": "101b7b44c59ab19dfe11595670ab202f1e52af0dcebcdc454bde8a3daa866736",
+            "rko/metaheuristics/sa.py": "6cef47efc705f1e952ab743ffc6584fb205697fb0df0b2ff4ad78525c47d2f73",
+            "rko/metaheuristics/pso.py": "5ec4e1278003fbc1a87caf8719e68ad2f01fd08c25f14c64100fb0afaffe65c7",
+            "rko/metaheuristics/lns.py": "49cb09579eef92ee239f5c4b51591811eddeec52b302214be0dea15bfb28a665",
+            "rko/metaheuristics/brkga.py": "e7410409a41b434ca7c0d65f77149ab488212872f0e48030f537328c5ec55d1f",
+            "rko/metaheuristics/ga.py": "57a882eeb799dc42e18a31ec8c5b5f1ea07c7825cc9a22ad2f182c862c81121a",
+            "rko/metaheuristics/grasp.py": "d7494d6d476fc207a7592397ecf008e3329dac5fc02e5ad1665b6694a9793a54",
+            "rko/metaheuristics/__init__.py": "c6719a5a00b41a983461203c732abe00c466c721ae784e3a1745bcccf1d2a3a0",
+            "rko/metaheuristics/base.py": "a5e19c104bc3e4d1abd54b46ce706255422d335a31bcfd6fe9b5d6d14929973f",
+            "rko/metaheuristics/vns.py": "c61adb2d830f5542e46032f118da8c87de182244dba198c2f9ac6c7d2475bd9b",
+            "rko/metaheuristics/brkga_cs.py": "c6e9093b43ffa34eaae564eec0d11bf9acce892e3df1e23e60a97c1ff7087a6e",
+            "rko/parameters/grasp.toml": "e06fcbf572cc3a308242a8190c65b0c163ec9969c3ad07fc00326c9b0ed63439",
+            "rko/parameters/multi_start.toml": "88bcd272b1a8ef156be77e7e458ff67463d19b64318b23374fc533bd88d02ad6",
+            "rko/parameters/config.toml": "0da472afc4929c5f289cc72554b40aef6fea0ea26fa34a91970b21271d2a23a4",
+            "rko/parameters/ils.toml": "a1ffeb67d2e9d0ca7d4dee51d2ccef565e40abedd5300dffafccdc54b123fe53",
+            "rko/parameters/ga.toml": "4aee5177f0e1a108bc307eda52958950c02a978b72c47fedb0d78cfdaf2e2030",
+            "rko/parameters/ipr.toml": "23a7ef0ad6895419b1da641cd56705c7228eb12f79ccb8a87418e4f62699ac9d",
+            "rko/parameters/brkga.toml": "97bdf3b3dc26ab82173d051075db04327cfbeee2706e6aa076b98205935d00a8",
+            "rko/parameters/lns.toml": "6c101dd912a722ab65bd23d5a25c7f98836ef86067b88ce208cfc23b4116dc17",
+            "rko/parameters/brkga_cs.toml": "ef659584abdeb68ea0899a2b24aabb1a80cc3d60037feea72dffb2225107a7c4",
+            "rko/parameters/vns.toml": "4d6f29824fc76303450db2743c784748284de0cd0f95dd748e4c33720f9117e5",
+            "rko/parameters/__init__.py": "7bb5626954c28477fa586ca5ea95db453f3bb10968a47592e9bf2306a6ac2592",
+            "rko/parameters/loader.py": "fe2a695b6a011c6fa318cfd426363b8e6a22d83a3e57d397387097729e38ee01",
+            "rko/parameters/pso.toml": "98e76598cadb78591e5fe0580647bf4aaeba8d7ae53114995dea4f5c7e2c3f3a",
+            "rko/parameters/sa.toml": "05ec154844a36c32399c52901c33b331ad54314d7d4735170765907937501ed2",
+            "rko/orchestration/adaptation.py": "303aed140f6e0997171c485f5995d82221cadfe68ff6c57aa1fba3bd6d34fd3e",
+            "rko/orchestration/execution.py": "7f127ae42198aad902ca495edc2cc9e17225d820ea1fd8fb589e18689afb8f85",
+            "rko/orchestration/types.py": "3a3922dc90ee6338facdcb70452f4d032bd5e20b765de2b38ff856566fb09a75",
+            "rko/orchestration/processes.py": "4e032b98e3f38a1b5d2e17a71dbeec03ec80abcc3d52828e14e8dd80bc8c9b12",
+            "rko/orchestration/initialization.py": "09cd703a0d79f079dca1c1043499175993608ae99f49de44f3f3bf990ae8cee2",
+            "rko/orchestration/__init__.py": "837843867fdac46b24475b80d3e8b50e42048dbd13d868b4f34f4eb2cfb2c5af",
+            "rko/orchestration/search.py": "5b274a8309c2cbe12b638855d6e35ffa6add65ebd1636a8e3557f0e063e72db1",
+            "rko/orchestration/configuration.py": "0a4aab14f3f24811b75e0e6b7395eadd55e6b09a140bc862977d9c832f46d20a",
+            "rko/orchestration/factory.py": "6c9abbba16da1c52abbd8d3086c9d14f2ae1740456202685f4d5a44dfcb8fffb",
+            "rko/components/blending/blending.py": "08d74f4c64dad1bb00c0e3b2002748d7bd841fea466d4b5665d37b298862206b",
+            "rko/components/local_search/rvnd.py": "eabd74a9038cfbbd083799743eedcfe955bd743c302d16bbf6a8c78e6f7012cc",
+            "rko/components/local_search/mirror_ls.py": "c254645323675b2fdbc802b9bcbd34afddea111301492343c008e5ac82a3669b",
+            "rko/components/local_search/nelder_mead_ls.py": "22d743f6edae175004502c47d07171cd1ee6f58fbd13d09b83e20f7f4fa62e31",
+            "rko/components/local_search/farey_ls.py": "44df4d20bb84d308643aedd99405d84ccd8ccc23dee457e9138948df813f4308",
+            "rko/components/local_search/swap_ls.py": "16b7a62a0a5c6426340c65cd6c94f76d74ed53378f5dc2da621b3b8465a08e83",
+            "rko/components/adaptive_control/q_learning.py": "fe669540ef03c4a8a1b828af77fcddabbb3deb08dca8f0862211e71deedf9fa0",
+            "rko/components/initialization/initialization.py": "a06cb9c7fe3df2bd4b00d11e75c91d1886a6276897ba097dd0b32d752968798d",
+            "rko/components/shaking/swap.py": "86210cb8871f93aea61d97484a864bcfba3773af522454b319636cdd20bfc76b",
+            "rko/components/shaking/random.py": "443aabf993f8ed68b7007f492dceac8a47a37cb14884f9f1f82b6071198e7f73",
+            "rko/components/shaking/neighbor_swap.py": "386005f37070d8d00d62cc984b5c312a158d2420c0342f6b16642f123b28f2c6",
+            "rko/components/shaking/mirror.py": "59d31a7ce4a6657ad9ea2f44fc5c04df96b917926379d4319bf0c2774d3ed121",
+            "benchmarks/fixed_work.py": "0ad86a2f870b86814e6c9ac61df1d82d30dbcb57022178f0702cb6dbf733b041",
+            "benchmarks/performance_profile.py": "b9dbd0e4d71b725d4aebf48ed54a606f5b78ca476cc30fc3de51b150c3bcbc83",
+            "pyproject.toml": "6581fc565536f3a586c8e1c25f30b3b0c4b893f48f46236bf31b2cfb451c9968",
+            "uv.lock": "e20394c7c2f9a700217fd7d0bb0728d07537c5f3e3f470d8d2bcb6066b17c253",
+            ".python-version": "a876e0b10411037a012498b9fe18d9bc1df32ed8b722a13564dc944ddcfd9135"
+          },
+          "source_sha256": "e771cd3ce91ab771a67cb3d6e82f726f6ae1ce5ac5e2c8168d3aa7bd7b7a1c7a"
+        },
+        "helper_sha256": "b71643fa13be0ceba732c4143b92a46cc8aa68d7124009ebb9237243b7443fc7",
+        "command": [
+          "/home/runner/work/_temp/setup-uv-cache/builds-v0/.tmpNvTDx8/bin/python",
+          "benchmarks/startup_stages.py",
+          "--repeats",
+          "3"
+        ],
+        "threadpoolctl": "3.7.0",
+        "child_thread_environment": {
+          "OPENBLAS_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "BLIS_NUM_THREADS": "1"
+        },
+        "completed": true,
+        "returncode": 0,
+        "validated": true,
+        "fresh_probe_process_seconds": 3.377496370000003
+      },
+      "host_summary": {
+        "Architecture:": "x86_64",
+        "CPU(s):": "4",
+        "Model name:": "INTEL(R) XEON(R) PLATINUM 8573C",
+        "Thread(s) per core:": "2",
+        "Core(s) per socket:": "2",
+        "Socket(s):": "1"
+      },
+      "coverage": {
+        "probe": "startup",
+        "validated_trials": 6,
+        "records": 7
+      },
+      "raw_sha256": {
+        "manifest.json": "2df4495cc19df883fe7235b91f6533366c81271dcd11460072228a0cddff737c",
+        "coverage.json": "50d5f5407c4dc40edb9dbdada51660c8be86dc0606e71a6ff6f8e40b2f57565e",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "probe.jsonl": "98cca5adace424e3af9136847a940667fb208b459cf67efb9904d855748ba5b4",
+        "host.json": "e05f3bc5b02f74f987bb540f543f4045011d3e6a2ae4847baec07fb4048ae1a1"
+      },
+      "groups": [
+        {
+          "workers": 1,
+          "observations": 3,
+          "median_solve_seconds": 0.49987847999999957,
+          "median_parent_construction_seconds": 0.004093002000004731,
+          "median_manager_seconds": 0.11285413399999555,
+          "median_all_workers_first_callback_seconds": 0.250205820000005
+        },
+        {
+          "workers": 4,
+          "observations": 3,
+          "median_solve_seconds": 0.5579885669999953,
+          "median_parent_construction_seconds": 0.004013030999992395,
+          "median_manager_seconds": 0.11316317299999668,
+          "median_all_workers_first_callback_seconds": 0.3050156560000019
+        }
+      ]
+    }
+  }
+}

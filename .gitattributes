@@ -1,0 +1,5 @@
+engines/cpp/vendor/** -text
+LICENSE text eol=lf
+NOTICE text eol=lf
+src/rko_solver/examples/instances/LICENSE text eol=lf
+engines/THIRD_PARTY_LICENSES.txt text eol=lf

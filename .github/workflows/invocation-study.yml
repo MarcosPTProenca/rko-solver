@@ -1,0 +1,144 @@
+name: Invocation and resource study
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/invocation-study.yml"
+      - "benchmarks/process_budget.py"
+      - "benchmarks/startup_stages.py"
+      - "benchmarks/native_threads.py"
+      - "src/rko_solver/metaheuristics/brkga_cs.py"
+      - "src/rko_solver/tests/metaheuristics/test_brkga_cs_correlation.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: invocation-study-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONWARNINGS: error::RuntimeWarning
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        probe: [startup, portfolio, callbacks]
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - run: uv sync --locked --group dev
+      - name: Record host observations
+        run: |
+          mkdir -p "$RUNNER_TEMP/invocation"
+          lscpu --json > "$RUNNER_TEMP/invocation/host.json"
+      - name: Run existing probe in a fresh interpreter
+        env:
+          PROBE: ${{ matrix.probe }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          uv run --locked --with threadpoolctl==3.7.0 python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import subprocess
+          import sys
+          import time
+          from importlib.metadata import version
+          from pathlib import Path
+          from benchmarks.performance_profile import PerformanceProbe
+          assert sys.flags.optimize == 0
+          cases = {
+              'startup': ('benchmarks/startup_stages.py', ['--repeats', '3']),
+              'portfolio': ('benchmarks/process_budget.py', []),
+              'callbacks': ('benchmarks/native_threads.py', ['--repeats', '3', '--dimension', '128', '--evaluations', '64', '--workers', '1', '4']),
+          }
+          name = os.environ['PROBE']
+          script, arguments = cases[name]
+          output = Path(os.environ['RUNNER_TEMP']) / 'invocation'
+          environment = dict(os.environ)
+          variables = ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'BLIS_NUM_THREADS')
+          if name != 'callbacks':
+              environment.update(dict.fromkeys(variables, '1'))
+          command = [sys.executable, script, *arguments]
+          manifest = {
+              'probe': name,
+              'run_url': os.environ['RUN_URL'],
+              'provenance': PerformanceProbe.provenance(),
+              'helper_sha256': hashlib.sha256(Path(script).read_bytes()).hexdigest(),
+              'command': command,
+              'threadpoolctl': version('threadpoolctl'),
+              'child_thread_environment': {key: environment.get(key) for key in variables},
+              'completed': False,
+              'returncode': None,
+              'validated': False,
+          }
+          with (output / 'probe.jsonl').open('w') as stdout, (output / 'stderr.txt').open('w') as stderr:
+              started = time.perf_counter()
+              try:
+                  completed = subprocess.run(command, stdout=stdout, stderr=stderr, env=environment, timeout=900, check=False)
+                  manifest.update(completed=True, returncode=completed.returncode)
+              finally:
+                  manifest['fresh_probe_process_seconds'] = time.perf_counter() - started
+                  (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          if completed.returncode:
+              print((output / 'stderr.txt').read_text(), file=sys.stderr)
+              raise SystemExit(completed.returncode)
+          rows = [json.loads(line) for line in (output / 'probe.jsonl').read_text().splitlines() if line.strip()]
+          if name == 'startup':
+              trials = [row for row in rows if row.get('kind') == 'solve']
+              assert len(trials) == 6
+              expected = {(workers, repeat) for workers in (1, 4) for repeat in range(3)}
+              assert {(row['workers'], row['repeat']) for row in trials} == expected
+              assert all(row['seeded_workers_checked'] == row['workers'] for row in trials)
+          elif name == 'portfolio':
+              trials = [row for row in rows if 'workload' in row]
+              assert len(trials) == 12
+              expected = {
+                  (workload, seed, workers)
+                  for workload in ('sphere', 'ordering')
+                  for seed in (42, 43, 44)
+                  for workers in (None, 10)
+              }
+              assert {(row['workload'], row['seed'], row['n_jobs']) for row in trials} == expected
+              assert all(row['invocation_seconds'] >= row['elapsed_seconds'] > 0 for row in trials)
+              assert all(row['sampled_peak_parent_children_rss_bytes'] is not None and row['rss_samples'] > 0 for row in trials)
+          else:
+              trials = [row for row in rows if row.get('mode') in ('inherited', 'one')]
+              assert len(trials) == 36
+              expected = {
+                  (workers, workload, repeat, mode)
+                  for workers in (1, 4)
+                  for workload in ('sphere', 'gemv', 'gemm')
+                  for repeat in range(3)
+                  for mode in ('inherited', 'one')
+              }
+              actual = {(row['workers'], row['workload'], row['repeat'], row['mode']) for row in trials}
+              assert actual == expected
+              controls = [row for row in rows if row.get('mode') == 'parent_only_negative_control']
+              assert len(controls) == 2 and {row['workers'] for row in controls} == {1, 4}
+          after = PerformanceProbe.provenance()
+          assert after['source_sha256'] == manifest['provenance']['source_sha256']
+          assert hashlib.sha256(Path(script).read_bytes()).hexdigest() == manifest['helper_sha256']
+          manifest['post_probe_git'] = after['git']
+          (output / 'coverage.json').write_text(json.dumps({'probe': name, 'validated_trials': len(trials), 'records': len(rows)}, indent=2) + '\n')
+          manifest['validated'] = True
+          (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(f'{name}: {len(trials)} registered observations validated; diagnostic scopes only.\n')
+          PY
+      - name: Upload raw probe and provenance v7.0.2
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: invocation-${{ matrix.probe }}
+          path: ${{ runner.temp }}/invocation/*
+          if-no-files-found: error
+          retention-days: 90

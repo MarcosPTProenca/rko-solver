@@ -1,0 +1,160 @@
+[build-system]
+requires = ["maturin>=1.9,<2"]
+build-backend = "maturin"
+
+[project]
+name = "rko-solver"
+version = "0.3.0a1"
+description = "Cooperative random-key optimization with configurable metaheuristic portfolios"
+readme = "README.md"
+requires-python = ">=3.14"
+license = "Apache-2.0 AND MIT"
+license-files = [
+    "LICENSE",
+    "NOTICE",
+    "src/rko_solver/examples/instances/LICENSE",
+    "engines/cpp/vendor/rko_cpp_v2/LICENSE",
+    "engines/THIRD_PARTY_LICENSES.txt",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Rust",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=2.0.0",
+]
+
+[project.scripts]
+rko-solver = "rko_solver.examples.run_kp_cpp_instances:main"
+rko-solver-service = "rko_solver.service.scaffold:ServiceScaffold.main"
+
+[project.urls]
+Repository = "https://github.com/MarcosPTProenca/rko-solver"
+Issues = "https://github.com/MarcosPTProenca/rko-solver/issues"
+Documentation = "https://marcosptproenca.github.io/rko-solver/"
+
+[project.optional-dependencies]
+reports = [
+    "plotly>=6.0",
+]
+compiled = [
+    "numba>=0.68",
+]
+service = [
+    "fastapi>=0.135,<1",
+    "threadpoolctl>=3.7,<4",
+    "uvicorn>=0.41,<1",
+]
+
+[tool.maturin]
+python-source = "src"
+module-name = "rko_solver._native"
+manifest-path = "engines/rust/rko-py/Cargo.toml"
+features = ["extension-module"]
+profile = "release"
+include = [
+    { path = "src/rko_solver/parameters/*.toml", format = ["sdist", "wheel"] },
+    { path = "src/rko_solver/examples/instances/*", format = ["sdist", "wheel"] },
+    { path = "src/rko_solver/service/templates/*", format = ["sdist", "wheel"] },
+    { path = "src/rko_solver/service/templates/.dockerignore", format = ["sdist", "wheel"] },
+]
+exclude = [
+    "src/rko_solver/tests/**",
+    "**/__pycache__/**",
+    "src/rko_solver/examples/results/**",
+]
+
+[tool.uv]
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "Cargo.toml" },
+    { file = "Cargo.lock" },
+    { file = "engines/**/*.rs" },
+    { file = "engines/**/Cargo.toml" },
+    { file = "engines/**/*.cpp" },
+    { file = "engines/**/*.h" },
+    { env = "RKO_BUILD_CPP" },
+]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.170.2",
+    "numba>=0.68",
+    "mutmut>=3.8.0",
+    "pre-commit>=4.2.0",
+    "pytest>=9.0.2",
+    "ruff==0.15.7",
+]
+docs = [
+    "mkdocs>=1.6,<2",
+]
+service-test = [
+    "httpx2>=2,<3",
+]
+release = [
+    "packaging>=26,<27",
+    "twine>=6.2,<7",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "D", "ANN"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+no-sections = true
+force-single-line = true
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["src/rko_solver/tests"]
+
+[tool.mutmut]
+source_paths = ["src"]
+only_mutate = [
+    "src/rko_solver/components/solution_pool.py",
+    "src/rko_solver/components/validation.py",
+    "src/rko_solver/components/adaptive_control/q_learning.py",
+    "src/rko_solver/components/initialization/initialization.py",
+    "src/rko_solver/components/shaking/random.py",
+    "src/rko_solver/components/shaking/mirror.py",
+    "src/rko_solver/components/shaking/neighbor_swap.py",
+    "src/rko_solver/components/shaking/swap.py",
+    "src/rko_solver/metaheuristics/grasp.py",
+    "src/rko_solver/metaheuristics/brkga_cs.py",
+    "src/rko_solver/solver.py",
+    "src/rko_solver/orchestration/factory.py",
+]
+mutate_only_covered_lines = true
+pytest_add_cli_args_test_selection = [
+    "src/rko_solver/tests/test_property_invariants.py",
+    "src/rko_solver/tests/components/test_solution_pool_pytest.py",
+    "src/rko_solver/tests/rko/test_pool_sampling.py",
+    "src/rko_solver/tests/components/test_parameter_contracts.py",
+    "src/rko_solver/tests/components/test_q_learning_pytest.py",
+    "src/rko_solver/tests/components/test_q_state_graph.py",
+    "src/rko_solver/tests/components/test_initialization_and_operators_pytest.py",
+    "src/rko_solver/tests/metaheuristics/test_validation.py",
+    "src/rko_solver/tests/metaheuristics/test_algorithm_regressions.py",
+    "src/rko_solver/tests/metaheuristics/test_metaheuristics_pytest.py",
+    "src/rko_solver/tests/rko/test_solver.py",
+    "src/rko_solver/tests/rko/test_hyperparameters.py",
+    "src/rko_solver/tests/rko/test_stopping.py",
+    "src/rko_solver/tests/rko/test_search_metadata.py",
+    "src/rko_solver/tests/rko/test_result_metadata.py",
+    "src/rko_solver/tests/rko/test_default_workers.py",
+    "-k",
+    "not test_solution_pool_implements_search_protocols",
+]

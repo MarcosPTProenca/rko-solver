@@ -1,0 +1,9 @@
+# Parameters for MultiStart.
+# MultiStart has no tunable hyperparameters; it generates pure random solutions.
+# This file is present for consistency with the rest of the parameter suite.
+
+[offline]
+# (no parameters)
+
+[online]
+# (no parameters — Q-Learning is not applicable to MultiStart)

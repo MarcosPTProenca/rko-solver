@@ -1,0 +1,23 @@
+RKO — provenance and licensing boundaries
+
+This project is licensed under the Apache-2.0 LICENSE in this repository.
+
+Portions derive from the earlier RKO Python implementation by Felipe Silvestre Cardoso
+Roberto and João Assaoka (github.com/RKO-solver/RKO_Python, Apache-2.0); that attribution
+is retained here as the license requires. The algorithms are inspired by RKO C++ v2.
+
+Bundled reference fixtures retain their separate upstream MIT license and
+provenance under src/rko_solver/examples/instances/.
+
+engines/cpp/vendor/rko_cpp_v2 contains the algorithm headers of RKO C++ v2.0
+(github.com/RKO-solver/RKO_Cpp_v2.0, revision 126e35873e50dc308795b58b8c75d37f8de4c857),
+copied byte for byte under their MIT license (Copyright (c) 2025 RKO solver), whose
+text is kept beside them. They are compiled only when the optional C++ backend is
+requested with RKO_BUILD_CPP=1; the default build contains none of that code.
+
+This notice does not relicense imported work or assign authorship. On 2026-10-24, the
+repository owner approved the current combined Python implementation's distribution rights,
+retained licenses and attribution. This is an owner attestation, not an independent legal
+certification. Source code is Apache-2.0; the bundled reference fixtures
+retain MIT. New third-party additions and native binary distributions require
+review before publication. Every release still requires explicit owner approval.

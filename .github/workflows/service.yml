@@ -1,0 +1,54 @@
+name: Optional private service
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  service:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Check service tests and canonical dependency lock
+        run: |
+          uv sync --locked --extra service --extra reports --group service-test
+          uv run --locked --extra service --extra reports --group service-test pytest src/rko_solver/tests/service -q
+          uv export --locked --no-default-groups --extra service --extra reports --no-emit-project --no-header --no-annotate --output-file "$RUNNER_TEMP/service-requirements.lock"
+          cmp src/rko_solver/service/templates/requirements.lock "$RUNNER_TEMP/service-requirements.lock"
+      - name: Build local SDK artifacts without publishing
+        run: uv build
+      - name: Exercise isolated installed wheel and sdist services
+        run: |
+          for artifact in dist/*.whl dist/*.tar.gz; do
+            uv run --isolated --no-project --with "$artifact[service,reports]" --with httpx2==2.16.0 python -I tools/smoke_service_installed.py
+          done
+      - name: Generate the tested reference from the reviewed local wheel
+        run: |
+          wheel="$(find "$GITHUB_WORKSPACE/dist" -maxdepth 1 -name 'rko_solver-*.whl' -print)"
+          uv run --locked rko-solver-service scaffold "$RUNNER_TEMP/rko-private-service" --wheel "$wheel"
+          echo "RKO_WHEEL=$(basename "$wheel")" >> "$GITHUB_ENV"
+          token="$(uv run --locked python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+          echo "::add-mask::$token"
+          echo "RKO_SERVICE_API_KEY=$token" >> "$GITHUB_ENV"
+      - name: Build and run the non-root constrained reference image
+        run: |
+          docker compose --project-directory "$RUNNER_TEMP/rko-private-service" --project-name rko-service-ci config --quiet
+          docker compose --project-directory "$RUNNER_TEMP/rko-private-service" --project-name rko-service-ci up --build --detach
+      - name: Probe clean installed jobs, reports and actual resource restrictions
+        run: |
+          container="$(docker compose --project-directory "$RUNNER_TEMP/rko-private-service" --project-name rko-service-ci ps --quiet rko)"
+          uv run --locked python tools/smoke_service_container.py --container "$container"
+      - name: Diagnose failed reference startup without environment disclosure
+        if: failure()
+        run: docker compose --project-directory "$RUNNER_TEMP/rko-private-service" --project-name rko-service-ci logs --no-color
+      - name: Stop only the owned reference container
+        if: always()
+        run: docker compose --project-directory "$RUNNER_TEMP/rko-private-service" --project-name rko-service-ci down --timeout 20

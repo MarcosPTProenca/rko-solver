@@ -1,0 +1,75 @@
+site_name: RKO
+site_description: Development documentation for the general-purpose random-key optimization library.
+site_url: https://marcosptproenca.github.io/rko-solver/
+repo_url: https://github.com/MarcosPTProenca/rko-solver
+repo_name: MarcosPTProenca/rko-solver
+edit_uri: edit/main/docs/
+docs_dir: docs
+site_dir: site
+strict: true
+theme:
+  name: mkdocs
+  locale: en
+plugins:
+  - search
+markdown_extensions:
+  - admonition
+hooks:
+  - tools/docs_hooks.py
+validation:
+  nav:
+    omitted_files: warn
+    absolute_links: warn
+    not_found: warn
+  links:
+    not_found: warn
+    absolute_links: relative_to_docs
+    unrecognized_links: warn
+    anchors: warn
+exclude_docs: |
+  /plans/
+  /audits/
+  /migrations/
+  /superpowers/
+  /benchmarks/
+nav:
+  - Start:
+      - Overview: index.md
+      - First solve and installation: getting-started.md
+  - Use:
+      - Portfolio usage: usage.md
+      - Individual solvers: standalone.md
+      - Rust and C++ engines, problem styles: native.md
+      - Running scripts: running.md
+      - Process workers and budgets: process-workers.md
+      - Native thread resources: native-threads.md
+      - Optional pool initialization: driver-initialization.md
+  - Configure:
+      - Parameter reference: parameters.md
+      - Simulated annealing control: sa-control.md
+      - Elite diversity: elite-diversity.md
+  - Integrate:
+      - Application data pipeline: problem-adapters.md
+      - Optional solution checks: solution-validation.md
+      - Static decoder diagrams: decoder-diagrams.md
+      - Observed decoder decisions: decision-traces.md
+      - Private FastAPI/Docker service: service.md
+  - Analyze:
+      - Interactive reports: reporting.md
+      - Performance boundaries: performance.md
+  - Develop:
+      - Architecture and repository map: architecture.md
+      - Extending numerical kernels: extending.md
+      - Building and publishing these docs: documentation-site.md
+  - Reference:
+      - Development status and limitations: status.md
+      - C++ compatibility: cpp-compatibility.md
+  - Scientific diagnostics:
+      - Performance baseline: performance-baseline.md
+      - Invocation profiling: invocation-profile.md
+      - GRASP alpha: grasp-alpha.md
+      - GRASP line search: grasp-line-search.md
+      - IPR diagnosis: ipr-diagnosis.md
+      - IPR block pruning: ipr-block-pruning.md
+      - Expanded prefill work: prefill-expanded-work.md
+      - Matched prefill work: prefill-matched-work.md

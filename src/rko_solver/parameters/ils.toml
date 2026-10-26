@@ -1,0 +1,12 @@
+# Parameters for Iterated Local Search (ILS).
+# [offline]  — single values used when control = 0.
+# [online]   — discrete lists that define the Q-Learning parameter grid
+#              (axis order: beta_min → beta_max).
+
+[offline]
+beta_min = 0.10   # minimum perturbation fraction of solution size
+beta_max = 0.20   # maximum perturbation fraction of solution size
+
+[online]
+beta_min = [0.05, 0.10, 0.20, 0.30]
+beta_max = [0.10, 0.20, 0.30, 0.40]

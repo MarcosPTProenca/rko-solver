@@ -1,0 +1,16 @@
+# Parameters for Large Neighborhood Search (LNS).
+# [offline]  — single values used when control = 0.
+# [online]   — discrete lists that define the Q-Learning parameter grid
+#              (axis order: beta_min → beta_max → t0 → alpha_lns).
+
+[offline]
+beta_min  = 0.10    # minimum destroy fraction
+beta_max  = 0.30    # maximum destroy fraction
+t0        = 10000.0 # initial Metropolis temperature
+alpha_lns = 0.95    # geometric cooling factor
+
+[online]
+beta_min  = [0.05, 0.10, 0.15]
+beta_max  = [0.15, 0.20, 0.25]
+t0        = [1000.0, 10000.0]
+alpha_lns = [0.95, 0.96]

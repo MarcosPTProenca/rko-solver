@@ -1,0 +1,32 @@
+services:
+  rko:
+    build:
+      context: .
+      args:
+        RKO_WHEEL: ${RKO_WHEEL:?Set the exact reviewed SDK wheel filename in wheels/}
+    init: true
+    environment:
+      RKO_SERVICE_API_KEY: ${RKO_SERVICE_API_KEY:?Generate a private bearer secret of at least 32 characters}
+    ports:
+      - "127.0.0.1:8000:8000"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    cpus: 1.0
+    mem_limit: 1g
+    memswap_limit: 1g
+    pids_limit: 128
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      core: 0
+      nofile: 1024
+    stop_grace_period: 20s
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 3

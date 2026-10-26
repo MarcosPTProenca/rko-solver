@@ -1,0 +1,9 @@
+# Parameters for Implicit Path Relinking (IPR).
+# IPR is fully deterministic once a pair of pool solutions is chosen; it has
+# no tunable hyperparameters.  This file is present for consistency.
+
+[offline]
+# (no tunable parameters)
+
+[online]
+# (no parameters — Q-Learning is not applicable to IPR)

@@ -1,0 +1,21 @@
+[package]
+name = "rko-cpp"
+version = "0.3.0-dev"
+edition.workspace = true
+license = "Apache-2.0 AND MIT"
+rust-version.workspace = true
+description = "Optional engine that runs the vendored RKO C++ v2.0 reference algorithms behind the rko-core problem interface."
+build = "build.rs"
+
+[dependencies]
+rko-core = { path = "../rust/rko-core" }
+
+[build-dependencies]
+cc = "1.2"
+
+[lints.rust]
+unsafe_code = "deny"
+missing_docs = "warn"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }

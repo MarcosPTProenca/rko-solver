@@ -1,0 +1,146 @@
+name: Controlled prerelease
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing canonical prerelease tag on main, e.g. v0.3.0a1
+        required: true
+        type: string
+      index:
+        description: Test first, then promote the same successful run's files
+        required: true
+        default: testpypi
+        type: choice
+        options: [testpypi, pypi]
+      testpypi_run:
+        description: Successful TestPyPI run ID, required only for PyPI promotion
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    if: github.repository == 'MarcosPTProenca/rko-solver' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      source_sha: ${{ steps.source.outputs.source_sha }}
+    steps:
+      - name: Checkout trusted workflow source v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Resolve canonical tag and main ancestry
+        id: source
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          TARGET_INDEX: ${{ inputs.index }}
+          SOURCE_RUN: ${{ inputs.testpypi_run }}
+        shell: bash
+        run: |
+          if [ "$TARGET_INDEX" = pypi ] && ! [[ "$SOURCE_RUN" =~ ^[0-9]{1,20}$ ]]; then
+            echo 'PyPI promotion requires the successful TestPyPI run ID.' >&2
+            exit 1
+          fi
+          uv run --locked --only-group release python tools/release.py resolve --tag "$RELEASE_TAG"
+
+  candidate:
+    needs: resolve
+    if: inputs.index == 'testpypi'
+    uses: ./.github/workflows/distributions.yml
+    with:
+      source_ref: ${{ needs.resolve.outputs.source_sha }}
+      tag: ${{ inputs.tag }}
+
+  publish:
+    needs: [resolve, candidate]
+    if: always() && !cancelled() && needs.resolve.result == 'success' && (needs.candidate.result == 'success' || inputs.index == 'pypi')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: prerelease-${{ inputs.index }}-${{ inputs.tag }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    environment:
+      name: ${{ inputs.index }}
+      url: ${{ inputs.index == 'testpypi' && 'https://test.pypi.org/p/rko-solver' || 'https://pypi.org/p/rko-solver' }}
+    steps:
+      - name: Checkout trusted validator, not package code v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Validate promotion origin before artifact download
+        if: inputs.index == 'pypi'
+        env:
+          SOURCE_RUN: ${{ inputs.testpypi_run }}
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: uv run --locked --only-group release python tools/release.py origin --run-id "$SOURCE_RUN"
+      - name: Download immutable tested payload v8.0.2
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: release-candidate
+          path: release/
+          run-id: ${{ inputs.index == 'pypi' && inputs.testpypi_run || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify bytes, source, environment and empty target version
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          SOURCE_SHA: ${{ needs.resolve.outputs.source_sha }}
+          TARGET_INDEX: ${{ inputs.index }}
+          SOURCE_RUN: ${{ inputs.testpypi_run }}
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          uv run --locked --only-group release python tools/release.py verify --payload release --tag "$RELEASE_TAG" --source-sha "$SOURCE_SHA"
+          uv run --locked --only-group release python tools/release.py gate --index "$TARGET_INDEX" --tag "$RELEASE_TAG"
+          if [ "$TARGET_INDEX" = pypi ]; then
+            uv run --locked --only-group release python tools/release.py promotion --payload release --tag "$RELEASE_TAG" --source-sha "$SOURCE_SHA" --run-id "$SOURCE_RUN"
+          fi
+      - name: Publish approved files through OIDC v1.14.3
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086
+        with:
+          repository-url: ${{ inputs.index == 'testpypi' && 'https://test.pypi.org/legacy/' || 'https://upload.pypi.org/legacy/' }}
+          packages-dir: release/dist
+          skip-existing: false
+          attestations: true
+
+  verify-index:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout trusted verification tools v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Download original tested payload v8.0.2
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: release-candidate
+          path: release/
+          run-id: ${{ inputs.index == 'pypi' && inputs.testpypi_run || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify uploaded hashes and a clean install from the exact index
+        env:
+          TARGET_INDEX: ${{ inputs.index }}
+        shell: bash
+        run: uv run --locked --only-group release python tools/release.py index --payload release --index "$TARGET_INDEX"

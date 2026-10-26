@@ -1,0 +1,7 @@
+*
+!Dockerfile
+!requirements.lock
+!app.py
+!adapter.py
+!wheels/
+!wheels/*.whl

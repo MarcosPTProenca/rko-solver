@@ -1,0 +1,187 @@
+name: Fixed-work baseline study
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_source_b64:
+        description: "TRUSTED blending candidate source (base64); empty runs the baseline screen"
+        type: string
+        default: ""
+      seeds:
+        description: "Paired seeds per blending group"
+        type: string
+        default: "5"
+      seed_start:
+        description: "First blending experiment seed"
+        type: string
+        default: "200"
+      evaluations:
+        description: "Completed evaluations per blending search"
+        type: string
+        default: "8192"
+  pull_request:
+    paths:
+      - ".github/workflows/performance-study.yml"
+      - "benchmarks/performance_*.py"
+      - "benchmarks/blending_work.py"
+      - "src/rko_solver/tests/benchmarks/test_blending_work.py"
+      - "src/rko_solver/tests/benchmarks/test_performance_*.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fixed-work-baseline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  study:
+    if: github.event_name != 'workflow_dispatch' || inputs.candidate_source_b64 == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        dimension: [20, 500]
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      DIMENSION: ${{ matrix.dimension }}
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - run: uv sync --locked --group dev
+      - name: Record host observations
+        run: |
+          OUTPUT_DIR="$RUNNER_TEMP/performance-baseline"
+          mkdir -p "$OUTPUT_DIR"
+          lscpu --json > "$OUTPUT_DIR/host-$DIMENSION.json"
+      - name: Collect plain and profiled fixed-work records
+        run: |
+          OUTPUT_DIR="$RUNNER_TEMP/performance-baseline"
+          for algorithm in SA GA BRKGA GRASP MultiStart IPR; do
+            for workload in sphere rugged ordering; do
+              for seed in 200 201 202; do
+                if (( seed % 2 )); then modes="profile plain"; else modes="plain profile"; fi
+                for mode in $modes; do
+                  extra=()
+                  if [[ "$mode" == profile ]]; then extra=(--profile); fi
+                  uv run --locked python -m benchmarks.performance_profile \
+                    --algorithm "$algorithm" --workload "$workload" \
+                    --dimension "$DIMENSION" --evaluations 1024 --seed "$seed" \
+                    "${extra[@]}" >> "$OUTPUT_DIR/baseline-$DIMENSION.jsonl"
+                done
+              done
+            done
+          done
+      - name: Upload raw shard v7.0.2
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: baseline-raw-${{ matrix.dimension }}
+          path: ${{ runner.temp }}/performance-baseline/*
+          if-no-files-found: error
+          retention-days: 90
+  blending:
+    if: github.event_name == 'workflow_dispatch' && inputs.candidate_source_b64 != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        dimension: [20, 500]
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - run: uv sync --locked --group dev
+      - name: Decode trusted uncommitted candidate
+        env:
+          CANDIDATE_SOURCE_B64: ${{ inputs.candidate_source_b64 }}
+        run: |
+          uv run --locked python - <<'PY'
+          import base64
+          import hashlib
+          import os
+          from pathlib import Path
+          source = base64.b64decode(os.environ['CANDIDATE_SOURCE_B64'], validate=True)
+          output = Path(os.environ['RUNNER_TEMP']) / 'blending-experiment'
+          output.mkdir()
+          (output / 'candidate.py').write_bytes(source)
+          print('Trusted candidate SHA256:', hashlib.sha256(source).hexdigest())
+          PY
+      - name: Run unprofiled paired searches
+        env:
+          DIMENSION: ${{ matrix.dimension }}
+          SEEDS: ${{ inputs.seeds }}
+          SEED_START: ${{ inputs.seed_start }}
+          EVALUATIONS: ${{ inputs.evaluations }}
+        run: |
+          uv run --locked python -m benchmarks.blending_work \
+            --candidate "$RUNNER_TEMP/blending-experiment/candidate.py" \
+            --dimension "$DIMENSION" --evaluations "$EVALUATIONS" \
+            --seeds "$SEEDS" --seed-start "$SEED_START" \
+            > "$RUNNER_TEMP/blending-experiment/pairs-$DIMENSION.jsonl"
+      - name: Upload experimental evidence v7.0.2
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: blending-experiment-${{ matrix.dimension }}
+          path: ${{ runner.temp }}/blending-experiment/*
+          if-no-files-found: error
+          retention-days: 90
+  report:
+    needs: study
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - run: uv sync --locked --group dev
+      - name: Download raw shards v8.0.2
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          pattern: baseline-raw-*
+          path: ${{ runner.temp }}/baseline-raw
+          merge-multiple: true
+      - name: Validate pairs and registered coverage
+        env:
+          RAW: ${{ runner.temp }}/baseline-raw
+          REPORT: ${{ runner.temp }}/baseline-report
+        run: |
+          uv run --locked python -m benchmarks.performance_report \
+            --input-dir "$RAW" --output "$REPORT/summary.json"
+          uv run --locked python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          report = json.loads((Path(os.environ['REPORT']) / 'summary.json').read_text())
+          groups = report['groups']
+          assert report['trials'] == 216 and report['pairs'] == 108 and len(groups) == 36
+          assert all(row['pairs'] == 3 and row['seeds'] == [200, 201, 202] for row in groups)
+          assert {(row['dimension'], row['evaluations']) for row in groups} == {(20, 1024), (500, 1024)}
+          assert {row['algorithm'] for row in groups} == {'SA', 'GeneticAlgorithm', 'BRKGA', 'GRASP', 'MultiStart', 'IPR'}
+          assert {row['workload'] for row in groups} == {'sphere', 'rugged', 'ordering'}
+          PY
+          echo 'Validated 108 replay pairs / 216 diagnostic trials. Screening only; no speedup, quality or C++ claim.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload compact report v7.0.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: baseline-report
+          path: ${{ runner.temp }}/baseline-report/*
+          if-no-files-found: error
+          retention-days: 90
