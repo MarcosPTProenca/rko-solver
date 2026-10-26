@@ -34,10 +34,11 @@ import textwrap
 native = pytest.importorskip("rko_solver._native")
 CHILD = """
 import json
-import resource
 import sys
 
 if sys.platform != "win32":
+    import resource
+
     limit = 3 * 1024**3
     resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
 
