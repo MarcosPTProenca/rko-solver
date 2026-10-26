@@ -46,7 +46,8 @@ jobs:
         run: uv run --locked python -m benchmarks.performance_profile --dimension 4 --evaluations 8 --profile
       - name: Bounded decision recording fixed-work smoke
         run: uv run --locked python -m benchmarks.decision_traces --evaluations 20 --dimension 8 --repeats 1
-      - name: Native-thread launch smoke
+      - name: Native-thread launch smoke (skipped on macOS, whose Accelerate BLAS threadpoolctl cannot identify)
+        if: runner.os != 'macOS'
         run: uv run --locked --with threadpoolctl==3.7.0 python benchmarks/native_threads.py --repeats 1 --dimension 8 --evaluations 2 --workers 1
       - name: IPR fixed-work diagnostic smoke
         run: uv run --locked python benchmarks/ipr_diagnosis.py --evaluations 64 --seeds 1 --dimension 20
