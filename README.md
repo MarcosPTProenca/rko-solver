@@ -357,6 +357,42 @@ diagram](https://marcosptproenca.github.io/rko-solver/decoder-diagrams/), explic
 Source inspection never runs automatically and static structure is not an execution
 trace, a complete explanation or a feasibility/optimality certificate.
 
+## Bounded mathematical models (development port)
+
+The optional Pyomo, PuLP and MathOpt model converter is being ported to this
+repository. It generates owned sparse callbacks with bounded continuous
+feasibility restoration and independent feasible-witness evidence.
+
+```python
+import importlib.util
+from rko_solver import RKO
+
+if importlib.util.find_spec("pyomo") is not None:
+    import pyomo.environ as p
+
+    model = p.ConcreteModel()
+    model.x = p.Var(bounds=(0, 1))
+    model.y = p.Var(bounds=(0, 1))
+    model.balance = p.Constraint(expr=model.x + model.y == 1)
+    model.objective = p.Objective(expr=model.x + 2 * model.y)
+    solver = RKO.from_model(model, engine="python", execution="sequential", repair="continuous")
+    result = solver.solve(0.1)
+    print(result.model.status)
+else:
+    print("Install rko-solver[pyomo] to run this optional example.")
+```
+
+Install the matching extra (`rko-solver[pyomo]`, `[pulp]` or `[mathopt]`). Integer
+choices remain fixed during repair; this is not a complete MILP feasibility solver.
+`repair="none"` retains box-only mapping. Rust/C++/automatic engine selection is
+not supported for this factory because those paths lack its model-witness contract.
+
+[Model contracts](https://marcosptproenca.github.io/rko-solver/modeling/) and
+[historical qualification](https://marcosptproenca.github.io/rko-solver/model-validation/)
+distinguish prior measurements from this renamed port. Local feature tests and mandatory
+quality ratchets pass; fresh hosted-platform, artifact and performance qualification
+remain pending.
+
 ## Optional observed decoder decisions
 
 To retain decisions from the **original evaluated decoder invocation**, explicitly

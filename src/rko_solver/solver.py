@@ -38,12 +38,16 @@ from .engines.rust.batch import BatchFn
 from .engines.rust.batch import BatchObjective
 from .engines.rust.batch import identity_decoder
 from .engines.rust.runner import NativeRunner
+from .metaheuristics.base import MetaheuristicBase
+from .modeling.adapters import ExtractedLinearModel
+from .modeling.factory import ModelFactory
+from .modeling.factory import ModelOptions
+from .modeling.linear import CompiledLinearModel
+from .modeling.linear import ModelEvidence
+from .modeling.runtime import ModelRunState
 from .orchestration.adaptation import Adaptation
-from .orchestration.adaptation import adaptation_name
-from .orchestration.adaptation import normalize_adaptation
 from .orchestration.auto import AutoCandidate
 from .orchestration.auto import AutoEngine
-from .orchestration.auto import AutoSelection
 from .orchestration.configuration import parse_run_config
 from .orchestration.engine import EngineSelection
 from .orchestration.execution import run_metaheuristics_parallel
@@ -52,154 +56,38 @@ from .orchestration.factory import build_metaheuristic
 from .orchestration.factory import normalize_hyperparameters
 from .orchestration.initialization import initialize_pool
 from .orchestration.limits import RunLimits
+from .orchestration.preparation import SolverPreparation
 from .orchestration.processes import run_processes
+from .orchestration.search import SearchReporting
 from .orchestration.search import SearchSession
 from .orchestration.types import CostFn
 from .orchestration.types import DecoderFn
+from .orchestration.types import ExecutionMetadata
 from .orchestration.types import Hyperparameters
 from .orchestration.types import NativeProblem
 from .orchestration.types import PoolInitializationMetadata
 from .orchestration.types import RunConfig
+from .orchestration.types import RunResult
 from .orchestration.types import SearchMetadata
 from .parameters.loader import load_config
 from .problem import Blocks
 from .problem import Callbacks
 from .problem import Numba
+from .result import RKOResult as RKOResult
 from .tracing import DecisionTrace
 from .tracing import TraceConfig
 from collections.abc import Sequence
-from dataclasses import dataclass
 from dataclasses import replace
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version
 from pathlib import Path
 from typing import Literal
+from typing import Unpack
 
 Engine = Literal["python", "rust", "cpp", "auto"]
 Execution = Literal["process", "thread", "sequential"]
 LegacyBackend = Literal["process", "thread", "serial", "native", "cpp", "auto"]
 Problem = Callbacks | Numba | Blocks | NativeProblem
-
-
-@dataclass(frozen=True)
-class RKOResult:
-    """Describe a completed optimization without mutable algorithm state.
-
-    Responsibilities:
-    - Preserve best keys and objective together with measured execution metadata.
-
-    Attributes:
-        keys (tuple[float, ...]): Best random-key vector.
-        cost (float): Objective to minimize, evaluated on the decoded keys.
-        elapsed_seconds (float): End-to-end solve duration including startup.
-        engine (str): Executed engine: python, rust or cpp.
-        algorithms (tuple[str, ...]): Canonical portfolio names.
-        random_state (int | None): Requested seed; timed results may still vary.
-        searches (tuple[SearchMetadata, ...]): All algorithms in portfolio order.
-        n_variables (int | None): Requested dimension, when recorded.
-        time_limit (float | None): Requested search seconds, excluding startup.
-        control (int | None): Requested portfolio control; reports give effective control.
-        pool_size (int | None): Configured elite capacity.
-        n_jobs (int | None): Requested process-worker cap; for the Rust and C++ engines, the
-            worker threads actually used.
-        versions (tuple): RKO distribution, Python and NumPy runtime versions.
-        available_cpus (int | None): Usable logical CPUs snapshotted for process execution.
-        initialization (PoolInitializationMetadata | None): Separate opt-in startup work.
-        trace (DecisionTrace | None): Selected original-decision evidence or unavailable status.
-        auto (AutoSelection | None): How `engine="auto"` chose the executed engine.
-        execution (str | None): Python-engine scheduling (process, thread or sequential);
-            None for the Rust and C++ engines.
-        max_evaluations (int | None): Requested per-algorithm evaluation limit, if any.
-    """
-
-    keys: tuple[float, ...]
-    cost: float
-    elapsed_seconds: float
-    engine: str
-    algorithms: tuple[str, ...]
-    random_state: int | None
-    searches: tuple[SearchMetadata, ...] = ()
-    n_variables: int | None = None
-    time_limit: float | None = None
-    control: int | None = None
-    pool_size: int | None = None
-    n_jobs: int | None = None
-    versions: tuple[tuple[str, str], ...] = ()
-    available_cpus: int | None = None
-    initialization: PoolInitializationMetadata | None = None
-    trace: DecisionTrace | None = None
-    auto: AutoSelection | None = None
-    execution: str | None = None
-    max_evaluations: int | None = None
-
-    @property
-    def backend(self) -> str:
-        """Return the deprecated combined backend name for this result.
-
-        Returns:
-            str: `process`, `thread`, `serial`, `native` or `cpp`.
-        """
-        warnings.warn(
-            "'RKOResult.backend' is deprecated and will be removed in 0.4; "
-            "use 'engine' and 'execution'.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return EngineSelection.legacy_name(self.engine, self.execution)
-
-    @property
-    def n_evaluations(self) -> int | None:
-        """Return completed finite objectives, or unknown for legacy manual results.
-
-        Returns:
-            int | None: Completed startup plus all searches, or unknown for legacy results.
-        """
-        if not self.searches and self.initialization is None:
-            return None
-        return sum(report.n_evaluations for report in self.searches) + (
-            self.initialization.n_evaluations if self.initialization is not None else 0
-        )
-
-    @property
-    def stop_reason(self) -> str:
-        """Summarize whether any search exhausted its assigned budget.
-
-        Returns:
-            str: Cancelled, time_limit, max_evaluations, completed, or unknown without reports.
-                The first applicable value in that order wins, so max_evaluations means every
-                search that was stopped reached its evaluation limit before the deadline.
-        """
-        reasons = {report.stop_reason for report in self.searches}
-        if "cancelled" in reasons:
-            return "cancelled"
-        if reasons.intersection(("time_limit", "not_started")):
-            return "time_limit"
-        if "max_evaluations" in reasons:
-            return "max_evaluations"
-        return "completed" if reasons else "unknown"
-
-    @property
-    def n_workers(self) -> int:
-        """Return search-worker concurrency, excluding managers and native threads.
-
-        Returns:
-            int: Configured execution workers rather than CPU-core utilization.
-        """
-        if self.execution == "sequential":
-            return 1
-        limit = self.n_jobs
-        if limit is None and self.execution == "process":
-            limit = self.available_cpus
-        return min(limit or len(self.algorithms), len(self.algorithms))
-
-    @property
-    def adaptation(self) -> Adaptation | None:
-        """Return the public adaptation name for the requested control mode.
-
-        Returns:
-            Adaptation | None: "fixed", "adaptive", or None when unknown.
-        """
-        return adaptation_name(self.control)
 
 
 class RKO:
@@ -365,6 +253,9 @@ class RKO:
         self.max_evaluations = max_evaluations
         self.result_: RKOResult | None = None
         self._native_workers: int | None = None
+        self._model_source: ExtractedLinearModel | None = None
+        self._model_snapshot: CompiledLinearModel | None = None
+        self._model_compilation_seconds = 0.0
 
     @property
     def backend(self) -> str:
@@ -466,6 +357,24 @@ class RKO:
             options = {**options, "engine": "rust"}
         return cls(problem, **options)
 
+    @classmethod
+    def from_model(cls, model: object, **options: Unpack[ModelOptions]) -> RKO:
+        """Own a supported linear model for the Python callback backends.
+
+        Args:
+            model (object): Trusted qualified Pyomo/PuLP/MathOpt model.
+            options (ModelOptions): Explicit compilation and existing portfolio settings.
+
+        Returns:
+            RKO: Solver holding only owned source/numerical data, never the native model.
+
+        Raises:
+            ValueError: If model features, bounds, numerical settings or backend are unsupported.
+            TypeError: If an unknown construction keyword is supplied.
+            ImportError: If the selected optional frontend cannot load.
+        """
+        return ModelFactory.create(cls, model, options)
+
     def solve(self, time_limit: float) -> RKOResult:
         """Execute a fresh portfolio and retain its measured result.
 
@@ -485,62 +394,13 @@ class RKO:
         """
         self.result_ = None
         started = time.perf_counter()
-        if type(self.n_variables) is not int or self.n_variables <= 0:
-            raise ValueError("'n_variables' must be a positive integer.")
-        RunLimits.seconds("time_limit", time_limit)
-        if type(self.history_limit) is not int or (
-            self.history_limit != 0 and not 2 <= self.history_limit <= 10000
-        ):
-            raise ValueError("'history_limit' must be 0 (disabled) or an integer from 2 to 10000.")
-        if self.trace is not None and not isinstance(self.trace, TraceConfig):
-            raise ValueError("'trace' must be TraceConfig or None.")
-        RunLimits.evaluations(self.max_evaluations)
-        if type(self.verbose) is not bool:
-            raise ValueError("'verbose' must be a boolean.")
-        execution = EngineSelection.validate(self.engine, self.execution)
-        if self._native_problem is not None and self.engine == "python":
-            raise ValueError(
-                f"{type(self._native_problem).__name__} runs only on the compiled engines; "
-                "use engine='rust', 'cpp' or 'auto'."
-            )
-        if self.auto_time is not None:
-            RunLimits.seconds("auto_time", self.auto_time)
-        if not callable(self.decoder) or not callable(self.cost):
-            raise ValueError("'decoder' and 'cost' must be callable.")
-        if self.random_state is not None and (
-            type(self.random_state) is not int or self.random_state < 0
-        ):
-            raise ValueError("'random_state' must be a nonnegative integer or None.")
-        if self.n_jobs is not None and not (
-            self.engine == "rust" or (self.engine == "python" and execution == "process")
-        ):
-            raise ValueError(
-                "'n_jobs' is only supported by engine='rust' and by engine='python' "
-                "with execution='process'."
-            )
+        model_state = ModelRunState(self)
+        model_state.validate()
+        preparation = SolverPreparation(self)
+        execution = preparation.validate(time_limit)
         if self.engine == "auto":
             return self._solve_auto(time_limit, started)
-        raw = load_config(self.params_dir)
-        run_section = raw.get("run")
-        if not isinstance(run_section, dict):
-            raise ValueError("Configuration section 'run' must be a table.")
-        if self.algorithms is not None:
-            if isinstance(self.algorithms, (str, bytes)) or not isinstance(
-                self.algorithms, Sequence
-            ):
-                raise ValueError("'algorithms' must be a nonempty sequence of names.")
-            raw["active_metaheuristics"] = {"list": list(self.algorithms)}
-        control = normalize_adaptation(self.adaptation, self.control)
-        if control is not None:
-            run_section.pop("adaptation", None)
-        for key, setting in (
-            ("control", control),
-            ("pool_size", self.pool_size),
-            ("prefill_pool", self.prefill_pool),
-        ):
-            if setting is not None:
-                run_section[key] = setting
-        config = parse_run_config(raw)
+        config = parse_run_config(preparation.overrides(load_config(self.params_dir)))
         RunLimits.allocation("pool_size", config.pool_size, self.n_variables)
         hyperparameters = normalize_hyperparameters(
             self.hyperparameters, config.active_metaheuristics, config.control
@@ -563,15 +423,21 @@ class RKO:
             self.n_variables,
         )
         available_cpus = max(1, os.process_cpu_count() or 1) if execution == "process" else None
-        keys, value = self._execute(
-            config,
-            time_limit,
-            started_at=started,
-            hyperparameters=hyperparameters,
-            search_metadata=metadata,
-            initialization_metadata=initialization,
-            process_worker_limit=n_jobs if n_jobs is not None else available_cpus,
-        )
+        no_search = model_state.no_search
+        if no_search:
+            keys, value = model_state.direct()
+        else:
+            keys, value = self._execute(
+                config,
+                time_limit,
+                started_at=started,
+                hyperparameters=hyperparameters,
+                search_metadata=metadata,
+                initialization_metadata=initialization,
+                process_worker_limit=n_jobs if n_jobs is not None else available_cpus,
+                **model_state.arguments(),
+            )
+        model_result = model_state.finish(keys, value, started)
         positions = {name: index for index, name in enumerate(config.active_metaheuristics)}
         try:
             package_version = version("rko-solver")
@@ -582,18 +448,21 @@ class RKO:
             cost=float(value),
             elapsed_seconds=time.perf_counter() - started,
             engine=engine,
-            execution=execution,
-            algorithms=config.active_metaheuristics,
+            execution=None if no_search else execution,
+            algorithms=() if no_search else config.active_metaheuristics,
             random_state=random_state,
             searches=tuple(sorted(metadata, key=lambda report: positions[report.algorithm])),
             n_variables=n_variables,
             time_limit=float(time_limit),
-            control=config.control,
-            pool_size=config.pool_size,
-            n_jobs=self._native_workers if engine in ("rust", "cpp") else n_jobs,
-            available_cpus=available_cpus,
+            control=None if no_search else config.control,
+            pool_size=None if no_search else config.pool_size,
+            n_jobs=(
+                None if no_search else self._native_workers if engine in ("rust", "cpp") else n_jobs
+            ),
+            available_cpus=None if no_search else available_cpus,
             initialization=initialization[0] if initialization else None,
             trace=DecisionTrace.selected(value, keys) if self.trace is not None else None,
+            model=model_result,
             max_evaluations=self.max_evaluations,
             versions=(
                 ("rko-solver", package_version),
@@ -704,22 +573,22 @@ class RKO:
         config: RunConfig,
         time_limit: float,
         *,
-        started_at: float,
         hyperparameters: Hyperparameters | None = None,
         search_metadata: list[SearchMetadata] | None = None,
         process_worker_limit: int | None = None,
         initialization_metadata: list[PoolInitializationMetadata] | None = None,
+        **context: Unpack[ExecutionMetadata],
     ) -> tuple[list[float], float]:
         """Dispatch a validated portfolio without retaining worker state.
 
         Args:
             config (RunConfig): Validated selection and elite settings.
             time_limit (float): Positive search duration.
-            started_at (float): Solve's monotonic origin, including configuration/startup.
             hyperparameters (Hyperparameters | None): Owned normalized offline overrides.
             search_metadata (list[SearchMetadata] | None): Optional immutable report collector.
             process_worker_limit (int | None): Resolved per-solve process cap.
             initialization_metadata (list | None): Optional shared startup report collector.
+            context (ExecutionMetadata): Required solve origin and optional bounded model archive.
 
         Returns:
             tuple[list[float], float]: Best keys and objective.
@@ -729,7 +598,10 @@ class RKO:
             RuntimeError: If a worker fails.
             TimeoutError: If process execution exceeds its watchdog.
         """
+        started_at = context["started_at"]
+        model_evidence = context.get("model_evidence")
         execution = EngineSelection.validate(self.engine, self.execution)
+        callback_options = SearchReporting.callback_options(self.trace, model_evidence)
         if self.engine in ("rust", "cpp"):
             runner = NativeRunner(
                 config,
@@ -789,7 +661,7 @@ class RKO:
                 initialization_metadata=initialization_metadata,
                 history_limit=self.history_limit,
                 max_evaluations=self.max_evaluations,
-                **({"trace": self.trace} if self.trace is not None else {}),
+                **callback_options,
             )
         pool.start_progress()
         try:
@@ -802,7 +674,7 @@ class RKO:
                     config.pool_size,
                     time_limit,
                     self.random_state,
-                    **({"trace": self.trace} if self.trace is not None else {}),
+                    **callback_options,
                 )
                 if initialization_metadata is not None:
                     initialization_metadata.append(report)
@@ -815,30 +687,59 @@ class RKO:
                         search_metadata=search_metadata,
                         history_limit=self.history_limit,
                         max_evaluations=self.max_evaluations,
-                        **({"trace": self.trace} if self.trace is not None else {}),
+                        **callback_options,
                     ),
                     pool,
                 )
-            results = []
-            for mh, stream in zip(metaheuristics, streams, strict=True):
-                with stream.activate():
-                    session = (
-                        SearchSession(self.decoder, self.cost)
-                        if self.trace is None
-                        else SearchSession(self.decoder, self.cost, trace=self.trace)
-                    )
-                    results.append(
-                        session.solve(
-                            mh,
-                            time_limit,
-                            random_state=stream.seed,
-                            history_limit=self.history_limit,
-                            max_evaluations=self.max_evaluations,
-                        )
-                    )
-                    if search_metadata is not None:
-                        assert session.metadata is not None
-                        search_metadata.append(session.metadata)
+            results = self._run_sequential(
+                metaheuristics, streams, time_limit, search_metadata, model_evidence
+            )
             return select_best_result(results, pool)
         finally:
             pool.stop_progress()
+
+    def _run_sequential(
+        self,
+        metaheuristics: list[MetaheuristicBase],
+        streams: list[RandomStreams],
+        time_limit: float,
+        search_metadata: list[SearchMetadata] | None,
+        model_evidence: list[ModelEvidence] | None,
+    ) -> list[RunResult]:
+        """Run fresh sequential searches with independent streams and bounded evidence.
+
+        Args:
+            metaheuristics (list[MetaheuristicBase]): Fresh configured algorithms.
+            streams (list[RandomStreams]): Independent streams in portfolio order.
+            time_limit (float): Positive duration available to each algorithm.
+            search_metadata (list[SearchMetadata] | None): Completed report collector.
+            model_evidence (list[ModelEvidence] | None): Completed model witness collector.
+
+        Returns:
+            list[RunResult]: Completed scalar search outcomes in portfolio order.
+
+        Raises:
+            Exception: Original callback, algorithm or validation failures propagate.
+        """
+        results = []
+        for mh, stream in zip(metaheuristics, streams, strict=True):
+            with stream.activate():
+                session = (
+                    SearchSession(self.decoder, self.cost)
+                    if self.trace is None
+                    else SearchSession(self.decoder, self.cost, trace=self.trace)
+                )
+                results.append(
+                    session.solve(
+                        mh,
+                        time_limit,
+                        random_state=stream.seed,
+                        history_limit=self.history_limit,
+                        max_evaluations=self.max_evaluations,
+                    )
+                )
+                SearchReporting.collect(session, model_evidence)
+                if search_metadata is not None:
+                    assert session.metadata is not None
+                    search_metadata.append(session.metadata)
+        return results

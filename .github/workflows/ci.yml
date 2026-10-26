@@ -9,6 +9,38 @@ permissions:
   contents: read
 
 jobs:
+  model-frontends:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        frontend: [pyomo, pulp, mathopt, combined]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+        with:
+          python-version: '3.14'
+      - name: Qualified individual frontend
+        if: matrix.frontend != 'combined'
+        run: uv run --locked --extra ${{ matrix.frontend }} pytest src/rko_solver/tests/rko/test_model_adapters.py src/rko_solver/tests/rko/test_model_factory.py src/rko_solver/tests/rko/test_model_repair.py -q
+      - name: Qualified combined frontends
+        if: matrix.frontend == 'combined'
+        run: uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt --extra reports pytest src/rko_solver/tests/rko/test_model_adapters.py src/rko_solver/tests/rko/test_model_factory.py src/rko_solver/tests/rko/test_model_evidence.py src/rko_solver/tests/rko/test_model_repair.py src/rko_solver/tests/benchmarks/test_modeling_validation.py -q
+      - name: Build model integration artifacts
+        run: uv build
+      - name: Isolated installed extra smokes
+        shell: bash
+        run: |
+          extras="${{ matrix.frontend }}"
+          if [ "$extras" = combined ]; then extras="pyomo,pulp,mathopt"; fi
+          for artifact in dist/*.whl dist/*.tar.gz; do
+            uri=$(uv run --locked python -c 'import pathlib,sys; print(pathlib.Path(sys.argv[1]).resolve().as_uri())' "$artifact")
+            uv run --isolated --no-project --with "rko-solver[$extras] @ $uri" python -I tools/smoke_modeling_installed.py "${{ matrix.frontend }}"
+          done
+
   quality:
     strategy:
       fail-fast: false
@@ -18,6 +50,8 @@ jobs:
     steps:
       - name: Checkout v7.0.1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
       - name: Set up uv v10.3.2
         uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
       - name: Sync locked dependencies
@@ -88,6 +122,8 @@ jobs:
     steps:
       - name: Checkout v7.0.1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
       - name: Set up uv v10.3.2
         uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
       - name: Sync locked dependencies
@@ -124,6 +160,8 @@ jobs:
     steps:
       - name: Checkout v7.0.1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
       - name: Set up uv v10.3.2
         uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
       - name: Sync locked dependencies with every optional extra

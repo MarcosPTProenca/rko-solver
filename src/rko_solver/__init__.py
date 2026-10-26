@@ -28,6 +28,10 @@ from .assessment import SolutionAssessment
 from .assessment import ValidationCheck
 from .assessment import ValidationReport
 from .assessment import assess_result
+from .modeling.linear import RepairDiagnostic
+from .modeling.results import ModelAssignment
+from .modeling.results import ModelResult
+from .modeling.results import ModelSolution
 from .orchestration.types import PoolInitializationMetadata
 from .orchestration.types import SearchMetadata
 from .problem import Blocks
@@ -44,6 +48,10 @@ __all__ = [
     "Blocks",
     "problems",
     "RKOResult",
+    "ModelAssignment",
+    "ModelResult",
+    "ModelSolution",
+    "RepairDiagnostic",
     "SearchMetadata",
     "PoolInitializationMetadata",
     "run",

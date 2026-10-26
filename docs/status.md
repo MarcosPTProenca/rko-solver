@@ -41,6 +41,14 @@ defaults or proof that program evolution improves a problem family.
 
 ## Outstanding
 
+- **Bounded mathematical-model development port:** `RKO.from_model` has been
+  transferred to `rko_solver` with explicit Python engine/execution settings,
+  sparse continuous repair and independent witnesses. Legacy measurements retain
+  their original source identity. Local tests and mandatory quality ratchets pass;
+  fresh hosted-platform, artifact and performance qualification remain pending.
+  This is not release-ready. See [model contracts](modeling.md) and
+  [historical evidence](model-validation.md).
+
 The [performance target](performance.md) is to match or exceed pinned C++ RKO
 within declared workload/resource regimes. An optional [native Rust engine](native.md)
 (`engine="rust"`) now exists, and a problem can be defined as Python callbacks, a NumPy

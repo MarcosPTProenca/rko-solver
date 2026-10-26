@@ -29,13 +29,15 @@ import numpy as np
 import time
 from ..components.random_streams import RandomStreams
 from ..components.solution_pool import ElitePool
-from ..tracing import TraceConfig
+from .search import SearchReporting
 from .search import SearchSession
 from .search import _BudgetExpired
 from .types import CostFn
 from .types import DecoderFn
+from .types import ModelCallbackOptions
 from .types import PoolInitializationMetadata
 from typing import Literal
+from typing import Unpack
 
 
 def initialize_pool(
@@ -46,7 +48,7 @@ def initialize_pool(
     capacity: int,
     duration: float,
     random_state: int | None,
-    trace: TraceConfig | None = None,
+    **callback_options: Unpack[ModelCallbackOptions],
 ) -> PoolInitializationMetadata:
     """Fill reference slots safely without altering algorithm stream derivation.
 
@@ -58,7 +60,7 @@ def initialize_pool(
         capacity (int): Validated positive slot count and pool capacity.
         duration (float): Independent positive cooperative startup allowance.
         random_state (int | None): Seed source; a reserved grandchild branch is used.
-        trace (TraceConfig | None): Optional bounded original-decision recording.
+        callback_options (ModelCallbackOptions): Optional trace and bounded model-witness capture.
 
     Returns:
         PoolInitializationMetadata: Actual completed startup work and admitted size.
@@ -67,6 +69,8 @@ def initialize_pool(
         Exception: Original callback or pool-publication failure.
         ValueError: If an objective observation is nonfinite.
     """
+    trace = callback_options.get("trace")
+    model_evidence = callback_options.get("model_evidence")
     started = time.perf_counter()
     seed = int(np.random.SeedSequence(random_state, spawn_key=(0, 0)).generate_state(1)[0])
     streams = RandomStreams(seed)
@@ -121,6 +125,7 @@ def initialize_pool(
     assert session.best is not None
     keys, value = session.best
     pool.insert((value, keys.tolist()), "initial_pool")
+    SearchReporting.collect(session, model_evidence)
     finished = time.perf_counter()
     if finished >= session.deadline:
         reason = "time_limit"

@@ -233,11 +233,14 @@ class SolutionAssessment[SolutionT]:
         Returns:
             dict[str, object]: Assessment origin, separate elapsed time and validation.
         """
-        return {
+        data = {
             "origin": self.origin,
             "elapsed_seconds": self.elapsed_seconds,
             "validation": self.validation.to_dict(),
         }
+        if self.result.model is not None:
+            data["scope"] = "search_incumbent_not_model_best_feasible"
+        return data
 
 
 def assess_result[SolutionT](
