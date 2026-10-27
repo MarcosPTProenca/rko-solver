@@ -265,3 +265,28 @@ def test_every_engine_reports_the_same_metadata_fields(engine: str) -> None:
     assert result.stop_reason in VOCABULARY and result.n_workers >= 1
     assert result.engine == engine and result.n_variables == len(PROFITS)
     assert [name for name, _ in result.versions][:1] == ["rko-solver"]
+
+
+@pytest.mark.parametrize("algorithm", list(MH_SPECS))
+@pytest.mark.parametrize("engine", available())
+def test_every_engine_records_the_same_kind_of_bounded_history(engine: str, algorithm: str) -> None:
+    """History is capped, ordered, keeps its first sample and is empty only when disabled.
+
+    Args:
+        engine (str): Engine under test.
+        algorithm (str): Registered algorithm name.
+    """
+    report = solve(engine, algorithm, history_limit=8).searches[0]
+    points = report.history
+    assert report.history_limit == 8
+    assert 2 <= len(points) <= 8 and report.history_observations >= len(points)
+    assert points[0].n_evaluations >= 1
+    costs = [point.cost for point in points]
+    assert costs == sorted(costs, reverse=True)
+    assert [point.n_evaluations for point in points] == sorted(
+        point.n_evaluations for point in points
+    )
+    elapsed = [point.elapsed_seconds for point in points]
+    assert elapsed == sorted(elapsed) and elapsed[0] >= 0
+    assert points[-1].n_evaluations <= report.n_evaluations
+    assert solve(engine, algorithm, history_limit=0).searches[0].history == ()
