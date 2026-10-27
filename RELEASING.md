@@ -45,7 +45,7 @@ callback speed is implied.
    is not adequate protection.
 3. Create the PyPI account (with two-factor authentication) and, in Account settings →
    Publishing, add a **pending** GitHub Trusted Publisher for the new project name
-   **rko-solver**: owner `MarcosPTProenca`, repository **RKO**, workflow filename
+   **rko-solver**: owner `MarcosPTProenca`, repository **rko-solver**, workflow filename
    **release.yml**, environment **pypi**. Repository casing/rename matters. The first
    upload creates the project.
 4. Independently configure the **TestPyPI** account/project or pending publisher
