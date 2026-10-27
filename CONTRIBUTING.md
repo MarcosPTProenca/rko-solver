@@ -130,7 +130,7 @@ Preview the same maintained Markdown with the built-in MkDocs theme:
 uv run --locked --only-group docs mkdocs serve
 ```
 
-Use the reported `/RKO/` URL. Docs tools are a separate locked group, not
+Use the reported `/rko-solver/` URL. Docs tools are a separate locked group, not
 runtime dependencies. Before a docs change, run:
 
 ```bash
