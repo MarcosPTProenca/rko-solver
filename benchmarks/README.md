@@ -1819,3 +1819,27 @@ Limitations that matter when reading these numbers:
 - **Racing is irace-style, not irace.** No conclusion about the irace package follows.
 - **No default was changed.** The held-out instances have now been looked at. Choosing new packaged
   defaults from this run would need wider bounds and a fresh held-out set.
+
+### Expanded-range follow-up protocol
+
+The follow-up freezes **iterated racing**, selected from the first study, and compares the
+original and expanded ranges on the **same new cohort** (`--seed-offset 1000000`). No first-study
+instance or calibration file is reused. Both profiles retain the same 12 training instances,
+20 test instances, five test seeds, ten tuning repetitions, 1,000 training runs per repetition
+and 50,000 evaluations per run. Only SA is re-measured; the expanded BRKGA ranges are provided
+and validated but not measured in this follow-up. No packaged default changes.
+
+The `original` profile is unchanged. The `expanded` profile widens SA's `sa_max` to [1, 5000],
+`t0` to [0.01, 1e8], `alpha` to [0.5, 0.999], `beta_min` to [1e-5, 0.1], and `beta_max` to
+[1e-4, 0.5], with the same scales and joint-constraint repair. BRKGA's population range widens to
+[4, 2000]; its other axes remain unchanged. Results store the profile, seed offset, parameter
+ranges and source commit. Resuming with different budgets, cohorts or ranges is rejected.
+
+```bash
+uv run --locked --group tuning python -m benchmarks.tuning run --directory "$HOME/rko-tuning-wide" --results "$HOME/rko-tuning-wide/original.jsonl" --algorithms SA --tuners racing --space-profile original --seed-offset 1000000
+uv run --locked --group tuning python -m benchmarks.tuning run --directory "$HOME/rko-tuning-wide" --results "$HOME/rko-tuning-wide/expanded.jsonl" --algorithms SA --tuners racing --space-profile expanded --seed-offset 1000000
+```
+
+Do not compare normalized gaps across cohorts directly: calibration references differ. Compare
+profiles within the new cohort using paired repetitions and instances. These exploratory
+intervals describe this fixed comparison, not equivalence or a universal tuning ranking.

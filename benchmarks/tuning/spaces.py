@@ -20,6 +20,7 @@ Flow (pseudocode):
 Important criteria:
 - The packaged default of every algorithm lies inside its space.
 - Decoding is a pure function of the point: equal points give equal configurations.
+- The original profile remains unchanged; the expanded profile widens binding SA and BRKGA axes.
 
 Inputs/Outputs:
 - Input: an algorithm name and a sequence of floats in [0, 1].
@@ -185,4 +186,24 @@ SPACES: dict[str, ParameterSpace] = {
             ParameterSpec("he", 1e-5, 1e-2, "log"),
         ),
     ),
+}
+
+SPACE_PROFILES: dict[str, dict[str, ParameterSpace]] = {
+    "original": SPACES,
+    "expanded": {
+        **SPACES,
+        "SA": ParameterSpace(
+            "SA",
+            (
+                ParameterSpec("sa_max", 1, 5000, "log", True),
+                ParameterSpec("t0", 0.01, 1e8, "log"),
+                ParameterSpec("alpha", 0.5, 0.999, "log1m"),
+                ParameterSpec("beta_min", 1e-5, 0.1, "log"),
+                ParameterSpec("beta_max", 1e-4, 0.5, "log"),
+            ),
+        ),
+        "BRKGA": ParameterSpace(
+            "BRKGA", (ParameterSpec("p", 4, 2000, "log", True), *SPACES["BRKGA"].specs[1:])
+        ),
+    },
 }

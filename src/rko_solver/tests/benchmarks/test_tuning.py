@@ -38,9 +38,13 @@ from benchmarks.tuning.spaces import SPACES
 from benchmarks.tuning.spaces import ParameterSpec
 from benchmarks.tuning.tuners import IteratedRacing
 from benchmarks.tuning.tuners import RandomHalving
+from hypothesis import given
+from hypothesis import settings as hypothesis_settings
+from hypothesis import strategies as st
 from pathlib import Path
 from rko_solver import RKO
 from rko_solver import Numba
+from rko_solver.components.validation import ParameterValidator
 
 TARGET = np.array([0.3, 0.7, 0.2, 0.6])
 SPACE = SPACES["BRKGA"]
@@ -436,3 +440,134 @@ def test_confirmation_scores_the_default_and_chosen_configurations_and_resumes(
     assert all(len(x["scores"]) == 2 and x["evaluations"] == 4000 for x in lines)
     table = check.report(4000, resamples=200)
     assert "| GRASP on rastrigin |" in table and "Verdict" in table
+
+
+@pytest.mark.parametrize("algorithm", ["SA", "BRKGA"])
+def test_expanded_spaces_contain_the_original_and_widen_binding_axes(algorithm: str) -> None:
+    """Keep the first study reproducible while widening its binding parameter axes.
+
+    Args:
+        algorithm (str): Algorithm whose binding ranges must expand.
+    """
+    from benchmarks.tuning.spaces import SPACE_PROFILES
+
+    assert SPACE_PROFILES["original"] is SPACES
+    original = SPACES[algorithm]
+    expanded = SPACE_PROFILES["expanded"][algorithm]
+    for old, new in zip(original.specs, expanded.specs, strict=True):
+        assert old.name == new.name and new.low <= old.low <= old.high <= new.high
+    widened = {
+        new.name
+        for old, new in zip(original.specs, expanded.specs, strict=True)
+        if new.low < old.low or new.high > old.high
+    }
+    assert widened == (
+        {"sa_max", "t0", "alpha", "beta_min", "beta_max"} if algorithm == "SA" else {"p"}
+    )
+    for value in (0.0, 0.5, 1.0):
+        config = expanded.decode([value] * expanded.dimension)
+        assert all(type(item) is float for item in config.values())
+
+
+@pytest.mark.parametrize("family", FAMILIES)
+def test_seed_offset_isolates_new_instances_and_calibration(tmp_path: Path, family: str) -> None:
+    """A new cohort cannot reuse the first study's instance files or calibration.
+
+    Args:
+        tmp_path (Path): Parent directory shared by the two banks.
+        family (str): Problem family.
+    """
+    old = InstanceBank(tmp_path)
+    new = InstanceBank(tmp_path, seed_offset=1_000_000)
+    old_item = old.generate(family, "test", 1)[0]
+    new_item = new.generate(family, "test", 1)[0]
+    assert old_item.path != new_item.path
+    assert old_item.path.read_bytes() != new_item.path.read_bytes()
+    again = InstanceBank(tmp_path, seed_offset=1_000_000).generate(family, "test", 1)[0]
+    assert new_item.path.read_bytes() == again.path.read_bytes()
+    old_calibration = {old_item.name: {"best": -5.0, "anchor": 5.0}}
+    (old.directory / f"calibration-{family}.json").write_text(json.dumps(old_calibration))
+    assert InstanceBank(tmp_path).generate(family, "test", 1)[0].best == -5.0
+    assert InstanceBank(tmp_path, seed_offset=1_000_000).generate(family, "test", 1)[0].best == 0.0
+
+
+@pytest.mark.parametrize(
+    "changed", [{"space_profile": "expanded"}, {"seed_offset": 1_000_000}, {"evaluations": 100_000}]
+)
+def test_resume_refuses_a_different_experiment(tmp_path: Path, changed: dict[str, object]) -> None:
+    """Reject mixing profiles, cohorts or evaluation budgets in an existing results file.
+
+    Args:
+        tmp_path (Path): Directory for synthetic metadata.
+        changed (dict[str, object]): Setting changed from the stored experiment.
+    """
+    from benchmarks.tuning.protocol import BakeOff
+    from benchmarks.tuning.protocol import Settings
+    from dataclasses import asdict
+    from dataclasses import replace
+
+    settings = Settings(str(tmp_path))
+    path = tmp_path / "results.jsonl"
+    path.write_text(json.dumps({"kind": "meta", "settings": asdict(settings)}) + "\n")
+    with pytest.raises(ValueError, match="settings"):
+        BakeOff(replace(settings, **changed), path).done()
+    assert BakeOff(replace(settings, workers=2), path).done() == set()
+
+
+def test_expanded_session_and_confirmation_share_the_fresh_cohort(
+    small_bank: InstanceBank, tmp_path: Path
+) -> None:
+    """Spawned sessions use the selected ranges and confirmation retains the cohort.
+
+    Args:
+        small_bank (InstanceBank): Bank whose calibration budgets are reduced by the fixture.
+        tmp_path (Path): Parent folder for the fresh cohort and results.
+    """
+    from benchmarks.tuning.confirm import Confirmation
+    from benchmarks.tuning.protocol import BakeOff
+    from benchmarks.tuning.protocol import Settings
+    from benchmarks.tuning.protocol import session_seed
+    from benchmarks.tuning.spaces import SPACE_PROFILES
+
+    bank = InstanceBank(tmp_path, evaluations=2000, seed_offset=1_000_000)
+    for role in ("train", "test"):
+        bank.calibrate(bank.generate("rastrigin", role, 2))
+    settings = Settings(
+        str(tmp_path),
+        train=2,
+        test=2,
+        test_seeds=1,
+        evaluations=2000,
+        workers=1,
+        space_profile="expanded",
+        seed_offset=1_000_000,
+    )
+    results = tmp_path / "expanded.jsonl"
+    bake = BakeOff(settings, results)
+    assert bake.run(["SA"], ["rastrigin"], [], 1) == 2
+    records = [json.loads(line) for line in results.read_text().splitlines()]
+    chosen = next(row for row in records if row.get("tuner") == "random")
+    seed = session_seed("SA", "rastrigin", "random", 0)
+    point = np.random.default_rng(seed).random(5)
+    assert chosen["config"] == SPACE_PROFILES["expanded"]["SA"].decode(point)
+    assert chosen["config"] != SPACES["SA"].decode(point)
+    check = Confirmation(results, tmp_path / "confirm.jsonl", tmp_path, "random")
+    assert {task[0] for task in check.tasks(4000, 2, 1)} == {str(bank.directory)}
+
+
+@given(st.lists(st.floats(min_value=0, max_value=1, allow_nan=False), min_size=5, max_size=5))
+@hypothesis_settings(max_examples=100, derandomize=True)
+def test_expanded_decode_preserves_parameter_domains(point: list[float]) -> None:
+    """Generated unit-cube points remain finite, bounded and valid after decoding.
+
+    Args:
+        point (list[float]): Five generated unit coordinates, including exact boundaries.
+    """
+    from benchmarks.tuning.spaces import SPACE_PROFILES
+
+    for space in SPACE_PROFILES["expanded"].values():
+        config = space.decode(point[: space.dimension])
+        assert all(type(value) is float and np.isfinite(value) for value in config.values())
+        for spec in space.specs:
+            assert spec.low * (1 - 1e-12) <= config[spec.name] <= spec.high * (1 + 1e-12)
+        ParameterValidator._values(space.algorithm, config)
