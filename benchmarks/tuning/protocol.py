@@ -12,8 +12,9 @@ Technical approach:
   "is tuning worth it" is answered by the same measurement as "which tuner is best".
 - Sessions run in spawned worker processes (the Numba objectives compile once per worker) and
   results are appended as they finish, so a stopped bake-off resumes where it ended. Sessions are
-  ordered by family and workers are replaced every few sessions, which bounds the memory that
-  compiled objectives would otherwise accumulate.
+  ordered by family, which together with the bank keeping one family's compiled objectives bounds
+  worker memory. Replacing workers periodically (`max_tasks_per_child`) was tried and left the
+  pool hung with no workers, so workers live for the whole run.
 
 Flow (pseudocode):
 1. Generate and calibrate the training and held-out instances of each family.
@@ -62,7 +63,6 @@ TUNERS: dict[str, type[Tuner]] = {
     "rko": RKOTuner,
 }
 BASELINES = ("default", "random")
-RECYCLE_AFTER = 6
 
 
 @dataclass(frozen=True)
@@ -295,9 +295,7 @@ class BakeOff:
             self.results.write_text(json.dumps(meta) + "\n", encoding="utf-8")
         todo = self.pending(algorithms, families, tuners, reps)
         context = multiprocessing.get_context("spawn")
-        with ProcessPoolExecutor(
-            self.settings.workers, mp_context=context, max_tasks_per_child=RECYCLE_AFTER
-        ) as pool:
+        with ProcessPoolExecutor(self.settings.workers, mp_context=context) as pool:
             futures = [pool.submit(run_session, item) for item in todo]
             for future in as_completed(futures):
                 with self.results.open("a", encoding="utf-8") as stream:
