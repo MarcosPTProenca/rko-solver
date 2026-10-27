@@ -108,12 +108,7 @@ pub enum EngineError {
 impl std::fmt::Display for EngineError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::InvalidCost { algorithm } => {
-                write!(
-                    f,
-                    "{algorithm}: objective callbacks must return finite costs"
-                )
-            }
+            Self::InvalidCost { .. } => write!(f, "Objective callbacks must return finite costs."),
             Self::Panic => write!(f, "a search worker panicked"),
             Self::Invalid(message) => write!(f, "{message}"),
         }

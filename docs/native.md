@@ -170,7 +170,10 @@ Differences from the Rust engine, all imposed by the reference code:
   flag they poll also reports a per-thread limit, and the first objective call after the limit
   throws a private exception that ends that algorithm (the reference's IPR polls only its own
   timer). Counts are exact, and algorithms that reach their limit stop while the others go on.
-- Scalar history and trajectory telemetry are not recorded, and every search reports the shared engine seed; the reference
+- `history_limit` records the incumbent history the way the other engines do: each improvement
+  is a sample, the list is halved when it passes the cap, and a closing sample ends it at the
+  final incumbent. Trajectory telemetry beyond that is not recorded, and every search reports the
+  shared engine seed; the reference
   also draws part of its local-search neighborhood from an unseeded `rand()`, so equal
   `random_state` values do not give equal results.
 - Python callbacks run on the reference's threads and need the interpreter lock, so a

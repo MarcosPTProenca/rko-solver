@@ -87,6 +87,19 @@ has one entry per model, built from CI runs, and an unknown model is measured an
 gated. If a new model appears in the log, add its median from several CI runs; do not copy another
 model's numbers. This is a regression gate and says nothing about absolute speed.
 
+Mutation testing asks whether the tests would notice a deliberate bug: a tool makes one small
+change at a time (`<` to `<=`, a return value replaced) and a mutant counts as killed when a test
+fails. The [weekly workflow](.github/workflows/mutation.yml) runs `mutmut` on the Python modules
+listed under `[tool.mutmut]` in `pyproject.toml` and `cargo-mutants` on the Rust core's pool,
+operators, Q-learning, random-number, search and config modules (about 35 and 20 minutes; the Rust
+run uses the default profile, which is eight times faster than release with the same survivors).
+`tools/mutation_report.py` prints the score per module and fails when one drops below its floor in
+`.quality/mutation-baseline.json`, five points under the measured score; a timeout counts as
+killed and unviable or untested mutants count for nothing. To see survivors locally run
+`mutmut run` and `mutmut results`, or `cargo mutants -p rko-core --file <file>` and read
+`mutants.out/missed.txt`. A survivor is a question about the tests, not a defect: either add a test
+that kills it or decide the mutation is equivalent to the original code.
+
 Supported minimums, each tested in CI: Python 3.14, NumPy 2.3.2 (the first release with a
 Python 3.14 wheel; the previous `>=2.0.0` bound could never be installed or tested on 3.14) and
 Rust 1.90 (`rust-version`; the code compiles on 1.88 but not 1.85, and 1.90 is the tested floor).
@@ -117,7 +130,7 @@ Preview the same maintained Markdown with the built-in MkDocs theme:
 uv run --locked --only-group docs mkdocs serve
 ```
 
-Use the reported `/RKO/` URL. Docs tools are a separate locked group, not
+Use the reported `/rko-solver/` URL. Docs tools are a separate locked group, not
 runtime dependencies. Before a docs change, run:
 
 ```bash

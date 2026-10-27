@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "rko-solver"
-version = "0.3.0a2"
+version = "0.3.0a3"
 description = "Cooperative random-key optimization with configurable metaheuristic portfolios"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -112,6 +112,10 @@ service-test = [
 release = [
     "packaging>=26,<27",
     "twine>=6.2,<7",
+]
+tuning = [
+    "optuna==5.0.0",
+    "scipy==1.18.1",
 ]
 
 [tool.ruff]
