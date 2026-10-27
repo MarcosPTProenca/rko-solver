@@ -24,6 +24,7 @@ from __future__ import annotations
 import math
 import numpy as np
 from .records import ModelEvaluation
+from .records import RepairDiagnostic
 from .records import RowDiagnostic
 from .repair import ContinuousRestoration
 from collections.abc import Callable
@@ -48,7 +49,7 @@ class LinearEvaluation(ContinuousRestoration):
         """
         return len(self._free) // np.dtype(np.intp).itemsize
 
-    def _keys(self, keys: np.ndarray) -> np.ndarray:
+    def validate_keys(self, keys: np.ndarray) -> np.ndarray:
         """Validate the caller vector before any mapping.
 
         Args:
@@ -153,9 +154,93 @@ class LinearEvaluation(ContinuousRestoration):
             ValueError: If keys or numerical arithmetic are invalid.
             Exception: Owner stop signals propagate without a completed evaluation.
         """
-        chromosome = self._keys(keys)
-        values = self._mapped(chromosome)
-        state, repair = self._restore_continuous(values, self._row_state(values), _budget_check)
+        chromosome = self.validate_keys(keys)
+        return self._complete(chromosome, self._mapped(chromosome), _budget_check=_budget_check)
+
+    def evaluate_assignment(
+        self,
+        keys: np.ndarray,
+        values: object,
+        *,
+        restore: bool = False,
+        _budget_check: Callable[[], None] | None = None,
+    ) -> ModelEvaluation:
+        """Validate and evaluate supplied original coordinates without reconstructing keys.
+
+        Args:
+            keys (np.ndarray): Exact originating finite unit-interval chromosome.
+            values (object): Complete one-dimensional original-order numeric assignment.
+            restore (bool): Explicitly apply the frozen continuous restoration policy.
+            _budget_check (Callable | None): Ephemeral owner stop hook, never candidate context.
+
+        Returns:
+            ModelEvaluation: Detached checked assignment and original-unit numerical evidence.
+
+        Raises:
+            ValueError: If keys, shape, scalars, exact domains or arithmetic are invalid.
+            Exception: Owner stop signals propagate without a completed evaluation.
+        """
+        chromosome = self.validate_keys(keys)
+        if type(restore) is not bool:
+            raise ValueError("restore must be a boolean.")
+        assignment = self._assignment(values)
+        return self._complete(chromosome, assignment, restore=restore, _budget_check=_budget_check)
+
+    def _assignment(self, values: object) -> np.ndarray:
+        """Validate scalar identity before float conversion and detach original coordinates.
+
+        Args:
+            values (object): Untrusted complete assignment, not claimed evaluation evidence.
+
+        Returns:
+            np.ndarray: Invocation-owned finite, exact-domain numerical values.
+
+        Raises:
+            ValueError: If shape, scalar precision, bounds, integrality or fixed values fail.
+        """
+        if not isinstance(values, (list, tuple, np.ndarray)):
+            raise ValueError("Assignment must be a complete numeric vector.")
+        if isinstance(values, np.ndarray) and values.ndim != 1:
+            raise ValueError("Assignment must be one-dimensional.")
+        if len(values) != len(self.variables):
+            raise ValueError("Assignment must match the original variable order and dimension.")
+        result = []
+        for variable, domain, value in zip(self.variables, self.domains, values, strict=True):
+            numeric = self._number(value, f"assignment {variable.identifier}")
+            integral = variable.domain == "continuous" or numeric.is_integer()
+            if not domain.lower <= numeric <= domain.upper or not integral:
+                raise ValueError("Assignment violates an effective bound, fixed value or domain.")
+            result.append(numeric)
+        return np.asarray(result, dtype=float)
+
+    def _complete(
+        self,
+        chromosome: np.ndarray,
+        values: np.ndarray,
+        *,
+        restore: bool = True,
+        _budget_check: Callable[[], None] | None = None,
+    ) -> ModelEvaluation:
+        """Finish a mapped or validated assignment through the single protected evaluator.
+
+        Args:
+            chromosome (np.ndarray): Validated originating keys.
+            values (np.ndarray): Owned exact-domain complete assignment.
+            restore (bool): Whether actual construction includes frozen continuous repair.
+            _budget_check (Callable | None): Ephemeral cooperative owner stop hook.
+
+        Returns:
+            ModelEvaluation: One completed immutable original-objective and score witness.
+
+        Raises:
+            ValueError: If protected numerical arithmetic becomes nonfinite.
+            Exception: Owner stop signals propagate before witness completion.
+        """
+        state = self._row_state(values)
+        if restore:
+            state, repair = self._restore_continuous(values, state, _budget_check)
+        else:
+            repair = RepairDiagnostic("none", "disabled", 0)
         mapped = values[np.frombuffer(self._free, dtype=np.intp)]
         objective = math.fsum(
             [self._objective_constant] + (np.frombuffer(self._objective) * mapped).tolist()

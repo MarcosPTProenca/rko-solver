@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import numpy as np
 import time
+from .construction import ModelConstruction
 from .linear import CompiledLinearModel
 from .records import ModelEvidence
 from .results import ModelResult
@@ -76,10 +77,15 @@ class ModelRunState:
             return
         if solver.engine != "python" or solver.execution not in ("process", "thread", "sequential"):
             raise ValueError("Model decoders require engine='python' and Python execution.")
+        expected = (
+            ModelConstruction.decode
+            if isinstance(snapshot, ModelConstruction)
+            else CompiledLinearModel.decode
+        )
         if (
             solver.n_variables != snapshot.n_keys
             or getattr(solver.decoder, "__self__", None) is not snapshot
-            or getattr(solver.decoder, "__func__", None) is not CompiledLinearModel.decode
+            or getattr(solver.decoder, "__func__", None) is not expected
             or solver.cost is not snapshot.cost
         ):
             raise ValueError("Model callbacks/dimension changed; reconvert with RKO.from_model.")
@@ -128,9 +134,12 @@ class ModelRunState:
         assert self.solver._model_source is not None and self.evidence is not None
         return ModelResult.from_evidence(
             self.solver._model_source,
-            self.snapshot,
+            self.snapshot.snapshot
+            if isinstance(self.snapshot, ModelConstruction)
+            else self.snapshot,
             self.snapshot.merge_evidence(tuple(self.evidence), keys, value),
             self.solver._model_compilation_seconds,
             no_search=self.no_search,
             solve_started_at=started,
+            construction_used=isinstance(self.snapshot, ModelConstruction),
         )

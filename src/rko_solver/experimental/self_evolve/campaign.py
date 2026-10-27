@@ -32,6 +32,8 @@ from pathlib import Path
 from rko_solver.experimental.self_evolve.artifacts import MAX_SOURCE
 from rko_solver.experimental.self_evolve.artifacts import DecoderArtifact
 from rko_solver.experimental.self_evolve.campaign_evaluation import CampaignEvaluation
+from rko_solver.experimental.self_evolve.model_campaign import ModelCampaignPolicy
+from rko_solver.experimental.self_evolve.model_data import ModelProblem
 from rko_solver.experimental.self_evolve.problems import Problem
 from rko_solver.experimental.self_evolve.proposal_journal import ProposalJournal
 from rko_solver.experimental.self_evolve.sandbox import JOB_GRACE_SECONDS
@@ -82,10 +84,19 @@ class Campaign:
         seed = DecoderArtifact.load(path / "artifacts" / self.spec["seed"])
         if seed.digest != self.spec["seed"] or seed.parent is not None:
             raise ValueError("Invalid campaign seed identity.")
+        ModelCampaignPolicy.restore(self.spec)
 
     @classmethod
     def create(
-        cls, path: Path, seed: DecoderArtifact, problems: list[Problem], image: str
+        cls,
+        path: Path,
+        seed: DecoderArtifact,
+        problems: typing.Sequence[Problem | ModelProblem],
+        image: str,
+        *,
+        feasibility_policy: typing.Literal[
+            "strict_feasible", "feasibility_first"
+        ] = "feasibility_first",
     ) -> Campaign:
         """Freeze an explicit seed and development-only evaluation before proposals.
 
@@ -94,6 +105,7 @@ class Campaign:
             seed (DecoderArtifact): Existing root decoder, never invented by the controller.
             problems (list[Problem]): Three development instances of the same family.
             image (str): Pinned qualified-runtime image ID.
+            feasibility_policy (str): Frozen model-only strict or feasibility-first admission.
 
         Returns:
             Campaign: Created campaign, not yet started/evaluated.
@@ -103,8 +115,6 @@ class Campaign:
             FileExistsError: If destination exists.
         """
         instances = cls._instances(seed, problems, image)
-        path.mkdir(parents=True, exist_ok=False, mode=0o700)
-        seed.export(path / "artifacts" / seed.digest)
         spec = {
             "schema": 1,
             "family": seed.family,
@@ -130,6 +140,9 @@ class Campaign:
             "advancement": "screen must be feasible and no worse than seed screen score",
             "status": "pilot_experimental_no_statistical_claim",
         }
+        ModelCampaignPolicy.freeze(spec, feasibility_policy)
+        path.mkdir(parents=True, exist_ok=False, mode=0o700)
+        seed.export(path / "artifacts" / seed.digest)
         encoded = json.dumps(spec, sort_keys=True)
         (path / "campaign.json").write_text(encoded, encoding="utf-8")
         (path / "campaign.sha256").write_text(hashlib.sha256(encoded.encode()).hexdigest())
@@ -138,7 +151,7 @@ class Campaign:
 
     @staticmethod
     def _instances(
-        seed: DecoderArtifact, problems: list[Problem], image: str
+        seed: DecoderArtifact, problems: typing.Sequence[Problem | ModelProblem], image: str
     ) -> list[dict[str, typing.Any]]:
         """Validate seed/runtime compatibility and freeze distinct exact-reference instances.
 
@@ -163,7 +176,7 @@ class Campaign:
             raise ValueError(
                 "Campaign requires a root seed, three compatible instances and pinned image."
             )
-        instances = [{"family": p.family, "data": p.data, "optimum": p.optimum()} for p in problems]
+        instances = [ModelCampaignPolicy.instance(problem) for problem in problems]
         if len({json.dumps(p["data"], sort_keys=True) for p in instances}) != 3:
             raise ValueError("Development instances must be distinct.")
         return instances
@@ -178,6 +191,8 @@ class Campaign:
         Returns:
             dict[str, typing.Any]: Explicit move bounds, neighborhood and repair contract.
         """
+        if family == "linear_model":
+            return ModelCampaignPolicy.local_work()
         repair = "at most n monotone additions"
         if family == "scheduling":
             repair = "none; require full permutation"
@@ -353,6 +368,7 @@ class Campaign:
             "constraints": "Only numpy/math imports; no I/O, ambient RNG or persistent state. "
             "No evaluator, RKO, dataset or budget changes. Manual move-bound review "
             "is mandatory. Return complete source and a short hypothesis.",
+            **ModelCampaignPolicy.proposer(self.spec),
         }
 
     def _eligible(self, events: list[dict[str, typing.Any]]) -> set[str]:
@@ -531,6 +547,16 @@ class Campaign:
             "rko": self.spec["rko"],
             "statistical_claim": None,
             "records": [e for e in events if e.get("candidate") == candidate],
+            **{
+                key: self.spec[key]
+                for key in (
+                    "model_contract",
+                    "feasibility_policy",
+                    "reference_policy",
+                    "human_baseline",
+                )
+                if key in self.spec
+            },
         }
         evidence_bytes = json.dumps(evidence, indent=2).encode("utf-8")
         (path / "evidence.json").write_bytes(evidence_bytes)

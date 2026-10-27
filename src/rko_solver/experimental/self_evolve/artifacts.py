@@ -29,6 +29,7 @@ from typing import Any
 from typing import cast
 
 FAMILIES = ("knapsack", "scheduling", "set_cover")
+ARTIFACT_FAMILIES = (*FAMILIES, "linear_model")
 MAX_SOURCE = 32768
 _FORBIDDEN = {
     "open",
@@ -223,7 +224,7 @@ class DecoderArtifact:
         Raises:
             ValueError: If family, parent or source violates the contract.
         """
-        if family not in FAMILIES:
+        if family not in ARTIFACT_FAMILIES:
             raise ValueError("Unsupported decoder family.")
         if parent is not None and (
             not isinstance(parent, str)
@@ -248,8 +249,13 @@ class DecoderArtifact:
             "status": self.status,
             "qualified_image": self.qualified_image,
             "entrypoint": "decode(keys, instance)",
-            "solution": "unique zero-based selected indices; scheduling requires a permutation",
-            "dimension": "number of items/jobs/subsets in the supplied instance",
+            **({"model_contract": 1} if self.family == "linear_model" else {}),
+            "solution": "complete original-order numerical assignments"
+            if self.family == "linear_model"
+            else "unique zero-based selected indices; scheduling requires a permutation",
+            "dimension": "number of nonfixed effective model coordinates"
+            if self.family == "linear_model"
+            else "number of items/jobs/subsets in the supplied instance",
             "runtime": {
                 "python": ">=3.14",
                 "numpy": ">=2",
@@ -322,7 +328,12 @@ class DecoderArtifact:
         Raises:
             ValueError: If contract or runtime requirements differ.
         """
-        for key in ("entrypoint", "solution", "dimension"):
+        keys: tuple[str, ...] = ("entrypoint", "solution", "dimension")
+        if "model_contract" in expected:
+            if type(metadata.get("model_contract")) is not int:
+                raise ValueError("Incompatible model construction contract version.")
+            keys += ("model_contract",)
+        for key in keys:
             if metadata.get(key) != expected[key]:
                 raise ValueError("Incompatible artifact input/output contract.")
         runtime = metadata.get("runtime")

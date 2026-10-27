@@ -31,6 +31,7 @@ import tempfile
 import time
 import uuid
 from .artifacts import DecoderArtifact
+from .model_data import ModelProblem
 from .problems import Problem
 from .sandbox_evidence import SandboxError
 from .sandbox_evidence import WorkerEvidence
@@ -455,7 +456,7 @@ class PodmanRunner:
     def run(
         self,
         artifact: DecoderArtifact,
-        problem: Problem,
+        problem: Problem | ModelProblem,
         *,
         mode: str = "rko",
         seconds: float = 0.1,
@@ -511,7 +512,12 @@ class PodmanRunner:
         }
 
     def _validate_job(
-        self, artifact: DecoderArtifact, problem: Problem, mode: str, seconds: float, seed: int
+        self,
+        artifact: DecoderArtifact,
+        problem: Problem | ModelProblem,
+        mode: str,
+        seconds: float,
+        seed: int,
     ) -> None:
         """Validate compatible settings and source identity before launching a job.
 
@@ -534,12 +540,14 @@ class PodmanRunner:
             or artifact.family != problem.family
         ):
             raise ValueError("Incompatible family or invalid worker settings.")
+        if isinstance(problem, ModelProblem) and mode == "constructive":
+            raise ValueError("No generic independent human model baseline was supplied.")
         checked = DecoderArtifact.create(artifact.family, artifact.source, artifact.parent)
         if checked.digest != artifact.digest:
             raise ValueError("Artifact source hash mismatch.")
 
     def _verify_record(
-        self, record: dict[str, Any], problem: Problem, seconds: float
+        self, record: dict[str, Any], problem: Problem | ModelProblem, seconds: float
     ) -> dict[str, Any]:
         """Verify claims in order, disabling on integrity but not allowance failures.
 

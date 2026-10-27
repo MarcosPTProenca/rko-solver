@@ -15,6 +15,7 @@ Inputs/Outputs:
 - Output: assertion failure on packaging or artifact regressions.
 """
 
+import numpy as np
 import subprocess
 import sys
 import tempfile
@@ -23,10 +24,15 @@ from rko_solver.experimental.self_evolve import DecoderArtifact
 from rko_solver.experimental.self_evolve import Problem
 from rko_solver.experimental.self_evolve.analysis import PairedAnalysis
 from rko_solver.experimental.self_evolve.campaign import Campaign
+from rko_solver.experimental.self_evolve.model_data import ModelProblem
+from rko_solver.experimental.self_evolve.model_data import ModelReference
 from rko_solver.experimental.self_evolve.pi_config import PiConfig
 from rko_solver.experimental.self_evolve.proposal_journal import ProposalJournal
 from rko_solver.experimental.self_evolve.proposals import PiCampaign
 from rko_solver.experimental.self_evolve.study import ConfirmationStudy
+from rko_solver.modeling.records import LinearRow
+from rko_solver.modeling.records import LinearVariable
+from rko_solver.modeling.source import ExtractedLinearModel
 
 
 def main() -> None:
@@ -44,6 +50,7 @@ def main() -> None:
         config = PiConfig(Path(sys.executable), Path(directory) / "unused-profile", "gpt-fixture")
         assert config.descriptor()["access_mode"] == "oauth"
         assert not config.profile.exists()
+        _check_owned_model(Path(directory))
     assert ProposalJournal([]).entries == {}
     assert issubclass(PiCampaign, Campaign)
     help_result = subprocess.run(
@@ -64,6 +71,37 @@ def main() -> None:
     assert effect["p_value"] == 1 / 16
     assert ConfirmationStudy.instance_hash(problem)
     print("Installed experimental contracts passed; no generated-source execution or study run.")
+
+
+def _check_owned_model(directory: Path) -> None:
+    """Check pure owned-model transport without importing a native frontend or source program.
+
+    Args:
+        directory (Path): Temporary smoke output root.
+
+    Raises:
+        AssertionError: If source identity, generic artifact or original objective drifts.
+    """
+    source = ExtractedLinearModel(
+        "pyomo",
+        "owned-smoke",
+        "model-smoke",
+        (LinearVariable("x", "x", 0.0, 1.0, "binary"),),
+        (3.0,),
+        2.0,
+        False,
+        (LinearRow("demand", ((0, 1.0),), 1.0),),
+    )
+    problem = ModelProblem.from_source(
+        source, reference=ModelReference(5.0, "two-value owned check")
+    )
+    restored = ModelProblem(problem.data)
+    assert restored.source.fingerprint == source.fingerprint
+    point = restored.snapshot.evaluate_assignment(np.array([0.75]), [1.0])
+    assert point.objective == 5.0 and point.feasible
+    artifact = ModelProblem.seed_artifact()
+    artifact.export(directory / "model-artifact")
+    assert DecoderArtifact.load(directory / "model-artifact") == artifact
 
 
 if __name__ == "__main__":
