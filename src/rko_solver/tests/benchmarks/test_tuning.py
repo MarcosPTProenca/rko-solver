@@ -253,6 +253,22 @@ def test_the_bank_keeps_compiled_objectives_of_one_family_only(small_bank: Insta
     assert set(small_bank._compiled) == {rastrigin[0].name}
 
 
+def test_the_bank_builds_one_numba_problem_per_instance(small_bank: InstanceBank) -> None:
+    """Repeated runs on one instance reuse its `Numba` problem object.
+
+    Args:
+        small_bank (InstanceBank): Bank with cheap calibration.
+    """
+    instance = small_bank.calibrate(small_bank.generate("rastrigin", "train", 1))[0]
+    config = SPACES["GRASP"].default()
+    for seed in range(3):
+        small_bank.cost(instance, "GRASP", config, seed)
+    assert set(small_bank._problems) == {instance.name}
+    problem = small_bank._problems[instance.name]
+    small_bank.cost(instance, "GRASP", config, 9)
+    assert small_bank._problems[instance.name] is problem
+
+
 def synthetic_records() -> list[dict[str, object]]:
     """Build records in which `good` beats the default, `bad` loses and `same` ties.
 
