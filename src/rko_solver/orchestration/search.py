@@ -322,9 +322,7 @@ class SearchSession:
         self._model_incumbent = None
         self._model_feasible = None
         self._model_first_feasible_at = None
-        self._model_infeasible = 0
-        if self._model_outputs is not None:
-            self._model_outputs.clear()
+        self._reset_model_statistics()
         self.n_evaluations = 0
         self.metadata = None
         self._stop_reason = "completed"
@@ -391,6 +389,12 @@ class SearchSession:
                 self._model_feasible = evidence
             if self._model_incumbent is None or value < self._model_incumbent.score:
                 self._model_incumbent = evidence
+
+    def _reset_model_statistics(self) -> None:
+        """Reset completed model counts and optional assignment identities for a new solve."""
+        self._model_infeasible = 0
+        if self._model_outputs is not None:
+            self._model_outputs.clear()
 
     def _record_model_statistics(self, evidence: ModelEvaluation) -> None:
         """Retain completed counts and opt-in constructed-output hashes without trajectories.

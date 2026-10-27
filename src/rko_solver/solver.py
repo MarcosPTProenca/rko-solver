@@ -19,8 +19,7 @@ Important criteria:
 - Timed cooperation is scheduling-dependent even with a fixed seed.
 
 Inputs/Outputs:
-- Input: a problem (callbacks, Numba function, block function or built-in), execution
-  settings and time budget.
+- Input: callbacks/Numba/block/built-in problem, execution settings and time budget.
 - Output: RKOResult with best keys, objective and execution metadata.
 """
 
