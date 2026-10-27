@@ -24,7 +24,10 @@ import json
 from .artifacts import FAMILIES
 from .artifacts import DecoderArtifact
 from .campaign import Campaign
+from .pi_commands import PI_COMMANDS
+from .pi_commands import PiCommands
 from .problems import Problem
+from .proposals import PiCampaign
 from .sandbox import PodmanRunner
 from .study import ConfirmationStudy
 from pathlib import Path
@@ -61,6 +64,7 @@ class _CommandLine:
             description="Experimental decoder evolution; no statistical claim"
         )
         commands = parser.add_subparsers(dest="command", required=True)
+        PiCommands.add(commands)
         seed = commands.add_parser(
             "example-seed", help="Explicitly export a bundled reference seed"
         )
@@ -192,7 +196,7 @@ class _CommandLine:
             ValueError: If campaign metadata or events are invalid.
             OSError: If campaign files cannot be read.
         """
-        campaign = Campaign(self.args.campaign)
+        campaign = PiCampaign(self.args.campaign)
         events = campaign.events()
         return {
             "family": campaign.spec["family"],
@@ -205,6 +209,7 @@ class _CommandLine:
                 for p in ("baseline", "candidate")
             },
             "evaluations": [e for e in events if e["kind"] == "evaluation"],
+            "proposals": campaign.proposals(),
         }
 
     def _create_campaign(self, runner: PodmanRunner) -> dict[str, Any]:
@@ -251,6 +256,8 @@ class _CommandLine:
             RuntimeError: If runtime qualification or execution fails.
         """
         args = self.args
+        if args.command == "replay":
+            return self._replay()
         runner = PodmanRunner(args.image)
         if args.command == "create":
             return self._create_campaign(runner)
@@ -270,16 +277,28 @@ class _CommandLine:
                 runner,
                 reviewed=args.reviewed_local_work,
             )
+        raise ValueError("Unsupported runtime command.")
+
+    def _replay(self) -> dict[str, Any]:
+        """Reject pending/unusable bundles and inputs before constructing a replay runtime.
+
+        Returns:
+            dict[str, Any]: Qualified independently verified replay evidence.
+
+        Raises:
+            ValueError: If source status, instance size or contract is invalid.
+            OSError: If files are missing or unreadable.
+            RuntimeError: If qualification or isolated execution fails.
+        """
+        args = self.args
         artifact = DecoderArtifact.load(args.artifact)
         if args.instance.stat().st_size > 65536:
             raise ValueError("Instance JSON exceeds 64 KiB.")
         data = json.loads(args.instance.read_text(encoding="utf-8"))
-        return runner.run(
-            artifact,
-            Problem(data["family"], data["data"]),
-            seconds=args.seconds,
-            seed=args.seed,
-        )
+        problem = Problem(data["family"], data["data"])
+        runner = PodmanRunner(args.image)
+        runner.qualify()
+        return runner.run(artifact, problem, seconds=args.seconds, seed=args.seed)
 
     def dispatch(self) -> None:
         """Dispatch the parsed operation and print JSON only for evidence commands.
@@ -289,7 +308,9 @@ class _CommandLine:
             OSError: If input reads or exclusive writes fail.
             RuntimeError: If qualification, execution or campaign budgets fail.
         """
-        if self.args.command.startswith("study-"):
+        if self.args.command in PI_COMMANDS:
+            result = PiCommands(self.args).dispatch()
+        elif self.args.command.startswith("study-"):
             result = self.study()
         elif self.offline():
             return
