@@ -147,13 +147,18 @@ jobs:
       - name: Installed wheel smoke test
         shell: bash
         run: uv run --isolated --no-project --with dist/*.whl python -I tools/smoke_installed.py
-      - name: Installed wheel with the optional extras (reports, tracing, self-evolve, service)
+      - name: Installed wheel with the optional extras (reports, tracing, self-evolve)
         shell: bash
         run: |
           uri=$(uv run --no-project python -I -c 'import pathlib,sys; print(pathlib.Path(sys.argv[1]).resolve().as_uri())' dist/*.whl)
           uv run --isolated --no-project --with "rko-solver[reports] @ $uri" python -I tools/smoke_reports_installed.py
           uv run --isolated --no-project --with "rko-solver[reports] @ $uri" python -I tools/smoke_tracing_installed.py
           uv run --isolated --no-project --with "rko-solver @ $uri" python -I tools/smoke_self_evolve_installed.py
+      - name: Installed wheel with the supervised service (Linux only by design)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          uri=$(uv run --no-project python -I -c 'import pathlib,sys; print(pathlib.Path(sys.argv[1]).resolve().as_uri())' dist/*.whl)
           uv run --isolated --no-project --with "rko-solver[service,reports] @ $uri" --with httpx2==2.16.0 python -I tools/smoke_service_installed.py
       - name: C++ backend is bundled and runs
         if: matrix.cpp == '1'
