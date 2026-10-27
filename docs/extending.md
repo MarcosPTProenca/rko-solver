@@ -58,6 +58,55 @@ RKO.solve rather than copying execution logic. Registry membership alone does no
 create that public solver class, and arbitrary subclasses are not auto-registered.
 There is no third-party plugin-registration API in this change.
 
+## Keep the three engines aligned
+
+The Python, Rust and C++ engines share one public contract: the same `RKO(...)` settings, the
+same errors and the same result metadata. A setting or an algorithm that only one engine
+understands is a defect, not a feature, so extend all three or reject it explicitly in the
+others with a `ValueError` that says so.
+
+Where each piece lives:
+
+| Piece | Python | Rust | C++ |
+| --- | --- | --- | --- |
+| Algorithm | `metaheuristics/` | `engines/rust/rko-core/src/mh/` | the vendored reference headers, driven by `engines/cpp/cpp/rko_cpp.cpp` |
+| Search budget, history, cost checks | `orchestration/search.py` | `rko-core/src/search.rs` | `Decoder` in `rko_cpp.cpp` |
+| Settings and errors to Python | `solver.py`, `orchestration/preparation.py` | `engines/rust/rko-py/src/lib.rs` | `engines/cpp/src/ffi.rs` |
+
+The C++ headers are vendored unchanged and carry the MIT license; behavior is added around them
+in the driver, never by editing them.
+
+When you add a setting or an algorithm:
+
+1. Read the setting once in `orchestration/preparation.py` so every engine validates it the
+   same way, and pass it down to the Rust and C++ calls.
+2. Add the algorithm to `Algorithm::all()` in `rko-core/src/mh/mod.rs`; the C++ driver
+   identifies algorithms by their index in that list, so keep the order.
+3. Report it in the per-search metadata with the same field names and stop reasons
+   (`time_limit`, `max_evaluations`, `completed`, `cancelled`, `not_started`).
+4. Pin it in the parity contract (`src/rko_solver/tests/test_engine_parity_contract.py`):
+   run it on every available engine and compare reports and error messages exactly.
+5. If it changes what an algorithm computes, refresh the golden runs
+   (`test_golden_runs.py`) and say why in the pull request; they are the only frozen results.
+
+What the contract pins today: parameters and overrides (including a custom TOML directory),
+adaptive grids and controls, the report fields and stop vocabulary, bounded incumbent history,
+and the error for a non-finite cost (`ValueError`, one message). The differential tests
+(`test_engine_differential.py`) additionally check that the reported cost is recomputed from the
+reported keys with independent code.
+
+Differences that are intended, and documented, not bugs:
+
+- **`verbose`:** the Python engine prints live progress; Rust and C++ print only a start and a
+  done line, because progress would mean calling back into Python from the search loop.
+- **C++ startup:** the reference always fills its pool first, so `initialization` is reported
+  even without `prefill_pool`.
+- **Workers and seeds:** `n_jobs` does not limit the C++ engine (one thread per algorithm), and
+  its seeds are not reproducible (see [native engines](native.md)).
+
+Before claiming parity for anything new, run the same solve on each engine and compare what
+comes back; a probe like that is how the history and exception differences were found.
+
 ## Required tests and documentation
 
 - Constructor and factory invalid scalar/joint-domain cases.
@@ -65,6 +114,7 @@ There is no third-party plugin-registration API in this change.
 - Fixed and supported adaptive paths, RNG isolation, callback failures.
 - Pool interaction and operator substitution where applicable.
 - The common constructor/solve contract, signatures/defaults and result metadata.
+- The same behavior on every engine, through the parity contract above.
 - Public examples and parameter reference updated with the implementation.
 
 Run from this repository root:
