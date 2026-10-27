@@ -1,0 +1,68 @@
+name: Mutation testing
+
+on:
+  schedule:
+    - cron: "30 2 * * 0"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/mutation.yml"
+      - "tools/mutation_report.py"
+      - ".quality/mutation-baseline.json"
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      RKO_BUILD_CPP: "1"
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Sync locked dependencies
+        run: uv sync --locked --group dev
+      - name: Mutate the core Python modules (modules listed in pyproject.toml)
+        run: uv run --locked mutmut run --max-children 3 > "$RUNNER_TEMP/mutmut.log" 2>&1 || (tail -c 4000 "$RUNNER_TEMP/mutmut.log"; exit 1)
+      - name: Collect every mutant outcome
+        run: uv run --locked mutmut results --all true > "$RUNNER_TEMP/mutmut-results.txt"
+      - name: Score per module against the recorded floors
+        run: uv run --locked python tools/mutation_report.py --mutmut-results "$RUNNER_TEMP/mutmut-results.txt" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the outcomes for inspection v7.0.2
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: mutmut-results
+          path: ${{ runner.temp }}/mutmut-results.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up uv v10.3.2
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+      - name: Sync locked dependencies
+        run: uv sync --locked --group dev
+      - name: Install the Rust mutation tool
+        run: cargo install cargo-mutants --locked --version 27.1.0
+      - name: Mutate the core engine modules in the default profile
+        run: cargo mutants -p rko-core --jobs 3 --no-shuffle --file engines/rust/rko-core/src/pool.rs --file engines/rust/rko-core/src/operators.rs --file engines/rust/rko-core/src/qlearning.rs --file engines/rust/rko-core/src/rng.rs --file engines/rust/rko-core/src/search.rs --file engines/rust/rko-core/src/config.rs
+        continue-on-error: true
+      - name: Score per file against the recorded floors
+        run: uv run --locked python tools/mutation_report.py --cargo-outcomes mutants.out/outcomes.json | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the outcomes for inspection v7.0.2
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: cargo-mutants-outcomes
+          path: mutants.out
+          if-no-files-found: warn
+          retention-days: 30
