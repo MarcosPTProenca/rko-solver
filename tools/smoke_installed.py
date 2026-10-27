@@ -16,6 +16,8 @@ Flow (pseudocode):
 Important criteria:
 - Use the main guard and importable callbacks for Windows spawn.
 - This is an installation contract check, not an optimization-quality benchmark.
+- Spawned workers on a loaded runner can take longer than a few tens of milliseconds to start,
+  so portfolio searches use a budget that outlasts startup instead of the smallest valid one.
 
 Inputs/Outputs:
 - Input: installed wheel or sdist and its runtime dependencies.
@@ -47,6 +49,8 @@ from rko_solver.metaheuristics import SA
 from rko_solver.parameters.loader import default_params_dir
 from rko_solver.problems import Knapsack
 from rko_solver.reporting import OptimizationReport
+
+SEARCH_SECONDS = 0.25
 
 
 def decode(keys: np.ndarray) -> np.ndarray:
@@ -166,7 +170,7 @@ def main() -> None:
                 else None,
                 execution=execution,
                 random_state=42,
-            ).solve(0.05)
+            ).solve(SEARCH_SECONDS)
             keys = np.asarray(result.keys)
             assert len(keys) == dimension
             assert np.all((keys >= 0.0) & (keys < 1.0))
@@ -202,7 +206,7 @@ def main() -> None:
             prefill_pool=True,
             pool_size=3,
             random_state=42,
-        ).solve(0.05)
+        ).solve(SEARCH_SECONDS)
         assert isinstance(prefilled.initialization, PoolInitializationMetadata)
         assert prefilled.initialization.n_evaluations == 3
         assert prefilled.initialization.pool_size == 3
@@ -314,7 +318,7 @@ def main() -> None:
                 "-m",
                 "rko_solver.examples.instance_pipeline",
                 "--time-limit",
-                "0.05",
+                str(SEARCH_SECONDS),
                 "--validate-solution",
             ],
             check=True,
