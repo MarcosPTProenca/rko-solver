@@ -2,8 +2,9 @@
 
 Self-Evolve improves an **existing seed decoder**, leaving the RKO engine, reader,
 objective, constraints and validator unchanged. It searches over source programs;
-it does not train neural-network weights. This first milestone is an explicit
-**Pi-assisted file exchange**, not an autonomous provider integration.
+it does not train neural-network weights. The manual **Pi-assisted file exchange**
+remains available; an optional automated Pi proposal transport now pauses for
+explicit human review before any candidate evaluation.
 
 The opt-in namespace is `rko_solver.experimental.self_evolve`. Existing RKO imports and
 callback workflows are unchanged. No extra Python dependency is added to the core.
@@ -17,12 +18,13 @@ export/reviewed submission, experimental export and offline replay. A [locked-st
 now support the next research stage, but no substantial confirmation study or
 statistical superiority claim has been completed.
 
-Not delivered: direct API automation, automated Pi/subscription integration,
+The opt-in M5a transport targets Pi 1.3.0 on Linux/WSL and the built-in OpenAI Codex
+OAuth route; it is not a live-provider qualification or a guarantee of subscription
+eligibility. Not delivered: direct API automation, other automated providers,
 mathematical-model integration, production deployment, sealed-test statistical
-confirmation, or a claim that evolved decoders outperform the baselines. Later
-harness automation will use **Pi by default**, with supported existing authentication
-where available, and explicit direct API access as an alternative. Subscription
-eligibility/automation permissions require qualification; no silent billable fallback.
+confirmation, or a claim that evolved decoders outperform the baselines. Supported
+account access and automation permissions require operator qualification; no silent
+billable API-key fallback is provided.
 
 ## Required seed and problem contract
 
@@ -136,6 +138,106 @@ campaign stores source lineage, hypotheses, failure-inclusive JSONL measurements
 instance/solver seeds and a frozen evaluation specification. Preserve the Pi session
 transcript separately for proposer/model/intervention provenance; this manual
 transport does not automatically extract provider billing or conversation history.
+
+### Optional review-gated Pi transport (M5a)
+
+This opt-in transport targets **Pi 1.3.0 on Linux/WSL**, initially with the built-in
+`openai-codex` / `openai-codex-responses` route and supported Pi OAuth login. It adds
+no Python dependency or default/core behavior. Other versions/providers, custom
+endpoints and direct API transports are unsupported. Fake-process tests and local
+metadata checks are not live authentication or provider-policy qualification.
+
+Create a non-secret configuration outside the repository, using real absolute
+paths and an exact model ID available to your eligible account:
+
+```json
+{
+  "executable": "/absolute/path/to/pi",
+  "profile": "/private/pi-self-evolve",
+  "provider": "openai-codex",
+  "model": "gpt-6-luna",
+  "seconds": 120
+}
+```
+
+`seconds` must be a finite number from 1 to 600. Initialize a **new** dedicated profile:
+
+```bash
+uv run python -m rko_solver.experimental.self_evolve pi-profile /private/pi-config.json
+```
+
+This creates owner-private settings, never credentials. Authenticate manually
+using Pi's supported `/login` in that profile with the exact provider/model.
+Do not copy `auth.json`, hand-edit credentials, supply a new API key, or weaken
+an ordinary profile's settings. Use `/login` only, then exit without prompting:
+
+```bash
+PI_CODING_AGENT_DIR=/private/pi-self-evolve \
+  /absolute/path/to/pi --provider openai-codex --model gpt-6-luna \
+  --no-session --no-tools --no-extensions --no-mcp --no-skills \
+  --no-prompt-templates --no-themes --no-context-files --no-approve --offline
+```
+
+Confirm account eligibility and provider terms yourself. OAuth is not a promise
+of free generation: monetary cost is **unknown**, and provider-side work/charges
+may continue after a client timeout. RKO never falls back to API-key billing.
+The controller checks credential **metadata**, not credential values; it neither
+copies credentials into a campaign nor sends them to decoder workers.
+
+After creating and calibrating the ordinary seed-based campaign:
+
+```bash
+uv run python -m rko_solver.experimental.self_evolve propose /private/campaign \
+  /private/pi-config.json --consent-development-data
+uv run python -m rko_solver.experimental.self_evolve proposal /private/campaign 1
+```
+
+Consent authorizes sending this campaign's **development** request to the selected
+provider. Keep credentials, protected evaluator internals and future sealed cases
+out of seed source/development data. Generation uses a fresh private directory,
+no persistent session, no tools/context discovery, fixed SSE provider transport,
+no automatic retry/compaction and bounded JSON RPC input/output. Proposer settings and the controller
+implementation identity are frozen before use.
+
+Success is `pending_review`, **not evaluated or accepted**. Inspect `source_path`,
+its hash and hypothesis as text; never import it on the host. The pending manifest
+is intentionally not a replay/export bundle. Then approve the exact reviewed
+SHA-256, or reject instead:
+
+```bash
+uv run python -m rko_solver.experimental.self_evolve approve-proposal /private/campaign 1 \
+  --sha256 EXACT_REVIEWED_SOURCE_SHA256 --reviewed-local-work
+uv run python -m rko_solver.experimental.self_evolve reject-proposal /private/campaign 1 \
+  --reason "non-secret reason for declining the source"
+```
+
+These are alternatives, not consecutive steps. Approval reuses the reserved
+proposal slot and existing isolated evaluation/acceptance rules. Export only
+through the ordinary campaign command after acceptance. Approval is an operator
+attestation, not proof of correctness or protection against a trusted caller
+intentionally repackaging source outside this workflow. Headless Pi/process-group
+supervision is **not an OS security sandbox**.
+
+Every generation reserves one of the existing ten slots **before** Pi starts;
+failed generation/rejection consumes it too. Missing usage/cost stays unknown,
+never zero; available provider-reported failure usage is incomplete. The deadline
+and cumulative output limits cover version/auth/RPC together, with a conservative
+fifteen-second cleanup reserve. Observed overruns retain full elapsed consumption
+and halt the campaign as an infrastructure error rather than clipping the charge.
+
+Interrupted or uncertain work remains `generation_unknown`/`evaluating` and blocks
+another generation. Inspect the recorded owned process groups first; only after
+confirming work stopped may an operator abandon with
+`reject-proposal ... --confirmed-stopped`. This refunds no slot, repairs no incomplete
+evaluation reservation, certifies no provider cancellation and clears no
+infrastructure halt. Preserve the private history. Controller/configuration
+identity changes require a new campaign, not ledger rewriting or silent migration.
+
+Safe requests, validated source and provenance stay owner-private; raw thinking,
+unrestricted provider errors and authentication payloads are not archived. Inspect
+JSON status rather than treating command completion as candidate success. This
+increment includes no unattended review, modeling bridge (M6), powered
+confirmation (M4), live provider qualification or added optimizer-value claim.
 
 ### Frozen pilot work
 
