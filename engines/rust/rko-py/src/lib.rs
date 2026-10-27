@@ -21,6 +21,7 @@
 //! Important criteria:
 //! - A callback receives a fresh array each call, never a view of engine memory.
 //! - Panics inside the engine become Python `RuntimeError`s, never abort the process.
+//! - A non-finite cost raises the same `ValueError` text as the Python engine.
 //!
 //! Inputs/Outputs:
 //! - Input: a problem object, specs, a time limit, a seed and execution settings.
@@ -302,7 +303,8 @@ fn result_to_dict<'py>(py: Python<'py>, result: &PortfolioResult) -> PyResult<Bo
 fn engine_error(error: &EngineError) -> PyErr {
     match error {
         EngineError::Invalid(message) => PyValueError::new_err(message.clone()),
-        other => PyRuntimeError::new_err(other.to_string()),
+        EngineError::InvalidCost { .. } => PyValueError::new_err(error.to_string()),
+        EngineError::Panic => PyRuntimeError::new_err(error.to_string()),
     }
 }
 

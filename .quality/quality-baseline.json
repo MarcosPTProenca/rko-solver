@@ -4,7 +4,7 @@
     "benchmarks/native_problem_study.py": 842,
     "benchmarks/native_report.py": 1185,
     "benchmarks/native_study.py": 717,
-    "engines/rust/rko-core/src/engine.rs": 659,
+    "engines/rust/rko-core/src/engine.rs": 654,
     "engines/rust/rko-core/src/local_search.rs": 605,
     "src/rko_solver/reporting.py": 674,
     "src/rko_solver/solver.py": 745,
@@ -182,12 +182,6 @@
     },
     "benchmarks/startup_stages.py::StartupProbe.run": {
       "cyclomatic_complexity": 11
-    },
-    "engines/cpp/src/lib.rs::rko_cpp_run": {
-      "parameter_count": 13
-    },
-    "engines/cpp/src/lib.rs::run#2": {
-      "nloc": 121
     },
     "engines/cpp/src/lib.rs::run_portfolio": {
       "cyclomatic_complexity": 11

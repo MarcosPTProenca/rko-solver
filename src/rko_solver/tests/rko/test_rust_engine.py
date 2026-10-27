@@ -133,7 +133,7 @@ def test_nonfinite_objective_is_rejected() -> None:
     """Non-finite costs fail the solve instead of entering the pool."""
     solver = RKO(lambda keys: keys, lambda value: float("nan"), 10, engine="rust")
     solver.algorithms = ["SA"]
-    with pytest.raises(RuntimeError, match="finite"):
+    with pytest.raises(ValueError, match="finite"):
         solver.solve(0.3)
 
 

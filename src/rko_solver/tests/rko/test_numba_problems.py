@@ -136,5 +136,5 @@ def test_nonfinite_objective_fails_the_solve() -> None:
         """
         return np.nan
 
-    with pytest.raises(RuntimeError, match="finite"):
+    with pytest.raises(ValueError, match="finite"):
         RKO(Numba(broken, 8), engine="rust", algorithms=["SA"]).solve(0.2)

@@ -5,6 +5,12 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ## Unreleased
 
+- A non-finite objective now raises `ValueError("Objective callbacks must return finite costs.")`
+  on the Python, Rust and C++ engines. The compiled engines used to raise a `RuntimeError` with a
+  differently worded message; code that caught that `RuntimeError` must catch `ValueError`.
+- The C++ engine honors `history_limit`: it used to accept the setting and return an empty
+  history, and now records the same capped incumbent history as the Python and Rust engines.
+
 - The NumPy lower bound is now `>=2.3.2`, the oldest release that ships a Python 3.14 wheel; the
   declared `>=2.0.0` could not be installed on the required Python and was never tested.
 
