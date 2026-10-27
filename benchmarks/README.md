@@ -1808,8 +1808,9 @@ Limitations that matter when reading these numbers:
 
 - **Search bounds were binding.** The tuned SA configurations cluster at the lower bounds of the
   space (`t0` 1e3, `alpha` 0.9, `beta_max` 0.01, `sa_max` 10 on Rastrigin) and BRKGA's population
-  at 500 on Knapsack and 10 on TSP and Rastrigin. The true optima may lie outside the ranges, so
-  the gains above are lower bounds and the tuners' ranking is conditional on these bounds.
+  at 500 on Knapsack and 10 on TSP and Rastrigin. These gains and tuner rankings are conditional
+  on the ranges. Wider ranges require separate held-out measurement; the gains are not guaranteed
+  lower bounds on what a finite-budget tuner would achieve in a larger space.
 - **One size per family, one engine, one budget (plus its tenfold check).** Nothing here covers
   larger instances, other problem types or the other eight algorithms.
 - **Gaps are relative to a calibration reference** built from default-parameter runs, so a negative
@@ -1843,3 +1844,67 @@ uv run --locked --group tuning python -m benchmarks.tuning run --directory "$HOM
 Do not compare normalized gaps across cohorts directly: calibration references differ. Compare
 profiles within the new cohort using paired repetitions and instances. These exploratory
 intervals describe this fixed comparison, not equivalence or a universal tuning ranking.
+
+### Expanded-range results
+
+Source: `2455be0` (protocol and tests committed before measurement). All **126 sessions** completed,
+followed by **66 configuration re-scores** at 500,000 evaluations without retuning. The second
+check uses the first ten new test instances and three fresh solver seeds (31000–31002). The
+agent monitored both processes with blocking waits; neither run reported an error. Total
+process-group memory peaked near 1.5 GB under a 5 GB cap.
+
+The reference files retain settings, source identity, chosen configurations and per-instance scores:
+
+- Original ranges: [`tuning-wide-original-reference.jsonl`](tuning-wide-original-reference.jsonl).
+- Expanded ranges: [`tuning-wide-expanded-reference.jsonl`](tuning-wide-expanded-reference.jsonl).
+- Longer-budget original: [`tuning-wide-original-confirm-reference.jsonl`](tuning-wide-original-confirm-reference.jsonl).
+- Longer-budget expanded: [`tuning-wide-expanded-confirm-reference.jsonl`](tuning-wide-expanded-confirm-reference.jsonl).
+
+At **50,000 evaluations**, mean normalized test gap, lower is better:
+
+| Family | Packaged fixed default | Original-range racing | Expanded-range racing | Expanded minus original (95% interval) |
+| --- | ---: | ---: | ---: | --- |
+| Knapsack | 0.53329 | 0.12873 | 0.07207 | -0.05666 (-0.06432 to -0.04838) |
+| Travelling salesperson | 0.56122 | 0.06635 | 0.05084 | -0.01551 (-0.02356 to -0.00783) |
+| Rastrigin | 0.47462 | 0.00815 | 0.00470 | -0.00345 (-0.00390 to -0.00300) |
+
+At **500,000 evaluations**, using the same configurations:
+
+| Family | Packaged fixed default | Original-range racing | Expanded-range racing | Expanded minus original (95% interval) |
+| --- | ---: | ---: | ---: | --- |
+| Knapsack | 0.22481 | 0.01474 | -0.02600 | -0.04074 (-0.04794 to -0.03388) |
+| Travelling salesperson | 0.25116 | 0.01710 | 0.01386 | -0.00324 (-0.01028 to +0.00431) |
+| Rastrigin | 0.11630 | -0.00029 | -0.00035 | -0.00006 (-0.00008 to -0.00005) |
+
+Widening the ranges helps on all three families at the tuning budget. At the longer budget,
+Knapsack retains a clear gain, the travelling-salesperson comparison has no detected difference,
+and Rastrigin's gain is very small. A negative gap beats the calibration reference, not a proven
+optimum. All tuned comparisons remain specific to fixed-parameter simulated annealing, not the
+library's default adaptive mode.
+
+Both profiles use paired repetition seeds and test-instance columns. The difference intervals
+resample those pairs together, not two independent collections of runs. The packaged-default
+scores match exactly between profiles at both budgets. These 95% percentile intervals use 4,000
+resamples with seed zero; they are exploratory, without multiple-comparison correction.
+
+The bounds still matter: median selected `sa_max` is 4,872 on Knapsack and 4,658 on the
+travelling-salesperson family, near the upper bound of 5,000. Median initial temperatures differ
+widely across families (about 0.53, 96 and 0.042 respectively). Thus these results do not identify
+a single generally suitable replacement default. The tested instances have now been inspected;
+selecting a cross-family default needs a training-only selection rule and another untouched
+confirmation set. No packaged parameters or production solver code changed.
+
+To regenerate the primary paired differences from the committed references:
+
+```bash
+uv run --locked --group tuning python - <<'PY'
+from pathlib import Path
+from benchmarks.tuning.analysis import Analysis
+old = Analysis(Path("benchmarks/tuning-wide-original-reference.jsonl"))
+new = Analysis(Path("benchmarks/tuning-wide-expanded-reference.jsonl"))
+for family in ("kp", "tsp", "rastrigin"):
+    first = old.matrices("SA", family)["racing"]
+    second = new.matrices("SA", family)["racing"]
+    print(family, new.interval(second - first))
+PY
+```

@@ -97,11 +97,18 @@ def noisy(config: dict[str, float], instance: int, seed: int) -> float:
     return true_value(config) * (1 + 0.3 * np.sin(instance)) + noise
 
 
-def test_decoded_points_are_valid_for_the_solver_including_the_corners() -> None:
-    """Every corner, the center and random points of every space run in the solver."""
+@pytest.mark.parametrize("profile", ["original", "expanded"])
+def test_decoded_points_are_valid_for_the_solver_including_the_corners(profile: str) -> None:
+    """Run boundary and random configurations of both profiles through the actual solver.
+
+    Args:
+        profile (str): Search-space profile to exercise.
+    """
+    from benchmarks.tuning.spaces import SPACE_PROFILES
+
     compiled = pytest.importorskip("numba").njit(lambda keys: float(np.sum((keys - 0.3) ** 2)))
     rng = random.Random(3)
-    for name, space in SPACES.items():
+    for name, space in SPACE_PROFILES[profile].items():
         points = [[0.0] * space.dimension, [1.0] * space.dimension, [0.5] * space.dimension]
         points += [[rng.choice([0.0, 1.0, rng.random()]) for _ in space.specs] for _ in range(25)]
         for point in points:
@@ -571,3 +578,36 @@ def test_expanded_decode_preserves_parameter_domains(point: list[float]) -> None
         for spec in space.specs:
             assert spec.low * (1 - 1e-12) <= config[spec.name] <= spec.high * (1 + 1e-12)
         ParameterValidator._values(space.algorithm, config)
+
+
+@pytest.mark.parametrize("suffix, count, field", [("", 63, "test"), ("-confirm", 33, "scores")])
+def test_expanded_reference_files_are_complete_and_paired(
+    suffix: str, count: int, field: str
+) -> None:
+    """Reference files retain matching cohorts, complete paired records and finite measurements.
+
+    Args:
+        suffix (str): Empty for the primary study or the longer-budget confirmation suffix.
+        count (int): Expected number of measurement records per profile.
+        field (str): Key holding each record's per-instance scores.
+    """
+    root = Path(__file__).resolve().parents[4] / "benchmarks"
+    measurements = {}
+    for profile in ("original", "expanded"):
+        path = root / f"tuning-wide-{profile}{suffix}-reference.jsonl"
+        rows = [json.loads(line) for line in path.read_text().splitlines()]
+        assert rows[0]["source_sha"].startswith("2455be0")
+        assert rows[0]["settings"]["seed_offset"] == 1_000_000
+        assert rows[0]["settings"]["space_profile"] == profile
+        records = rows[1:]
+        assert len(records) == count
+        keyed = {(r["family"], r.get("label", (r.get("tuner"), r.get("rep")))): r for r in records}
+        assert len(keyed) == count
+        assert all(r["algorithm"] == "SA" and np.isfinite(r[field]).all() for r in records)
+        measurements[profile] = keyed
+    assert measurements["original"].keys() == measurements["expanded"].keys()
+    for key, first in measurements["original"].items():
+        second = measurements["expanded"][key]
+        assert len(first[field]) == len(second[field]) == (10 if suffix else 20)
+        if first.get("label", first.get("tuner")) == "default":
+            assert first[field] == second[field]
