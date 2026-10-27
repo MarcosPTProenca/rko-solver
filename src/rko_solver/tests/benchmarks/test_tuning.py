@@ -16,7 +16,7 @@ Flow (pseudocode):
 3. Run a tiny real session, resume it and summarize synthetic records.
 
 Important criteria:
-- Optuna is optional for the test environment and its tests skip when it is missing.
+- The module is not collected unless `optuna` and `scipy` are installed (see `conftest.py`).
 - No test depends on machine speed: runs are limited by evaluations, not by time.
 
 Inputs/Outputs:
@@ -42,7 +42,6 @@ from pathlib import Path
 from rko_solver import RKO
 from rko_solver import Numba
 
-pytest.importorskip("scipy")
 TARGET = np.array([0.3, 0.7, 0.2, 0.6])
 SPACE = SPACES["BRKGA"]
 
@@ -168,7 +167,6 @@ def test_builtin_tuners_beat_random_configurations_within_budget(tuner: object) 
 
 def test_external_tuners_beat_random_configurations_within_budget() -> None:
     """Optuna's TPE and RKO itself also stay within budget and beat random configurations."""
-    pytest.importorskip("optuna")
     from benchmarks.tuning.external import OptunaTPE
     from benchmarks.tuning.external import RKOTuner
 
@@ -186,11 +184,13 @@ def test_tuner_arguments_are_validated() -> None:
         RandomHalving(eta=1)
     with pytest.raises(ValueError):
         IteratedRacing(alpha=2.0)
-    optuna_tuners = pytest.importorskip("benchmarks.tuning.external")
+    from benchmarks.tuning.external import OptunaTPE
+    from benchmarks.tuning.external import RKOTuner
+
     with pytest.raises(ValueError):
-        optuna_tuners.OptunaTPE(startup=0)
+        OptunaTPE(startup=0)
     with pytest.raises(ValueError):
-        optuna_tuners.RKOTuner(instances=0)
+        RKOTuner(instances=0)
 
 
 @pytest.fixture
