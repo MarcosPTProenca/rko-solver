@@ -194,6 +194,9 @@ class InstanceBank:
     def objective(self, instance: Instance) -> tuple[int, Callable[[np.ndarray], float]]:
         """Return the compiled objective of an instance, building it once per process.
 
+        Only the objectives of one family are kept: compiled code is the largest memory cost of a
+        worker, and sessions of a family run together.
+
         Args:
             instance (Instance): Instance to compile.
 
@@ -201,6 +204,11 @@ class InstanceBank:
             tuple[int, Callable[[np.ndarray], float]]: Dimension and the njit objective.
         """
         if instance.name not in self._compiled:
+            self._compiled = {
+                name: value
+                for name, value in self._compiled.items()
+                if name.startswith(f"{instance.family}-")
+            }
             dimension, compiled, _ = OBJECTIVES[instance.family](instance.path)
             compiled(np.full(dimension, 0.5))
             self._compiled[instance.name] = (dimension, compiled)

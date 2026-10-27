@@ -238,6 +238,21 @@ def test_instances_are_deterministic_calibrated_and_scored(
         small_bank.generate("nope", "train", 1)
 
 
+def test_the_bank_keeps_compiled_objectives_of_one_family_only(small_bank: InstanceBank) -> None:
+    """Switching family drops the compiled objectives of the previous one.
+
+    Args:
+        small_bank (InstanceBank): Bank with cheap calibration.
+    """
+    tsp = small_bank.generate("tsp", "train", 2)
+    rastrigin = small_bank.generate("rastrigin", "train", 1)
+    small_bank.objective(tsp[0])
+    small_bank.objective(tsp[1])
+    assert set(small_bank._compiled) == {tsp[0].name, tsp[1].name}
+    small_bank.objective(rastrigin[0])
+    assert set(small_bank._compiled) == {rastrigin[0].name}
+
+
 def synthetic_records() -> list[dict[str, object]]:
     """Build records in which `good` beats the default, `bad` loses and `same` ties.
 
