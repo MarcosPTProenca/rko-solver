@@ -113,6 +113,10 @@ release = [
     "packaging>=26,<27",
     "twine>=6.2,<7",
 ]
+tuning = [
+    "optuna==5.0.0",
+    "scipy==1.18.1",
+]
 
 [tool.ruff]
 line-length = 100
