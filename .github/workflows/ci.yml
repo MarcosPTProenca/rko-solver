@@ -72,8 +72,8 @@ jobs:
         run: uv run --locked ruff check .
       - name: Ruff format check
         run: uv run --locked ruff format --check .
-      - name: Full test suite
-        run: uv run --locked pytest src/rko_solver/tests -q
+      - name: Full test suite, including the tuning harness
+        run: uv run --locked --group tuning pytest src/rko_solver/tests -q
       - name: Optional interactive reports
         run: uv run --locked --extra reports pytest src/rko_solver/tests/rko/test_reporting.py src/rko_solver/tests/rko/test_tracing.py src/rko_solver/tests/test_documentation_examples.py -q
       - name: Source-identified profile diagnostic smoke
@@ -165,11 +165,11 @@ jobs:
       - name: Set up uv v10.3.2
         uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
       - name: Sync locked dependencies with every optional extra
-        run: uv sync --locked --group dev --group service-test --group model-validation --extra service --extra reports --extra pyomo --extra pulp --extra mathopt
+        run: uv sync --locked --group dev --group service-test --group model-validation --group tuning --extra service --extra reports --extra pyomo --extra pulp --extra mathopt
       - name: Point PyO3 at the project interpreter
         run: echo "PYO3_PYTHON=$(uv run --locked python -c 'import sys; print(sys.executable)')" >> "$GITHUB_ENV"
       - name: Python line and branch coverage with the modeling frontends (floor in pyproject.toml)
-        run: uv run --locked --extra service --extra reports --extra pyomo --extra pulp --extra mathopt --group service-test --group model-validation pytest src/rko_solver/tests -q --cov
+        run: uv run --locked --extra service --extra reports --extra pyomo --extra pulp --extra mathopt --group service-test --group model-validation --group tuning pytest src/rko_solver/tests -q --cov
       - name: Install the Rust coverage tool
         run: |
           rustup component add llvm-tools-preview

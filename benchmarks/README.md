@@ -1716,3 +1716,30 @@ RNG-isolation replay deliberately injects the current `SolutionPool` into both
 historical and current algorithm implementations. That controls the shared pool
 context; it is not a replay of historical application admission semantics or a
 reinterpretation of historical timing/result files.
+
+## Parameter tuning bake-off
+
+`benchmarks/tuning/` compares ways of choosing the fixed (offline) parameters of SA, BRKGA and
+GRASP: random search with successive halving, iterated racing in the style of irace (not irace
+itself), Optuna's TPE sampler with median pruning, and RKO tuning RKO. It measures how much each
+gains over the packaged default and over a random configuration, and reports where it loses.
+
+**Protocol.** Each session gives a tuner the same budget of solver runs (1,000 by default) on 12
+training instances of one problem family (Knapsack with 300 items, TSP with 60 cities, shifted
+Rastrigin in 30 dimensions), then scores the configuration it returns on 20 held-out instances
+with 5 seeds that no tuner saw. Runs use the Rust engine, one worker and a limit of 50,000
+evaluations, so the work never depends on machine speed. A score is the cost normalized per
+instance: 0 equals the best of longer default-parameter runs, 1 equals a barely started search
+and negative values beat that reference. The default and one random configuration per repetition
+go through the identical held-out scoring. Tables give bootstrap 95% intervals that resample both
+repetitions and instances.
+
+```bash
+uv run --locked --group tuning python -m benchmarks.tuning run --directory tuning-work --workers 4
+uv run --locked --group tuning python -m benchmarks.tuning report --directory tuning-work
+```
+
+`run` resumes: sessions already in `tuning-work/results.jsonl` are skipped. Conclusions hold for
+the evaluation budget and the problem families measured and are not a claim about other budgets
+or problems; in particular a default that is poor at 50,000 evaluations may be adequate at
+millions.
