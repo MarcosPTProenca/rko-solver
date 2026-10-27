@@ -62,12 +62,13 @@ class ParameterSpec:
             unit (float): Value in [0, 1]; values outside are clipped.
 
         Returns:
-            float: Parameter value, rounded when the parameter is integral.
+            float: Parameter value as a plain `float` (the solver rejects numpy scalars),
+                rounded when the parameter is integral.
 
         Raises:
             ValueError: If the scale is not one of the supported names.
         """
-        point = min(1.0, max(0.0, unit))
+        point = min(1.0, max(0.0, float(unit)))
         if self.scale == "linear":
             value = self.low + point * (self.high - self.low)
         elif self.scale == "log":

@@ -117,6 +117,39 @@ def test_decoded_points_are_valid_for_the_solver_including_the_corners() -> None
         )
 
 
+@pytest.mark.parametrize("name", list(SPACES))
+def test_decoded_values_are_plain_numbers_even_for_numpy_points(name: str) -> None:
+    """The solver rejects numpy scalars, so decoding must return exact `int` or `float`.
+
+    Args:
+        name (str): Algorithm name.
+    """
+    space = SPACES[name]
+    for point in (np.random.default_rng(1).random(space.dimension), [0.3] * space.dimension):
+        assert all(type(value) in (int, float) for value in space.decode(point).values())
+
+
+def test_a_failing_session_stops_the_bake_off_instead_of_being_swallowed(
+    small_bank: InstanceBank, tmp_path: Path
+) -> None:
+    """The error of a session that fails inside a worker propagates out of `BakeOff.run`.
+
+    Args:
+        small_bank (InstanceBank): Bank used for its directory.
+        tmp_path (Path): Directory for the results file.
+    """
+    from benchmarks.tuning.protocol import BakeOff
+    from benchmarks.tuning.protocol import Settings
+
+    small_bank.calibrate(small_bank.generate("rastrigin", "train", 1))
+    small_bank.calibrate(small_bank.generate("rastrigin", "test", 1))
+    settings = Settings(str(small_bank.directory), budget=10, train=1, test=1, workers=1)
+    bake = BakeOff(settings, tmp_path / "results.jsonl")
+    with pytest.raises(KeyError, match="NOPE"):
+        bake.run(["NOPE"], ["rastrigin"], ["random_halving"], reps=1)
+    assert [x for x in (tmp_path / "results.jsonl").read_text().splitlines()][1:] == []
+
+
 def test_decode_is_pure_clips_and_checks_its_input() -> None:
     """Equal points decode equally, out-of-range values clip and a wrong size is rejected."""
     point = [0.2, 0.4, 0.6, 0.8]

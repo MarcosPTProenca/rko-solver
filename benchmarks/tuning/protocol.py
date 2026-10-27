@@ -37,6 +37,8 @@ import functools
 import json
 import multiprocessing
 import numpy as np
+import os
+import sys
 import time
 import zlib
 from benchmarks.tuning.external import OptunaTPE
@@ -154,6 +156,10 @@ def run_session(payload: tuple[Settings, str, str, str, int]) -> dict[str, objec
         KeyError: If the algorithm, family or tuner is unknown.
     """
     settings, algorithm, family, tuner, rep = payload
+    label = f"{algorithm}/{family}/{tuner}/{rep}"
+    print(
+        f"{time.strftime('%H:%M:%S')} start {label} pid={os.getpid()}", file=sys.stderr, flush=True
+    )
     bank, instances = _worker_bank(settings)
     train, test = instances[(family, "train")], instances[(family, "test")]
     space = SPACES[algorithm]
@@ -182,6 +188,11 @@ def run_session(payload: tuple[Settings, str, str, str, int]) -> dict[str, objec
         )
         for item in test
     ]
+    print(
+        f"{time.strftime('%H:%M:%S')} end   {label} {tuned_seconds:.0f}s",
+        file=sys.stderr,
+        flush=True,
+    )
     return {
         "kind": "session",
         "algorithm": algorithm,
@@ -288,6 +299,8 @@ class BakeOff:
 
         Raises:
             KeyError: If a name is unknown.
+            Exception: The first failure of any session, after cancelling the queued ones, so a
+                broken configuration cannot run silently to the end of the queue.
         """
         if not self.results.is_file():
             self.results.parent.mkdir(parents=True, exist_ok=True)
@@ -298,6 +311,11 @@ class BakeOff:
         with ProcessPoolExecutor(self.settings.workers, mp_context=context) as pool:
             futures = [pool.submit(run_session, item) for item in todo]
             for future in as_completed(futures):
+                try:
+                    record = future.result()
+                except BaseException:
+                    pool.shutdown(wait=False, cancel_futures=True)
+                    raise
                 with self.results.open("a", encoding="utf-8") as stream:
-                    stream.write(json.dumps(future.result()) + "\n")
+                    stream.write(json.dumps(record) + "\n")
         return len(todo)
