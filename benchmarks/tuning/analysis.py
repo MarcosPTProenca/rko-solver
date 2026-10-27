@@ -105,6 +105,32 @@ class Analysis:
         low, high = np.percentile(draws, [2.5, 97.5])
         return float(values.mean()), float(low), float(high)
 
+    def pair_interval(self, first: Matrix, second: Matrix) -> tuple[float, float, float]:
+        """Bootstrap the difference of mean scores of two tuners on the same instances.
+
+        Repetitions are resampled independently for each tuner, because their sessions are
+        independent, and instances jointly, because both were scored on the same ones.
+
+        Args:
+            first (Matrix): Scores of shape `(repetitions, instances)`.
+            second (Matrix): Scores of shape `(repetitions, instances)`, same instances.
+
+        Returns:
+            tuple[float, float, float]: Estimate of `first - second`, lower and upper bounds.
+        """
+        rng = np.random.default_rng(self.seed + 1)
+        instances = first.shape[1]
+        draws = np.empty(self.resamples)
+        for index in range(self.resamples):
+            columns = rng.integers(instances, size=instances)
+            rows_a = rng.integers(len(first), size=len(first))
+            rows_b = rng.integers(len(second), size=len(second))
+            draws[index] = (
+                first[np.ix_(rows_a, columns)].mean() - second[np.ix_(rows_b, columns)].mean()
+            )
+        low, high = np.percentile(draws, [2.5, 97.5])
+        return float(first.mean() - second.mean()), float(low), float(high)
+
     def verdict(self, matrix: Matrix, baseline: Matrix) -> str:
         """Classify a tuner against the default.
 
@@ -139,23 +165,27 @@ class Analysis:
         lines = [
             f"### {algorithm} on {family}",
             "",
-            "| Tuner | Runs | Held-out gap (95% CI) | Difference to default (95% CI) "
+            "| Tuner | Runs | Seconds | Held-out gap (95% CI) | Difference to default (95% CI) "
             "| Sessions better than default | Verdict |",
-            "| --- | ---: | --- | --- | ---: | --- |",
+            "| --- | ---: | ---: | --- | --- | ---: | --- |",
         ]
         for tuner in ["default", "random", *sorted(set(data) - {"default", "random"})]:
             if tuner not in data:
                 continue
             matrix = data[tuner]
             mean, low, high = self.interval(matrix)
-            runs = np.mean([r["runs_used"] for r in self._select(algorithm, family, tuner)])
+            chosen = self._select(algorithm, family, tuner)
+            runs = np.mean([r["runs_used"] for r in chosen])
+            seconds = np.mean([r["tune_seconds"] for r in chosen])
             if tuner == "default":
-                lines.append(f"| default | 0 | {mean:.3f} ({low:.3f} to {high:.3f}) | - | - | - |")
+                lines.append(
+                    f"| default | 0 | 0 | {mean:.3f} ({low:.3f} to {high:.3f}) | - | - | - |"
+                )
                 continue
             diff, dlow, dhigh = self.interval(matrix, default)
             better = int(np.sum(matrix.mean(axis=1) < default.mean()))
             lines.append(
-                f"| {tuner} | {runs:.0f} | {mean:.3f} ({low:.3f} to {high:.3f}) | "
+                f"| {tuner} | {runs:.0f} | {seconds:.0f} | {mean:.3f} ({low:.3f} to {high:.3f}) | "
                 f"{diff:+.3f} ({dlow:+.3f} to {dhigh:+.3f}) | {better}/{len(matrix)} | "
                 f"{self.verdict(matrix, default)} |"
             )
@@ -178,8 +208,63 @@ class Analysis:
             if (r["algorithm"], r["family"], r["tuner"]) == (algorithm, family, tuner)
         ]
 
+    def ranking(self) -> str:
+        """Render, per cell, the best tuner and which others cannot be told apart from it.
+
+        The best tuner is the one with the lowest mean held-out gap. Another tuner is
+        indistinguishable from it when the interval of their difference includes zero and
+        clearly worse when the interval lies above zero.
+
+        Returns:
+            str: Markdown table with one row per (algorithm, family) cell.
+        """
+        lines = [
+            "## Best tuner per cell and who is indistinguishable from it",
+            "",
+            "| Cell | Best (mean gap) | Indistinguishable from best | Clearly worse than best |",
+            "| --- | --- | --- | --- |",
+        ]
+        firsts: collections.Counter[str] = collections.Counter()
+        for algorithm, family in sorted({(r["algorithm"], r["family"]) for r in self.records}):
+            found = self._cell_ranking(algorithm, family)
+            if found is None:
+                continue
+            best, mean, same, worse = found
+            firsts.update([best, *same])
+            lines.append(
+                f"| {algorithm} on {family} | {best} ({mean:.3f}) "
+                f"| {', '.join(same) or '-'} | {', '.join(worse) or '-'} |"
+            )
+        lines += ["", "Cells where each tuner is best or indistinguishable from the best: "]
+        lines[-1] += ", ".join(f"{t} {n}" for t, n in sorted(firsts.items()))
+        return "\n".join(lines) + "\n"
+
+    def _cell_ranking(
+        self, algorithm: str, family: str
+    ) -> tuple[str, float, list[str], list[str]] | None:
+        """Find the best tuner of one cell and sort the others against it.
+
+        Args:
+            algorithm (str): Algorithm name.
+            family (str): Problem family.
+
+        Returns:
+            tuple | None: Best tuner, its mean gap, tuners indistinguishable from it and tuners
+                clearly worse than it; None when the cell has no tuner results.
+        """
+        data = self.matrices(algorithm, family)
+        tuned = {t: m for t, m in data.items() if t not in ("default", "random")}
+        if not tuned:
+            return None
+        best = min(tuned, key=lambda t: float(tuned[t].mean()))
+        same, worse = [], []
+        for tuner in sorted(set(tuned) - {best}):
+            _, low, _ = self.pair_interval(tuned[tuner], tuned[best])
+            (worse if low > 0 else same).append(tuner)
+        return best, float(tuned[best].mean()), same, worse
+
     def report(self) -> str:
-        """Render every cell and a tally of verdicts per tuner.
+        """Render every cell, a tally of verdicts per tuner and the ranking per cell.
 
         Returns:
             str: Markdown report.
@@ -200,4 +285,4 @@ class Analysis:
         header += ["| Tuner | Better | Tie | Worse |", "| --- | ---: | ---: | ---: |"]
         for tuner, counts in sorted(tally.items()):
             header.append(f"| {tuner} | {counts['better']} | {counts['tie']} | {counts['worse']} |")
-        return "\n".join(header) + "\n\n" + "\n".join(sections)
+        return "\n".join(header) + "\n\n" + self.ranking() + "\n" + "\n".join(sections)

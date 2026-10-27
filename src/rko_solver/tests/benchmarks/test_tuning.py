@@ -117,6 +117,39 @@ def test_decoded_points_are_valid_for_the_solver_including_the_corners() -> None
         )
 
 
+@pytest.mark.parametrize("name", list(SPACES))
+def test_decoded_values_are_plain_numbers_even_for_numpy_points(name: str) -> None:
+    """The solver rejects numpy scalars, so decoding must return exact `int` or `float`.
+
+    Args:
+        name (str): Algorithm name.
+    """
+    space = SPACES[name]
+    for point in (np.random.default_rng(1).random(space.dimension), [0.3] * space.dimension):
+        assert all(type(value) in (int, float) for value in space.decode(point).values())
+
+
+def test_a_failing_session_stops_the_bake_off_instead_of_being_swallowed(
+    small_bank: InstanceBank, tmp_path: Path
+) -> None:
+    """The error of a session that fails inside a worker propagates out of `BakeOff.run`.
+
+    Args:
+        small_bank (InstanceBank): Bank used for its directory.
+        tmp_path (Path): Directory for the results file.
+    """
+    from benchmarks.tuning.protocol import BakeOff
+    from benchmarks.tuning.protocol import Settings
+
+    small_bank.calibrate(small_bank.generate("rastrigin", "train", 1))
+    small_bank.calibrate(small_bank.generate("rastrigin", "test", 1))
+    settings = Settings(str(small_bank.directory), budget=10, train=1, test=1, workers=1)
+    bake = BakeOff(settings, tmp_path / "results.jsonl")
+    with pytest.raises(KeyError, match="NOPE"):
+        bake.run(["NOPE"], ["rastrigin"], ["random_halving"], reps=1)
+    assert [x for x in (tmp_path / "results.jsonl").read_text().splitlines()][1:] == []
+
+
 def test_decode_is_pure_clips_and_checks_its_input() -> None:
     """Equal points decode equally, out-of-range values clip and a wrong size is rejected."""
     point = [0.2, 0.4, 0.6, 0.8]
@@ -238,6 +271,37 @@ def test_instances_are_deterministic_calibrated_and_scored(
         small_bank.generate("nope", "train", 1)
 
 
+def test_the_bank_keeps_compiled_objectives_of_one_family_only(small_bank: InstanceBank) -> None:
+    """Switching family drops the compiled objectives of the previous one.
+
+    Args:
+        small_bank (InstanceBank): Bank with cheap calibration.
+    """
+    tsp = small_bank.generate("tsp", "train", 2)
+    rastrigin = small_bank.generate("rastrigin", "train", 1)
+    small_bank.objective(tsp[0])
+    small_bank.objective(tsp[1])
+    assert set(small_bank._compiled) == {tsp[0].name, tsp[1].name}
+    small_bank.objective(rastrigin[0])
+    assert set(small_bank._compiled) == {rastrigin[0].name}
+
+
+def test_the_bank_builds_one_numba_problem_per_instance(small_bank: InstanceBank) -> None:
+    """Repeated runs on one instance reuse its `Numba` problem object.
+
+    Args:
+        small_bank (InstanceBank): Bank with cheap calibration.
+    """
+    instance = small_bank.calibrate(small_bank.generate("rastrigin", "train", 1))[0]
+    config = SPACES["GRASP"].default()
+    for seed in range(3):
+        small_bank.cost(instance, "GRASP", config, seed)
+    assert set(small_bank._problems) == {instance.name}
+    problem = small_bank._problems[instance.name]
+    small_bank.cost(instance, "GRASP", config, 9)
+    assert small_bank._problems[instance.name] is problem
+
+
 def synthetic_records() -> list[dict[str, object]]:
     """Build records in which `good` beats the default, `bad` loses and `same` ties.
 
@@ -259,6 +323,7 @@ def synthetic_records() -> list[dict[str, object]]:
                     "tuner": tuner,
                     "rep": rep,
                     "runs_used": 0 if tuner in ("default", "random") else 100,
+                    "tune_seconds": 1.0,
                     "test": list(
                         base + shift + (0 * noise if tuner in ("default", "same") else noise)
                     ),
@@ -284,6 +349,14 @@ def test_analysis_classifies_better_worse_and_tie(tmp_path: Path) -> None:
     assert analysis.interval(data["good"]) == analysis.interval(data["good"])
     report = analysis.report()
     assert "### SA on kp" in report and "| good |" in report and "better" in report
+    assert "| SA on kp | good (" in report and "Best tuner per cell" in report
+    low_good = analysis.pair_interval(data["good"], data["bad"])
+    assert low_good[2] < 0 and low_good[0] == pytest.approx(-0.4, abs=0.05)
+    assert (
+        analysis.pair_interval(data["same"], data["same"])[1]
+        <= 0
+        <= analysis.pair_interval(data["same"], data["same"])[2]
+    )
     assert analysis.cell("SA", "tsp") == ""
 
 
@@ -325,3 +398,41 @@ def test_protocol_runs_resumes_and_scores_held_out_instances(
     assert all(s["runs_used"] == 0 for s in sessions if s["tuner"] in BASELINES)
     assert session_seed("SA", "kp", "racing", 1) == session_seed("SA", "kp", "racing", 1)
     assert session_seed("SA", "kp", "racing", 1) != session_seed("SA", "kp", "racing", 2)
+
+
+def test_confirmation_scores_the_default_and_chosen_configurations_and_resumes(
+    small_bank: InstanceBank, tmp_path: Path
+) -> None:
+    """The longer-budget check scores each configuration once, resumes and summarizes.
+
+    Args:
+        small_bank (InstanceBank): Bank used to calibrate the instances in-process.
+        tmp_path (Path): Directory for the result files.
+    """
+    from benchmarks.tuning.confirm import Confirmation
+    from benchmarks.tuning.protocol import BakeOff
+    from benchmarks.tuning.protocol import Settings
+
+    small_bank.calibrate(small_bank.generate("rastrigin", "train", 3))
+    small_bank.calibrate(small_bank.generate("rastrigin", "test", 3))
+    settings = Settings(
+        str(small_bank.directory),
+        budget=30,
+        train=3,
+        test=3,
+        test_seeds=1,
+        evaluations=2000,
+        workers=1,
+    )
+    results = tmp_path / "results.jsonl"
+    BakeOff(settings, results).run(["GRASP"], ["rastrigin"], ["random_halving"], reps=2)
+    check = Confirmation(
+        results, tmp_path / "confirm.jsonl", small_bank.directory, "random_halving"
+    )
+    assert check.run(4000, 2, 1, 1) == 3
+    assert check.run(4000, 2, 1, 1) == 0
+    lines = [json.loads(x) for x in (tmp_path / "confirm.jsonl").read_text().splitlines()]
+    assert sorted(x["label"] for x in lines) == ["default", "random_halving-0", "random_halving-1"]
+    assert all(len(x["scores"]) == 2 and x["evaluations"] == 4000 for x in lines)
+    table = check.report(4000, resamples=200)
+    assert "| GRASP on rastrigin |" in table and "Verdict" in table

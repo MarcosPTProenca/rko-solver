@@ -11,7 +11,10 @@ Technical approach:
   a random configuration are scored by the identical code with zero tuning runs, so the question
   "is tuning worth it" is answered by the same measurement as "which tuner is best".
 - Sessions run in spawned worker processes (the Numba objectives compile once per worker) and
-  results are appended as they finish, so a stopped bake-off resumes where it ended.
+  results are appended as they finish, so a stopped bake-off resumes where it ended. Sessions are
+  ordered by family, which together with the bank keeping one family's compiled objectives bounds
+  worker memory. Replacing workers periodically (`max_tasks_per_child`) was tried and left the
+  pool hung with no workers, so workers live for the whole run.
 
 Flow (pseudocode):
 1. Generate and calibrate the training and held-out instances of each family.
@@ -34,6 +37,8 @@ import functools
 import json
 import multiprocessing
 import numpy as np
+import os
+import sys
 import time
 import zlib
 from benchmarks.tuning.external import OptunaTPE
@@ -151,6 +156,10 @@ def run_session(payload: tuple[Settings, str, str, str, int]) -> dict[str, objec
         KeyError: If the algorithm, family or tuner is unknown.
     """
     settings, algorithm, family, tuner, rep = payload
+    label = f"{algorithm}/{family}/{tuner}/{rep}"
+    print(
+        f"{time.strftime('%H:%M:%S')} start {label} pid={os.getpid()}", file=sys.stderr, flush=True
+    )
     bank, instances = _worker_bank(settings)
     train, test = instances[(family, "train")], instances[(family, "test")]
     space = SPACES[algorithm]
@@ -179,6 +188,11 @@ def run_session(payload: tuple[Settings, str, str, str, int]) -> dict[str, objec
         )
         for item in test
     ]
+    print(
+        f"{time.strftime('%H:%M:%S')} end   {label} {tuned_seconds:.0f}s",
+        file=sys.stderr,
+        flush=True,
+    )
     return {
         "kind": "session",
         "algorithm": algorithm,
@@ -258,8 +272,8 @@ class BakeOff:
         finished = self.done()
         return [
             (self.settings, a, f, t, r)
-            for a in algorithms
             for f in families
+            for a in algorithms
             for t in (*BASELINES, *tuners)
             for r in range(reps)
             if (a, f, t, r) not in finished and not (t == "default" and r > 0)
@@ -285,6 +299,8 @@ class BakeOff:
 
         Raises:
             KeyError: If a name is unknown.
+            Exception: The first failure of any session, after cancelling the queued ones, so a
+                broken configuration cannot run silently to the end of the queue.
         """
         if not self.results.is_file():
             self.results.parent.mkdir(parents=True, exist_ok=True)
@@ -295,6 +311,11 @@ class BakeOff:
         with ProcessPoolExecutor(self.settings.workers, mp_context=context) as pool:
             futures = [pool.submit(run_session, item) for item in todo]
             for future in as_completed(futures):
+                try:
+                    record = future.result()
+                except BaseException:
+                    pool.shutdown(wait=False, cancel_futures=True)
+                    raise
                 with self.results.open("a", encoding="utf-8") as stream:
-                    stream.write(json.dumps(future.result()) + "\n")
+                    stream.write(json.dumps(record) + "\n")
         return len(todo)

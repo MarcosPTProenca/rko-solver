@@ -1,0 +1,99 @@
+{
+  "benchmarks/blending_work.py": [
+    "benchmarks/fixed_work.py",
+    "benchmarks/performance_profile.py"
+  ],
+  "benchmarks/cpp_python_knapsack.py": [
+    "benchmarks/knapsack_utils.py"
+  ],
+  "benchmarks/knapsack.py": [
+    "benchmarks/knapsack_utils.py"
+  ],
+  "benchmarks/native_problem_study.py": [
+    "benchmarks/cpp_python_knapsack.py"
+  ],
+  "benchmarks/native_study.py": [
+    "benchmarks/cpp_python_knapsack.py",
+    "benchmarks/knapsack_utils.py"
+  ],
+  "benchmarks/performance_profile.py": [
+    "benchmarks/fixed_work.py"
+  ],
+  "benchmarks/tuning/__main__.py": [
+    "benchmarks/tuning/analysis.py",
+    "benchmarks/tuning/instances.py",
+    "benchmarks/tuning/protocol.py",
+    "benchmarks/tuning/spaces.py"
+  ],
+  "benchmarks/tuning/external.py": [
+    "benchmarks/tuning/objective.py",
+    "benchmarks/tuning/spaces.py",
+    "benchmarks/tuning/tuners.py"
+  ],
+  "benchmarks/tuning/instances.py": [
+    "benchmarks/python_problems.py",
+    "benchmarks/tuning/spaces.py"
+  ],
+  "benchmarks/tuning/protocol.py": [
+    "benchmarks/tuning/external.py",
+    "benchmarks/tuning/instances.py",
+    "benchmarks/tuning/objective.py",
+    "benchmarks/tuning/spaces.py",
+    "benchmarks/tuning/tuners.py"
+  ],
+  "benchmarks/tuning/tuners.py": [
+    "benchmarks/tuning/objective.py",
+    "benchmarks/tuning/spaces.py"
+  ],
+  "src/rko_solver/tests/benchmarks/test_blending_work.py": [
+    "benchmarks/blending_work.py"
+  ],
+  "src/rko_solver/tests/benchmarks/test_cpp_python_knapsack.py": [
+    "benchmarks/cpp_python_knapsack.py",
+    "benchmarks/knapsack_utils.py"
+  ],
+  "src/rko_solver/tests/benchmarks/test_engine_ratio.py": [
+    "benchmarks/engine_ratio.py"
+  ],
+  "src/rko_solver/tests/benchmarks/test_modeling_overhead.py": [
+    "benchmarks/modeling_overhead.py"
+  ],
+  "src/rko_solver/tests/benchmarks/test_modeling_validation.py": [
+    "benchmarks/modeling_cases.py",
+    "benchmarks/modeling_validation.py"
+  ],
+  "src/rko_solver/tests/benchmarks/test_native_report.py": [
+    "benchmarks/native_report.py"
+  ],
+  "src/rko_solver/tests/benchmarks/test_performance_profile.py": [
+    "benchmarks/performance_profile.py"
+  ],
+  "src/rko_solver/tests/benchmarks/test_performance_report.py": [
+    "benchmarks/performance_report.py"
+  ],
+  "src/rko_solver/tests/benchmarks/test_tuning.py": [
+    "benchmarks/tuning/__init__.py",
+    "benchmarks/tuning/analysis.py",
+    "benchmarks/tuning/external.py",
+    "benchmarks/tuning/instances.py",
+    "benchmarks/tuning/objective.py",
+    "benchmarks/tuning/protocol.py",
+    "benchmarks/tuning/spaces.py",
+    "benchmarks/tuning/tuners.py"
+  ],
+  "src/rko_solver/tests/metaheuristics/test_brkga_cs_correlation.py": [
+    "benchmarks/fixed_work.py"
+  ],
+  "src/rko_solver/tests/rko/test_model_repair.py": [
+    "benchmarks/modeling_cases.py"
+  ],
+  "src/rko_solver/tests/test_mutation_report.py": [
+    "tools/mutation_report.py"
+  ],
+  "src/rko_solver/tests/test_quality_gate.py": [
+    "tools/quality_gate.py"
+  ],
+  "src/rko_solver/tests/test_release.py": [
+    "tools/release.py"
+  ]
+}

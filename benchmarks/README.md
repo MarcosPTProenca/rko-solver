@@ -1743,3 +1743,79 @@ uv run --locked --group tuning python -m benchmarks.tuning report --directory tu
 the evaluation budget and the problem families measured and are not a claim about other budgets
 or problems; in particular a default that is poor at 50,000 evaluations may be adequate at
 millions.
+
+### Results of the 2026-10 run
+
+Reference data: [`tuning-bakeoff-reference.jsonl`](tuning-bakeoff-reference.jsonl) holds all 459
+sessions (3 algorithms, 3 families, 4 tuners and the baselines, 10 repetitions each) and
+[`tuning-confirm-reference.jsonl`](tuning-confirm-reference.jsonl) the longer-budget check. They were
+produced on one 6-core machine with the Rust engine and 4 workers. The harness is the one merged as
+`38b29db`; four fixes to it that do not change any score (memory use of workers, plain floats from
+the search space, failing fast, start and end logs) landed during the run. Re-running four of the
+earliest sessions with the final code reproduced their configurations and held-out scores exactly.
+`uv run --group tuning python -m benchmarks.tuning report --results benchmarks/tuning-bakeoff-reference.jsonl`
+regenerates every per-cell table with its intervals.
+
+Mean held-out gap (0 is the calibration reference, 1 a barely started search; lower is better):
+
+| Cell | default | random | random_halving | racing | optuna_tpe | rko |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| SA on kp | 0.538 | 0.437 | 0.172 | 0.124 | 0.156 | 0.188 |
+| SA on tsp | 0.571 | 0.328 | 0.095 | 0.071 | 0.087 | 0.088 |
+| SA on rastrigin | 0.473 | 0.374 | 0.010 | 0.008 | 0.011 | 0.010 |
+| BRKGA on kp | 0.250 | 0.284 | 0.076 | 0.034 | 0.042 | 0.090 |
+| BRKGA on tsp | 0.181 | 0.193 | 0.157 | 0.157 | 0.156 | 0.161 |
+| BRKGA on rastrigin | 0.036 | 0.042 | 0.019 | 0.019 | 0.018 | 0.020 |
+| GRASP on kp | 0.219 | 0.336 | 0.168 | 0.156 | 0.154 | 0.161 |
+| GRASP on tsp | 0.061 | 0.068 | 0.066 | 0.066 | 0.065 | 0.068 |
+| GRASP on rastrigin | 0.001 | 0.001 | 0.001 | 0.001 | 0.001 | 0.001 |
+
+Mean cost of a tuning session:
+
+| Tuner | Mean tuning time per session (s) | Mean solver runs |
+| --- | ---: | ---: |
+| random_halving | 99 | 994 |
+| racing | 85 | 987 |
+| optuna_tpe | 81 | 1000 |
+| rko | 82 | 1000 |
+
+What the data show, and what it does not:
+
+- **SA's packaged default loses clearly in every family.** Its gap is 0.47 to 0.57 against 0.008 to
+  0.17 after tuning, and every tuner beats it in all 10 repetitions of all three cells. A random
+  configuration is not enough: random draws tie with the default in two of the three SA cells, so
+  the gain comes from tuning and not from leaving the default.
+- **That is not only a short-budget effect.** Re-scoring the configurations chosen by iterated
+  racing at ten times the budget (500,000 evaluations, 10 held-out instances, 3 fresh seeds each)
+  leaves the SA default at 0.20 (Knapsack), 0.25 (TSP) and 0.11 (Rastrigin) against 0.006, 0.018 and
+  0.000 for the tuned configurations.
+- **BRKGA** improves in all three families at the tuning budget (Knapsack 0.25 to 0.034 with racing).
+  At ten times the budget the gain remains on Knapsack (0.028 to 0.001) and vanishes elsewhere, where
+  the default is already at 0.000 (Rastrigin) or ties (TSP).
+- **GRASP's default is close to what tuning finds.** Tuning helps on Knapsack (0.219 to between 0.154 and 0.168 depending on the tuner)
+  and the difference is gone at ten times the budget. On TSP the tuned configurations are slightly
+  worse than the default (+0.004 to +0.008; racing, random halving and RKO are significantly
+  worse, Optuna ties): twelve noisy training instances cannot improve a default that is already
+  near the floor, and picking the best of many noisy candidates adds a little of its own noise.
+  On Rastrigin every method sits at the 0.001 floor.
+- **The four tuners are close to each other and far from the default.** Per cell, iterated racing
+  is the best or indistinguishable from the best in 9 of 9 cells, Optuna's TPE in 6, random search
+  with halving in 5 and RKO-on-RKO in 3 (paired bootstrap on the same instances). Racing is clearly
+  best on SA (Knapsack, Rastrigin) and on BRKGA Knapsack; elsewhere the differences are within the
+  intervals. All four spend about 80 to 100 seconds per session on this machine.
+
+Limitations that matter when reading these numbers:
+
+- **Search bounds were binding.** The tuned SA configurations cluster at the lower bounds of the
+  space (`t0` 1e3, `alpha` 0.9, `beta_max` 0.01, `sa_max` 10 on Rastrigin) and BRKGA's population
+  at 500 on Knapsack and 10 on TSP and Rastrigin. The true optima may lie outside the ranges, so
+  the gains above are lower bounds and the tuners' ranking is conditional on these bounds.
+- **One size per family, one engine, one budget (plus its tenfold check).** Nothing here covers
+  larger instances, other problem types or the other eight algorithms.
+- **Gaps are relative to a calibration reference** built from default-parameter runs, so a negative
+  gap means beating that reference, not optimality.
+- **The default row is one deterministic configuration.** Its interval reflects held-out instances
+  only; the tuners' intervals reflect instances and repetitions.
+- **Racing is irace-style, not irace.** No conclusion about the irace package follows.
+- **No default was changed.** The held-out instances have now been looked at. Choosing new packaged
+  defaults from this run would need wider bounds and a fresh held-out set.
