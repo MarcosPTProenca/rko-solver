@@ -24,8 +24,8 @@
 //! - The engine exists only when built with `RKO_BUILD_CPP=1` on Linux; otherwise every call
 //!   returns an error and `available` is false.
 //! - Budgets are at least 0.05 s (the reference counts whole seconds, so a fractional budget
-//!   becomes a shortened last second), runs are serialized per process, and
-//!   history is not recorded; the pool prefill is part of the reference and always happens.
+//!   becomes a shortened last second), runs are serialized per process, and the pool prefill
+//!   is part of the reference and always happens.
 //! - A per-algorithm evaluation limit is enforced by the driver: the stop flag the headers poll
 //!   also reports a thread-local limit, and the first objective call after the limit throws a
 //!   private exception that ends that algorithm (the reference's IPR polls only its own timer),
@@ -121,207 +121,8 @@ mod imp {
 }
 
 #[cfg(rko_cpp)]
-mod imp {
-    #![allow(unsafe_code)]
-
-    use super::{Config, EngineError, PortfolioResult, Problem, Spec, reference_order};
-    use rko_core::engine::{Initialization, SearchReport};
-    use rko_core::search::Stop;
-    use std::ffi::c_void;
-    use std::panic::{AssertUnwindSafe, catch_unwind};
-    use std::sync::Mutex;
-    use std::time::Instant;
-
-    static RUN_LOCK: Mutex<()> = Mutex::new(());
-
-    #[repr(C)]
-    struct RawSpec {
-        algorithm: i32,
-        adaptive: i32,
-        offline: *const f64,
-        offline_len: usize,
-        states: *const f64,
-        state_count: usize,
-        state_len: usize,
-    }
-
-    #[repr(C)]
-    struct RawConfig {
-        time_limit: f64,
-        seed: u64,
-        pool_size: i32,
-        strategy: i32,
-        max_evaluations: u64,
-    }
-
-    #[repr(C)]
-    #[derive(Clone, Copy, Default)]
-    struct RawReport {
-        evaluations: u64,
-        elapsed: f64,
-        best_cost: f64,
-        hit_limit: i32,
-    }
-
-    type EvalFn = extern "C" fn(*const f64, usize, *mut c_void) -> f64;
-
-    unsafe extern "C" {
-        fn rko_cpp_run(
-            config: *const RawConfig,
-            specs: *const RawSpec,
-            spec_count: usize,
-            dimension: usize,
-            eval: EvalFn,
-            user: *mut c_void,
-            reports: *mut RawReport,
-            report_keys: *mut f64,
-            initialization: *mut RawReport,
-            best_cost: *mut f64,
-            best_keys: *mut f64,
-            error: *mut u8,
-            error_len: usize,
-        ) -> i32;
-    }
-
-    struct Callback<'a> {
-        problem: &'a dyn Problem,
-    }
-
-    extern "C" fn trampoline(keys: *const f64, size: usize, user: *mut c_void) -> f64 {
-        let callback = unsafe { &*user.cast::<Callback<'_>>() };
-        let row = unsafe { std::slice::from_raw_parts(keys, size) };
-        catch_unwind(AssertUnwindSafe(|| callback.problem.evaluate(row))).unwrap_or(f64::NAN)
-    }
-
-    fn algorithm_code(spec: &Spec) -> i32 {
-        rko_core::mh::Algorithm::all()
-            .iter()
-            .position(|candidate| *candidate == spec.algorithm)
-            .map_or(0, |index| index as i32)
-    }
-
-    pub(super) fn run(
-        problem: &dyn Problem,
-        specs: &[Spec],
-        config: &Config,
-    ) -> Result<PortfolioResult, EngineError> {
-        let dimension = problem.dimension();
-        let offline: Vec<Vec<f64>> = specs
-            .iter()
-            .map(|spec| reference_order(spec.algorithm, &spec.offline))
-            .collect();
-        let states: Vec<Vec<f64>> = specs
-            .iter()
-            .map(|spec| {
-                spec.states
-                    .iter()
-                    .flat_map(|state| reference_order(spec.algorithm, state))
-                    .collect()
-            })
-            .collect();
-        let raw_specs: Vec<RawSpec> = specs
-            .iter()
-            .enumerate()
-            .map(|(index, spec)| RawSpec {
-                algorithm: algorithm_code(spec),
-                adaptive: i32::from(spec.adaptive),
-                offline: offline[index].as_ptr(),
-                offline_len: offline[index].len(),
-                states: states[index].as_ptr(),
-                state_count: spec.states.len(),
-                state_len: spec
-                    .states
-                    .first()
-                    .map_or(0, |state| reference_order(spec.algorithm, state).len()),
-            })
-            .collect();
-        let raw_config = RawConfig {
-            time_limit: config.time_limit,
-            seed: config.seed,
-            pool_size: i32::try_from(config.pool_size).unwrap_or(i32::MAX),
-            strategy: i32::from(config.ls_strategy),
-            max_evaluations: config.max_evaluations.unwrap_or(0),
-        };
-        let mut reports = vec![RawReport::default(); specs.len()];
-        let mut report_keys = vec![0.0_f64; specs.len() * dimension];
-        let mut initialization = RawReport::default();
-        let mut best_cost = f64::INFINITY;
-        let mut best_keys = vec![0.0_f64; dimension];
-        let mut error = vec![0_u8; 256];
-        let callback = Callback { problem };
-        let _serialized = RUN_LOCK
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        let started = Instant::now();
-        let status = unsafe {
-            rko_cpp_run(
-                &raw_config,
-                raw_specs.as_ptr(),
-                raw_specs.len(),
-                dimension,
-                trampoline,
-                std::ptr::from_ref(&callback).cast_mut().cast::<c_void>(),
-                reports.as_mut_ptr(),
-                report_keys.as_mut_ptr(),
-                &mut initialization,
-                &mut best_cost,
-                best_keys.as_mut_ptr(),
-                error.as_mut_ptr(),
-                error.len(),
-            )
-        };
-        let message = String::from_utf8_lossy(
-            &error[..error
-                .iter()
-                .position(|byte| *byte == 0)
-                .unwrap_or(error.len())],
-        )
-        .into_owned();
-        match status {
-            0 => {}
-            1 => {
-                return Err(EngineError::InvalidCost {
-                    algorithm: "C++ reference",
-                });
-            }
-            _ => return Err(EngineError::Invalid(message)),
-        }
-        let search_reports = specs
-            .iter()
-            .enumerate()
-            .map(|(index, spec)| SearchReport {
-                index,
-                algorithm: spec.algorithm.name(),
-                seed: config.seed,
-                evaluations: reports[index].evaluations,
-                elapsed: reports[index].elapsed,
-                budget: config.time_limit,
-                stop: if reports[index].hit_limit != 0 {
-                    Stop::MaxEvaluations
-                } else {
-                    Stop::TimeLimit
-                },
-                best_cost: reports[index].best_cost,
-                best_keys: report_keys[index * dimension..(index + 1) * dimension].to_vec(),
-                history: Vec::new(),
-                history_observations: 0,
-            })
-            .collect();
-        Ok(PortfolioResult {
-            best_keys,
-            best_cost,
-            reports: search_reports,
-            elapsed: started.elapsed().as_secs_f64(),
-            workers: specs.len(),
-            initialization: Some(Initialization {
-                seed: config.seed,
-                evaluations: initialization.evaluations,
-                elapsed: initialization.elapsed,
-                pool_len: config.pool_size,
-            }),
-        })
-    }
-}
+#[path = "ffi.rs"]
+mod imp;
 
 #[cfg(test)]
 mod tests {
@@ -377,6 +178,29 @@ mod tests {
             run_portfolio(&problem, &[spec], &config),
             Err(EngineError::Invalid(message)) if message.contains("RKO_BUILD_CPP")
         ));
+    }
+
+    #[cfg(rko_cpp)]
+    #[test]
+    fn history_is_recorded_bounded_and_ends_at_the_final_incumbent() {
+        let problem = knapsack();
+        let mut settings = config(1.0);
+        settings.history_limit = 4;
+        settings.max_evaluations = Some(300);
+        let result = run_portfolio(&problem, &[spec(Algorithm::Sa, false)], &settings).unwrap();
+        let report = &result.reports[0];
+        assert!(report.history.len() >= 2 && report.history.len() <= 4);
+        assert!(report.history_observations >= report.history.len() as u64);
+        assert_eq!(report.history[0].evaluations, 1);
+        let last = report.history.last().unwrap();
+        assert_eq!(last.cost, report.best_cost);
+        assert!(report.history.windows(2).all(|pair| {
+            pair[0].cost >= pair[1].cost && pair[0].evaluations <= pair[1].evaluations
+        }));
+        settings.history_limit = 0;
+        let silent = run_portfolio(&problem, &[spec(Algorithm::Sa, false)], &settings).unwrap();
+        assert!(silent.reports[0].history.is_empty());
+        assert_eq!(silent.reports[0].history_observations, 0);
     }
 
     fn config(time_limit: f64) -> Config {

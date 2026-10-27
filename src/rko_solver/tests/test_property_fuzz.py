@@ -303,25 +303,22 @@ def test_non_finite_objectives_fail_cleanly_and_leave_the_engine_usable(
     assert solve(engine, 10, algorithms=["SA"], max_evaluations=20, random_state=1).n_evaluations
 
 
-def test_known_difference_non_finite_cost_exception_type() -> None:
-    """Pin the current difference so a future parity fix has to update this expectation.
+@pytest.mark.parametrize("engine", ENGINES)
+def test_non_finite_cost_raises_the_same_error_on_every_engine(engine: str) -> None:
+    """A non-finite cost raises `ValueError` with one message, whichever engine runs.
 
-    The Python engine raises `ValueError` for a non-finite cost while the Rust and C++ engines
-    raise `RuntimeError`; both messages name the finite-cost requirement.
+    Args:
+        engine (str): Engine under test.
     """
-    kinds = {}
-    for engine in [name for name in SETTINGS if name != "cpp" or native.cpp_available()]:
-        with pytest.raises(Exception) as caught:
-            RKO(
-                Callbacks(decode, lambda point: float("nan"), 10),
-                algorithms=["SA"],
-                max_evaluations=20,
-                engine=engine,
-                **SETTINGS[engine],
-            ).solve(5.0)
-        kinds[engine] = type(caught.value).__name__
-    assert kinds["python"] == "ValueError"
-    assert {kind for name, kind in kinds.items() if name != "python"} == {"RuntimeError"}
+    with pytest.raises(ValueError) as caught:
+        RKO(
+            Callbacks(decode, lambda point: float("nan"), 10),
+            algorithms=["SA"],
+            max_evaluations=20,
+            engine=engine,
+            **SETTINGS[engine],
+        ).solve(5.0)
+    assert str(caught.value) == "Objective callbacks must return finite costs."
 
 
 def parameter_files() -> dict[str, list[str]]:

@@ -24,6 +24,13 @@
 
 #include "Data.h"
 
+struct HistoryPoint
+{
+    double elapsed;
+    uint64_t evaluations;
+    double cost;
+};
+
 struct ThreadStats
 {
     uint64_t evaluations = 0;
@@ -31,6 +38,28 @@ struct ThreadStats
     bool hit_limit = false;
     double best_cost = std::numeric_limits<double>::infinity();
     std::vector<double> best_keys;
+    size_t history_limit = 0;
+    uint64_t history_observations = 0;
+    std::chrono::steady_clock::time_point started;
+    std::vector<HistoryPoint> history;
+
+    void record_history(double elapsed)
+    {
+        history_observations++;
+        history.push_back({elapsed, evaluations, best_cost});
+        if (history.size() > history_limit)
+        {
+            std::vector<HistoryPoint> compacted;
+            compacted.reserve(history_limit);
+            compacted.push_back(history.front());
+            for (size_t k = 2; k + 1 < history.size(); k += 2)
+            {
+                compacted.push_back(history[k]);
+            }
+            compacted.push_back(history.back());
+            history.swap(compacted);
+        }
+    }
 };
 
 thread_local ThreadStats *t_stats = nullptr;
@@ -102,6 +131,11 @@ double Decoder(TSol &s, const TProblemData &data)
         {
             t_stats->best_cost = value;
             t_stats->best_keys.assign(s.rk.begin(), s.rk.end());
+            if (t_stats->history_limit > 0)
+            {
+                t_stats->record_history(
+                    std::chrono::duration<double>(std::chrono::steady_clock::now() - t_stats->started).count());
+            }
         }
     }
     return value;
@@ -211,6 +245,8 @@ extern "C"
         int32_t pool_size;
         int32_t strategy;
         uint64_t max_evaluations;
+        uint64_t history_limit;
+        size_t dimension;
     };
 
     struct rko_cpp_report
@@ -219,6 +255,20 @@ extern "C"
         double elapsed;
         double best_cost;
         int32_t hit_limit;
+        uint64_t history_len;
+        uint64_t history_observations;
+    };
+
+    struct rko_cpp_outputs
+    {
+        rko_cpp_report *reports;
+        double *report_keys;
+        rko_cpp_report *initialization;
+        double *best_cost;
+        double *best_keys;
+        double *history_out;
+        char *error;
+        size_t error_len;
     };
 }
 
@@ -250,10 +300,17 @@ static void run_algorithm(int algorithm, const TRunData &run, const TProblemData
 }
 
 extern "C" int32_t rko_cpp_run(const rko_cpp_config *config, const rko_cpp_spec *specs, size_t spec_count,
-                               size_t dimension, rko_cpp_eval_fn eval, void *user, rko_cpp_report *reports,
-                               double *report_keys, rko_cpp_report *initialization, double *best_cost,
-                               double *best_keys, char *error, size_t error_len)
+                               rko_cpp_eval_fn eval, void *user, const rko_cpp_outputs *outputs)
 {
+    size_t dimension = config->dimension;
+    rko_cpp_report *reports = outputs->reports;
+    double *report_keys = outputs->report_keys;
+    rko_cpp_report *initialization = outputs->initialization;
+    double *best_cost = outputs->best_cost;
+    double *best_keys = outputs->best_keys;
+    double *history_out = outputs->history_out;
+    char *error = outputs->error;
+    size_t error_len = outputs->error_len;
     std::lock_guard<std::mutex> lock(g_run_mutex);
     if (spec_count == 0 || dimension == 0 || config->time_limit < 0.05 || config->pool_size < 2)
     {
@@ -337,6 +394,8 @@ extern "C" int32_t rko_cpp_run(const rko_cpp_config *config, const rko_cpp_spec 
         std::mt19937 engine;
         seed_engine(engine, config->seed, (uint32_t)i);
         double started = get_time_in_seconds();
+        t_stats->history_limit = (size_t)config->history_limit;
+        t_stats->started = std::chrono::steady_clock::now();
         try
         {
             run_algorithm(data_specs[i].algorithm, run, data);
@@ -395,6 +454,19 @@ extern "C" int32_t rko_cpp_run(const rko_cpp_config *config, const rko_cpp_spec 
         reports[i].elapsed = elapsed[i];
         reports[i].best_cost = stats[i].best_cost;
         reports[i].hit_limit = stats[i].hit_limit ? 1 : 0;
+        if (stats[i].history_limit > 0 && std::isfinite(stats[i].best_cost))
+        {
+            stats[i].record_history(elapsed[i]);
+        }
+        reports[i].history_len = stats[i].history.size();
+        reports[i].history_observations = stats[i].history_observations;
+        for (size_t k = 0; k < stats[i].history.size(); k++)
+        {
+            double *slot = history_out + (i * (config->history_limit + 1) + k) * 3;
+            slot[0] = stats[i].history[k].elapsed;
+            slot[1] = (double)stats[i].history[k].evaluations;
+            slot[2] = stats[i].history[k].cost;
+        }
         if (stats[i].best_keys.size() == dimension)
         {
             std::copy(stats[i].best_keys.begin(), stats[i].best_keys.end(), report_keys + i * dimension);

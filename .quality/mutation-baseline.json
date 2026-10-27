@@ -1,0 +1,24 @@
+{
+  "python": {
+    "rko_solver.components.adaptive_control.q_learning": 63,
+    "rko_solver.components.initialization.initialization": 61,
+    "rko_solver.components.shaking.mirror": 84,
+    "rko_solver.components.shaking.neighbor_swap": 83,
+    "rko_solver.components.shaking.random": 56,
+    "rko_solver.components.shaking.swap": 66,
+    "rko_solver.components.solution_pool": 68,
+    "rko_solver.components.validation": 75,
+    "rko_solver.metaheuristics.brkga_cs": 57,
+    "rko_solver.metaheuristics.grasp": 54,
+    "rko_solver.orchestration.factory": 78,
+    "rko_solver.solver": 64
+  },
+  "rust": {
+    "engines/rust/rko-core/src/config.rs": 95,
+    "engines/rust/rko-core/src/operators.rs": 18,
+    "engines/rust/rko-core/src/pool.rs": 83,
+    "engines/rust/rko-core/src/qlearning.rs": 61,
+    "engines/rust/rko-core/src/rng.rs": 51,
+    "engines/rust/rko-core/src/search.rs": 77
+  }
+}
