@@ -323,6 +323,7 @@ def synthetic_records() -> list[dict[str, object]]:
                     "tuner": tuner,
                     "rep": rep,
                     "runs_used": 0 if tuner in ("default", "random") else 100,
+                    "tune_seconds": 1.0,
                     "test": list(
                         base + shift + (0 * noise if tuner in ("default", "same") else noise)
                     ),
@@ -348,6 +349,14 @@ def test_analysis_classifies_better_worse_and_tie(tmp_path: Path) -> None:
     assert analysis.interval(data["good"]) == analysis.interval(data["good"])
     report = analysis.report()
     assert "### SA on kp" in report and "| good |" in report and "better" in report
+    assert "| SA on kp | good (" in report and "Best tuner per cell" in report
+    low_good = analysis.pair_interval(data["good"], data["bad"])
+    assert low_good[2] < 0 and low_good[0] == pytest.approx(-0.4, abs=0.05)
+    assert (
+        analysis.pair_interval(data["same"], data["same"])[1]
+        <= 0
+        <= analysis.pair_interval(data["same"], data["same"])[2]
+    )
     assert analysis.cell("SA", "tsp") == ""
 
 
@@ -389,3 +398,41 @@ def test_protocol_runs_resumes_and_scores_held_out_instances(
     assert all(s["runs_used"] == 0 for s in sessions if s["tuner"] in BASELINES)
     assert session_seed("SA", "kp", "racing", 1) == session_seed("SA", "kp", "racing", 1)
     assert session_seed("SA", "kp", "racing", 1) != session_seed("SA", "kp", "racing", 2)
+
+
+def test_confirmation_scores_the_default_and_chosen_configurations_and_resumes(
+    small_bank: InstanceBank, tmp_path: Path
+) -> None:
+    """The longer-budget check scores each configuration once, resumes and summarizes.
+
+    Args:
+        small_bank (InstanceBank): Bank used to calibrate the instances in-process.
+        tmp_path (Path): Directory for the result files.
+    """
+    from benchmarks.tuning.confirm import Confirmation
+    from benchmarks.tuning.protocol import BakeOff
+    from benchmarks.tuning.protocol import Settings
+
+    small_bank.calibrate(small_bank.generate("rastrigin", "train", 3))
+    small_bank.calibrate(small_bank.generate("rastrigin", "test", 3))
+    settings = Settings(
+        str(small_bank.directory),
+        budget=30,
+        train=3,
+        test=3,
+        test_seeds=1,
+        evaluations=2000,
+        workers=1,
+    )
+    results = tmp_path / "results.jsonl"
+    BakeOff(settings, results).run(["GRASP"], ["rastrigin"], ["random_halving"], reps=2)
+    check = Confirmation(
+        results, tmp_path / "confirm.jsonl", small_bank.directory, "random_halving"
+    )
+    assert check.run(4000, 2, 1, 1) == 3
+    assert check.run(4000, 2, 1, 1) == 0
+    lines = [json.loads(x) for x in (tmp_path / "confirm.jsonl").read_text().splitlines()]
+    assert sorted(x["label"] for x in lines) == ["default", "random_halving-0", "random_halving-1"]
+    assert all(len(x["scores"]) == 2 and x["evaluations"] == 4000 for x in lines)
+    table = check.report(4000, resamples=200)
+    assert "| GRASP on rastrigin |" in table and "Verdict" in table
