@@ -36,7 +36,7 @@ standard hooks directory. If `core.hooksPath` is centrally managed, integrate
 pre-commit with those existing hooks instead; no global Git settings are changed
 by this setup.
 
-The distribution is named `rko-solver` and imports as `rko_solver`; version `0.3.0a2`
+The distribution is named `rko-solver` and imports as `rko_solver`; version `0.3.0a3`
 identifies this prerelease, not a PyPI publication. Attribution and licensing
 boundaries are in [NOTICE](https://github.com/MarcosPTProenca/rko-solver/blob/main/NOTICE).
 
