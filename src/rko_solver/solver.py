@@ -40,6 +40,7 @@ from .engines.rust.batch import identity_decoder
 from .engines.rust.runner import NativeRunner
 from .metaheuristics.base import MetaheuristicBase
 from .modeling.adapters import ExtractedLinearModel
+from .modeling.construction import ModelConstruction
 from .modeling.factory import ModelFactory
 from .modeling.factory import ModelOptions
 from .modeling.linear import CompiledLinearModel
@@ -254,7 +255,7 @@ class RKO:
         self.result_: RKOResult | None = None
         self._native_workers: int | None = None
         self._model_source: ExtractedLinearModel | None = None
-        self._model_snapshot: CompiledLinearModel | None = None
+        self._model_snapshot: CompiledLinearModel | ModelConstruction | None = None
         self._model_compilation_seconds = 0.0
 
     @property

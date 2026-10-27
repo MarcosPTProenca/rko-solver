@@ -24,7 +24,7 @@ import time
 import typing
 from collections.abc import Callable
 from pathlib import Path
-from rko_solver.experimental.self_evolve.artifacts import FAMILIES
+from rko_solver.experimental.self_evolve.artifacts import ARTIFACT_FAMILIES
 from rko_solver.experimental.self_evolve.artifacts import DecoderArtifact
 from rko_solver.experimental.self_evolve.pi_config import PI_VERSION
 from rko_solver.experimental.self_evolve.pi_config import PiConfig
@@ -91,7 +91,7 @@ class PiTransport:
         """
         if sys.platform != "linux":
             raise PiError("platform")
-        if not isinstance(packet, dict) or packet.get("family") not in FAMILIES:
+        if not isinstance(packet, dict) or packet.get("family") not in ARTIFACT_FAMILIES:
             raise PiError("request")
         self.config.verify_profile()
         started = time.monotonic()

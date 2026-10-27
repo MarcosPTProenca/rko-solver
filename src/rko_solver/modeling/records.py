@@ -171,6 +171,57 @@ class ModelEvaluation:
 
 
 @dataclass(frozen=True, slots=True)
+class ModelStatistics:
+    """Keep completed model counts and optional capped output identities.
+
+    Responsibilities:
+    - Distinguish collected diagnostics from unknown manually supplied evidence.
+
+    Attributes:
+        evaluations (int): Successfully completed model evaluations.
+        infeasible_evaluations (int): Completed points that failed original row feasibility.
+        outputs (tuple[str, ...] | None): At most 256 distinct assignment hashes, or unknown.
+    """
+
+    evaluations: int
+    infeasible_evaluations: int
+    outputs: tuple[str, ...] | None = None
+
+    @classmethod
+    def merge(cls, values: tuple[ModelStatistics | None, ...]) -> ModelStatistics | None:
+        """Aggregate disjoint completed archives without inventing missing diagnostics.
+
+        Args:
+            values (tuple): Statistics for actual distinct startup/search archives.
+
+        Returns:
+            ModelStatistics | None: Combined known counts, or unknown when any are missing.
+        """
+        known = tuple(value for value in values if value is not None)
+        if not known or len(known) != len(values):
+            return None
+        return cls(
+            sum(v.evaluations for v in known),
+            sum(v.infeasible_evaluations for v in known),
+            cls._outputs(known),
+        )
+
+    @staticmethod
+    def _outputs(values: tuple[ModelStatistics, ...]) -> tuple[str, ...] | None:
+        """Merge capped assignment identities only when every archive collected them.
+
+        Args:
+            values (tuple[ModelStatistics, ...]): Known completed archives.
+
+        Returns:
+            tuple[str, ...] | None: At most 256 distinct identities, or explicitly unknown.
+        """
+        if any(value.outputs is None for value in values):
+            return None
+        return tuple(sorted({item for value in values for item in (value.outputs or ())}))[:256]
+
+
+@dataclass(frozen=True, slots=True)
 class ModelEvidence:
     """Transport bounded completed witnesses independently of score-selected pools.
 
@@ -188,3 +239,4 @@ class ModelEvidence:
     incumbent: ModelEvaluation
     best_feasible: ModelEvaluation | None
     first_feasible_at: float | None = None
+    statistics: ModelStatistics | None = None

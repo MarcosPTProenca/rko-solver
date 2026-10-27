@@ -30,6 +30,7 @@ from .records import LinearRow
 from .records import LinearVariable
 from .records import ModelEvaluation
 from .records import ModelEvidence
+from .records import ModelStatistics
 from .records import RepairDiagnostic
 from .records import RowDiagnostic
 from dataclasses import dataclass
@@ -109,7 +110,8 @@ class CompiledLinearModel(LinearEvaluation):
                 feasible = archive.best_feasible
         if incumbent is None:
             raise ValueError("Search incumbent has no matching completed model evidence.")
-        return ModelEvidence(incumbent, feasible, min(times) if times else None)
+        statistics = ModelStatistics.merge(tuple(archive.statistics for archive in evidence))
+        return ModelEvidence(incumbent, feasible, min(times) if times else None, statistics)
 
     @staticmethod
     def _matches(candidate: ModelEvaluation | None, keys: tuple[float, ...], score: float) -> bool:

@@ -7,7 +7,7 @@
     "engines/rust/rko-core/src/engine.rs": 659,
     "engines/rust/rko-core/src/local_search.rs": 605,
     "src/rko_solver/reporting.py": 674,
-    "src/rko_solver/solver.py": 844,
+    "src/rko_solver/solver.py": 746,
     "tools/release.py": 751
   },
   "functions": {
@@ -260,7 +260,7 @@
     },
     "engines/rust/rko-core/src/mh/sa.rs::run": {
       "cyclomatic_complexity": 27,
-      "nloc": 134
+      "nloc": 131
     },
     "engines/rust/rko-core/src/operators.rs::run": {
       "cyclomatic_complexity": 17
@@ -437,20 +437,17 @@
       "parameter_count": 8
     },
     "src/rko_solver/orchestration/processes.py::_worker": {
-      "cyclomatic_complexity": 21,
+      "cyclomatic_complexity": 20,
       "nloc": 115,
       "parameter_count": 18
     },
     "src/rko_solver/orchestration/processes.py::run_processes": {
-      "cyclomatic_complexity": 39,
+      "cyclomatic_complexity": 36,
       "nloc": 149,
       "parameter_count": 16
     },
-    "src/rko_solver/orchestration/search.py::SearchSession.evaluate": {
-      "cyclomatic_complexity": 12
-    },
     "src/rko_solver/orchestration/search.py::SearchSession.solve": {
-      "cyclomatic_complexity": 19,
+      "cyclomatic_complexity": 18,
       "parameter_count": 8
     },
     "src/rko_solver/reporting.py::OptimizationReport.__init__": {
@@ -496,13 +493,12 @@
       "parameter_count": 23
     },
     "src/rko_solver/solver.py::RKO._execute": {
-      "cyclomatic_complexity": 19,
-      "nloc": 124,
+      "cyclomatic_complexity": 13,
+      "nloc": 110,
       "parameter_count": 8
     },
     "src/rko_solver/solver.py::RKO.solve": {
-      "cyclomatic_complexity": 41,
-      "nloc": 126
+      "cyclomatic_complexity": 21
     },
     "src/rko_solver/tracing.py::DecisionTrace.__post_init__": {
       "cyclomatic_complexity": 40

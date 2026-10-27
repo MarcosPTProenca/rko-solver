@@ -295,7 +295,7 @@ class _CommandLine:
         if args.instance.stat().st_size > 65536:
             raise ValueError("Instance JSON exceeds 64 KiB.")
         data = json.loads(args.instance.read_text(encoding="utf-8"))
-        problem = Problem(data["family"], data["data"])
+        problem = Problem.restore(data["family"], data["data"])
         runner = PodmanRunner(args.image)
         runner.qualify()
         return runner.run(artifact, problem, seconds=args.seconds, seed=args.seed)

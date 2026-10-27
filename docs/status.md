@@ -30,16 +30,19 @@ supervision and arbitrary-adapter capacity guarantees are not provided.
 The opt-in [Self-Evolve pilot](self-evolve.md) provides seed-backed Pi file exchange
 and a review-gated Pi 1.3.0 proposal transport targeting built-in OpenAI Codex OAuth
 on Linux/WSL, rootless Podman evaluation, three fixed problem adapters, bounded campaign records
-and experimental artifact export/offline replay. The [locked-study tooling](confirmation-study.md)
+and experimental artifact export/offline replay. The experimental M6 bridge adds
+generic owned-model assignment construction through existing Pyomo/PuLP/MathOpt
+extraction, with protected original evaluation and independently verified witnesses.
+Its tiny GAP/unseen-size fixtures are correctness checks, not optimizer-value evidence. The [locked-study tooling](confirmation-study.md)
 adds frozen panels and paired analysis, not a completed confirmation experiment.
-It changes no shared RKO engine
-methods and makes no measured superiority claim. Linux/WSL live qualification is
+It changes no algorithm or ordinary callback/engine defaults and makes no measured
+superiority claim. Linux/WSL live qualification is
 required; ordinary unit tests do not certify isolation. Same-interpreter evaluator
 integrity is not guaranteed against hostile Python. Automated generation is opt-in,
 counted and paused for exact-source human approval; fake-process tests do not qualify
 live account access, subscription eligibility or provider terms. Monetary cost stays
 unknown, with no API-key fallback. Other automated providers/versions, direct API
-transport, mathematical-model integration, sealed-test statistical confirmation
+transport, broader model/runtime qualification, sealed-test statistical confirmation
 and production promotion remain deferred. Experimental exports are not production
 defaults or proof that program evolution improves a problem family.
 
