@@ -33,6 +33,7 @@ from rko_solver.experimental.self_evolve.artifacts import MAX_SOURCE
 from rko_solver.experimental.self_evolve.artifacts import DecoderArtifact
 from rko_solver.experimental.self_evolve.campaign_evaluation import CampaignEvaluation
 from rko_solver.experimental.self_evolve.problems import Problem
+from rko_solver.experimental.self_evolve.proposal_journal import ProposalJournal
 from rko_solver.experimental.self_evolve.sandbox import JOB_GRACE_SECONDS
 from rko_solver.experimental.self_evolve.sandbox import PodmanRunner
 from rko_solver.experimental.self_evolve.sandbox import SandboxError
@@ -58,7 +59,10 @@ class Campaign:
     Attributes:
         path (Path): Trusted host-side campaign directory, never mounted in workers.
         spec (dict[str, typing.Any]): Frozen development experiment specification.
+        _active_proposal (int | None): Object-local explicit review/evaluation admission.
     """
+
+    _active_proposal: int | None = None
 
     def __init__(self, path: Path) -> None:
         """Open and verify an existing campaign without importing decoder source.
@@ -226,19 +230,22 @@ class Campaign:
             handle.flush()
             os.fsync(handle.fileno())
 
-    def _check_budget(self, partition: str, reserve: float = 0) -> None:
+    def _check_budget(
+        self, partition: str, reserve: float = 0, *, active: int | None = None
+    ) -> None:
         """Reject new work that cannot fit the frozen time/CPU allocation.
 
         Args:
             partition (str): baseline or candidate CPU partition.
             reserve (float): Conservative maximum additional CPU charge.
+            active (int | None): Exact pending proposal being preflighted before runtime setup.
 
         Raises:
             BudgetExpired: If elapsed time or charged/reserved CPU exceeds its ceiling.
             ValueError: If unknown work or an earlier integrity failure forbids collection.
         """
         events = self.events()
-        self._check_integrity(events)
+        self._check_integrity(events, self._active_proposal if active is None else active)
         starts = [e["at"] for e in events if e["kind"] == "start"]
         if starts:
             elapsed = time.time() - starts[0]
@@ -249,15 +256,17 @@ class Campaign:
             raise BudgetExpired(f"{partition} CPU allocation exhausted.")
 
     @staticmethod
-    def _check_integrity(events: list[dict[str, typing.Any]]) -> None:
+    def _check_integrity(events: list[dict[str, typing.Any]], active: int | None = None) -> None:
         """Refuse collection after unknown reservations or recorded integrity failures.
 
         Args:
             events (list[dict[str, typing.Any]]): Durable controller history.
+            active (int | None): Exact object-local proposal currently approved for evaluation.
 
         Raises:
             ValueError: If reserved work is unknown or runtime/reference integrity failed.
         """
+        ProposalJournal(events).admit(active)
         if sum(e["kind"] == "reservation" for e in events) != sum(
             e["kind"] == "evaluation" for e in events
         ):
@@ -418,37 +427,57 @@ class Campaign:
                     "reviewed": True,
                 }
             )
-            try:
-                artifact = self._prepare_candidate(source, parent)
-                self._evaluation().candidate(runner, artifact)
-                decision = {
+            return self._evaluate_submission(source, parent, runner, attempt)
+
+    def _evaluate_submission(
+        self, source: str, parent: str, runner: PodmanRunner, attempt: int
+    ) -> dict[str, typing.Any]:
+        """Evaluate an already counted reviewed attempt through the unchanged candidate ladder.
+
+        Args:
+            source (str): Exact reviewed source bytes decoded as UTF-8.
+            parent (str): Eligible immutable lineage identity.
+            runner (PodmanRunner): Qualified pinned evaluation runtime.
+            attempt (int): Existing durable submission slot, never counted a second time.
+
+        Returns:
+            dict[str, typing.Any]: Durable accepted/rejected experimental decision.
+
+        Raises:
+            BudgetExpired: If the candidate ladder cannot fit the remaining allocation.
+            OSError: If source or decision persistence fails.
+        """
+        try:
+            artifact = self._prepare_candidate(source, parent)
+            self._evaluation().candidate(runner, artifact)
+            decision = {
+                "kind": "decision",
+                "attempt": attempt,
+                "candidate": artifact.digest,
+                "status": "accepted",
+                "meaning": "experimental shortlist only",
+            }
+        except BudgetExpired:
+            self._append(
+                {
                     "kind": "decision",
                     "attempt": attempt,
-                    "candidate": artifact.digest,
-                    "status": "accepted",
-                    "meaning": "experimental shortlist only",
+                    "status": "incomplete",
+                    "error": "Hard budget stopped this proposal; no free retry.",
                 }
-            except BudgetExpired:
-                self._append(
-                    {
-                        "kind": "decision",
-                        "attempt": attempt,
-                        "status": "incomplete",
-                        "error": "Hard budget stopped this proposal; no free retry.",
-                    }
-                )
-                raise
-            except (ValueError, SandboxError) as error:
-                decision = {
-                    "kind": "decision",
-                    "attempt": attempt,
-                    "status": "rejected",
-                    "error": str(error)[:500],
-                }
-                if isinstance(source, str) and len(source.encode()) <= MAX_SOURCE:
-                    (self.path / f"rejected-{attempt}.py").write_text(source, encoding="utf-8")
-            self._append(decision)
-            return decision
+            )
+            raise
+        except (ValueError, SandboxError) as error:
+            decision = {
+                "kind": "decision",
+                "attempt": attempt,
+                "status": "rejected",
+                "error": str(error)[:500],
+            }
+            if isinstance(source, str) and len(source.encode()) <= MAX_SOURCE:
+                (self.path / f"rejected-{attempt}.py").write_bytes(source.encode("utf-8"))
+        self._append(decision)
+        return decision
 
     def _prepare_candidate(self, source: str, parent: str) -> DecoderArtifact:
         """Validate source without importing it and persist a new lineage artifact.
