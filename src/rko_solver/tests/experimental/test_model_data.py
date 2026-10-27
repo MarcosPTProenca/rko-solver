@@ -67,6 +67,7 @@ def test_owned_model_transport_preserves_original_native_source(frontend: str) -
     Args:
         frontend (str): Installed qualified native frontend.
     """
+    pytest.importorskip("ortools" if frontend == "mathopt" else frontend)
     fixture = GeneralizedAssignment.fixture()
     native = PracticalModels.native(fixture.formulation(), frontend)
     source = ModelAdapter.extract(native)
@@ -86,6 +87,7 @@ def test_model_transport_rejects_unknown_or_drifting_original_semantics(mutation
     Args:
         mutation (str): Strict source/policy boundary violation.
     """
+    pytest.importorskip("pyomo")
     native = PracticalModels.native(GeneralizedAssignment.fixture().formulation(), "pyomo")
     original = ModelProblem.from_source(ModelAdapter.extract(native))
     data = copy.deepcopy(original.data)
@@ -113,6 +115,7 @@ def test_parent_checks_both_original_witnesses_without_decode_or_repair(
     Args:
         monkeypatch (pytest.MonkeyPatch): Trap any forbidden witness replay.
     """
+    pytest.importorskip("pyomo")
     native = PracticalModels.native(GeneralizedAssignment.fixture().formulation(), "pyomo")
     problem = ModelProblem.from_source(ModelAdapter.extract(native))
     values = (0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0)
