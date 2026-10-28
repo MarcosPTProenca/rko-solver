@@ -68,6 +68,7 @@ class PresetTask:
         evaluations (int): Evaluation limit per solver run.
         candidate (str): Stable configuration identifier.
         config (dict[str, float]): Fixed simulated-annealing parameters.
+        engine (str): Solver engine, defaulting to the original Rust study.
     """
 
     directory: str
@@ -78,6 +79,7 @@ class PresetTask:
     evaluations: int
     candidate: str
     config: dict[str, float]
+    engine: str = "rust"
 
 
 @functools.lru_cache(maxsize=2)
@@ -134,14 +136,28 @@ def score_cell(task: PresetTask) -> dict[str, Any]:
     seeds = design.train_seeds if task.phase == "train" else design.test_seeds
     base_seed = 44_000 if task.phase == "train" else 55_000
     items = bank.generate(task.family, task.phase, count)
-    costs = [
-        float(np.mean([bank.cost(item, "SA", task.config, base_seed + s) for s in range(seeds)]))
-        for item in items
-    ]
+    costs = []
+    for index, item in enumerate(items, 1):
+        costs.append(
+            float(
+                np.mean(
+                    [
+                        bank.cost(item, "SA", task.config, base_seed + s, engine=task.engine)
+                        for s in range(seeds)
+                    ]
+                )
+            )
+        )
+        print(
+            f"{time.strftime('%H:%M:%S')} progress {label} {index}/{count}",
+            file=sys.stderr,
+            flush=True,
+        )
     scores = [item.normalize(cost) for item, cost in zip(items, costs, strict=True)]
     print(f"{time.strftime('%H:%M:%S')} end {label}", file=sys.stderr, flush=True)
     return {
         "kind": "preset-score",
+        "engine": task.engine,
         "phase": task.phase,
         "family": task.family,
         "size": task.size,
@@ -332,7 +348,7 @@ class PresetStudy:
             try:
                 for future in as_completed(futures):
                     record = future.result()
-                    with path.open("a", encoding="utf-8") as stream:
+                    with path.open("a", encoding="utf-8", newline="\n") as stream:
                         stream.write(self._json(record) + "\n")
             except BaseException:
                 pool.terminate_workers()
@@ -351,11 +367,16 @@ class PresetStudy:
         Raises:
             ValueError: If records duplicate a key or do not belong to the phase.
         """
-        expected = {(t.candidate, t.family, t.size, t.evaluations) for t in tasks}
+        expected = {(t.candidate, t.family, t.size, t.evaluations): t.engine for t in tasks}
         seen = set()
         for row in self._records(path):
             key = (row["candidate"], row["family"], row["size"], row["evaluations"])
-            if key in seen or key not in expected or row["phase"] != tasks[0].phase:
+            if (
+                key in seen
+                or key not in expected
+                or row["phase"] != tasks[0].phase
+                or row.get("engine", "rust") != expected[key]
+            ):
                 raise ValueError("Duplicate or incompatible phase evidence.")
             seen.add(key)
         return seen

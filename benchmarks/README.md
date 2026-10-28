@@ -2017,3 +2017,37 @@ print(analysis.ranking(data["training"], set(data["protocol"]["candidates"]))[0]
 print(analysis.confirmation(data["confirmation"], data["selection"]["candidate"]))
 PY
 ```
+
+#### Cross-engine validation protocol
+
+`benchmarks.tuning.engine_confirmation` replays the **same locked configuration** and archived
+fixed default on Python and C++, without another training or candidate-selection step. This is
+an extension to unmeasured engines, not a new claim that the already inspected instance set is
+untouched. Every one of the original 72 confirmation instances is included; no cohort or cell
+is filtered using its Rust outcome. File hashes and archived calibration scales must match.
+
+Before either engine is measured, the design is frozen as follows:
+
+- Keep the original sizes, 50,000/500,000 search-evaluation budgets, five solver seeds per instance,
+  exact candidate values, default configuration, family weights and 20,000 bootstrap draws.
+- Apply the original overall-improvement and +0.02 cell-regression gates **separately per engine**.
+  All engines must pass before proposing a shared fixed-default change; averaging away a losing
+  engine or relaxing a gate is forbidden. Bounds retain the original per-engine interpretation.
+- Run Python sequentially inside each spawned scoring worker. Use native compiled objectives on
+  C++ and call the same compiled objective through identity-decoder callbacks on Python.
+- Require each simulated-annealing search to exhaust its evaluation budget. These budgets count
+  search work, excluding native pool initialization; C++ always performs that additional startup.
+- Pair observations by instance. C++ also uses unseeded process-global `rand()` in the reference
+  neighborhood operator, so a common `random_state` does not fully control its internal draws or
+  guarantee bitwise reproduction. Report this limitation rather than silently reseeding internals.
+- No parameter changes, candidate rounding or retuning follow a failed gate.
+
+```bash
+RKO_BUILD_CPP=1 UV_PYTHON=/usr/bin/python3.14 uv run --locked --group tuning python -m benchmarks.tuning.engine_confirmation run --directory "$HOME/rko-preset-engines" --engine python --workers 3
+RKO_BUILD_CPP=1 UV_PYTHON=/usr/bin/python3.14 uv run --locked --group tuning python -m benchmarks.tuning.engine_confirmation run --directory "$HOME/rko-preset-engines" --engine cpp --workers 3
+```
+
+Each engine has separate `protocol.json`, `test.jsonl` and `summary.json` files. Replay and resume
+require the frozen source and reference; read-only reporting verifies the stored scientific
+inputs without selecting again. New instance and score files use canonical line endings so
+reference hashes remain portable. No packaged solver parameter is changed by this workflow.

@@ -14,8 +14,8 @@ Technical approach:
   `(cost - best) / (anchor - best)`: 0 matches the reference, 1 matches a barely started search,
   and negative values beat the reference. Random keys are not used as the anchor because the
   infeasibility penalty of Knapsack makes their mean meaningless.
-- Runs use the Rust engine with a single worker and an evaluation limit, so the work done never
-  depends on machine speed.
+- Calibration and tuning use Rust by default. Sealed confirmation can also use Python or C++
+  with the same compiled objective, one search worker and an evaluation limit.
 
 Flow (pseudocode):
 1. Generate the instance files of a family and role.
@@ -41,6 +41,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from rko_solver import RKO
+from rko_solver import Callbacks
 from rko_solver import Numba
 
 FAMILIES = ("kp", "tsp", "rastrigin")
@@ -169,7 +170,7 @@ class InstanceBank:
             )
             path = self.directory / f"{family}-{role}-{index}.txt"
             if not path.is_file():
-                path.write_text(self._text(family, rng), encoding="utf-8")
+                path.write_text(self._text(family, rng), encoding="utf-8", newline="\n")
             found.append(self._with_calibration(Instance(family, role, index, path)))
         return found
 
@@ -239,36 +240,66 @@ class InstanceBank:
         return self._compiled[instance.name]
 
     def cost(
-        self, instance: Instance, algorithm: str, config: dict[str, float], seed: int
+        self,
+        instance: Instance,
+        algorithm: str,
+        config: dict[str, float],
+        seed: int,
+        *,
+        engine: str = "rust",
     ) -> float:
-        """Run the solver once and return the raw cost.
+        """Run the requested engine once and return the raw cost.
 
         Args:
             instance (Instance): Instance to solve.
             algorithm (str): Tuned algorithm.
             config (dict[str, float]): Offline parameters.
             seed (int): Run seed.
+            engine (str): `rust`, `python` or `cpp`; tuning defaults to Rust.
 
         Returns:
             float: Best objective value after the evaluation limit.
 
         Raises:
             ValueError: If the solver rejects the configuration.
+            RuntimeError: If simulated annealing stops without exhausting its search budget.
         """
         dimension, compiled = self.objective(instance)
-        if instance.name not in self._problems:
-            self._problems[instance.name] = Numba(compiled, dimension)
+        problem: Callbacks | Numba
+        if engine == "python":
+            problem = Callbacks(self.identity, compiled, dimension)
+        else:
+            if instance.name not in self._problems:
+                self._problems[instance.name] = Numba(compiled, dimension)
+            problem = self._problems[instance.name]
         result = RKO(
-            self._problems[instance.name],
-            engine="rust",
+            problem,
+            engine=engine,
             algorithms=[algorithm],
             adaptation="fixed",
             hyperparameters={algorithm: config},
             random_state=seed,
             max_evaluations=self.evaluations,
-            n_jobs=1,
+            n_jobs=1 if engine == "rust" else None,
+            execution="sequential" if engine == "python" else None,
         ).solve(3600.0)
+        if algorithm == "SA" and (
+            len(result.searches) != 1 or result.searches[0].n_evaluations != self.evaluations
+        ):
+            raise RuntimeError("Simulated annealing did not exhaust its search evaluation budget.")
         return float(result.cost)
+
+    @staticmethod
+    def identity(keys: np.ndarray) -> np.ndarray:
+        """Pass random keys unchanged to the same compiled objective used by native engines.
+
+        Args:
+            keys (np.ndarray): Candidate vector owned by the search.
+
+        Returns:
+            np.ndarray: Unmodified vector, without allocation.
+        """
+        return keys
 
     def score(
         self, instance: Instance, algorithm: str, config: dict[str, float], seed: int
