@@ -111,6 +111,19 @@ fixed-key and endpoint checks; no generic independent human baseline is invented
 The same **10 proposals / 30 CPU-minutes / 90 wall-minutes** and M5a pending-review,
 exact-hash approval and failure-inclusive slot rules apply.
 
+Model timing contract **v2** freezes a **1-second end-to-end job allowance** before
+proposal feedback; the three pilot families keep their existing allowances.
+Trusted model preparation, generated module initialization, construction and
+protected checking all remain charged. The model adapter carries the worker's
+absolute monotonic deadline into search and initialization sessions, so ordinary
+RKO's startup-excluding search duration cannot renew the job budget. A fixed
+**50 ms within that same second** is reserved for trusted evidence finalization
+(equally for RKO/random/fixed/check controls, capped at half the allowance for
+shorter offline jobs). It is not extra runtime. Parent runtime guards and the 10-proposal/30-CPU-minute/90-wall-minute ceilings are unchanged.
+Older model campaign timing profiles are rejected, not silently upgraded: start a
+fresh compatible campaign/image. This allowance is not a promise that every model
+or arbitrarily slow callback will fit.
+
 Construction and protected restoration/checking are charged together. The default
 model bridge retains continuous repair with **1024 sweeps**, allowing explicit
 `repair_sweeps` from **1 to 10000**. An actual score incumbent is kept separately

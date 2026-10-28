@@ -54,6 +54,7 @@ class _ModelRunner:
             improve (bool): Whether fake child observations improve original reference loss.
         """
         self.modes: list[str] = []
+        self.seconds: list[float] = []
         self.improve = improve
 
     def run(self, artifact: DecoderArtifact, problem: ModelProblem, **options: object) -> dict:
@@ -68,6 +69,7 @@ class _ModelRunner:
             dict: Explicitly synthetic completed policy-test record.
         """
         self.modes.append(str(options["mode"]))
+        self.seconds.append(float(options["seconds"]))
         values = (0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0)
         if artifact.parent is not None and self.improve:
             _, machines = GeneralizedAssignment.fixture().reference()
@@ -132,13 +134,18 @@ def test_model_campaign_request_excludes_reference_and_case_identity(tmp_path: P
     campaign = Campaign.create(
         tmp_path / "campaign", ModelProblem.seed_artifact(), _models(), _ModelRunner.image
     )
-    campaign.calibrate(_ModelRunner())
+    runner = _ModelRunner()
+    campaign.calibrate(runner)
+    assert set(runner.seconds) == {1.0}
     request = campaign.request(campaign.spec["seed"])
     assert "original-order" in request["semantics"]
     assert "private-fixture" not in str(request["development_instances"])
     assert "private-tiny-oracle" not in str(request)
     assert "optimum" not in str(request["development_instances"])
     assert campaign.spec["feasibility_policy"] == "feasibility_first"
+    assert campaign.spec["model_timing_contract"] == 2
+    assert campaign.spec["seconds"] == 1.0
+    assert request["timing_policy"] == "end_to_end" and request["job_seconds"] == 1.0
 
 
 def test_model_campaign_explores_row_infeasible_outputs_without_fake_human_baseline(

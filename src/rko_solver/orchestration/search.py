@@ -187,6 +187,16 @@ class SearchSession:
         if len(self._history) > self._history_limit:
             self._history = self._history[:1] + self._history[2:-1:2] + self._history[-1:]
 
+    def set_deadline(self, deadline: float) -> None:
+        """Bind an invocation deadline without renewing a constructed model's owner budget.
+
+        Args:
+            deadline (float): Absolute monotonic session deadline.
+        """
+        if isinstance(self._model, ModelConstruction) and self._model.deadline is not None:
+            deadline = min(deadline, self._model.deadline)
+        self.deadline = deadline
+
     def _check(self) -> None:
         """Stop after a valid result exists or when another worker failed.
 
@@ -326,7 +336,7 @@ class SearchSession:
         self.n_evaluations = 0
         self.metadata = None
         self._stop_reason = "completed"
-        self.deadline = started + duration if deadline is None else deadline
+        self.set_deadline(started + duration if deadline is None else deadline)
         self.cancelled = cancelled
         self.max_evaluations = max_evaluations
         original_decoder, original_cost = algorithm.decoder, algorithm.cost

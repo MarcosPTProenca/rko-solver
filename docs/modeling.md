@@ -109,7 +109,12 @@ remain authoritative. Completed search incumbents and best feasible original
 objectives are retained without rerunning construction/objective. Constructed-model
 results expose completed evaluation/infeasibility counts and capped distinct output
 identities through optional `statistics`; missing diagnostics are not invented.
-Ordinary model/callback defaults and default result JSON remain unchanged. Custom
+Ordinary model/callback defaults and default result JSON remain unchanged.
+An explicit `construction_deadline` is an optional finite absolute
+`time.perf_counter()` ceiling for construction-backed search/initialization
+sessions; it does not reset after solver setup. It is not exposed to the
+constructor's immutable mathematical context. The existing per-session
+first-completion grace remains; partial later invocations are not retained. Custom
 construction supports portable assignments/native-ID mapping but not transactional
 native write-back; `write_back` raises `NotImplementedError`. Existing default
 native write-back remains available. Fully fixed models bypass construction/search.

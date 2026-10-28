@@ -54,9 +54,11 @@ class ModelOptions(SearchOptions, total=False):
         engine (str): Python only, rejected before extraction otherwise.
         execution (str): Process, thread or sequential Python scheduling.
         repair (str): Continuous restoration by default at the public factory.
+        construction_deadline (float | None): Absolute monotonic model-session ceiling.
     """
 
     construction: ConstructionFn | None
+    construction_deadline: float | None
     algorithms: Sequence[str] | None
     adaptation: Adaptation | None
     control: int | None
@@ -85,9 +87,11 @@ class ModelFactorySettings:
         engine (str): Python-only generated-model engine.
         execution (str): Existing Python execution mode.
         repair (str): Bounded continuous restoration or explicit box-only mapping.
+        construction_deadline (float | None): Optional explicit owner deadline for construction.
     """
 
     construction: ConstructionFn | None = None
+    construction_deadline: float | None = None
     search_bounds: Mapping[str, tuple[float | None, float | None]] | None = None
     scoring: Literal["feasibility_first", "weighted_penalty"] = "feasibility_first"
     penalty_weight: float | None = None
@@ -180,6 +184,9 @@ class ModelFactory:
             TypeError: If an unknown option is supplied.
         """
         settings = ModelFactorySettings(**options)
+        ModelConstruction.validate_deadline(settings.construction_deadline)
+        if settings.construction_deadline is not None and settings.construction is None:
+            raise ValueError("construction_deadline requires an explicit construction callable.")
         if settings.engine != "python" or settings.execution not in (
             "process",
             "thread",
@@ -221,7 +228,9 @@ class ModelFactory:
             repair_max_sweeps=settings.repair_max_sweeps,
         )
         callbacks = (
-            ModelConstruction.bind(snapshot, source, settings.construction)
+            ModelConstruction.bind(
+                snapshot, source, settings.construction, deadline=settings.construction_deadline
+            )
             if settings.construction is not None and snapshot.n_keys
             else snapshot
         )

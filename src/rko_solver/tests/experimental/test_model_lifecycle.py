@@ -110,6 +110,10 @@ def test_model_review_to_rootless_export_and_unseen_offline_replay(
         campaign.approve(1, proposal["candidate"], runner, reviewed=False)
     decision = campaign.approve(1, proposal["candidate"], runner, reviewed=True)
     assert decision["status"] == "accepted", decision
+    assert campaign.spec["seconds"] == 1.0
+    measured = [event for event in campaign.events() if event["kind"] == "evaluation"]
+    assert all(event["finalization_allowance_seconds"] == 0.05 for event in measured)
+    assert all(event["wall_seconds"] <= 1.02 for event in measured)
     assert sum(event["kind"] == "submission" for event in campaign.events()) == 1
     campaign.export(proposal["candidate"], tmp_path / "export")
     artifact = DecoderArtifact.load(tmp_path / "export")

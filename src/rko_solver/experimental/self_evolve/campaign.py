@@ -558,6 +558,18 @@ class Campaign:
                 if key in self.spec
             },
         }
+        if "model_timing_contract" in self.spec:
+            evidence.update(
+                {
+                    key: self.spec[key]
+                    for key in (
+                        "model_timing_contract",
+                        "timing_policy",
+                        "seconds",
+                        "finalization_allowance_seconds",
+                    )
+                }
+            )
         evidence_bytes = json.dumps(evidence, indent=2).encode("utf-8")
         (path / "evidence.json").write_bytes(evidence_bytes)
         metadata = artifact.metadata()

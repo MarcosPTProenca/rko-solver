@@ -18,6 +18,7 @@ Inputs/Outputs:
 
 import math
 import typing
+from rko_solver.experimental.self_evolve.model_data import MODEL_FINALIZATION_ALLOWANCE
 from rko_solver.experimental.self_evolve.model_data import ModelProblem
 from rko_solver.experimental.self_evolve.model_data import ModelReference
 from rko_solver.experimental.self_evolve.problems import Problem
@@ -93,6 +94,10 @@ class ModelCampaignPolicy:
         """
         return {
             "model_contract": 1,
+            "model_timing_contract": 2,
+            "seconds": 1.0,
+            "timing_policy": "end_to_end",
+            "finalization_allowance_seconds": MODEL_FINALIZATION_ALLOWANCE,
             "reference_policy": "trusted_optimum",
             "human_baseline": None,
             "promotion_policy": {
@@ -169,6 +174,9 @@ class ModelCampaignPolicy:
             "continuous repair remain protected. All construction/restoration/checking is charged.",
             "feasibility_policy": spec["feasibility_policy"],
             "promotion_policy": spec["promotion_policy"],
+            "timing_policy": spec["timing_policy"],
+            "job_seconds": spec["seconds"],
+            "finalization_allowance_seconds": spec["finalization_allowance_seconds"],
             "development_instances": [
                 {"family": "linear_model", "data": ModelProblem(entry["data"]).proposer_data()}
                 for entry in spec["instances"]

@@ -27,6 +27,7 @@ from collections.abc import Iterator
 from rko_solver import RKO
 from rko_solver.components.random_streams import RandomStreams
 from rko_solver.experimental.self_evolve.artifacts import DecoderArtifact
+from rko_solver.experimental.self_evolve.model_data import MODEL_FINALIZATION_ALLOWANCE
 from rko_solver.experimental.self_evolve.model_data import ModelProblem
 from rko_solver.modeling.construction import ConstructionFn
 from rko_solver.modeling.construction import ModelConstruction
@@ -74,7 +75,8 @@ class ModelJob:
             Exception: If source initialization fails inside isolation.
         """
         self.started = time.perf_counter()
-        self.deadline = self.started + job["seconds"]
+        self.finalization_allowance = min(MODEL_FINALIZATION_ALLOWANCE, job["seconds"] / 2)
+        self.deadline = self.started + job["seconds"] - self.finalization_allowance
         self.problem = ModelProblem(job["data"])
         artifact = DecoderArtifact.create("linear_model", job["source"])
         construction: ConstructionFn | None = None
@@ -85,6 +87,7 @@ class ModelJob:
         options: ModelOptions = {
             **self.problem.data["policy"],
             "construction": construction,
+            "construction_deadline": self.deadline if construction is not None else None,
             "algorithms": ["SA"],
             "adaptation": "fixed",
             "engine": "python",
@@ -255,6 +258,7 @@ class ModelJob:
             raise ValueError("No completed model invocation.")
         return {
             "status": "ok",
+            "finalization_allowance_seconds": self.finalization_allowance,
             "no_search": self.problem.dimension == 0,
             "construction_used": self.problem.dimension != 0,
             "model_source_fingerprint": self.problem.source.fingerprint,

@@ -19,6 +19,7 @@ Inputs/Outputs:
 
 from __future__ import annotations
 
+import math
 import numpy as np
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -79,11 +80,30 @@ class ModelConstruction:
         snapshot (CompiledLinearModel): Protected original numerical evaluator.
         context (ConstructionInput): Frozen data visible to the constructor.
         construction (ConstructionFn): Explicit trusted callable, not a source descriptor.
+        deadline (float | None): Optional absolute monotonic ceiling for model search sessions.
     """
 
     snapshot: CompiledLinearModel
     context: ConstructionInput
     construction: ConstructionFn
+    deadline: float | None = None
+
+    @staticmethod
+    def validate_deadline(deadline: float | None) -> None:
+        """Validate an explicit owner ceiling without changing ordinary search budgets.
+
+        Args:
+            deadline (float | None): Absolute monotonic owner deadline, or no ceiling.
+
+        Raises:
+            ValueError: If the supplied deadline is nonnumeric, boolean or nonfinite.
+        """
+        if deadline is not None and (
+            type(deadline) not in (int, float)
+            or abs(deadline) > 1e100
+            or not math.isfinite(deadline)
+        ):
+            raise ValueError("construction_deadline must be a finite monotonic time or None.")
 
     @classmethod
     def bind(
@@ -91,6 +111,8 @@ class ModelConstruction:
         snapshot: CompiledLinearModel,
         source: ExtractedLinearModel,
         construction: ConstructionFn,
+        *,
+        deadline: float | None = None,
     ) -> ModelConstruction:
         """Bind already compiled original semantics without importing executable source.
 
@@ -98,6 +120,7 @@ class ModelConstruction:
             snapshot (CompiledLinearModel): Validated numerical model.
             source (ExtractedLinearModel): Matching original source records.
             construction (ConstructionFn): Trusted application callable.
+            deadline (float | None): Optional absolute owner ceiling for search sessions.
 
         Returns:
             ModelConstruction: Immutable construction/evaluation adapter.
@@ -105,6 +128,7 @@ class ModelConstruction:
         Raises:
             ValueError: If the explicit construction value is not callable.
         """
+        cls.validate_deadline(deadline)
         if not callable(construction):
             raise ValueError("construction must be a trusted callable, not an artifact or path.")
         context = ConstructionInput(
@@ -115,7 +139,7 @@ class ModelConstruction:
             float(source.objective_constant),
             source.maximize,
         )
-        return cls(snapshot, context, construction)
+        return cls(snapshot, context, construction, deadline)
 
     @property
     def n_keys(self) -> int:

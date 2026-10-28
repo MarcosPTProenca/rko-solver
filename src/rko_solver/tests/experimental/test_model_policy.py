@@ -82,3 +82,17 @@ def test_model_panel_rejects_false_win_labels(kind: str) -> None:
             row["loss"] = 0.0 if row["feasible"] else 1.0
     with pytest.raises(ValueError):
         ModelCampaignPolicy.promote(spec, records, "child")
+
+
+def test_old_model_timing_profile_cannot_resume_with_new_allowance() -> None:
+    """A pre-v2 100 ms campaign is incompatible, not silently granted a longer run."""
+    legacy = {
+        "family": "linear_model",
+        "model_contract": 1,
+        "seconds": 0.1,
+        "feasibility_policy": "feasibility_first",
+        "reference_policy": "trusted_optimum",
+        "human_baseline": None,
+    }
+    with pytest.raises(ValueError, match="contract"):
+        ModelCampaignPolicy.restore(legacy)

@@ -23,6 +23,7 @@ import hashlib
 import json
 import math
 import numpy as np
+import os
 import typing
 from pathlib import Path
 from rko_solver.experimental.self_evolve.artifacts import DecoderArtifact
@@ -32,6 +33,8 @@ from rko_solver.modeling.records import LinearRow
 from rko_solver.modeling.records import LinearVariable
 from rko_solver.modeling.records import ModelEvaluation
 from rko_solver.modeling.source import ExtractedLinearModel
+
+MODEL_FINALIZATION_ALLOWANCE = 0.05
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -290,11 +293,16 @@ class ModelProblem:
             OSError: If installed source cannot be read for frozen identity.
         """
         root = Path(__file__).resolve().parents[2]
-        return {
-            path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
-            for path in sorted(root.rglob("*.py"))
-            if "tests" not in path.relative_to(root).parts
-        }
+        identity = {}
+        for directory, children, names in os.walk(root):
+            children[:] = sorted(child for child in children if child != "tests")
+            for name in sorted(names):
+                if name.endswith(".py"):
+                    path = os.path.join(directory, name)
+                    relative = os.path.relpath(path, root).replace(os.sep, "/")
+                    with open(path, "rb") as source:
+                        identity[relative] = hashlib.file_digest(source, "sha256").hexdigest()
+        return identity
 
     def verify_witness(self, raw: object) -> ModelEvaluation:
         """Independently check reported coordinates without invoking construction or repair.

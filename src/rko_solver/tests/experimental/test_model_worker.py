@@ -51,7 +51,7 @@ def test_rootless_model_worker_retains_actual_feasible_witnesses(mode: str) -> N
     artifact = DecoderArtifact.create("linear_model", SOURCE)
     runner = PodmanRunner(image)
     runner.qualify()
-    result = runner.run(artifact, problem, mode=mode, seed=17, seconds=0.1)
+    result = runner.run(artifact, problem, mode=mode, seed=17, seconds=1.0)
     assert result["status"] == "ok" and result["feasible"] is True
     assert result["objective"] == 23
     assert result["model_status"] == "feasible"
