@@ -2017,3 +2017,98 @@ print(analysis.ranking(data["training"], set(data["protocol"]["candidates"]))[0]
 print(analysis.confirmation(data["confirmation"], data["selection"]["candidate"]))
 PY
 ```
+
+#### Cross-engine validation protocol
+
+`benchmarks.tuning.engine_confirmation` replays the **same locked configuration** and archived
+fixed default on Python and C++, without another training or candidate-selection step. This is
+an extension to unmeasured engines, not a new claim that the already inspected instance set is
+untouched. Every one of the original 72 confirmation instances is included; no cohort or cell
+is filtered using its Rust outcome. File hashes and archived calibration scales must match.
+
+Before either engine is measured, the design is frozen as follows:
+
+- Keep the original sizes, 50,000/500,000 search-evaluation budgets, five solver seeds per instance,
+  exact candidate values, default configuration, family weights and 20,000 bootstrap draws.
+- Apply the original overall-improvement and +0.02 cell-regression gates **separately per engine**.
+  All engines must pass before proposing a shared fixed-default change; averaging away a losing
+  engine or relaxing a gate is forbidden. Bounds retain the original per-engine interpretation.
+- Run Python sequentially inside each spawned scoring worker. Use native compiled objectives on
+  C++ and call the same compiled objective through identity-decoder callbacks on Python.
+- Require each simulated-annealing search to exhaust its evaluation budget. These budgets count
+  search work, excluding native pool initialization; C++ always performs that additional startup.
+- Pair observations by instance. C++ also uses unseeded process-global `rand()` in the reference
+  neighborhood operator, so a common `random_state` does not fully control its internal draws or
+  guarantee bitwise reproduction. Report this limitation rather than silently reseeding internals.
+- No parameter changes, candidate rounding or retuning follow a failed gate.
+
+```bash
+RKO_BUILD_CPP=1 UV_PYTHON=/usr/bin/python3.14 uv run --locked --group tuning python -m benchmarks.tuning.engine_confirmation run --directory "$HOME/rko-preset-engines" --engine python --workers 3
+RKO_BUILD_CPP=1 UV_PYTHON=/usr/bin/python3.14 uv run --locked --group tuning python -m benchmarks.tuning.engine_confirmation run --directory "$HOME/rko-preset-engines" --engine cpp --workers 3
+```
+
+Each engine has separate `protocol.json`, `test.jsonl` and `summary.json` files. Replay and resume
+require the frozen source and reference; read-only reporting verifies the stored scientific
+inputs without selecting again. New instance and score files use canonical line endings so
+reference hashes remain portable. No packaged solver parameter is changed by this workflow.
+
+#### Cross-engine validation results
+
+The protocol and runner were committed at **`1a544ca` before either engine was scored**.
+Reference: [`general-sa-preset-engines-reference.json`](general-sa-preset-engines-reference.json).
+All 24 scoring cells completed on Python, then all 24 on C++; the candidate, instance panel,
+calibration scales, solver seeds and regression limits stayed unchanged. Every individual search
+reached its declared evaluation limit; a truncated search would have failed the run.
+
+Both newly measured engines passed both gates. Results are **candidate minus that engine's own
+fixed default**, in normalized-gap units, with lower values better:
+
+| Engine | Family-balanced difference | One-sided 95% upper bound | Cell gates passed | Largest adjusted cell upper bound |
+| --- | ---: | ---: | ---: | ---: |
+| Python | -0.38412 | -0.37510 | 12/12 | -0.08673 |
+| C++ | -0.40026 | -0.39466 | 12/12 | -0.12111 |
+
+All adjusted cell bounds were negative, not merely below the +0.02 allowed-regression limit:
+
+| Family | Size | Evaluations | Python difference | Python adjusted upper | C++ difference | C++ adjusted upper |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Knapsack | 100 | 50,000 | -0.33566 | -0.31009 | -0.41067 | -0.38929 |
+| Knapsack | 100 | 500,000 | -0.11445 | -0.10489 | -0.13604 | -0.12111 |
+| Knapsack | 600 | 50,000 | -0.42490 | -0.40533 | -0.52567 | -0.51092 |
+| Knapsack | 600 | 500,000 | -0.32776 | -0.31681 | -0.41024 | -0.38733 |
+| Travelling salesperson | 30 | 50,000 | -0.58851 | -0.53244 | -0.60285 | -0.57289 |
+| Travelling salesperson | 30 | 500,000 | -0.25253 | -0.22054 | -0.23270 | -0.21041 |
+| Travelling salesperson | 100 | 50,000 | -0.47250 | -0.45731 | -0.55914 | -0.54105 |
+| Travelling salesperson | 100 | 500,000 | -0.28061 | -0.27048 | -0.34874 | -0.33531 |
+| Rastrigin | 10 | 50,000 | -1.03688 | -0.93055 | -0.78997 | -0.72212 |
+| Rastrigin | 10 | 500,000 | -0.37790 | -0.32593 | -0.25641 | -0.23140 |
+| Rastrigin | 60 | 50,000 | -0.30752 | -0.29620 | -0.39486 | -0.37084 |
+| Rastrigin | 60 | 500,000 | -0.09020 | -0.08673 | -0.13583 | -0.12783 |
+
+These are within-engine configuration comparisons, **not a ranking of engines** or a speed claim.
+Bounds resample instances after averaging the fixed five-run seed panel; they do not estimate
+uncertainty over a newly sampled seed population. C++ retains its partly uncontrolled reference
+randomness. Its additional pool initialization is outside the per-search budget, and no
+cross-engine equality of total startup work is claimed.
+
+Together with the original Rust confirmation, this clears the predeclared scientific conditions
+for a separate proposal of the **exact tested fixed preset** on these three synthetic families.
+It does not establish adaptive-mode quality, arbitrary objective-scale robustness, wall-clock
+quality or a universal optimum. Before touching shared files, review whether fixed-parameter
+settings also feed adaptive-control initialization or grids. **No packaged default changes here.**
+
+To reproduce the two decisions from the committed measurement without running searches:
+
+```bash
+uv run --locked --group tuning python - <<'PY'
+import json
+from pathlib import Path
+from benchmarks.tuning.preset_analysis import PresetAnalysis, PresetDesign
+root = Path("benchmarks")
+original = json.loads((root / "general-sa-preset-reference.json").read_text())
+data = json.loads((root / "general-sa-preset-engines-reference.json").read_text())
+analysis = PresetAnalysis(PresetDesign(**original["protocol"]["design"]))
+for engine, records in data["measurements"].items():
+    print(engine, analysis.confirmation(records, data["selection"]["candidate"]))
+PY
+```
