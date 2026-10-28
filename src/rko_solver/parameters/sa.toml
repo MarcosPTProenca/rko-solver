@@ -3,11 +3,11 @@
 # A selected t0 applies to the next cooling/reannealing schedule.
 
 [offline]
-sa_max   = 1000        # neighbourhood evaluations per temperature level
-t0       = 1000000.0   # initial temperature
-alpha    = 0.99        # geometric cooling factor
-beta_min = 0.01        # minimum perturbation intensity
-beta_max = 0.05        # maximum perturbation intensity
+sa_max   = 1027                    # neighbourhood evaluations per temperature level
+t0       = 340.3863933617792       # initial temperature
+alpha    = 0.8601360548373771      # geometric cooling factor
+beta_min = 0.0035204893377555175   # minimum perturbation intensity
+beta_max = 0.008242788398191462    # maximum perturbation intensity
 
 [online]
 # Discrete grid for Q-Learning (order defines parameter axis numbering).

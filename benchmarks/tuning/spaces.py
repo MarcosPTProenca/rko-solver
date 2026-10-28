@@ -19,6 +19,8 @@ Flow (pseudocode):
 
 Important criteria:
 - The packaged default of every algorithm lies inside its space.
+- The simulated-annealing baseline is pinned to the default the archived studies compared
+  against, so changing the packaged preset never redefines a reference comparison or calibration.
 - Decoding is a pure function of the point: equal points give equal configurations.
 - The original profile remains unchanged; the expanded profile widens binding SA and BRKGA axes.
 
@@ -33,6 +35,10 @@ import math
 from collections.abc import Sequence
 from dataclasses import dataclass
 from rko_solver.parameters.loader import load_offline
+
+STUDY_DEFAULTS: dict[str, dict[str, float]] = {
+    "SA": {"sa_max": 1000.0, "t0": 1000000.0, "alpha": 0.99, "beta_min": 0.01, "beta_max": 0.05}
+}
 
 
 @dataclass(frozen=True)
@@ -128,11 +134,18 @@ class ParameterSpace:
         return self._repair(values)
 
     def default(self) -> dict[str, float]:
-        """Return the packaged offline defaults of the tunable parameters.
+        """Return the baseline configuration of the tunable parameters.
+
+        Algorithms listed in `STUDY_DEFAULTS` return their pinned historical default, because
+        the archived studies and their calibration scales were measured against it. Other
+        algorithms return the packaged offline defaults.
 
         Returns:
-            dict[str, float]: Default value per tunable parameter.
+            dict[str, float]: Baseline value per tunable parameter.
         """
+        pinned = STUDY_DEFAULTS.get(self.algorithm)
+        if pinned is not None:
+            return {spec.name: pinned[spec.name] for spec in self.specs}
         packaged = load_offline(self.algorithm)
         return {spec.name: packaged[spec.name] for spec in self.specs}
 

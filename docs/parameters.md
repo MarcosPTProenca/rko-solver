@@ -65,11 +65,21 @@ minimized; temperature scales depend on your objective's magnitude.
 
 | Key | Default | Valid domain | Meaning and trade-off |
 | --- | --- | --- | --- |
-| `sa_max` | 1000 | integer >= 1 | Proposals per temperature level; more proposals spend longer at each temperature |
-| `t0` | 1000000.0 | > 0 | Initial temperature scale; higher values accept more deteriorations for the same cost difference |
-| `alpha` | 0.99 | 0 < value < 1 | Cooling multiplier; nearer one cools more slowly |
-| `beta_min` | 0.01 | [0, 1] | Lower shaking-intensity factor relative to chromosome length |
-| `beta_max` | 0.05 | [0, 1], >= `beta_min` | Upper shaking-intensity factor; larger values apply more operations |
+| `sa_max` | 1027 | integer >= 1 | Proposals per temperature level; more proposals spend longer at each temperature |
+| `t0` | 340.3863933617792 | > 0 | Initial temperature scale; higher values accept more deteriorations for the same cost difference |
+| `alpha` | 0.8601360548373771 | 0 < value < 1 | Cooling multiplier; nearer one cools more slowly |
+| `beta_min` | 0.0035204893377555175 | [0, 1] | Lower shaking-intensity factor relative to chromosome length |
+| `beta_max` | 0.008242788398191462 | [0, 1], >= `beta_min` | Upper shaking-intensity factor; larger values apply more operations |
+
+These fixed values are used only when `adaptation="fixed"` (or `control=0`). The default
+adaptive mode ignores them and starts from its own `[online]` grid. They are the exact
+configuration that was selected using training data alone and then confirmed on held-out
+instances; see the cross-family preset section of `benchmarks/README.md`. The evidence covers
+three synthetic families (Knapsack, travelling salesperson, shifted Rastrigin), two sizes each and
+50,000 and 500,000 evaluations on the Rust, Python and C++ engines. It does not cover other
+problem types, objective scales or evaluation budgets far outside that range, so keep tuning for
+your own problem. The previous fixed values were `sa_max=1000`, `t0=1000000.0`, `alpha=0.99`,
+`beta_min=0.01` and `beta_max=0.05`.
 
 Adaptive choices are made per temperature level. A selected `t0` governs the next
 schedule, not a reset of an active temperature. See [SA control](sa-control.md).

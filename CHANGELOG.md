@@ -5,6 +5,18 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ## Unreleased
 
+### Changed
+
+- **Packaged fixed simulated-annealing parameters changed** (`[offline]` in `sa.toml`) from
+  `sa_max=1000, t0=1000000.0, alpha=0.99, beta_min=0.01, beta_max=0.05` to
+  `sa_max=1027, t0=340.3863933617792, alpha=0.8601360548373771,
+  beta_min=0.0035204893377555175, beta_max=0.008242788398191462`. This affects runs with
+  `adaptation="fixed"` or `control=0` on every engine, and results for a given seed change.
+  The default adaptive mode does not read these values and is unchanged. To keep the previous
+  behavior pass the old values through `hyperparameters={"SA": {...}}`. The new values were
+  chosen on training data only and confirmed on held-out instances of three synthetic problem
+  families; see `benchmarks/README.md` for the evidence and its limits.
+
 ## 0.3.0a3 — prerelease changes
 
 Everything merged since 0.3.0a2: new opt-in features, a stricter test and quality regime, and

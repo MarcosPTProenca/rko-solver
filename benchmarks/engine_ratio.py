@@ -15,6 +15,9 @@ Technical approach:
   not an absolute rate is compared with a versioned reference.
 - A check fails only when a ratio falls more than the allowed fraction below the reference for
   the same processor model; a higher ratio is reported but never fails.
+- Simulated annealing runs with explicit historical parameters, not the packaged preset, because
+  the reference was measured with them and the cooling schedule changes how much work each
+  evaluation involves (the packaged preset roughly doubled the Rust rate on one machine).
 
 Flow (pseudocode):
 1. Warm both engines up, then measure `repeats` runs per engine and algorithm.
@@ -51,6 +54,9 @@ from rko_solver import Callbacks
 from rko_solver import problems
 
 DEFAULT_ALGORITHMS = ("SA", "BRKGA", "ILS")
+HISTORICAL_PARAMETERS: dict[str, dict[str, float]] = {
+    "SA": {"sa_max": 1000, "t0": 1000000.0, "alpha": 0.99, "beta_min": 0.01, "beta_max": 0.05}
+}
 
 
 class EngineRatio:
@@ -114,7 +120,13 @@ class EngineRatio:
         Returns:
             float: Completed evaluations divided by the search's elapsed seconds.
         """
-        options = {"algorithms": [algorithm], "adaptation": "fixed", "random_state": 1}
+        options: dict[str, object] = {
+            "algorithms": [algorithm],
+            "adaptation": "fixed",
+            "random_state": 1,
+        }
+        if algorithm in HISTORICAL_PARAMETERS:
+            options["hyperparameters"] = {algorithm: dict(HISTORICAL_PARAMETERS[algorithm])}
         if engine == "python":
             solver = RKO(
                 Callbacks(self.decode, self.cost, self.items),
