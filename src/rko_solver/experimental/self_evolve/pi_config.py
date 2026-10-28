@@ -200,7 +200,7 @@ class PiConfig:
             json.dump(self.settings(), handle, allow_nan=False)
 
     def verify_profile(self) -> None:
-        """Reject unsafe profile resources without reading authentication values.
+        """Admit optional Pi UUIDv4 metadata without relaxing policy or reading credentials.
 
         Raises:
             PiError: If profile privacy, settings or resource policy cannot be verified.
@@ -212,9 +212,17 @@ class PiConfig:
             path = self.profile / "settings.json"
             if path.stat().st_size > 16384:
                 raise PiError("profile")
-            actual = json.dumps(
-                json.loads(path.read_text(encoding="utf-8")), sort_keys=True, allow_nan=False
-            )
+            settings = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(settings, dict) and "deviceId" in settings:
+                if (
+                    re.fullmatch(
+                        r"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}",
+                        settings.pop("deviceId"),
+                    )
+                    is None
+                ):
+                    raise PiError("profile")
+            actual = json.dumps(settings, sort_keys=True, allow_nan=False)
             if actual != json.dumps(self.settings(), sort_keys=True, allow_nan=False):
                 raise PiError("profile")
             forbidden = (
@@ -229,7 +237,7 @@ class PiConfig:
             )
             if any((self.profile / name).exists() for name in forbidden):
                 raise PiError("profile")
-        except (OSError, ValueError, RecursionError) as error:
+        except (OSError, ValueError, TypeError, RecursionError) as error:
             raise PiError("profile") from error
 
     @staticmethod
