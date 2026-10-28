@@ -21,7 +21,7 @@ separate from the historical Python `7ee93ca` comparison.
 
 ## Contracts that optimizations must preserve
 
-Paths below are relative to `src/rko_solver/tests/`. These existing tests are executable
+Paths below are relative to `tests/`. These existing tests are executable
 anchors, not an assertion that every possible behavior is exhaustively specified.
 
 | Contract / oracle | Regression anchor | Boundary or intentional deviation |

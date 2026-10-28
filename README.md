@@ -320,10 +320,10 @@ class for convenience; you can use functions instead. The same callbacks work
 unchanged with `SA(...).solve(...)`, other built-in classes and RKO portfolios. There is
 no required base class.
 
-Run the packaged example without creating an input file:
+Run the example from the repository checkout without creating an input file:
 
 ```bash
-uv run --locked --no-dev python -m rko_solver.examples.instance_pipeline
+uv run --locked --no-dev python -m examples.instance_pipeline
 ```
 
 For your own file, use the tutorial's schema or replace its reader/adapter with your
@@ -403,8 +403,8 @@ Existing callback signatures and uninstrumented usage remain unchanged.
 Try the instrumented scheduling adapter and its optional offline report:
 
 ```bash
-uv run --locked python -m rko_solver.examples.decision_trace
-uv run --locked --extra reports python -m rko_solver.examples.decision_trace --html results/observed-decisions.html
+uv run --locked python -m examples.decision_trace
+uv run --locked --extra reports python -m examples.decision_trace --html results/observed-decisions.html
 ```
 
 `result.trace` distinguishes recorded, no-events, truncated and unavailable evidence.
@@ -463,13 +463,13 @@ cancellation, retention, resource limits and deployment/security requirements.
 ## Run the supplied Knapsack adapter
 
 ```bash
-uv run --locked --no-dev rko-solver src/rko_solver/examples/instances/kp50.txt \
+uv run --locked --no-dev python -m examples.run_kp_cpp_instances examples/instances/kp50.txt \
   --limit-time 10 --execution process --random-state 42 \
   --output-csv results/kp50.csv
 ```
 
-The supplied command handles Knapsack, not arbitrary input formats. Its two
-bundled instances are correctness fixtures, not competitive-performance evidence.
+The supplied runner handles Knapsack, not arbitrary input formats. Its two
+instances under `examples/instances/` are correctness fixtures, not competitive-performance evidence.
 See [terminal/configuration usage](https://marcosptproenca.github.io/rko-solver/running/) for custom instances,
 TOMLs, progress output and worker limits.
 

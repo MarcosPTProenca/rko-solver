@@ -1,7 +1,8 @@
 """Exercise a built artifact without importing the source checkout.
 
 Objective:
-- Detect missing runtime resources and unusable installed solver entry points.
+- Detect missing runtime resources and unusable installed solver entry points, and that the
+  example programs and the demo command are not part of the artifact.
 
 Technical approach:
 - Run under python -I inside an environment containing only the installed artifact.
@@ -24,26 +25,23 @@ Inputs/Outputs:
 - Output: assertions and a success message, or a failing process exit.
 """
 
-import csv
 import numpy as np
 import os
 import pickle
 import random
 import shutil
-import subprocess
 import sys
-import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 from rko_solver import RKO
 from rko_solver import Blocks
 from rko_solver import Numba
 from rko_solver import PoolInitializationMetadata
 from rko_solver import SearchMetadata
+from rko_solver import ValidationCheck
+from rko_solver import ValidationReport
 from rko_solver import assess_result
 from rko_solver.components.adaptive_control.q_learning import QLearningController
-from rko_solver.examples import instance_pipeline
-from rko_solver.examples.run_kp_cpp_instances import default_instances_dir
-from rko_solver.examples.run_kp_cpp_instances import read_kp_instance
 from rko_solver.explain import DecoderDiagram
 from rko_solver.metaheuristics import SA
 from rko_solver.parameters.loader import default_params_dir
@@ -51,6 +49,92 @@ from rko_solver.problems import Knapsack
 from rko_solver.reporting import OptimizationReport
 
 SEARCH_SECONDS = 0.25
+
+
+@dataclass(frozen=True, slots=True)
+class Scheduling:
+    """Minimal pickleable scheduling problem used to exercise every execution mode.
+
+    Responsibilities:
+    - Decode priority keys into completion times, score tardiness and check the schedule.
+
+    Attributes:
+        processing_times (tuple[int, ...]): Positive duration of each job.
+        due_dates (tuple[int, ...]): Due date of each job.
+    """
+
+    processing_times: tuple[int, ...]
+    due_dates: tuple[int, ...]
+
+    @property
+    def n_variables(self) -> int:
+        """Return one key per job.
+
+        Returns:
+            int: Number of jobs.
+        """
+        return len(self.processing_times)
+
+    def decode(self, keys: np.ndarray) -> tuple[tuple[int, int], ...]:
+        """Order jobs by increasing key and accumulate completion times.
+
+        Args:
+            keys (np.ndarray): One finite priority key per job.
+
+        Returns:
+            tuple[tuple[int, int], ...]: Job index and completion time pairs.
+
+        Raises:
+            ValueError: If the keys are not one finite value per job.
+        """
+        values = np.asarray(keys, dtype=float)
+        if values.ndim != 1 or len(values) != self.n_variables or not np.isfinite(values).all():
+            raise ValueError("Decoder needs one finite key per job.")
+        elapsed = 0
+        schedule = []
+        for index in np.argsort(values, kind="stable"):
+            elapsed += self.processing_times[int(index)]
+            schedule.append((int(index), elapsed))
+        return tuple(schedule)
+
+    def cost(self, solution: tuple[tuple[int, int], ...]) -> float:
+        """Sum positive lateness of a decoded schedule.
+
+        Args:
+            solution (tuple[tuple[int, int], ...]): Job index and completion time pairs.
+
+        Returns:
+            float: Total tardiness to minimize.
+        """
+        return float(sum(max(0, done - self.due_dates[job]) for job, done in solution))
+
+    def validate(self, solution: tuple[tuple[int, int], ...]) -> ValidationReport:
+        """Check job coverage and contiguous completion times independently.
+
+        Args:
+            solution (tuple[tuple[int, int], ...]): Job index and completion time pairs.
+
+        Returns:
+            ValidationReport: Declared feasibility of the schedule.
+        """
+        covered = sorted(job for job, _ in solution) == list(range(self.n_variables))
+        elapsed = 0
+        contiguous = covered
+        for job, done in solution:
+            if covered:
+                elapsed += self.processing_times[job]
+                contiguous = contiguous and done == elapsed
+        checks = (
+            ValidationCheck(
+                "job_coverage", "passed" if covered else "failed", "Every job exactly once."
+            ),
+            ValidationCheck(
+                "completion_times",
+                "passed" if contiguous else "failed",
+                "Cumulative processing times without idle gaps.",
+            ),
+        )
+        return ValidationReport(checks=checks, feasible=covered and contiguous)
 
 
 def decode(keys: np.ndarray) -> np.ndarray:
@@ -83,15 +167,13 @@ def main() -> None:
     Raises:
         AssertionError: If packaging or solver result contracts fail.
         OSError: If installed runtime resources cannot be read.
-        subprocess.SubprocessError: If the installed terminal command fails or times out.
     """
     package = default_params_dir().parent
     assert not (package / "tests").exists()
     assert (default_params_dir() / "config.toml").is_file()
     assert len(list(default_params_dir().glob("*.toml"))) == 12
-    assert read_kp_instance(default_instances_dir() / "kp10.txt").n_items == 10
-    assert read_kp_instance(default_instances_dir() / "kp50.txt").n_items == 50
-    assert any("LICENSE" in path.name for path in default_instances_dir().iterdir())
+    assert not (package / "examples").exists()
+    assert shutil.which("rko-solver", path=str(Path(sys.executable).parent)) is None
     assert package.resolve() != Path(__file__).resolve().parents[1] / "src" / "rko_solver"
     controller = QLearningController(
         [[0.0, 1.0], [0.0, 1.0]], state_filter=lambda values: sum(values) <= 1.0
@@ -266,10 +348,7 @@ def main() -> None:
     assert bounded.n_evaluations == sum(report.n_evaluations for report in bounded.searches)
     assert dict(bounded.searches[-1].parameters)["p_size"] == 4
     assert pickle.dumps((random.getstate(), np.random.get_state())) == global_rng
-    instance = instance_pipeline.read_data(
-        Path(instance_pipeline.__file__).with_name("instances") / "scheduling.json"
-    )
-    problem = instance_pipeline.SchedulingProblem(instance)
+    problem = Scheduling((3, 2, 5, 1), (4, 6, 7, 3))
     for execution in ("sequential", "thread", "process"):
         scheduled = RKO(
             problem.decode,
@@ -281,7 +360,7 @@ def main() -> None:
             random_state=42,
         ).solve(0.1)
         assert scheduled.cost == problem.cost(problem.decode(np.asarray(scheduled.keys)))
-        assert scheduled.n_variables == len(instance.processing_times)
+        assert scheduled.n_variables == problem.n_variables
         assessment = assess_result(scheduled, decoder=problem.decode, validator=problem.validate)
         assert assessment.validation.status == "passed"
         assert assessment.validation.feasible is True
@@ -308,49 +387,6 @@ def main() -> None:
     graph_report = OptimizationReport(standalone, decoder_diagram=diagram).to_dict()
     assert graph_report["decoder_diagram"] == diagram.to_dict()
     assert "plotly" not in sys.modules
-    executable = shutil.which("rko-solver", path=str(Path(sys.executable).parent))
-    assert executable is not None
-    with tempfile.TemporaryDirectory(prefix="rko-installed-cli-") as temporary:
-        pipeline = subprocess.run(
-            [
-                sys.executable,
-                "-I",
-                "-m",
-                "rko_solver.examples.instance_pipeline",
-                "--time-limit",
-                str(SEARCH_SECONDS),
-                "--validate-solution",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=90,
-            cwd=temporary,
-        )
-        assert "four-job scheduling tutorial" in pipeline.stdout
-        assert "Schedule (job index, completion time):" in pipeline.stdout
-        assert "Validation: passed; feasible=True" in pipeline.stdout
-        output = Path(temporary) / "result.csv"
-        subprocess.run(
-            [
-                executable,
-                str(default_instances_dir() / "kp10.txt"),
-                "--execution",
-                "sequential",
-                "--limit-time",
-                "0.01",
-                "--random-state",
-                "42",
-                "--output-csv",
-                str(output),
-            ],
-            check=True,
-            timeout=90,
-            cwd=temporary,
-        )
-        with output.open(newline="", encoding="utf-8") as stream:
-            rows = list(csv.DictReader(stream))
-        assert len(rows) == 1 and rows[0]["instance"] == "kp10.txt"
     print(f"Installed artifact passed: {package}")
 
 

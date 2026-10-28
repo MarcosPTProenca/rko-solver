@@ -25,7 +25,7 @@ jobs:
       - name: Property and fuzz tests at 20x the example count
         env:
           RKO_FUZZ_SCALE: "20"
-        run: uv run --locked pytest src/rko_solver/tests/test_property_fuzz.py -q
+        run: uv run --locked pytest tests/test_property_fuzz.py -q
 
   cpp-statistical-comparison:
     runs-on: ubuntu-latest

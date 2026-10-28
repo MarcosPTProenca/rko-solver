@@ -16,8 +16,8 @@ events at their actual execution points, without automatically exporting instanc
 values. Enable recording through the ordinary solver:
 
 ```bash
-uv run --locked python -m rko_solver.examples.decision_trace
-uv run --locked --extra reports python -m rko_solver.examples.decision_trace --html results/observed-decisions.html
+uv run --locked python -m examples.decision_trace
+uv run --locked --extra reports python -m examples.decision_trace --html results/observed-decisions.html
 ```
 
 The first command needs only core dependencies. The second adds an offline report;

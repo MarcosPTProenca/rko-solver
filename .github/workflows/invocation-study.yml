@@ -9,7 +9,7 @@ on:
       - "benchmarks/startup_stages.py"
       - "benchmarks/native_threads.py"
       - "src/rko_solver/metaheuristics/brkga_cs.py"
-      - "src/rko_solver/tests/metaheuristics/test_brkga_cs_correlation.py"
+      - "tests/metaheuristics/test_brkga_cs_correlation.py"
 
 permissions:
   contents: read

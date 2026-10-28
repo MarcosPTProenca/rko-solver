@@ -8,8 +8,8 @@ proof that a package is available on an index.
 
 The distribution is **rko-solver** (import `rko_solver`). On 2026-10-24 the repository owner
 approved the current combined Python code's rights, licenses and attribution, recorded in
-NOTICE as an owner attestation, not an independent legal certification. Source uses Apache-2.0; the bundled
-reference fixtures retain MIT, hence the combined distribution expression
+NOTICE as an owner attestation, not an independent legal certification. Source uses Apache-2.0; the vendored
+C++ reference headers retain MIT, hence the combined distribution expression
 `Apache-2.0 AND MIT`. Review new third-party additions before every release.
 
 The current candidate is **0.3.0a4**. (0.3.0a1 reached TestPyPI only, where its post-upload
@@ -67,7 +67,7 @@ jobs remain read-only and receive no publisher OIDC permission.
 - Run the mandatory library checks plus:
 
 ```bash
-uv run --locked --group release pytest src/rko_solver/tests/test_release.py -q
+uv run --locked --group release pytest tests/test_release.py -q
 uv run --locked python tools/third_party_licenses.py --check
 ```
 

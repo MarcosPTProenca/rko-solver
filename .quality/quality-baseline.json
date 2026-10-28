@@ -313,16 +313,16 @@
       "cyclomatic_complexity": 13,
       "parameter_count": 9
     },
-    "src/rko_solver/examples/instance_pipeline.py::SchedulingProblem.validate": {
+    "examples/instance_pipeline.py::SchedulingProblem.validate": {
       "cyclomatic_complexity": 21
     },
-    "src/rko_solver/examples/instance_pipeline.py::read_data": {
+    "examples/instance_pipeline.py::read_data": {
       "cyclomatic_complexity": 15
     },
-    "src/rko_solver/examples/run_kp_cpp_instances.py::parse_args": {
+    "examples/run_kp_cpp_instances.py::parse_args": {
       "cyclomatic_complexity": 13
     },
-    "src/rko_solver/examples/run_kp_cpp_instances.py::run_single_instance": {
+    "examples/run_kp_cpp_instances.py::run_single_instance": {
       "parameter_count": 9
     },
     "src/rko_solver/explain.py::DecoderDiagram.__post_init__": {

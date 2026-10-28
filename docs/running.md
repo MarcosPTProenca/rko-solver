@@ -5,18 +5,18 @@
 After `uv sync --locked --group dev`, run from the repository root:
 
 ```bash
-uv run --locked rko-solver src/rko_solver/examples/instances/kp50.txt \
+uv run --locked python -m examples.run_kp_cpp_instances examples/instances/kp50.txt \
   --limit-time 10 --execution process --random-state 42 \
   --output-csv results/kp50.csv
 ```
 
-This is the Knapsack adapter shipped with the library, analogous to the supplied
+This is the Knapsack adapter in the repository's `examples/` directory (not part of the wheel), analogous to the supplied
 C++ `Problem.h`. It reads the instance, constructs `RKO`, runs the configured
 portfolio, prints cost/profit/weight/feasibility and exports CSV. Use quotes around
 paths containing spaces. In PowerShell put the command on one line or replace
 Bash continuation backslashes with PowerShell backticks.
 
-`uv run --locked rko-solver --help` lists options. The equivalent installed command is
+`uv run --locked python -m examples.run_kp_cpp_instances --help` lists options. The equivalent installed command is
 `rko-solver ...`; running the Python module directly also remains supported. Startup
 is additional to the process search budget; see README for stopping limits.
 The packaged default selects ten algorithms. Without `--n-jobs`, process mode
@@ -90,7 +90,7 @@ can add their own cost. Native Windows behavior was not measured by this compari
 The same short command now shows progress automatically:
 
 ```bash
-uv run rko-solver src/rko_solver/examples/instances/kp50.txt
+uv run python -m examples.run_kp_cpp_instances examples/instances/kp50.txt
 ```
 
 It prints the engine/portfolio at startup, compact new-best events immediately,
@@ -153,7 +153,7 @@ list = ["SA", "BRKGA", "GA", "PSO"]
 Then run:
 
 ```bash
-uv run --locked rko-solver path/to/instance.txt \
+uv run --locked python -m examples.run_kp_cpp_instances path/to/instance.txt \
   --params-dir configs/my-run --limit-time 60 \
   --execution process --n-jobs 4 --random-state 42 \
   --output-csv results/my-instance.csv
@@ -194,12 +194,12 @@ terminal interface is not implemented by this command.
 Omit the positional instance to run a directory/glob selection:
 
 ```bash
-uv run --locked rko-solver --instances-dir path/to/instances --pattern "kp*.txt" \
+uv run --locked python -m examples.run_kp_cpp_instances --instances-dir path/to/instances --pattern "kp*.txt" \
   --params-dir configs/my-run --limit-time 60 --n-jobs 4 \
   --output-csv results/batch.csv
 ```
 
 A single positional instance cannot be combined with batch selectors. Without
-any selectors, the bundled `kp10.txt` and `kp50.txt` references are used. Results
+any selectors, the `kp10.txt` and `kp50.txt` references in `examples/instances/` are used. Results
 are written below the caller's `results/` directory unless `--output-csv` selects
 a different path. Generated result directories are ignored by Git.

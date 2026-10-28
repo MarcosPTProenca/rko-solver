@@ -56,9 +56,9 @@ solver constructors retain their behavior.
 Run the maintained equivalent mixed-integer example with any selected extra:
 
 ```bash
-uv run --extra pyomo python -m rko_solver.examples.model_conversion pyomo
-uv run --extra pulp python -m rko_solver.examples.model_conversion pulp
-uv run --extra mathopt python -m rko_solver.examples.model_conversion mathopt
+uv run --extra pyomo python -m examples.model_conversion pyomo
+uv run --extra pulp python -m examples.model_conversion pulp
+uv run --extra mathopt python -m examples.model_conversion mathopt
 ```
 
 The example is an original reproducible formulation with an analytic maximum of
@@ -143,7 +143,7 @@ that its hosted qualification has passed.
 To exercise the development integrations from this checkout:
 
 ```bash
-uv run --extra pyomo --extra pulp --extra mathopt pytest src/rko_solver/tests/rko/test_model_adapters.py -q
+uv run --extra pyomo --extra pulp --extra mathopt pytest tests/rko/test_model_adapters.py -q
 ```
 
 No external LP/MIP optimizer is called by extraction, decoding or these tests.
