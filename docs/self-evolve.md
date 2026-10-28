@@ -260,7 +260,11 @@ paths and an exact model ID available to your eligible account:
 uv run python -m rko_solver.experimental.self_evolve pi-profile /private/pi-config.json
 ```
 
-This creates owner-private settings, never credentials. Authenticate manually
+This creates owner-private settings, never credentials. Pi may add its installation
+`deviceId` during authentication; the controller accepts only its canonical UUIDv4
+form as optional metadata, without changing profile files. All other settings must
+still match the declared policy exactly; unknown settings remain rejected.
+Authenticate manually
 using Pi's supported `/login` in that profile with the exact provider/model.
 Do not copy `auth.json`, hand-edit credentials, supply a new API key, or weaken
 an ordinary profile's settings. Use `/login` only, then exit without prompting:

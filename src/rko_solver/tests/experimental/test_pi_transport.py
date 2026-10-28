@@ -30,6 +30,11 @@ from rko_solver.experimental.self_evolve.pi_transport import PiTransport
 FAKE_PI = """import json, os, sys
 from pathlib import Path
 scenario = json.loads(Path(__file__).with_suffix('.json').read_text())
+if scenario.get('device_id'):
+    settings_path = Path(os.environ['PI_CODING_AGENT_DIR']) / 'settings.json'
+    settings = json.loads(settings_path.read_text())
+    settings['deviceId'] = scenario['device_id']
+    settings_path.write_text(json.dumps(settings))
 if '--version' in sys.argv:
     print(scenario.get('version', '1.3.0'))
     raise SystemExit(0)
@@ -136,15 +141,18 @@ def configured_pi(tmp_path: Path) -> PiConfig:
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="Initial Pi process supervision is Linux/WSL.")
+@pytest.mark.parametrize("device_id", [None, "b28a056e-d5bd-4a03-a2db-5e080138cf86"])
 def test_one_proposal_preserves_source_and_counts_only_authoritative_usage(
-    configured_pi: PiConfig, monkeypatch: pytest.MonkeyPatch
+    configured_pi: PiConfig, monkeypatch: pytest.MonkeyPatch, device_id: str | None
 ) -> None:
     """The real process transport returns source data, not execution or a free-cost claim.
 
     Args:
         configured_pi (PiConfig): Trusted fake Pi executable and isolated profile.
         monkeypatch (pytest.MonkeyPatch): Ambient credentials that must not reach the child.
+        device_id (str | None): Optional UUID persisted by the fake Pi during metadata startup.
     """
+    set_scenario(configured_pi, {"device_id": device_id})
     for name in ("OPENAI_API_KEY", "NODE_OPTIONS", "PI_SESSION_FILE"):
         monkeypatch.setenv(name, "never-inherit-this-secret")
     result = PiTransport(configured_pi).generate({"family": "knapsack", "task": "trusted fixture"})

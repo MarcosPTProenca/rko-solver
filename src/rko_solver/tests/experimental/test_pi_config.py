@@ -117,6 +117,65 @@ def test_custom_resources_cannot_enter_a_qualified_profile(tmp_path: Path, unsaf
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="Private live-profile policy is Linux/WSL.")
+@pytest.mark.parametrize(
+    "change, accepted",
+    [
+        ({}, True),
+        ({"deviceId": None}, False),
+        ({"deviceId": False}, False),
+        ({"deviceId": 0}, False),
+        ({"deviceId": []}, False),
+        ({"deviceId": {}}, False),
+        ({"deviceId": ""}, False),
+        ({"deviceId": "not-a-uuid"}, False),
+        ({"deviceId": "00000000-0000-0000-0000-000000000000"}, False),
+        ({"deviceId": "b28a056e-d5bd-1a03-a2db-5e080138cf86"}, False),
+        ({"deviceId": "b28a056e-d5bd-4a03-a2db-5e080138cf86\n"}, False),
+        ({"unexpected": True}, False),
+        ({"extensions": []}, False),
+        ({"providerOptions": {}}, False),
+        ({"defaultProvider": "openai"}, False),
+        ({"defaultModel": "other-model"}, False),
+        ({"defaultProjectTrust": "always"}, False),
+        ({"cacheWarming": "streaming"}, False),
+        ({"transport": "websocket"}, False),
+        ({"retry": {"enabled": True, "provider": {"maxRetries": 0}}}, False),
+        ({"retry": {"enabled": 0, "provider": {"maxRetries": 0}}}, False),
+        ({"compaction": {"enabled": True}}, False),
+        ({"enableInstallTelemetry": True}, False),
+        ({"enableAnalytics": True}, False),
+    ],
+)
+def test_pi_device_metadata_preserves_exact_policy_and_profile_bytes(
+    tmp_path: Path, change: dict[str, object], accepted: bool
+) -> None:
+    """Only Pi's optional UUIDv4 metadata may accompany the exact frozen settings.
+
+    Args:
+        tmp_path (Path): Private test-owned profile, never an operator credential store.
+        change (dict[str, object]): Metadata or policy mutation applied alongside a valid ID.
+        accepted (bool): Whether the unchanged policy and metadata should be admitted.
+    """
+    config = PiConfig(tmp_path / "pi", tmp_path / "profile", "gpt-5.4")
+    config.prepare_profile()
+    auth = config.profile / "auth.json"
+    auth.write_bytes(b"\xffnot controller-readable credentials")
+    auth.chmod(0o600)
+    path = config.profile / "settings.json"
+    settings = config.settings() | {"deviceId": "b28a056e-d5bd-4a03-a2db-5e080138cf86"}
+    settings.update(change)
+    path.write_text(json.dumps(settings))
+    before = path.read_bytes()
+    if accepted:
+        config.verify_profile()
+    else:
+        with pytest.raises(PiError, match="profile"):
+            config.verify_profile()
+    assert path.read_bytes() == before
+    assert auth.read_bytes() == b"\xffnot controller-readable credentials"
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="Private live-profile policy is Linux/WSL.")
 def test_boolean_policy_fields_are_not_coerced_from_numeric_zero(tmp_path: Path) -> None:
     """JSON's false and zero must not be interchangeable in an executable policy declaration.
 
