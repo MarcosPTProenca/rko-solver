@@ -17,7 +17,9 @@ Inputs/Outputs:
 
 import json
 import pytest
+import signal
 import sys
+from collections.abc import Iterator
 from dataclasses import replace
 from pathlib import Path
 from rko_solver.experimental.self_evolve import DecoderArtifact
@@ -28,6 +30,23 @@ from rko_solver.tests.experimental.test_pi_transport import configured_pi as con
 from rko_solver.tests.experimental.test_pi_transport import set_scenario
 from rko_solver.tests.experimental.test_self_evolve_campaign import FixtureRunner
 from rko_solver.tests.experimental.test_self_evolve_campaign import make_campaign
+
+
+@pytest.fixture
+def interruptible() -> Iterator[None]:
+    """Install Python's default SIGINT handler, then restore the inherited disposition.
+
+    A process started in the background by a non-interactive shell inherits an ignored SIGINT,
+    so an interrupt signalled by a test would never raise KeyboardInterrupt.
+
+    Yields:
+        None: Control to the test while `KeyboardInterrupt` can be raised.
+    """
+    previous = signal.signal(signal.SIGINT, signal.default_int_handler)
+    try:
+        yield
+    finally:
+        signal.signal(signal.SIGINT, previous)
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="Initial Pi subprocess support is Linux/WSL.")
@@ -101,13 +120,14 @@ def test_failed_generations_count_and_tenth_attempt_can_still_be_reviewed(
 
 @pytest.mark.skipif(sys.platform != "linux", reason="Initial Pi subprocess support is Linux/WSL.")
 def test_interrupted_generation_requires_explicit_inspected_abandonment(
-    tmp_path: Path, configured_pi: PiConfig
+    tmp_path: Path, configured_pi: PiConfig, interruptible: None
 ) -> None:
     """A signal interruption keeps its slot and cannot be silently resumed as success.
 
     Args:
         tmp_path (Path): Private durable journal.
         configured_pi (PiConfig): Fake Pi signaling only its owned test-controller parent.
+        interruptible (None): Guarantees SIGINT raises KeyboardInterrupt in this process.
     """
     original = make_campaign(tmp_path / "campaign")
     original.calibrate(FixtureRunner())
