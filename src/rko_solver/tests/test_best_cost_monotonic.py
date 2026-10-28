@@ -14,13 +14,17 @@ Flow (pseudocode):
 1. Generate a configuration and solve it with a recording objective and history enabled.
 2. Assert the result cost equals the minimum recorded objective value.
 3. Assert every history is non-increasing and ends at or above the result cost, and that the
-   best final history cost over the searches equals the result cost.
+   best final history cost over the searches equals the result cost, or is at least the result
+   cost on an engine that fills the shared pool before its searches.
 
 Important criteria:
 - This is the archive-monotonicity assumption of the best-so-far convergence argument for
   random-key search; it does not claim a convergence rate or finite-time quality.
 - Runs are sequential or single-worker so the recorded stream is complete; the C++ engine takes
   part when it is compiled in.
+- The C++ engine evaluates a startup fill of the shared pool that no search reports, so the best
+  value may come from the fill and sit below every search history; the result must still hold it.
+- The C++ reference's IPR needs at least 10 keys, so those cases use at least 10.
 - Hypothesis runs derandomized with no deadline, like the other property tests.
 
 Inputs/Outputs:
@@ -43,6 +47,7 @@ SETTINGS = {"python": {"execution": "sequential"}, "rust": {"n_jobs": 1}, "cpp":
 needs_cpp = pytest.mark.skipif(not native.cpp_available(), reason="built without the C++ engine")
 ENGINES = ["python", "rust", pytest.param("cpp", marks=needs_cpp)]
 PORTFOLIOS = st.lists(st.sampled_from(sorted(MH_SPECS)), min_size=1, max_size=3, unique=True)
+FILLS_POOL_FIRST = {"cpp"}
 FUZZ = {"deadline": None, "derandomize": True, "suppress_health_check": list(HealthCheck)}
 
 
@@ -108,6 +113,8 @@ def test_the_reported_best_is_the_lowest_objective_ever_evaluated(
         seed (int): Random seed.
         limit (int): Evaluation limit per search.
     """
+    if engine == "cpp" and "IPR" in algorithms:
+        dimension = max(dimension, 10)
     result, seen = solve_recorded(
         engine,
         algorithms,
@@ -124,4 +131,7 @@ def test_the_reported_best_is_the_lowest_objective_ever_evaluated(
         assert costs == sorted(costs, reverse=True), search.algorithm
         assert all(cost >= result.cost for cost in costs), search.algorithm
         finals.append(costs[-1])
-    assert min(finals) == result.cost
+    if engine in FILLS_POOL_FIRST:
+        assert min(finals) >= result.cost
+    else:
+        assert min(finals) == result.cost
