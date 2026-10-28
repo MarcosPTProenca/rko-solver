@@ -22,7 +22,7 @@ Six deterministic cases (three operators, both strategies) were verified by
 compiling the unmodified C++ function bodies with minimal solution/data types,
 a linear decoder and controlled exploration order/Farey midpoint draws.
 The same outputs and full candidate counts are regression-tested in
-`src/rko_solver/tests/components/test_cpp_operator_contracts.py`. This was a kernel
+`tests/components/test_cpp_operator_contracts.py`. This was a kernel
 comparison, not a build/test of the complete C++ application or random generator.
 The normalized reference `Method.h` SHA256 is
 `0f202c543c424a77db3f44220986ee956b3b17c0900a2454fcb122f25339262d`.

@@ -20,7 +20,7 @@ jobs:
       - name: Check service tests and canonical dependency lock
         run: |
           uv sync --locked --extra service --extra reports --group service-test
-          uv run --locked --extra service --extra reports --group service-test pytest src/rko_solver/tests/service -q
+          uv run --locked --extra service --extra reports --group service-test pytest tests/service -q
           uv export --locked --no-default-groups --extra service --extra reports --no-emit-project --no-header --no-annotate --output-file "$RUNNER_TEMP/service-requirements.lock"
           cmp src/rko_solver/service/templates/requirements.lock "$RUNNER_TEMP/service-requirements.lock"
       - name: Build local SDK artifacts without publishing

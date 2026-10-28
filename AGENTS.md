@@ -94,7 +94,7 @@ Additional rules for function/method docstrings:
 ```bash
 uv run ruff check .
 uv run ruff format --check .
-uv run pytest src/rko_solver/tests -q
+uv run pytest tests -q
 ```
 
 ## Rust (native engines in `engines/`)

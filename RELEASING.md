@@ -67,7 +67,7 @@ jobs remain read-only and receive no publisher OIDC permission.
 - Run the mandatory library checks plus:
 
 ```bash
-uv run --locked --group release pytest src/rko_solver/tests/test_release.py -q
+uv run --locked --group release pytest tests/test_release.py -q
 uv run --locked python tools/third_party_licenses.py --check
 ```
 

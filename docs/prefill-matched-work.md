@@ -117,7 +117,7 @@ Reproduce the original pilot (bounded serial work, no timings):
 
 ```bash
 uv run --locked python benchmarks/prefill_work.py > /tmp/prefill-work.jsonl
-uv run --locked pytest src/rko_solver/tests/rko/test_prefill_work.py -q
+uv run --locked pytest tests/rko/test_prefill_work.py -q
 ```
 
 The provenance header changes with checkout/runtime. Compare compatible trial

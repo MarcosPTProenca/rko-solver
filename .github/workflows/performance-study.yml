@@ -24,8 +24,8 @@ on:
       - ".github/workflows/performance-study.yml"
       - "benchmarks/performance_*.py"
       - "benchmarks/blending_work.py"
-      - "src/rko_solver/tests/benchmarks/test_blending_work.py"
-      - "src/rko_solver/tests/benchmarks/test_performance_*.py"
+      - "tests/benchmarks/test_blending_work.py"
+      - "tests/benchmarks/test_performance_*.py"
 
 permissions:
   contents: read

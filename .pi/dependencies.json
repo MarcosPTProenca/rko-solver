@@ -45,33 +45,33 @@
     "benchmarks/tuning/objective.py",
     "benchmarks/tuning/spaces.py"
   ],
-  "src/rko_solver/tests/benchmarks/test_blending_work.py": [
+  "tests/benchmarks/test_blending_work.py": [
     "benchmarks/blending_work.py"
   ],
-  "src/rko_solver/tests/benchmarks/test_cpp_python_knapsack.py": [
+  "tests/benchmarks/test_cpp_python_knapsack.py": [
     "benchmarks/cpp_python_knapsack.py",
     "benchmarks/knapsack_utils.py"
   ],
-  "src/rko_solver/tests/benchmarks/test_engine_ratio.py": [
+  "tests/benchmarks/test_engine_ratio.py": [
     "benchmarks/engine_ratio.py"
   ],
-  "src/rko_solver/tests/benchmarks/test_modeling_overhead.py": [
+  "tests/benchmarks/test_modeling_overhead.py": [
     "benchmarks/modeling_overhead.py"
   ],
-  "src/rko_solver/tests/benchmarks/test_modeling_validation.py": [
+  "tests/benchmarks/test_modeling_validation.py": [
     "benchmarks/modeling_cases.py",
     "benchmarks/modeling_validation.py"
   ],
-  "src/rko_solver/tests/benchmarks/test_native_report.py": [
+  "tests/benchmarks/test_native_report.py": [
     "benchmarks/native_report.py"
   ],
-  "src/rko_solver/tests/benchmarks/test_performance_profile.py": [
+  "tests/benchmarks/test_performance_profile.py": [
     "benchmarks/performance_profile.py"
   ],
-  "src/rko_solver/tests/benchmarks/test_performance_report.py": [
+  "tests/benchmarks/test_performance_report.py": [
     "benchmarks/performance_report.py"
   ],
-  "src/rko_solver/tests/benchmarks/test_tuning.py": [
+  "tests/benchmarks/test_tuning.py": [
     "benchmarks/tuning/__init__.py",
     "benchmarks/tuning/analysis.py",
     "benchmarks/tuning/external.py",
@@ -81,19 +81,19 @@
     "benchmarks/tuning/spaces.py",
     "benchmarks/tuning/tuners.py"
   ],
-  "src/rko_solver/tests/metaheuristics/test_brkga_cs_correlation.py": [
+  "tests/metaheuristics/test_brkga_cs_correlation.py": [
     "benchmarks/fixed_work.py"
   ],
-  "src/rko_solver/tests/rko/test_model_repair.py": [
+  "tests/rko/test_model_repair.py": [
     "benchmarks/modeling_cases.py"
   ],
-  "src/rko_solver/tests/test_mutation_report.py": [
+  "tests/test_mutation_report.py": [
     "tools/mutation_report.py"
   ],
-  "src/rko_solver/tests/test_quality_gate.py": [
+  "tests/test_quality_gate.py": [
     "tools/quality_gate.py"
   ],
-  "src/rko_solver/tests/test_release.py": [
+  "tests/test_release.py": [
     "tools/release.py"
   ]
 }

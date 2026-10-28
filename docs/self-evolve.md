@@ -403,8 +403,8 @@ installed as production defaults.
 ```bash
 uv run ruff check .
 uv run ruff format --check .
-uv run pytest src/rko_solver/tests -q
-RKO_EVOLVE_IMAGE=localhost/rko-self-evolve:dev uv run pytest src/rko_solver/tests/experimental -q
+uv run pytest tests -q
+RKO_EVOLVE_IMAGE=localhost/rko-self-evolve:dev uv run pytest tests/experimental -q
 ```
 
 Live tests are opt-in; ordinary unit-test success does not certify a working

@@ -84,7 +84,7 @@ When you add a setting or an algorithm:
    identifies algorithms by their index in that list, so keep the order.
 3. Report it in the per-search metadata with the same field names and stop reasons
    (`time_limit`, `max_evaluations`, `completed`, `cancelled`, `not_started`).
-4. Pin it in the parity contract (`src/rko_solver/tests/test_engine_parity_contract.py`):
+4. Pin it in the parity contract (`tests/test_engine_parity_contract.py`):
    run it on every available engine and compare reports and error messages exactly.
 5. If it changes what an algorithm computes, refresh the golden runs
    (`test_golden_runs.py`) and say why in the pull request; they are the only frozen results.
@@ -122,7 +122,7 @@ Run from this repository root:
 ```bash
 uv run --locked ruff check .
 uv run --locked ruff format --check .
-uv run --locked pytest src/rko_solver/tests -q
+uv run --locked pytest tests -q
 ```
 
 For public behavior changes, explain compatibility and any seeded-trajectory or
