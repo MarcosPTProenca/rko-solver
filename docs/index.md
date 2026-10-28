@@ -38,7 +38,7 @@ are owner-approved, not automatic publication from main.
 
 ## Investigate
 
-- [Limitations](status.md) and [C++ compatibility](cpp-compatibility.md).
+- [Limitations](status.md), [convergence guarantees](guarantees.md) and [C++ compatibility](cpp-compatibility.md).
 - [Measurements](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md), not general performance promises.
 - Algorithm module docstrings describe technical strategy, pseudocode and stopping
   criteria. Public classes such as `SA` share RKO's constructor options and solve

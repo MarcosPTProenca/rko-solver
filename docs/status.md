@@ -134,7 +134,8 @@ semantic tracing, a complete execution log or callback replay.
 - **Stopping:** active callbacks cannot be interrupted cooperatively, blocked
   threads cannot be safely killed, and standalone operators receive no RKO
   deadline. A first valid evaluation may exceed the requested duration.
-- **Scientific quality:** matching algorithm names and decoder rules does not
+- **Scientific quality:** the only convergence statement defended is the [protected-exploration
+  guarantee](guarantees.md), a safety property that says nothing about speed. Matching algorithm names and decoder rules does not
   establish comparable initialization or search work. IPR now bootstraps a missing
   elite pair instead of returning its only random evaluation when no peer produces
   elites; this is domain-neutral and does not guarantee feasibility or C++ quality.

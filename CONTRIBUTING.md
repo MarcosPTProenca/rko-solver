@@ -65,6 +65,8 @@ dependency-free, so they use its own `Rng` instead of `proptest`.
 `test_best_cost_monotonic.py` checks, for generated portfolios on every engine, that the reported
 best cost equals the lowest objective value any evaluation returned and that every history is
 non-increasing, so no step between a search, the shared pool and the result can lose an improvement.
+`test_brkga_survival_bound.py` checks, on a target of known uniform-key mass, that BRKGA's miss rate
+stays under `(1 - mu)^(p + m*G)` (see `docs/guarantees.md`) and that every engine finds the target.
 `test_golden_runs.py` freezes seeded results of every algorithm on the reproducible
 configurations; if a behavior change is intended, regenerate with
 `RKO_UPDATE_GOLDEN=1 uv run pytest src/rko_solver/tests/test_golden_runs.py` and review the
