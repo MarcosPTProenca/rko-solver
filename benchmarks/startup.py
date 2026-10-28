@@ -101,11 +101,12 @@ def objective(keys: np.ndarray) -> float:
     return float(np.dot(keys, keys))
 
 
-def _timed_worker(*args: object) -> None:
+def _timed_worker(*args: object, **kwargs: object) -> None:
     """Instrument graph creation inside an otherwise unchanged spawn worker.
 
     Args:
         args (object): Existing process-worker positional arguments.
+        kwargs (object): Existing process-worker keyword arguments, forwarded unchanged.
 
     Raises:
         AssertionError: If the worker receives an unexpected decoder type.
@@ -135,7 +136,7 @@ def _timed_worker(*args: object) -> None:
 
     QLearningController._create_states = staticmethod(create)
     try:
-        _RUN_WORKER(*args)
+        _RUN_WORKER(*args, **kwargs)
     finally:
         QLearningController._create_states = staticmethod(original)
 
