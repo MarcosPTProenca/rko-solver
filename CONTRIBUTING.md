@@ -62,6 +62,9 @@ with Hypothesis; `RKO_FUZZ_SCALE=20` multiplies every example count for a deeper
 minute at 20x). Failing examples are reproducible because Hypothesis runs derandomized. The Rust
 core has seeded property tests in `engines/rust/rko-core/tests/properties.rs`; the crate stays
 dependency-free, so they use its own `Rng` instead of `proptest`.
+`test_best_cost_monotonic.py` checks, for generated portfolios on every engine, that the reported
+best cost equals the lowest objective value any evaluation returned and that every history is
+non-increasing, so no step between a search, the shared pool and the result can lose an improvement.
 `test_golden_runs.py` freezes seeded results of every algorithm on the reproducible
 configurations; if a behavior change is intended, regenerate with
 `RKO_UPDATE_GOLDEN=1 uv run pytest src/rko_solver/tests/test_golden_runs.py` and review the
