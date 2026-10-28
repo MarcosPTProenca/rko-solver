@@ -4,7 +4,7 @@ Objective:
 - Run a selected instance and external configuration without a Python driver.
 
 Technical approach:
-- Check argument boundaries and the installed console command in subprocesses.
+- Check argument boundaries and the module entry point in subprocesses.
 
 Flow (pseudocode):
 1. Parse single-instance and legacy batch selections.
@@ -20,14 +20,17 @@ Inputs/Outputs:
 """
 
 import csv
+import os
 import pytest
 import shutil
 import subprocess
 import sys
+from examples.run_kp_cpp_instances import default_instances_dir
+from examples.run_kp_cpp_instances import parse_args
 from pathlib import Path
-from rko_solver.examples.run_kp_cpp_instances import default_instances_dir
-from rko_solver.examples.run_kp_cpp_instances import parse_args
 from rko_solver.parameters.loader import default_params_dir
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 @pytest.mark.parametrize(
@@ -134,8 +137,6 @@ def test_console_runs_external_instance_and_parameters(
         selection (str): Direct path or legacy directory/glob selection.
         quiet (bool): Suppress live progress but retain the final CSV summary.
     """
-    executable = shutil.which("rko-solver")
-    assert executable is not None
     instance = tmp_path / "tiny instance.txt"
     instance.write_text("3 5 6 1 10 2 12 3", encoding="utf-8")
     parameters = tmp_path / "my parameters"
@@ -161,7 +162,9 @@ def test_console_runs_external_instance_and_parameters(
     )
     completed = subprocess.run(
         [
-            executable,
+            sys.executable,
+            "-m",
+            "examples.run_kp_cpp_instances",
             *arguments,
             *(["--quiet"] if quiet else []),
             *(["--prefill-pool"] if selection == "single" else []),
@@ -182,6 +185,7 @@ def test_console_runs_external_instance_and_parameters(
         text=True,
         timeout=90,
         cwd=tmp_path,
+        env={**os.environ, "PYTHONPATH": str(ROOT)},
     )
     with output.open(newline="", encoding="utf-8") as stream:
         rows = list(csv.DictReader(stream))
@@ -255,14 +259,14 @@ def test_console_runs_the_rust_engine_on_the_builtin_knapsack(tmp_path: Path) ->
         tmp_path (Path): Temporary instance and result directory.
     """
     pytest.importorskip("rko_solver._native")
-    executable = shutil.which("rko-solver")
-    assert executable is not None
     instance = tmp_path / "tiny.txt"
     instance.write_text("3 5 6 1 10 2 12 3", encoding="utf-8")
     output = tmp_path / "result.csv"
     subprocess.run(
         [
-            executable,
+            sys.executable,
+            "-m",
+            "examples.run_kp_cpp_instances",
             str(instance),
             "--quiet",
             "--engine",
@@ -279,6 +283,7 @@ def test_console_runs_the_rust_engine_on_the_builtin_knapsack(tmp_path: Path) ->
         text=True,
         timeout=90,
         cwd=tmp_path,
+        env={**os.environ, "PYTHONPATH": str(ROOT)},
     )
     with output.open(newline="", encoding="utf-8") as stream:
         row = next(csv.DictReader(stream))

@@ -24,9 +24,9 @@ Inputs/Outputs:
 """
 
 import numpy as np
-from ..metaheuristics import SA
-from ..reporting import OptimizationReport
 from pathlib import Path
+from rko_solver.metaheuristics import SA
+from rko_solver.reporting import OptimizationReport
 
 
 def decode(keys: np.ndarray) -> np.ndarray:

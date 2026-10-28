@@ -21,20 +21,20 @@ Inputs/Outputs:
 
 import pickle
 import pytest
+from examples.run_kp_cpp_instances import decode_knapsack
+from examples.run_kp_cpp_instances import default_instances_dir
+from examples.run_kp_cpp_instances import default_output_csv
+from examples.run_kp_cpp_instances import evaluate_solution
+from examples.run_kp_cpp_instances import make_cost
+from examples.run_kp_cpp_instances import read_kp_instance
+from examples.run_kp_cpp_instances import run_single_instance
 from pathlib import Path
-from rko_solver.examples.run_kp_cpp_instances import decode_knapsack
-from rko_solver.examples.run_kp_cpp_instances import default_instances_dir
-from rko_solver.examples.run_kp_cpp_instances import default_output_csv
-from rko_solver.examples.run_kp_cpp_instances import evaluate_solution
-from rko_solver.examples.run_kp_cpp_instances import make_cost
-from rko_solver.examples.run_kp_cpp_instances import read_kp_instance
-from rko_solver.examples.run_kp_cpp_instances import run_single_instance
 
 
-def test_default_instances_ship_inside_the_python_package() -> None:
-    """Keep the benchmark runnable without a separately cloned C++ directory."""
+def test_default_instances_live_in_the_examples_directory() -> None:
+    """Keep the benchmark runnable from a checkout without a separately cloned C++ directory."""
     directory = default_instances_dir()
-    assert directory.is_relative_to(Path(__file__).resolve().parents[2] / "src" / "rko_solver")
+    assert directory == Path(__file__).resolve().parents[2] / "examples" / "instances"
     assert read_kp_instance(directory / "kp10.txt").n_items == 10
     assert read_kp_instance(directory / "kp50.txt").n_items == 50
 

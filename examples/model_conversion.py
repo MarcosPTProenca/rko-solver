@@ -25,7 +25,7 @@ Inputs/Outputs:
 
 import argparse
 import importlib
-from ..solver import RKO
+from rko_solver.solver import RKO
 
 
 class LinearModelExample:

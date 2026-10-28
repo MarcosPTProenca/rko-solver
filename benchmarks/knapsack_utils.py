@@ -22,7 +22,7 @@ Inputs/Outputs:
 """
 
 import numpy as np
-from rko_solver.examples.run_kp_cpp_instances import KpInstance
+from examples.run_kp_cpp_instances import KpInstance
 
 
 def exact_profit(instance: KpInstance) -> int:

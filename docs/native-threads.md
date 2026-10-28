@@ -18,7 +18,7 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 BLIS_NUM_THREADS=1 \
 ```
 
 Replace the diagnostic command after the environment prefix with your existing
-`uv run --locked python your_solver.py` or `uv run --locked rko-solver ...` invocation.
+`uv run --locked python your_solver.py` or `uv run --locked python -m examples.run_kp_cpp_instances ...` invocation.
 Those are templates for your own script/arguments, not bundled filenames. The
 prefix applies only to that command and its descendants; it does not persistently
 export settings to the shell or change the RKO default. `threadpoolctl` is needed

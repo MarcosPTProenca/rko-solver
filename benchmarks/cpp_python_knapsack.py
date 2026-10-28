@@ -50,14 +50,14 @@ from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import fields
+from examples.run_kp_cpp_instances import KpInstance
+from examples.run_kp_cpp_instances import decode_knapsack
+from examples.run_kp_cpp_instances import evaluate_solution
+from examples.run_kp_cpp_instances import read_kp_instance
 from io import BytesIO
 from pathlib import Path
 from rko_solver import RKO
 from rko_solver import Callbacks
-from rko_solver.examples.run_kp_cpp_instances import KpInstance
-from rko_solver.examples.run_kp_cpp_instances import decode_knapsack
-from rko_solver.examples.run_kp_cpp_instances import evaluate_solution
-from rko_solver.examples.run_kp_cpp_instances import read_kp_instance
 from typing import Any
 
 KPLIB_REVISION = "c5bea0df8169749caaba5ce7dfcf21437aa1ca5c"

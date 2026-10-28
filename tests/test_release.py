@@ -70,8 +70,6 @@ def payload(tmp_path: Path) -> tuple[ReleaseManager, Path]:
         b"Requires-Dist: numpy>=2.0.0\n\nDescription\n"
     )
     resources = {
-        "examples/instances/scheduling.json": b"{}",
-        "examples/instances/kp10.txt": b"1",
         "parameters/SA.toml": b"x=1",
     }
     licenses = {name: (root / name).read_bytes() for name in ReleaseManager.licenses}
@@ -202,7 +200,8 @@ def test_exact_payload_survives_transfer_and_changed_bytes_fail(
         "rko_solver/.env",
         "rko_solver/results/private.json",
         "rko_solver/target/binary",
-        "rko_solver/examples/instances/secret.csv",
+        "rko_solver/examples/instances/kp10.txt",
+        "rko_solver/examples/__init__.py",
     ],
 )
 def test_private_unsafe_or_native_archive_entries_fail(

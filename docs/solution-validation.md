@@ -12,14 +12,14 @@ is not a certificate of domain feasibility or optimality.
 ## Use a checker after solving
 
 The scheduling adapter from the [data-loading tutorial](problem-adapters.md) includes
-an optional checker. This complete script uses its packaged synthetic fixture:
+an optional checker. This complete script, run from the repository root, uses its synthetic fixture in `examples/instances/`:
 
 ```python
 from pathlib import Path
 from rko_solver import assess_result
-from rko_solver.examples import instance_pipeline
-from rko_solver.examples.instance_pipeline import SchedulingProblem
-from rko_solver.examples.instance_pipeline import read_data
+from examples import instance_pipeline
+from examples.instance_pipeline import SchedulingProblem
+from examples.instance_pipeline import read_data
 from rko_solver.metaheuristics import SA
 
 
@@ -167,11 +167,11 @@ finite Python primitive scalars (or None), not arrays/dictionaries/payloads.
 Convert NumPy scalar values explicitly to the appropriate Python float/int/bool;
 do not truncate fractional measurements just to fit an integer type.
 
-Run the packaged example with assessment enabled explicitly:
+Run the repository example with assessment enabled explicitly:
 
 ```bash
-uv run --locked python -m rko_solver.examples.instance_pipeline --validate-solution
-uv run --locked --extra reports python -m rko_solver.examples.instance_pipeline \
+uv run --locked python -m examples.instance_pipeline --validate-solution
+uv run --locked --extra reports python -m examples.instance_pipeline \
   --validate-solution --report checked-schedule.html
 ```
 

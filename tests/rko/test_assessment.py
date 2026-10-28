@@ -22,12 +22,15 @@ Inputs/Outputs:
 """
 
 import numpy as np
+import os
 import pytest
 import random
 import subprocess
 import sys
 from dataclasses import FrozenInstanceError
 from dataclasses import replace
+from examples.instance_pipeline import SchedulingInstance
+from examples.instance_pipeline import SchedulingProblem
 from functools import partial
 from pathlib import Path
 from rko_solver import RKO
@@ -35,8 +38,6 @@ from rko_solver import SolutionAssessment
 from rko_solver import ValidationCheck
 from rko_solver import ValidationReport
 from rko_solver import assess_result
-from rko_solver.examples.instance_pipeline import SchedulingInstance
-from rko_solver.examples.instance_pipeline import SchedulingProblem
 from rko_solver.metaheuristics import SA
 from rko_solver.reporting import OptimizationReport
 from rko_solver.solver import RKOResult
@@ -370,6 +371,7 @@ def test_documented_assessment_script_runs(tmp_path: Path) -> None:
         text=True,
         check=True,
         timeout=30,
+        env={**os.environ, "PYTHONPATH": str(page.parents[1])},
     )
     assert "Check status: passed" in process.stdout
     assert "Declared feasibility: True" in process.stdout

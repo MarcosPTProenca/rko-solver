@@ -24,13 +24,13 @@ Inputs/Outputs:
 
 import argparse
 import json
-from ..reporting import OptimizationReport
-from ..solver import RKO
-from ..tracing import TraceConfig
-from .instance_pipeline import SchedulingInstance
-from .instance_pipeline import SchedulingProblem
 from collections.abc import Sequence
+from examples.instance_pipeline import SchedulingInstance
+from examples.instance_pipeline import SchedulingProblem
 from pathlib import Path
+from rko_solver.reporting import OptimizationReport
+from rko_solver.solver import RKO
+from rko_solver.tracing import TraceConfig
 
 
 def main(argv: Sequence[str] | None = None) -> None:

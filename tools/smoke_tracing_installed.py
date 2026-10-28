@@ -23,15 +23,69 @@ Inputs/Outputs:
 """
 
 import argparse
+import numpy as np
 import pickle
 import rko_solver
+from dataclasses import dataclass
 from pathlib import Path
-from rko_solver.examples.instance_pipeline import SchedulingInstance
-from rko_solver.examples.instance_pipeline import SchedulingProblem
 from rko_solver.reporting import OptimizationReport
 from rko_solver.solver import RKO
 from rko_solver.tracing import TraceConfig
+from rko_solver.tracing import record_decision
 from tempfile import TemporaryDirectory
+
+
+@dataclass(frozen=True, slots=True)
+class TraceScheduling:
+    """Minimal pickleable scheduling problem that records its priority decision.
+
+    Responsibilities:
+    - Decode priority keys into completion times and score total tardiness.
+
+    Attributes:
+        processing_times (tuple[int, ...]): Positive duration of each job.
+        due_dates (tuple[int, ...]): Due date of each job.
+    """
+
+    processing_times: tuple[int, ...]
+    due_dates: tuple[int, ...]
+
+    @property
+    def n_variables(self) -> int:
+        """Return one key per job.
+
+        Returns:
+            int: Number of jobs.
+        """
+        return len(self.processing_times)
+
+    def decode(self, keys: np.ndarray) -> tuple[tuple[int, int], ...]:
+        """Order jobs by increasing key and accumulate completion times.
+
+        Args:
+            keys (np.ndarray): One priority key per job.
+
+        Returns:
+            tuple[tuple[int, int], ...]: Job index and completion time pairs.
+        """
+        record_decision("priority_order", "Use stable increasing key order.")
+        elapsed = 0
+        schedule = []
+        for index in np.argsort(np.asarray(keys, dtype=float), kind="stable"):
+            elapsed += self.processing_times[int(index)]
+            schedule.append((int(index), elapsed))
+        return tuple(schedule)
+
+    def cost(self, solution: tuple[tuple[int, int], ...]) -> float:
+        """Sum positive lateness of a decoded schedule.
+
+        Args:
+            solution (tuple[tuple[int, int], ...]): Job index and completion time pairs.
+
+        Returns:
+            float: Total tardiness to minimize.
+        """
+        return float(sum(max(0, done - self.due_dates[job]) for job, done in solution))
 
 
 class InstalledTraceSmoke:
@@ -55,7 +109,7 @@ class InstalledTraceSmoke:
         parser.add_argument("--reports", action="store_true")
         args = parser.parse_args()
         assert "/src/rko_solver/" not in str(Path(rko_solver.__file__).resolve()).replace("\\", "/")
-        problem = SchedulingProblem(SchedulingInstance("installed-trace", (3, 2, 5), (3, 6, 9)))
+        problem = TraceScheduling((3, 2, 5), (3, 6, 9))
         with TemporaryDirectory(prefix="rko-installed-trace-") as temporary:
             for execution in ("sequential", "thread", "process"):
                 result = RKO(

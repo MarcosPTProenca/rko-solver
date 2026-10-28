@@ -28,7 +28,7 @@ After an ordinary solve, explicitly request a graph and pass it to the report:
 ```python
 from pathlib import Path
 from rko_solver import RKO
-from rko_solver.examples import instance_pipeline
+from examples import instance_pipeline
 from rko_solver.explain import DecoderDiagram
 from rko_solver.reporting import OptimizationReport
 
@@ -57,7 +57,7 @@ For a complete HTML/JSON example including optional independent checks:
 
 ```bash
 uv sync --locked --extra reports
-uv run --locked --extra reports python -m rko_solver.examples.decoder_diagram
+uv run --locked --extra reports python -m examples.decoder_diagram
 ```
 
 It writes ignored local `results/decoder-diagram.html` and `.json`, not benchmark

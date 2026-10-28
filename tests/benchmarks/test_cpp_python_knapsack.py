@@ -32,8 +32,8 @@ from benchmarks.cpp_python_knapsack import KnapsackBenchmark
 from benchmarks.cpp_python_knapsack import SolverOutput
 from benchmarks.cpp_python_knapsack import TrialRecord
 from benchmarks.knapsack_utils import exact_profit
+from examples.run_kp_cpp_instances import KpInstance
 from pathlib import Path
-from rko_solver.examples.run_kp_cpp_instances import KpInstance
 from unittest.mock import Mock
 
 

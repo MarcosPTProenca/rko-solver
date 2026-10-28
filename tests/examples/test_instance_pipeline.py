@@ -23,15 +23,16 @@ Inputs/Outputs:
 
 import json
 import numpy as np
+import os
 import pickle
 import pytest
 import subprocess
 import sys
+from examples import instance_pipeline
+from examples.instance_pipeline import SchedulingInstance
+from examples.instance_pipeline import SchedulingProblem
+from examples.instance_pipeline import read_data
 from pathlib import Path
-from rko_solver.examples import instance_pipeline
-from rko_solver.examples.instance_pipeline import SchedulingInstance
-from rko_solver.examples.instance_pipeline import SchedulingProblem
-from rko_solver.examples.instance_pipeline import read_data
 from rko_solver.metaheuristics import SA
 from unittest.mock import Mock
 
@@ -242,6 +243,7 @@ def test_documented_file_to_solution_script_runs(tmp_path: Path) -> None:
         text=True,
         check=True,
         timeout=30,
+        env={**os.environ, "PYTHONPATH": str(root)},
     )
     assert "Schedule (job index, completion time):" in process.stdout
     assert "Total tardiness:" in process.stdout

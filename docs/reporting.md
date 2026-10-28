@@ -45,7 +45,7 @@ Export failures raise without modifying the successful optimization result.
 For a complete runnable example:
 
 ```bash
-uv run --locked --extra reports python -m rko_solver.examples.analysis_report
+uv run --locked --extra reports python -m examples.analysis_report
 ```
 
 It writes `results/analysis-report.html` and `.json`. These are generated local

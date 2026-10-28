@@ -69,7 +69,7 @@ class ModelProbeProvenance:
             Path(__file__),
             *(root / "src/rko_solver").rglob("*.py"),
             *(root / "src/rko_solver/parameters").glob("*.toml"),
-            root / "src/rko_solver/examples/instances/kp50.txt",
+            root / "examples/instances/kp50.txt",
             root / "pyproject.toml",
             root / "uv.lock",
             root / ".python-version",
@@ -84,8 +84,8 @@ class ModelProbeProvenance:
         }
         callback_sources = {}
         for relative in (
-            "src/rko_solver/examples/instance_pipeline.py",
-            "src/rko_solver/examples/run_kp_cpp_instances.py",
+            "examples/instance_pipeline.py",
+            "examples/run_kp_cpp_instances.py",
         ):
             original = subprocess.check_output(["git", "show", f"{revision}:{relative}"])
             digest = hashlib.sha256(original).hexdigest()

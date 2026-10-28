@@ -12,7 +12,6 @@ license = "Apache-2.0 AND MIT"
 license-files = [
     "LICENSE",
     "NOTICE",
-    "src/rko_solver/examples/instances/LICENSE",
     "engines/cpp/vendor/rko_cpp_v2/LICENSE",
     "engines/THIRD_PARTY_LICENSES.txt",
 ]
@@ -32,7 +31,6 @@ dependencies = [
 ]
 
 [project.scripts]
-rko-solver = "rko_solver.examples.run_kp_cpp_instances:main"
 rko-solver-service = "rko_solver.service.scaffold:ServiceScaffold.main"
 
 [project.urls]
@@ -64,14 +62,12 @@ features = ["extension-module"]
 profile = "release"
 include = [
     { path = "src/rko_solver/parameters/*.toml", format = ["sdist", "wheel"] },
-    { path = "src/rko_solver/examples/instances/*", format = ["sdist", "wheel"] },
     { path = "src/rko_solver/service/templates/*", format = ["sdist", "wheel"] },
     { path = "src/rko_solver/service/templates/.dockerignore", format = ["sdist", "wheel"] },
 ]
 exclude = [
     "tests/**",
     "**/__pycache__/**",
-    "src/rko_solver/examples/results/**",
 ]
 
 [tool.uv]
@@ -180,13 +176,13 @@ ignore_missing_imports = true
 exclude = ["tests/"]
 
 [tool.vulture]
-paths = ["src/rko_solver", "tools"]
+paths = ["src/rko_solver", "tools", "examples"]
 exclude = ["tests/"]
 min_confidence = 80
 ignore_names = ["page"]
 
 [tool.quality]
-type-paths = ["src/rko_solver", "tools"]
+type-paths = ["src/rko_solver", "tools", "examples"]
 
 [tool.coverage.run]
 source = ["rko_solver"]
