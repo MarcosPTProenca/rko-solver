@@ -38,6 +38,7 @@ import json
 import multiprocessing
 import numpy as np
 import os
+import subprocess
 import sys
 import time
 import zlib
@@ -47,7 +48,7 @@ from benchmarks.tuning.instances import FAMILIES
 from benchmarks.tuning.instances import Instance
 from benchmarks.tuning.instances import InstanceBank
 from benchmarks.tuning.objective import TuningObjective
-from benchmarks.tuning.spaces import SPACES
+from benchmarks.tuning.spaces import SPACE_PROFILES
 from benchmarks.tuning.tuners import IteratedRacing
 from benchmarks.tuning.tuners import RandomHalving
 from benchmarks.tuning.tuners import Tuner
@@ -82,6 +83,8 @@ class Settings:
         test_seeds (int): Solver seeds per held-out instance.
         evaluations (int): Evaluation limit of every solver run.
         workers (int): Worker processes.
+        space_profile (str): Original or expanded parameter ranges.
+        seed_offset (int): Offset selecting a fresh instance cohort.
     """
 
     directory: str
@@ -91,6 +94,8 @@ class Settings:
     test_seeds: int = 5
     evaluations: int = 50_000
     workers: int = 4
+    space_profile: str = "original"
+    seed_offset: int = 0
 
 
 def session_seed(algorithm: str, family: str, tuner: str, rep: int) -> int:
@@ -118,7 +123,7 @@ def _worker_bank(settings: Settings) -> tuple[InstanceBank, dict[tuple[str, str]
     Returns:
         tuple: The bank and a mapping `(family, role)` to calibrated instances.
     """
-    bank = InstanceBank(Path(settings.directory), settings.evaluations)
+    bank = InstanceBank(Path(settings.directory), settings.evaluations, settings.seed_offset)
     instances = {
         (family, role): bank.generate(family, role, count)
         for family in FAMILIES
@@ -137,7 +142,7 @@ def _prepare_family(payload: tuple[Settings, str]) -> str:
         str: The family name, once its calibration is stored.
     """
     settings, family = payload
-    bank = InstanceBank(Path(settings.directory), settings.evaluations)
+    bank = InstanceBank(Path(settings.directory), settings.evaluations, settings.seed_offset)
     for role, count in (("train", settings.train), ("test", settings.test)):
         bank.calibrate(bank.generate(family, role, count))
     return family
@@ -162,7 +167,7 @@ def run_session(payload: tuple[Settings, str, str, str, int]) -> dict[str, objec
     )
     bank, instances = _worker_bank(settings)
     train, test = instances[(family, "train")], instances[(family, "test")]
-    space = SPACES[algorithm]
+    space = SPACE_PROFILES[settings.space_profile][algorithm]
     seed = session_seed(algorithm, family, tuner, rep)
     started = time.perf_counter()
     runs = 0
@@ -245,6 +250,12 @@ class BakeOff:
         if not self.results.is_file():
             return set()
         lines = [json.loads(line) for line in self.results.read_text(encoding="utf-8").splitlines()]
+        recorded = next(line["settings"] for line in lines if line.get("kind") == "meta")
+        expected = asdict(self.settings)
+        for key in expected.keys() - {"workers", "directory"}:
+            legacy = {"space_profile": "original", "seed_offset": 0}.get(key)
+            if recorded.get(key, legacy) != expected[key]:
+                raise ValueError(f"Cannot resume with different settings: {key}.")
         return {
             (r["algorithm"], r["family"], r["tuner"], r["rep"])
             for r in lines
@@ -304,7 +315,18 @@ class BakeOff:
         """
         if not self.results.is_file():
             self.results.parent.mkdir(parents=True, exist_ok=True)
-            meta = {"kind": "meta", "settings": asdict(self.settings), "created": time.time()}
+            meta = {
+                "kind": "meta",
+                "settings": asdict(self.settings),
+                "created": time.time(),
+                "source_sha": subprocess.check_output(
+                    ["git", "rev-parse", "HEAD"], text=True
+                ).strip(),
+                "spaces": {
+                    name: asdict(space)
+                    for name, space in SPACE_PROFILES[self.settings.space_profile].items()
+                },
+            }
             self.results.write_text(json.dumps(meta) + "\n", encoding="utf-8")
         todo = self.pending(algorithms, families, tuners, reps)
         context = multiprocessing.get_context("spawn")

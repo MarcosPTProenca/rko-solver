@@ -134,12 +134,16 @@ class Confirmation:
             list[tuple]: Payloads for `score_configuration`.
         """
         lines = [json.loads(x) for x in self.results.read_text(encoding="utf-8").splitlines()]
+        metadata = next(x for x in lines if x.get("kind") == "meta")
+        directory = InstanceBank(
+            self.directory, seed_offset=metadata["settings"].get("seed_offset", 0)
+        ).directory
         sessions = [x for x in lines if x.get("kind") == "session"]
         wanted = [x for x in sessions if x["tuner"] in ("default", self.tuner)]
         wanted.sort(key=lambda x: (x["family"], x["algorithm"], x["tuner"] != "default", x["rep"]))
         return [
             (
-                str(self.directory),
+                str(directory),
                 evaluations,
                 x["algorithm"],
                 x["family"],

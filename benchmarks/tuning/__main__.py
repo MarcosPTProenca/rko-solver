@@ -29,6 +29,7 @@ from benchmarks.tuning.instances import FAMILIES
 from benchmarks.tuning.protocol import TUNERS
 from benchmarks.tuning.protocol import BakeOff
 from benchmarks.tuning.protocol import Settings
+from benchmarks.tuning.spaces import SPACE_PROFILES
 from benchmarks.tuning.spaces import SPACES
 from collections.abc import Sequence
 from pathlib import Path
@@ -60,6 +61,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--test-seeds", type=int, default=5)
     parser.add_argument("--evaluations", type=int, default=50_000)
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--space-profile", choices=list(SPACE_PROFILES), default="original")
+    parser.add_argument("--seed-offset", type=int, default=0)
     parser.add_argument("--confirm-evaluations", type=int, default=500_000)
     parser.add_argument("--confirm-instances", type=int, default=10)
     parser.add_argument("--confirm-seeds", type=int, default=3)
@@ -74,6 +77,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.test_seeds,
         args.evaluations,
         args.workers,
+        args.space_profile,
+        args.seed_offset,
     )
     if args.step == "confirm":
         output = args.directory / "confirm.jsonl"
@@ -88,6 +93,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(Analysis(results).report())
         return 0
     bake = BakeOff(settings, results)
+    bake.done()
     bake.prepare()
     if args.step == "run":
         count = bake.run(args.algorithms, args.families, args.tuners, args.reps)

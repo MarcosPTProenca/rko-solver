@@ -105,23 +105,31 @@ class InstanceBank:
         directory (Path): Folder with instance files and `calibration-<family>.json`.
         size (dict[str, int]): Problem size per family.
         evaluations (int): Evaluation limit of every scored run.
+        seed_offset (int): Offset selecting a separately stored instance cohort.
     """
 
     SIZES = {"kp": 300, "tsp": 60, "rastrigin": 30}
 
-    def __init__(self, directory: Path, evaluations: int = 50_000) -> None:
-        """Create a bank rooted at a directory.
+    def __init__(self, directory: Path, evaluations: int = 50_000, seed_offset: int = 0) -> None:
+        """Create a bank rooted at a cohort-specific directory.
 
         Args:
-            directory (Path): Folder for instances and calibration.
+            directory (Path): Parent folder for instances and calibration.
             evaluations (int): Evaluation limit of every scored run.
+            seed_offset (int): Nonnegative seed offset; zero preserves the original files.
+
+        Raises:
+            ValueError: If the seed offset is negative or not an integer.
         """
-        self.directory = directory
+        if type(seed_offset) is not int or seed_offset < 0:
+            raise ValueError("seed_offset must be a nonnegative integer.")
+        self.directory = directory / f"cohort-{seed_offset}" if seed_offset else directory
         self.evaluations = evaluations
+        self.seed_offset = seed_offset
         self._compiled: dict[str, tuple[int, Callable[[np.ndarray], float]]] = {}
         self._problems: dict[str, Numba] = {}
         self._calibration: dict[str, dict[str, float]] = {}
-        for stored in sorted(directory.glob("calibration-*.json")):
+        for stored in sorted(self.directory.glob("calibration-*.json")):
             self._calibration.update(json.loads(stored.read_text(encoding="utf-8")))
 
     def generate(self, family: str, role: str, count: int) -> list[Instance]:
@@ -143,7 +151,9 @@ class InstanceBank:
         self.directory.mkdir(parents=True, exist_ok=True)
         found = []
         for index in range(count):
-            rng = np.random.default_rng(ROLE_SEEDS[role] + 10 * index + FAMILIES.index(family))
+            rng = np.random.default_rng(
+                self.seed_offset + ROLE_SEEDS[role] + 10 * index + FAMILIES.index(family)
+            )
             path = self.directory / f"{family}-{role}-{index}.txt"
             if not path.is_file():
                 path.write_text(self._text(family, rng), encoding="utf-8")
