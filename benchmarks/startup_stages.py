@@ -113,11 +113,12 @@ class StartupProbe:
         return float(np.dot(keys, keys))
 
     @staticmethod
-    def worker(*args: object) -> None:
+    def worker(*args: object, **kwargs: object) -> None:
         """Record entry and constructor time around the original spawn worker.
 
         Args:
             args (object): Original positional worker arguments.
+            kwargs (object): Original keyword worker arguments, forwarded unchanged.
 
         Raises:
             AssertionError: If the expected observation callback is missing.
@@ -146,7 +147,7 @@ class StartupProbe:
 
         processes.build_metaheuristic = build
         try:
-            _WORKER(*args)
+            _WORKER(*args, **kwargs)
         finally:
             processes.build_metaheuristic = original
             (decoder.directory / f"prepare-{os.getpid()}.json").write_text(
