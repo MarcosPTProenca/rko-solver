@@ -196,7 +196,7 @@ def test_a_custom_parameter_directory_reaches_every_engine(tmp_path: Path) -> No
     """
     shutil.copytree(default_params_dir(), tmp_path / "params")
     sa = tmp_path / "params" / "sa.toml"
-    sa.write_text(sa.read_text(encoding="utf-8").replace("sa_max   = 1000", "sa_max   = 77"))
+    sa.write_text(sa.read_text(encoding="utf-8").replace("sa_max   = 1027", "sa_max   = 77"))
     seen = {
         engine: dict(
             solve(engine, "SA", adaptation="fixed", params_dir=tmp_path / "params")
@@ -206,6 +206,27 @@ def test_a_custom_parameter_directory_reaches_every_engine(tmp_path: Path) -> No
         for engine in available()
     }
     assert seen == dict.fromkeys(available(), 77)
+
+
+def test_adaptive_mode_ignores_the_offline_section_on_every_engine(tmp_path: Path) -> None:
+    """Changing the packaged fixed values never changes an adaptive simulated-annealing search.
+
+    Args:
+        tmp_path (Path): Directory for the edited copy of the packaged TOML files.
+    """
+    shutil.copytree(default_params_dir(), tmp_path / "params")
+    sa = tmp_path / "params" / "sa.toml"
+    text = sa.read_text(encoding="utf-8")
+    assert "sa_max   = 1027" in text
+    sa.write_text(text.replace("sa_max   = 1027", "sa_max   = 77"), encoding="utf-8")
+    for engine in available():
+        original = solve(engine, "SA", adaptation="adaptive")
+        edited = solve(engine, "SA", adaptation="adaptive", params_dir=tmp_path / "params")
+        first, second = original.searches[0], edited.searches[0]
+        assert first.control == second.control == 1
+        assert first.parameter_grid == second.parameter_grid
+        if engine != "cpp":
+            assert (original.cost, first.n_evaluations) == (edited.cost, second.n_evaluations)
 
 
 @pytest.mark.parametrize("algorithm", PARAMETRIZED)

@@ -68,6 +68,55 @@ def test_a_short_measurement_has_the_documented_fields_and_positive_rates() -> N
     assert entry["ratio"] == pytest.approx(entry["rust_per_second"] / entry["python_per_second"])
 
 
+def test_simulated_annealing_is_measured_with_the_historical_parameters_the_reference_used(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The reference stays valid when the packaged SA preset changes.
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): Capture the settings passed to the solver.
+    """
+    import benchmarks.engine_ratio as module
+
+    seen: list[dict[str, object]] = []
+
+    class Spy:
+        """Record solver settings and return a minimal search report."""
+
+        def __init__(self, *args: object, **options: object) -> None:
+            """Store the keyword settings.
+
+            Args:
+                args (object): Ignored problem arguments.
+                options (object): Solver settings under inspection.
+            """
+            seen.append(options)
+
+        def solve(self, seconds: float) -> object:
+            """Return one finished search.
+
+            Args:
+                seconds (float): Ignored budget.
+
+            Returns:
+                object: Object with the fields `rate` reads.
+            """
+            from types import SimpleNamespace
+
+            return SimpleNamespace(
+                searches=[SimpleNamespace(n_evaluations=10, elapsed_seconds=1.0)]
+            )
+
+    monkeypatch.setattr(module, "RKO", Spy)
+    ratio = EngineRatio()
+    ratio.rate("rust", "SA", 0.01)
+    ratio.rate("rust", "BRKGA", 0.01)
+    assert seen[0]["hyperparameters"] == {
+        "SA": {"sa_max": 1000, "t0": 1000000.0, "alpha": 0.99, "beta_min": 0.01, "beta_max": 0.05}
+    }
+    assert "hyperparameters" not in seen[1]
+
+
 def test_command_line_gates_the_known_processor_and_only_notices_an_unknown_one(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

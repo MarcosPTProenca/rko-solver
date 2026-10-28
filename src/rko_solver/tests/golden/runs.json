@@ -209,8 +209,8 @@
   ]
  },
  "python-sequential/SA/fixed": {
-  "cost": -1586.0,
-  "keys_sha256": "a0f11f34e2ba1faa",
+  "cost": -1745.0,
+  "keys_sha256": "589fec6b1199fd97",
   "searches": [
    [
     "SA",
@@ -507,8 +507,8 @@
   ]
  },
  "rust-one-worker/SA/fixed": {
-  "cost": -1802.0,
-  "keys_sha256": "85687521d7bb3895",
+  "cost": -1714.0,
+  "keys_sha256": "1afa91a8b35e6a64",
   "searches": [
    [
     "SA",

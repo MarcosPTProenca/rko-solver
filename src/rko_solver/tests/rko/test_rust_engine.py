@@ -176,7 +176,13 @@ def test_parameter_snapshot_matches_python_factory_and_filters_states() -> None:
     specs, templates = NativeRunner(config, 50, None, None).specs()
     by_name = {spec[0]: spec for spec in specs}
     sa_offline = by_name["SA"][1]
-    assert sa_offline == [1000.0, 1000000.0, 0.99, 0.01, 0.05]
+    assert sa_offline == [
+        1027.0,
+        340.3863933617792,
+        0.8601360548373771,
+        0.0035204893377555175,
+        0.008242788398191462,
+    ]
     assert all(state[3] <= state[4] for state in by_name["SA"][2])
     assert by_name["SA"][3] is True
     for state in by_name["BRKGA"][2]:
