@@ -12,6 +12,15 @@ versions must be verified against their tag, manifest and package-index metadata
   the exploration the algorithm relies on. The packaged defaults and grids are unaffected; an
   override such as `p=15, pm=0.05` now raises `ValueError`.
 
+### Fixed
+
+- With `execution="process"` (the default), a callback that overruns the five-second search
+  grace no longer discards every solution found so far: `solve` stops the workers and returns
+  the best solution with a `RuntimeWarning`, as the sequential and thread executions already
+  returned theirs. The stopped searches report `stop_reason="time_limit"` and zero evaluations.
+  `TimeoutError` is still raised when no solution exists yet or startup and initialization
+  exceed their watchdogs.
+
 ## 0.3.0a4 — prerelease changes
 
 Everything merged since 0.3.0a3: one change to the packaged fixed simulated-annealing

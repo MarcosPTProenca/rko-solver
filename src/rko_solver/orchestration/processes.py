@@ -17,7 +17,8 @@ Flow (pseudocode):
 Important criteria:
 - Every allocation ends no later than the original common deadline.
 - Early completion leaves more time for queued searches in the same worker.
-- Startup is bounded to 60 seconds; search overrun grace is five seconds.
+- Startup is bounded to 60 seconds; search overrun grace is five seconds. A search that overruns
+  its grace after any solution exists returns the best solution found, with a warning.
 - Arbitrary callbacks cannot be interrupted cooperatively.
 
 Inputs/Outputs:
@@ -43,6 +44,7 @@ from .factory import normalize_hyperparameters
 from .initialization import initialize_pool
 from .search import SearchReporting
 from .search import SearchSession
+from .stopped import StoppedSearches
 from .types import CostFn
 from .types import DecoderFn
 from .types import Hyperparameters
@@ -387,7 +389,8 @@ def run_processes(
     Raises:
         ValueError: If callbacks are not pickleable or the worker limit is invalid.
         RuntimeError: If a worker fails or exits without returning a result.
-        TimeoutError: If startup or search exceeds its allowed grace period.
+        TimeoutError: If startup or initialization exceeds its grace, or the search overruns its
+            grace before any solution was found. A search overrun with a solution returns it.
     """
     trace = callback_options.get("trace")
     model_evidence = callback_options.get("model_evidence")
@@ -410,11 +413,12 @@ def run_processes(
         start = context.Event()
         initialization_start = context.Event() if config.prefill_pool else None
         initialization_done = not config.prefill_pool
-        initialization_released = False
+        initialization_released, phase = False, "startup"
         deadline = context.Value("d", 0.0)
         processes: list[mp.Process] = []
         connections: list[Connection] = []
         pending: dict[Connection, str] = {}
+        stopped: list[tuple[str, int]] = []
         ready: set[Connection] = set()
         results: list[RunResult] = []
         expires = time.perf_counter() + 60.0
@@ -461,14 +465,10 @@ def run_processes(
             while pending:
                 available = wait(list(pending), timeout=max(0.0, expires - time.perf_counter()))
                 if not available:
-                    phase = (
-                        "initialization"
-                        if initialization_released and not initialization_done
-                        else ("search" if start.is_set() else "startup")
+                    stopped = StoppedSearches.settle(
+                        phase, results, pool, pending, connections, groups
                     )
-                    raise TimeoutError(
-                        f"RKO {phase} timed out; unfinished: {list(pending.values())}"
-                    )
+                    break
                 for connection in available:
                     name = pending[connection]
                     try:
@@ -497,12 +497,15 @@ def run_processes(
                     if initialization_done:
                         deadline.value = time.perf_counter() + limit_time
                         expires = deadline.value + 5.0
+                        phase = "search"
                         start.set()
                     elif not initialization_released:
                         assert initialization_start is not None
                         initialization_released = True
+                        phase = "initialization"
                         expires = time.perf_counter() + limit_time + 5.0
                         initialization_start.set()
+            StoppedSearches.report(stopped, search_metadata, limit_time, history_limit)
             return select_best_result(results, pool)
         finally:
             for process in processes:

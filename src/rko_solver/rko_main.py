@@ -68,7 +68,8 @@ def run(
     Raises:
         ValueError: If problem inputs or solver settings are invalid.
         RuntimeError: If an algorithm fails or a worker exits unexpectedly.
-        TimeoutError: If process startup or search exceeds its watchdog.
+        TimeoutError: If process startup exceeds its watchdog, or a process search overruns its
+            grace before any solution was found.
         OSError: If parameter files cannot be read.
     """
     result = RKO(

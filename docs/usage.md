@@ -385,8 +385,11 @@ receive ordinary decoded payloads; candidate arrays are isolated from decoder
 mutation. Low-level operator calls made outside RKO do not acquire this budget.
 
 Startup has a 60-second watchdog; process execution has five seconds of grace
-for callbacks that are still running. A blocked process callback or excessive
-overrun raises `TimeoutError` and stops workers. Thread mode propagates worker
+for callbacks that are still running. When a callback overruns that grace after at least one
+solution was found, the workers are stopped and `solve` returns the best solution found with a
+`RuntimeWarning`; the stopped searches are reported with `stop_reason="time_limit"` and zero
+evaluations, because their counts are lost with the process. If no solution exists yet, or
+startup or initialization exceeds its watchdog, `solve` raises `TimeoutError`. Thread mode propagates worker
 failures and cooperatively cancels peers, but cannot force-kill a blocked Python
 thread. This is not a hard real-time API. Algorithm failures identify the search
 and preserve exception causes. The parent cleans up processes and the manager

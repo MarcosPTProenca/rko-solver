@@ -31,6 +31,7 @@ from dataclasses import dataclass
 from functools import partial
 from multiprocessing.connection import Connection
 from pathlib import Path
+from rko_solver import RKO
 from rko_solver import run
 from rko_solver.components.random_streams import RandomStreams
 from rko_solver.examples.run_kp_cpp_instances import decode_knapsack
@@ -139,6 +140,33 @@ def blocking_cost(keys: np.ndarray, *, directory: Path) -> float:
     directory.joinpath(str(os.getpid())).write_text("entered", encoding="utf-8")
     time.sleep(30.0)
     return sphere(keys)
+
+
+@dataclass
+class StallingCost:
+    """Evaluate normally, then ignore the cooperative budget inside one callback.
+
+    Attributes:
+        after (int): Evaluations per process before the callback blocks.
+        calls (int): Evaluations already made by this process copy.
+    """
+
+    after: int
+    calls: int = 0
+
+    def __call__(self, keys: np.ndarray) -> float:
+        """Return the sphere objective until the configured call, then block.
+
+        Args:
+            keys (np.ndarray): Candidate vector.
+
+        Returns:
+            float: Sphere objective for the first `after` calls of this process.
+        """
+        self.calls += 1
+        if self.calls > self.after:
+            time.sleep(30.0)
+        return sphere(keys)
 
 
 @pytest.fixture
@@ -421,3 +449,22 @@ def test_real_algorithm_returns_consistent_result(params_dir: Path, name: str) -
     assert np.isfinite(cost)
     assert all(0 <= key < 1 for key in keys)
     assert cost == pytest.approx(sphere(np.array(keys)))
+
+
+@pytest.mark.parametrize("n_jobs", [2, 1])
+def test_search_overrun_returns_the_best_solution_found(params_dir: Path, n_jobs: int) -> None:
+    """Return the best completed solution, with a warning, when callbacks overrun the grace.
+
+    Args:
+        params_dir (Path): Complete test portfolio configuration.
+        n_jobs (int): Explicit dedicated or shared worker count.
+    """
+    before = {child.pid for child in mp.active_children()}
+    solver = RKO(identity, StallingCost(50), 3, params_dir=params_dir, n_jobs=n_jobs)
+    with pytest.warns(RuntimeWarning, match="overran the search grace"):
+        result = solver.solve(0.5)
+    assert len(result.keys) == 3
+    assert result.cost == pytest.approx(sphere(np.array(result.keys)))
+    assert result.stop_reason == "time_limit"
+    assert {report.algorithm for report in result.searches} == {"MultiStart", "SA"}
+    assert {child.pid for child in mp.active_children()} == before
