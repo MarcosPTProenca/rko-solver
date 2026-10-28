@@ -36,12 +36,16 @@ Inputs/Outputs:
 import math
 import numpy as np
 import pytest
+from functools import cache
 from rko_solver import RKO
 from rko_solver import Callbacks
 from rko_solver.components.random_streams import RandomStreams
+from rko_solver.components.solution_pool import ElitePool
 from rko_solver.components.solution_pool import SolutionPool
 from rko_solver.metaheuristics.brkga import BRKGA
 from rko_solver.orchestration.search import SearchSession
+from rko_solver.orchestration.types import CostFn
+from rko_solver.orchestration.types import DecoderFn
 
 native = pytest.importorskip("rko_solver._native")
 BITS = 5
@@ -83,15 +87,15 @@ def cost(bits: np.ndarray) -> float:
 
 
 def count_evaluation_step(
-    keys: np.ndarray, decoder: object, objective: object, *, pool: object = None
+    keys: np.ndarray, decoder: DecoderFn, objective: CostFn, *, pool: ElitePool | None = None
 ) -> tuple[np.ndarray, float]:
     """Replace the elite local step with exactly one objective evaluation.
 
     Args:
         keys (np.ndarray): Elite key vector chosen for refinement.
-        decoder (object): Decoder callable.
-        objective (object): Objective callable.
-        pool (object): Unused shared pool.
+        decoder (DecoderFn): Decoder callable.
+        objective (CostFn): Objective callable.
+        pool (ElitePool | None): Unused shared pool.
 
     Returns:
         tuple[np.ndarray, float]: The unchanged keys and their cost.
@@ -158,6 +162,19 @@ def binomial_upper_tail(trials: int, successes: int, probability: float) -> floa
     return min(1.0, total)
 
 
+@cache
+def count_misses(generations: int) -> int:
+    """Count the seeds that never reached the target within an exact generation budget.
+
+    Args:
+        generations (int): Full generations covered by the evaluation budget.
+
+    Returns:
+        int: Number of the `SEEDS` runs whose best cost stayed above zero.
+    """
+    return sum(not hits_target(seed, generations) for seed in range(SEEDS))
+
+
 @pytest.mark.parametrize("generations", [0, 2, 6, 10])
 def test_the_miss_rate_stays_under_the_protected_exploration_bound(generations: int) -> None:
     """Misses are no more frequent than the initial keys and the mutants alone predict.
@@ -165,7 +182,7 @@ def test_the_miss_rate_stays_under_the_protected_exploration_bound(generations: 
     Args:
         generations (int): Full generations covered by the evaluation budget.
     """
-    misses = sum(not hits_target(seed, generations) for seed in range(SEEDS))
+    misses = count_misses(generations)
     guaranteed_draws = POPULATION + MUTANTS * generations
     bound = (1.0 - MASS) ** guaranteed_draws
     assert binomial_upper_tail(SEEDS, misses, bound) > ALPHA, (
@@ -176,7 +193,7 @@ def test_the_miss_rate_stays_under_the_protected_exploration_bound(generations: 
 def test_the_bound_is_informative_not_vacuous() -> None:
     """The observed miss rate is close enough to the bound for a broken engine to show."""
     generations = 6
-    misses = sum(not hits_target(seed, generations) for seed in range(SEEDS))
+    misses = count_misses(generations)
     bound = (1.0 - MASS) ** (POPULATION + MUTANTS * generations)
     assert 0.5 * bound < misses / SEEDS <= bound + 0.05
 

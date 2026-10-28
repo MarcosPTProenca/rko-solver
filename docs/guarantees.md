@@ -14,9 +14,10 @@ property of your decoder, not of the algorithm. If the search
 1. draws at least one fresh uniform key vector per generation or restart, and
 2. never discards the best evaluated solution,
 
-then the best cost found converges to the best value your decoder can reach, almost surely, and
-after `k` fresh uniform draws the chance of having missed a target of mass `mu` is at most
-`(1 - mu)^k`.
+then, for every tolerance `e` whose target has positive mass, the best cost found reaches
+`f* + e` almost surely. The best cost therefore converges to `f*` when every `e > 0` has positive
+mass, and equals `f*` exactly only if an optimal solution itself has positive mass. After `k` fresh
+uniform draws the chance of having missed a target of mass `mu` is at most `(1 - mu)^k`.
 
 For BRKGA the draws are the `p` keys of the initial population plus `m = int(p * pm)` random
 mutants in every generation, so after `G` generations
