@@ -1908,3 +1908,48 @@ for family in ("kp", "tsp", "rastrigin"):
     print(family, new.interval(second - first))
 PY
 ```
+
+### One cross-family fixed-preset validation
+
+`benchmarks.tuning.preset` selects one configuration using **training data only**, then seals it
+before generating a separate confirmation set. This evidence-only experiment does not change
+packaged parameters and makes no claim about the library's configured adaptive mode.
+
+The candidate pool contains all 30 trained simulated-annealing configurations from
+`tuning-wide-expanded-reference.jsonl`, without filtering on their historical test scores,
+plus the packaged fixed default. Exact configurations are deduplicated. The selection score
+averages sizes and budgets within each family, then gives all three families equal weight.
+Candidates losing more than 0.02 normalized-gap units in any training cell are ineligible;
+the fixed default remains an eligible fallback. Ties prefer the default, then a stable identifier.
+
+Frozen design:
+
+- Knapsack: 100 and 600 items; travelling salesperson: 30 and 100 cities; Rastrigin: 10 and 60 dimensions.
+- Two budgets: 50,000 and 500,000 evaluations; Rust engine, one search worker, fixed parameters.
+- Six training instances per context, two shared solver seeds per instance.
+- Twelve untouched confirmation instances per context, five fresh shared solver seeds per instance.
+- Base cohort offset 2,000,000, with separate offsets 10,000 apart for the six size/family contexts.
+- Calibration uses the existing default-parameter reference and short-search anchor, not tuned results.
+
+The predeclared confirmation gates both must pass:
+
+1. The family-balanced candidate-minus-default difference has a one-sided 95% bootstrap upper
+   bound below zero.
+2. Every one of the twelve family/size/budget cells has an upper bound no larger than **0.02**
+   normalized-gap units. These upper bounds use the Bonferroni-adjusted percentile
+   `1 - 0.05 / 12`. This margin is not two percent of raw objective value.
+
+The 20,000 bootstrap draws resample paired instances, sharing index draws across budgets within
+each context. Percentile-bootstrap coverage and its multiplicity adjustment are approximate.
+A failed gate is a negative result, not permission to relax the margin or reselect on test data.
+
+```bash
+uv run --locked --group tuning python -m benchmarks.tuning.preset select --directory "$HOME/rko-general-preset" --workers 3
+uv run --locked --group tuning python -m benchmarks.tuning.preset confirm --directory "$HOME/rko-general-preset" --workers 3
+uv run --locked --group tuning python -m benchmarks.tuning.preset report --directory "$HOME/rko-general-preset"
+```
+
+The work directory holds `protocol.json`, `train.jsonl`, a hash-bound `selection.json`,
+`test.jsonl` and `summary.json`. Selection and scoring require the same frozen source revision;
+read-only reporting verifies the recorded hashes without reselecting a configuration. Interrupted
+scoring resumes completed cells, but changing the design, pool or source revision is rejected.
