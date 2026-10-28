@@ -270,6 +270,17 @@ def test_invalid_overrides_fail_with_the_same_error_everywhere(bad: dict[str, ob
 
 
 @pytest.mark.parametrize("engine", available())
+def test_brkga_without_a_mutant_is_rejected_on_every_engine(engine: str) -> None:
+    """Reject a population too small for one mutant before any engine starts.
+
+    Args:
+        engine (str): Key of `ENGINES`.
+    """
+    with pytest.raises(ValueError, match="at least one mutant"):
+        solve(engine, "BRKGA", adaptation="fixed", hyperparameters={"BRKGA": {"p": 15, "pm": 0.05}})
+
+
+@pytest.mark.parametrize("engine", available())
 def test_every_engine_reports_the_same_metadata_fields(engine: str) -> None:
     """Search reports use one vocabulary and carry the fields the contract names.
 

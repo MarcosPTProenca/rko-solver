@@ -6,6 +6,7 @@ Objective:
 Technical approach:
 - Validate constructor attributes using named algorithm axes and numeric domains.
 - Check joint population, cooling and interval constraints before execution.
+- Require at least one BRKGA mutant per generation so fresh uniform keys keep exploring.
 
 Flow (pseudocode):
 1. Validate common problem and control settings.
@@ -179,8 +180,23 @@ class ParameterValidator:
         if "he" in values and values["he"] > values["hs"]:
             raise ValueError(f"{name}: he must not exceed hs.")
         if name in ("BRKGA", "BRKGA_CS"):
-            population = int(values["p"])
-            elite = max(1, int(population * values["pe"]))
-            mutants = int(population * values["pm"]) if name == "BRKGA" else 0
-            if elite + mutants >= population:
-                raise ValueError(f"{name}: population must leave nonelite crossover offspring.")
+            cls._genetic_population(name, values)
+
+    @staticmethod
+    def _genetic_population(name: str, values: dict[str, object]) -> None:
+        """Check the BRKGA population split into elite, mutants and crossover offspring.
+
+        Args:
+            name (str): `BRKGA` or `BRKGA_CS`.
+            values (dict[str, object]): Named parameter values holding `p`, `pe` and `pm`.
+
+        Raises:
+            ValueError: If BRKGA has no mutant or no slot is left for crossover offspring.
+        """
+        population = int(values["p"])
+        elite = max(1, int(population * values["pe"]))
+        mutants = int(population * values["pm"]) if name == "BRKGA" else 0
+        if name == "BRKGA" and mutants < 1:
+            raise ValueError(f"{name}: p * pm must give at least one mutant per generation.")
+        if elite + mutants >= population:
+            raise ValueError(f"{name}: population must leave nonelite crossover offspring.")

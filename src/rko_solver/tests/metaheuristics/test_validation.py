@@ -49,6 +49,8 @@ from rko_solver.orchestration.factory import build_metaheuristic
         ("PSO", {"p_size": 0}),
         ("PSO", {"w": -1}),
         ("BRKGA", {"p": 10, "pe": 0.8, "pm": 0.3}),
+        ("BRKGA", {"p": 15, "pm": 0.05}),
+        ("BRKGA", {"pm": 0.0}),
         ("BRKGA_CS", {"pe": 1.0}),
         ("BRKGA_CS", {"sigma": 0.0}),
         ("GA", {"control": 1, "parameters": []}),
@@ -126,6 +128,35 @@ def test_feasible_online_states_keep_correct_labels_and_edges() -> None:
         assert state.par[0] <= state.par[1]
         assert all(0 <= destination < len(controller.states) for destination in state.Ai)
         assert len(state.Ai) == len(state.Qa)
+
+
+def test_online_brkga_skips_states_that_round_to_zero_mutants() -> None:
+    """Keep Q-learning away from BRKGA states whose population yields no fresh mutant."""
+
+    def build(grid: list[list[float]]) -> object:
+        """Construct an adaptive BRKGA over one parameter grid.
+
+        Args:
+            grid (list[list[float]]): Axes in the order p, pe, pm, rhoe.
+
+        Returns:
+            object: The constructed algorithm.
+        """
+        return MH_SPECS["BRKGA"].constructor(
+            SolutionPool(),
+            lambda keys: keys,
+            lambda keys: 0.0,
+            3,
+            control=1,
+            parameters=grid,
+        )
+
+    algorithm = build([[10.0, 50.0], [0.15], [0.05, 0.10], [0.70]])
+    controller = QLearningController(algorithm.parameters, state_filter=algorithm._state_filter)
+    assert len(controller.states) == 3
+    assert all(int(state.par[0] * state.par[2]) >= 1 for state in controller.states)
+    with pytest.raises(ValueError, match="no feasible states"):
+        build([[10.0], [0.15], [0.05], [0.70]])
 
 
 @pytest.mark.parametrize("name", [name for name, spec in MH_SPECS.items() if spec.supports_control])

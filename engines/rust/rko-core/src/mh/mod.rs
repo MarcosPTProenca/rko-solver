@@ -178,6 +178,26 @@ impl Algorithm {
         }
     }
 
+    /// Joint constraints of the BRKGA variants: room for crossover offspring and, for BRKGA,
+    /// at least one mutant so every generation draws a fresh uniform chromosome.
+    fn genetic_values_ok(self, values: &[f64]) -> bool {
+        let unit = |value: f64| (0.0..=1.0).contains(&value);
+        let population = values[0];
+        let elite = (population * values[1]).floor().max(1.0);
+        let mutants = if self == Self::Brkga {
+            (population * values[2]).floor()
+        } else {
+            0.0
+        };
+        population >= 2.0
+            && unit(values[1])
+            && unit(values[2])
+            && unit(values[3])
+            && (self != Self::Brkga || mutants >= 1.0)
+            && elite + mutants < population
+            && values.get(4).is_none_or(|sigma| unit(*sigma))
+    }
+
     /// Checks one parameter vector (`online` selects the GRASP axis layout).
     pub fn validate_values(self, values: &[f64], online: bool) -> Result<(), String> {
         let label = self.name();
@@ -216,21 +236,7 @@ impl Algorithm {
                     && values[3] > 0.0
                     && values[3] < 1.0
             }
-            Self::Brkga | Self::BrkgaCs => {
-                let population = values[0];
-                let elite = (population * values[1]).floor().max(1.0);
-                let mutants = if self == Self::Brkga {
-                    (population * values[2]).floor()
-                } else {
-                    0.0
-                };
-                population >= 2.0
-                    && unit(values[1])
-                    && unit(values[2])
-                    && unit(values[3])
-                    && elite + mutants < population
-                    && values.get(4).is_none_or(|sigma| unit(*sigma))
-            }
+            Self::Brkga | Self::BrkgaCs => self.genetic_values_ok(values),
             Self::Pso => {
                 values[0] >= 1.0 && values[1] >= 0.0 && values[2] >= 0.0 && values[3] >= 0.0
             }
