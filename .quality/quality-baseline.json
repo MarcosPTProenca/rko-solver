@@ -246,7 +246,7 @@
       "cyclomatic_complexity": 11
     },
     "engines/rust/rko-core/src/mh/mod.rs::validate_values": {
-      "cyclomatic_complexity": 43
+      "cyclomatic_complexity": 37
     },
     "engines/rust/rko-core/src/mh/pso.rs::run": {
       "cyclomatic_complexity": 22,
@@ -304,7 +304,7 @@
       "cyclomatic_complexity": 16
     },
     "src/rko_solver/components/validation.py::ParameterValidator._values": {
-      "cyclomatic_complexity": 24
+      "cyclomatic_complexity": 22
     },
     "src/rko_solver/components/validation.py::ParameterValidator.check": {
       "cyclomatic_complexity": 21

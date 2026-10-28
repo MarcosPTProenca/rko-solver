@@ -128,6 +128,32 @@ def test_decoded_points_are_valid_for_the_solver_including_the_corners(profile: 
         )
 
 
+@pytest.mark.parametrize("profile", ["original", "expanded"])
+def test_brkga_points_always_decode_with_a_mutant_and_keep_valid_pm(profile: str) -> None:
+    """Repair `pm` upward only when the population would round to zero mutants.
+
+    Args:
+        profile (str): Search-space profile to exercise.
+    """
+    from benchmarks.tuning.spaces import SPACE_PROFILES
+
+    space = SPACE_PROFILES[profile]["BRKGA"]
+    rng = random.Random(11)
+    points = [[0.0] * 4, [1.0] * 4] + [[rng.random() for _ in range(4)] for _ in range(500)]
+    repaired = 0
+    for point in points:
+        raw = {spec.name: spec.decode(unit) for spec, unit in zip(space.specs, point, strict=True)}
+        config = space.decode(point)
+        assert int(config["p"] * config["pm"]) >= 1, point
+        if (
+            int(raw["p"] * raw["pm"]) >= 1
+            and int(raw["p"] * raw["pm"]) < raw["p"] * (1 - raw["pe"]) - 1
+        ):
+            assert config["pm"] == raw["pm"], point
+        repaired += int(raw["p"] * raw["pm"]) < 1
+    assert repaired > 0
+
+
 @pytest.mark.parametrize("name", list(SPACES))
 def test_decoded_values_are_plain_numbers_even_for_numpy_points(name: str) -> None:
     """The solver rejects numpy scalars, so decoding must return exact `int` or `float`.

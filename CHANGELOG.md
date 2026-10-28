@@ -3,6 +3,15 @@
 Candidate entries describe source changes, not proof of an index upload. Published
 versions must be verified against their tag, manifest and package-index metadata.
 
+## Unreleased
+
+### Changed
+
+- BRKGA rejects settings where `int(p * pm)` is zero, in every engine, and adaptive grids skip
+  those states. Such a configuration used to run without any fresh uniform sample, which removes
+  the exploration the algorithm relies on. The packaged defaults and grids are unaffected; an
+  override such as `p=15, pm=0.05` now raises `ValueError`.
+
 ## 0.3.0a4 — prerelease changes
 
 Everything merged since 0.3.0a3: one change to the packaged fixed simulated-annealing

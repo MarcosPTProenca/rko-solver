@@ -121,7 +121,12 @@ neighborhood index; it can exceed one and is not capped to one by the operator.
 | `pm` | 0.10 | [0, 1], subject to joint check | BRKGA: random-mutant fraction; **BRKGA-CS: per-gene mutation probability** |
 | `rhoe` | 0.70 | [0, 1] | Probability of inheriting an elite-parent gene during crossover |
 
-BRKGA requires `max(1, int(p * pe)) + int(p * pm) < p` so offspring slots remain.
+BRKGA requires `max(1, int(p * pe)) + int(p * pm) < p` so offspring slots remain, and
+`int(p * pm) >= 1` so every generation draws at least one fresh random mutant. Without
+mutants the only new key values come from the elite local step, and the search loses the
+uniform fresh sample that keeps every region of the key space reachable. Offline settings
+that break either rule raise `ValueError` in every engine; adaptive grids skip such states
+and fail only when no state remains. With the default `pm = 0.10` this means `p >= 10`.
 BRKGA-CS requires `max(1, int(p * pe)) < p`; its `pm` is not a mutant count.
 Do not transfer parameter interpretations blindly between these two variants.
 The direct BRKGA-CS constructor also exposes `sigma=0.6`, a positive correlation

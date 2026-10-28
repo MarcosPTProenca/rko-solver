@@ -21,6 +21,7 @@
 //! - Input: seeds from 0 to 399 and sizes up to 64.
 //! - Output: assertions naming the seed that broke an invariant.
 
+use rko_core::mh::Algorithm;
 use rko_core::operators::{blend, random_keys, shake};
 use rko_core::pool::Pool;
 use rko_core::rng::Rng;
@@ -149,5 +150,24 @@ fn pool_best_never_increases_and_equals_the_lowest_admitted_cost() {
             );
             previous = best;
         }
+    }
+}
+
+#[test]
+fn brkga_validation_accepts_a_population_only_when_it_holds_a_mutant_and_an_offspring() {
+    for seed in 0..SEEDS {
+        let mut rng = Rng::new(seed);
+        let population = 2.0 + rng.below(200) as f64;
+        let elite_fraction = 0.05 + 0.5 * rng.below(100) as f64 / 100.0;
+        let mutant_fraction = rng.below(40) as f64 / 100.0;
+        let values = [population, elite_fraction, mutant_fraction, 0.7];
+        let elite = (population * elite_fraction).floor().max(1.0);
+        let mutants = (population * mutant_fraction).floor();
+        let expected = mutants >= 1.0 && elite + mutants < population;
+        assert_eq!(
+            Algorithm::Brkga.validate_values(&values, false).is_ok(),
+            expected,
+            "seed {seed}: {values:?}"
+        );
     }
 }

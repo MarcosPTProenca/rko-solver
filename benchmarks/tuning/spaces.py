@@ -9,8 +9,8 @@ Technical approach:
   for cooling factors near one) and may be integral. Every tuner searches the same unit cube,
   so no method gets a differently shaped problem.
 - A repair step enforces the joint rules the solver validates (`beta_min <= beta_max`,
-  `he <= hs`, a BRKGA population that leaves non-elite offspring), so every point decodes to a
-  valid configuration instead of an error.
+  `he <= hs`, a BRKGA population that leaves non-elite offspring and at least one mutant), so
+  every point decodes to a valid configuration instead of an error.
 
 Flow (pseudocode):
 1. Look up the space of an algorithm.
@@ -168,6 +168,7 @@ class ParameterSpace:
             room = (population - elite - 1) / population
             if int(population * values["pm"]) > population - elite - 1:
                 values["pm"] = max(0.0, room * 0.999)
+            values["pm"] = max(values["pm"], (1.0 + 1e-9) / population)
             values["p"] = float(population)
         return values
 
