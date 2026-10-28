@@ -3,7 +3,11 @@
 Candidate entries describe source changes, not proof of an index upload. Published
 versions must be verified against their tag, manifest and package-index metadata.
 
-## Unreleased
+## 0.3.0a4 — prerelease changes
+
+Everything merged since 0.3.0a3: one change to the packaged fixed simulated-annealing
+parameters, opt-in experimental additions to the model and self-evolve previews, and repository
+only tuning evidence. The default engine, execution and adaptive mode are unchanged.
 
 ### Changed
 
@@ -16,6 +20,43 @@ versions must be verified against their tag, manifest and package-index metadata
   behavior pass the old values through `hyperparameters={"SA": {...}}`. The new values were
   chosen on training data only and confirmed on held-out instances of three synthetic problem
   families; see `benchmarks/README.md` for the evidence and its limits.
+- Experimental self-evolve model campaigns now use a one-second end-to-end model profile that
+  reserves finalization time inside it. Records written with an older timing profile are
+  rejected rather than silently migrated.
+
+### Added
+
+- `RKO.from_model(..., construction=callable, construction_deadline=...)` (development preview):
+  an explicit, trusted construction callable `decode(keys, instance)` that returns complete
+  numerical values, while the original model validation and scoring stay authoritative. Results
+  of constructed models carry optional `statistics` (completed evaluation and infeasibility counts
+  and capped distinct-output identities). Custom construction supports portable assignments but
+  not native write-back, which raises `NotImplementedError`. Ordinary model and callback runs and
+  the default result JSON are unchanged. See the modeling guide.
+- `rko_solver.experimental.self_evolve` (opt-in, experimental): a review-gated Pi proposal
+  transport that targets built-in OpenAI Codex OAuth on Linux/WSL, requires exact-source human
+  approval before evaluation, and fails closed on unknown usage or cleanup. It has no API-key
+  fallback and reports monetary cost as unknown; tests use a fake process, so live account
+  access and provider terms are not qualified. An experimental bridge also lets isolated workers
+  run generated assignment-construction programs against owned models. Its small fixtures check
+  correctness only and are not evidence of optimizer value.
+
+### Fixed
+
+- A model job's end-to-end deadline could be renewed because the solver starts its search clock
+  after setup. Construction-backed search and initialization sessions are now clamped to the
+  absolute deadline while keeping the first-completion grace.
+
+### Repository evidence (not in the wheel)
+
+- `benchmarks/tuning` compares four parameter tuners with held-out scoring, and
+  `benchmarks/README.md` reports a bake-off, a wider-range fresh-cohort study, and a
+  cross-family fixed simulated-annealing preset selected on training data and confirmed on
+  held-out instances on the Rust, Python and C++ engines. Every study states its limits; the
+  evidence covers three synthetic families and says nothing about adaptive-mode quality. The
+  optional `tuning` dependency group installs its extra libraries.
+- The Rust-over-Python throughput gate measures simulated annealing with the previous parameters
+  so its per-CPU reference stays valid.
 
 ## 0.3.0a3 — prerelease changes
 

@@ -16,7 +16,7 @@ install in this Linux image, and neither does one for another architecture. Copy
 here (or use `rko-solver-service scaffold DIR --wheel PATH` initially).
 
 ```bash
-export RKO_WHEEL='rko_solver-0.3.0a3-cp314-abi3-manylinux_2_28_x86_64.whl'
+export RKO_WHEEL='rko_solver-0.3.0a4-cp314-abi3-manylinux_2_28_x86_64.whl'
 export RKO_SERVICE_API_KEY="$(uv run --no-project python -c 'import secrets; print(secrets.token_urlsafe(32))')"
 docker compose build
 docker compose up -d
