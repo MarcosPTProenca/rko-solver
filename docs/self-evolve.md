@@ -21,8 +21,9 @@ statistical superiority claim has been completed.
 The opt-in M5a transport targets Pi 1.3.0 on Linux/WSL and the built-in OpenAI Codex
 OAuth route; it is not a live-provider qualification or a guarantee of subscription
 eligibility. Not delivered: direct API automation, other automated providers,
-mathematical-model integration, production deployment, sealed-test statistical
-confirmation, or a claim that evolved decoders outperform the baselines. Supported
+production deployment, sealed-test statistical confirmation, or a claim that evolved
+decoders outperform the baselines. The experimental M6 owned-model construction
+bridge is described below; its GAP checks establish correctness, not optimizer value. Supported
 account access and automation permissions require operator qualification; no silent
 billable API-key fallback is provided.
 
@@ -30,7 +31,7 @@ billable API-key fallback is provided.
 
 Use a decoder module with `decode(keys, instance)`. A family decoder is reusable
 across compatible instances: key dimension is derived from the supplied data, not
-hard-coded to one training instance. The current adapters are deliberately limited:
+hard-coded to one training instance. The three pilot adapters remain deliberately limited:
 
 | Family | Instance fields | Returned payload |
 | --- | --- | --- |
@@ -38,7 +39,7 @@ hard-coded to one training instance. The current adapters are deliberately limit
 | Scheduling | positive integer `processing_times`, nonnegative `due_dates` | Complete job-index permutation |
 | Set cover | `subsets` of zero-based elements, positive `costs`, `universe_size` | Unique selected subset indices |
 
-Only decision indices are accepted. Trusted code reconstructs weight/profit,
+For these three pilots only decision indices are accepted. Trusted code reconstructs weight/profit,
 completion times/tardiness and coverage/cost; candidate-supplied scores are never
 trusted. Inputs are read-only in the worker. Sources may import NumPy or math,
 not files, network, external solvers, ambient RNG or other RKO methods. Syntax
@@ -52,8 +53,100 @@ the implementation does not claim to prove arbitrary Python complexity. Submissi
 requires an explicit `--reviewed-local-work` attestation, in addition to execution limits.
 
 The bundled `example-seed` command explicitly creates reference seeds for a demo.
-Campaign creation never invents a seed when one is missing. In a future model
-workflow, model-to-decoder conversion produces the seed **before** evolution.
+Campaign creation never invents a seed when one is missing. Model workflows also
+require an explicitly selected existing seed **before** evolution.
+
+## Experimental mathematical construction bridge (M6)
+
+The distinct `linear_model` artifact family uses `decode(keys, instance)` to return
+**complete original-order numerical assignments**, not selected decision indices.
+The immutable context contains `variables`, finite effective `domains`, original
+sparse `rows`, `objective`, `objective_constant`, `maximize` and derived `n_keys`.
+Fixed coordinates remain in the assignment but consume no key. The original
+objective, constants, row sides, domains, tolerances and scoring remain authoritative.
+Domain/shape/nonfinite failures stop the job; constructors cannot return their own score.
+
+`ModelProblem.from_source` accepts an owned extraction from the existing Pyomo,
+PuLP or MathOpt adapter, without moving native objects into workers. It uses bounded
+24 KiB non-pickle JSON, explicit absent-side bounds, original source fingerprints,
+effective policy and exact installed Python implementation hashes. A code/policy
+change requires rebuilding the image and starting a fresh compatible campaign.
+This is not cross-version migration or native-package qualification. References and
+source/case names are excluded from model proposer development input; held-out data
+must still be kept outside the trusted proposer workspace.
+
+<!-- doc-test: skip Requires three caller-owned native development models and an explicitly qualified worker image. -->
+```python
+from pathlib import Path
+from rko_solver.experimental.self_evolve.campaign import Campaign
+from rko_solver.experimental.self_evolve.model_data import ModelProblem, ModelReference
+from rko_solver.modeling.adapters import ModelAdapter
+
+# Three distinct caller-owned native models and trustworthy original optimum declarations.
+problems = [
+    ModelProblem.from_source(
+        ModelAdapter.extract(native),
+        reference=ModelReference(optimum, provenance),
+    )
+    for native, optimum, provenance in development_models
+]
+seed = ModelProblem.seed_artifact()  # explicit existing domain mapper; never auto-invented
+campaign = Campaign.create(
+    Path("/private/model-campaign"), seed, problems, qualified_image_id,
+    feasibility_policy="feasibility_first",
+)
+```
+
+Original references are mandatory for automatic comparison. `ModelReference` is an
+explicit owner declaration with provenance, **not** a manufactured native-solver
+certificate. Unknown references are rejected before campaign state is created.
+`feasibility_first` permits domain-valid row-infeasible exploration. A shortlisted
+complete RKO panel must strictly improve mean primary loss, retain at least one
+actual feasible witness, and preserve each case's matched-job feasibility-success
+rate. Partial panels, ties and callback-throughput success fractions are not wins. `strict_feasible` rejects
+any observed row-infeasible candidate output. Both keep malformed domains/protocols,
+resource failures and original numerical validation strict. The three existing pilot
+families retain their old strict rules. Model controls are matched RKO, random-key,
+fixed-key and endpoint checks; no generic independent human baseline is invented.
+The same **10 proposals / 30 CPU-minutes / 90 wall-minutes** and M5a pending-review,
+exact-hash approval and failure-inclusive slot rules apply.
+
+Model timing contract **v2** freezes a **1-second end-to-end job allowance** before
+proposal feedback; the three pilot families keep their existing allowances.
+Trusted model preparation, generated module initialization, construction and
+protected checking all remain charged. The model adapter carries the worker's
+absolute monotonic deadline into search and initialization sessions, so ordinary
+RKO's startup-excluding search duration cannot renew the job budget. A fixed
+**50 ms within that same second** is reserved for trusted evidence finalization
+(equally for RKO/random/fixed/check controls, capped at half the allowance for
+shorter offline jobs). It is not extra runtime. Parent runtime guards and the 10-proposal/30-CPU-minute/90-wall-minute ceilings are unchanged.
+Older model campaign timing profiles are rejected, not silently upgraded: start a
+fresh compatible campaign/image. This allowance is not a promise that every model
+or arbitrarily slow callback will fit.
+
+Construction and protected restoration/checking are charged together. The default
+model bridge retains continuous repair with **1024 sweeps**, allowing explicit
+`repair_sweeps` from **1 to 10000**. An actual score incumbent is kept separately
+from the best feasible original-objective witness. Parent verification checks both
+assignments without replaying construction, default mapping or repair. Feasible
+objective, observed search score and verification score remain separate; absence of
+a feasible result is explicitly `no_feasible_found`, never an optimality claim.
+
+Export uses the ordinary reviewed campaign API/CLI. Offline `replay` accepts a JSON
+`{"family": "linear_model", "data": problem.data}` for a new compatible model, with
+its own derived dimension and matching protected implementation/image. Original
+references are unnecessary for witness-only replay. Generated artifacts execute
+only inside qualified rootless workers: never import them into the host to create
+an `RKO.from_model` callback. The ordinary library's `construction=` hook accepts an
+explicit **trusted callable**, not a bundle/path. Custom construction retains portable
+assignments and native-ID mapping, but transactional native write-back is unsupported;
+normal model write-back is unchanged. Zero-key models bypass construction/search.
+
+The GAP fixture independently enumerates the six-job `3^6 = 729` assignments and
+provides a different-size seven-job unseen case. These fixtures check original
+formulations and transport/assignment correctness through all three frontends. They
+are not a GAP-specific production decoder, new powered study, superiority result,
+live-provider validation or production-readiness evidence.
 
 ## Build and qualify the runtime
 
@@ -128,8 +221,9 @@ uv run python -m rko_solver.experimental.self_evolve report /tmp/kp-campaign
 
 An accepted result means **experimental shortlist**, not statistical superiority.
 Endpoint/shape checks precede the frozen screen and larger development runs. Any
-observed invalid/infeasible returned candidate output disqualifies the proposal;
-failures remain recorded. Repair intermediate states may be infeasible. Reference
+observed invalid/infeasible returned candidate output disqualifies the proposal for
+the three pilot families; model campaigns use their explicit frozen policy above.
+Failures remain recorded. Repair intermediate states may be infeasible. Reference
 seed failures are reported, not hidden or mislabelled as valid solutions.
 
 Request another modification using an accepted parent with `request --parent HASH`.

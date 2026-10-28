@@ -93,6 +93,32 @@ has `None`, not a fabricated zero. Fully fixed/constant snapshots are evaluated 
 empty keys, execution `direct`, one counted evaluation, zero workers and empty algorithm,
 search and initialization metadata. No dummy key, pool or fictitious search is created.
 
+### Explicit trusted construction
+
+`RKO.from_model(native, construction=trusted_callable, ...)` opts into custom
+construction while retaining original model validation/scoring. The callable has
+signature `decode(keys, instance)` and returns complete original-order numerical
+values. `instance` is immutable original mathematics and effective domains, not an
+evaluator/native object; fixed coordinates consume no key. This does not load
+artifact paths or execute generated source on the host. See the experimental
+[Self-Evolve model bridge](self-evolve.md#experimental-mathematical-construction-bridge-m6)
+for externally isolated program artifacts.
+
+The ordinary numerical scorer, tolerances and configured continuous restoration
+remain authoritative. Completed search incumbents and best feasible original
+objectives are retained without rerunning construction/objective. Constructed-model
+results expose completed evaluation/infeasibility counts and capped distinct output
+identities through optional `statistics`; missing diagnostics are not invented.
+Ordinary model/callback defaults and default result JSON remain unchanged.
+An explicit `construction_deadline` is an optional finite absolute
+`time.perf_counter()` ceiling for construction-backed search/initialization
+sessions; it does not reset after solver setup. It is not exposed to the
+constructor's immutable mathematical context. The existing per-session
+first-completion grace remains; partial later invocations are not retained. Custom
+construction supports portable assignments/native-ID mapping but not transactional
+native write-back; `write_back` raises `NotImplementedError`. Existing default
+native write-back remains available. Fully fixed models bypass construction/search.
+
 ## Implemented foundations
 
 The shared numerical layer supports bounded continuous, integer and binary

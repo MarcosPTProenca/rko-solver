@@ -28,6 +28,8 @@ import typing
 from collections.abc import Callable
 from dataclasses import dataclass
 from rko_solver.experimental.self_evolve.artifacts import DecoderArtifact
+from rko_solver.experimental.self_evolve.model_campaign import ModelCampaignPolicy
+from rko_solver.experimental.self_evolve.model_data import ModelProblem
 from rko_solver.experimental.self_evolve.problems import Problem
 from rko_solver.experimental.self_evolve.sandbox import JOB_GRACE_SECONDS
 from rko_solver.experimental.self_evolve.sandbox import PodmanRunner
@@ -116,7 +118,7 @@ class CampaignEvaluation:
             {"kind": "reservation", "partition": job.partition, "charge": reserve, "cell": cell}
         )
         entry = self.spec["instances"][job.index]
-        problem = Problem(entry["family"], entry["data"])
+        problem = Problem.restore(entry["family"], entry["data"])
         record, charge = self._execute(runner, job, problem, reserve)
         record = {
             **record,
@@ -130,7 +132,7 @@ class CampaignEvaluation:
             "charge": charge - reserve,
             "stage": job.stage,
         }
-        self._reference_loss(record, problem.family, entry["optimum"])
+        self._reference_loss(record, problem.family, entry["optimum"], entry.get("maximize"))
         self.append(record)
         if record["status"] in {"infrastructure_error", "reference_error"}:
             runner.qualified = False
@@ -138,7 +140,11 @@ class CampaignEvaluation:
         return record
 
     def _execute(
-        self, runner: PodmanRunner, job: CampaignJob, problem: Problem, reserve: float
+        self,
+        runner: PodmanRunner,
+        job: CampaignJob,
+        problem: Problem | ModelProblem,
+        reserve: float,
     ) -> tuple[dict[str, typing.Any], float]:
         """Run a reserved cell and convert sandbox failures into charged evidence.
 
@@ -167,14 +173,23 @@ class CampaignEvaluation:
         return record, charge
 
     @staticmethod
-    def _reference_loss(record: dict[str, typing.Any], family: str, optimum: int) -> None:
+    def _reference_loss(
+        record: dict[str, typing.Any],
+        family: str,
+        optimum: int | float,
+        maximize: bool | None = None,
+    ) -> None:
         """Check feasible witnesses against the exact reference and assign bounded loss.
 
         Args:
             record (dict[str, typing.Any]): Evaluation record updated in place.
             family (str): Determines objective direction.
-            optimum (int): Frozen exact objective value.
+            optimum (int | float): Frozen trustworthy original objective reference.
+            maximize (bool | None): Explicit model direction, or legacy family orientation.
         """
+        if family == "linear_model":
+            ModelCampaignPolicy.reference_loss(record, optimum, bool(maximize))
+            return
         if record["status"] == "ok":
             if record["feasible"] and (
                 record["objective"] > optimum
@@ -207,7 +222,11 @@ class CampaignEvaluation:
             RuntimeError: If a budget callback refuses new work.
         """
         records = []
-        modes = ("check", "rko", "random", "fixed", "constructive")
+        modes = (
+            ModelCampaignPolicy.MODES
+            if self.spec["family"] == "linear_model"
+            else ("check", "rko", "random", "fixed", "constructive")
+        )
         for index, seed, mode in itertools.product(range(3), self.spec["solver_seeds"], modes):
             job = CampaignJob(artifact, index, seed, mode, "baseline")
             previous = self._previous(job)
@@ -247,15 +266,16 @@ class CampaignEvaluation:
         """
         for index in range(3):
             check = self.job(runner, CampaignJob(artifact, index, 0, "check", "candidate"))
-            if check["status"] != "ok" or check.get("infeasible_evaluations", 1):
+            if not ModelCampaignPolicy.admissible(self.spec, check):
                 raise ValueError("Candidate failed endpoint/shape/feasibility checks.")
         self._screen(runner, artifact)
         for index, seed, mode in itertools.product(
             range(3), self.spec["solver_seeds"], ("rko", "random", "fixed")
         ):
             record = self.job(runner, CampaignJob(artifact, index, seed, mode, "candidate"))
-            if record["status"] != "ok" or record.get("infeasible_evaluations", 1):
+            if not ModelCampaignPolicy.admissible(self.spec, record):
                 raise ValueError("Candidate failed a strict returned-solution gate.")
+        ModelCampaignPolicy.promote(self.spec, self.events(), artifact.digest)
 
     def _screen(self, runner: PodmanRunner, artifact: DecoderArtifact) -> None:
         """Compare a separately labelled first-instance screen to the seed RKO score.
@@ -279,9 +299,9 @@ class CampaignEvaluation:
             and e.get("seed") == 0
             and e.get("mode") == "rko"
         )
+        metric = "loss" if self.spec["family"] == "linear_model" else "score"
         if (
-            screen["status"] != "ok"
-            or screen.get("infeasible_evaluations", 1)
-            or screen["score"] > baseline["score"]
+            not ModelCampaignPolicy.admissible(self.spec, screen)
+            or screen[metric] > baseline[metric]
         ):
             raise ValueError("Candidate failed the frozen feasibility/baseline screen.")

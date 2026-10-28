@@ -79,7 +79,7 @@ def initialize_pool(
         if trace is None
         else SearchSession(decoder, cost, trace=trace, trace_source="initial_pool")
     )
-    session.deadline = started + duration
+    session.set_deadline(started + duration)
     slots: list[tuple[float, np.ndarray]] = []
     reason: Literal["completed", "time_limit"] = "completed"
 

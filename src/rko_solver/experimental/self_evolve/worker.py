@@ -30,6 +30,7 @@ import sys
 import time
 from ...components.random_streams import RandomStreams
 from .artifacts import DecoderArtifact
+from .model_worker import ModelJob
 from .problems import Problem
 from collections.abc import Iterable
 from rko_solver import RKO
@@ -312,6 +313,8 @@ def evaluate_job(job: dict[str, Any]) -> dict[str, Any]:
         ValueError: If source, output or settings violate the job contract.
         Exception: If the decoder or unchanged optimizer fails.
     """
+    if job.get("family") == "linear_model":
+        return ModelJob(job).execute(job)
     return _JobEvaluation(job).execute(job)
 
 

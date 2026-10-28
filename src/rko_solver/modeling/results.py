@@ -33,6 +33,7 @@ from .linear import ModelEvaluation
 from .linear import ModelEvidence
 from .linear import RepairDiagnostic
 from .linear import RowDiagnostic
+from .records import ModelStatistics
 from dataclasses import asdict
 from dataclasses import dataclass
 from typing import Any
@@ -54,6 +55,7 @@ class ResultTiming(TypedDict, total=False):
 
     no_search: bool
     solve_started_at: float | None
+    construction_used: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -204,6 +206,8 @@ class ModelResult:
     no_search: bool = False
     direct_evaluations: int = 0
     time_to_first_feasible_seconds: float | None = None
+    construction_used: bool = False
+    statistics: ModelStatistics | None = None
 
     @classmethod
     def from_evidence(
@@ -255,6 +259,8 @@ class ModelResult:
             max(0.0, evidence.first_feasible_at - solve_started_at)
             if evidence.first_feasible_at is not None and solve_started_at is not None
             else None,
+            timing.get("construction_used", False),
+            evidence.statistics if timing.get("construction_used", False) else None,
         )
 
     @property
@@ -293,6 +299,10 @@ class ModelResult:
             RuntimeError: If assignment fails, including explicit rollback failure diagnostics.
             ImportError: If the optional native runtime cannot be loaded.
         """
+        if self.construction_used:
+            raise NotImplementedError(
+                "Custom construction native write-back is unsupported; export assignments instead."
+            )
         if self.best_feasible is None:
             raise ValueError("No feasible model witness is available for native write-back.")
         ModelAdapter.write_back(model, self.source, self.snapshot, self.best_feasible.evaluation)
@@ -308,6 +318,7 @@ class ModelResult:
             dict[str, Any]: Portable model status, witnesses and effective numerical provenance.
         """
         return {
+            **({"construction": "custom_trusted"} if self.construction_used else {}),
             "status": self.status,
             "frontend": self.source.frontend,
             "frontend_version": self.source.version,

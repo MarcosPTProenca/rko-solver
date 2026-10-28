@@ -27,7 +27,10 @@ from ..orchestration.types import Hyperparameters
 from ..problem import Callbacks
 from ..tracing import TraceConfig
 from .adapters import ModelAdapter
+from .construction import ConstructionFn
+from .construction import ModelConstruction
 from .options import SearchOptions
+from .source import ExtractedLinearModel
 from collections.abc import Mapping
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -51,8 +54,11 @@ class ModelOptions(SearchOptions, total=False):
         engine (str): Python only, rejected before extraction otherwise.
         execution (str): Process, thread or sequential Python scheduling.
         repair (str): Continuous restoration by default at the public factory.
+        construction_deadline (float | None): Absolute monotonic model-session ceiling.
     """
 
+    construction: ConstructionFn | None
+    construction_deadline: float | None
     algorithms: Sequence[str] | None
     adaptation: Adaptation | None
     control: int | None
@@ -81,8 +87,11 @@ class ModelFactorySettings:
         engine (str): Python-only generated-model engine.
         execution (str): Existing Python execution mode.
         repair (str): Bounded continuous restoration or explicit box-only mapping.
+        construction_deadline (float | None): Optional explicit owner deadline for construction.
     """
 
+    construction: ConstructionFn | None = None
+    construction_deadline: float | None = None
     search_bounds: Mapping[str, tuple[float | None, float | None]] | None = None
     scoring: Literal["feasibility_first", "weighted_penalty"] = "feasibility_first"
     penalty_weight: float | None = None
@@ -132,15 +141,83 @@ class ModelFactory:
             TypeError: If an unknown construction keyword is supplied.
             ImportError: If the selected optional frontend cannot load.
         """
+        settings = ModelFactory._settings(options)
+        started = time.perf_counter()
+        source = ModelAdapter.extract(model)
+        return ModelFactory._build(solver_type, source, settings, started)
+
+    @staticmethod
+    def create_owned(
+        solver_type: type[RKO], source: ExtractedLinearModel, options: ModelOptions
+    ) -> RKO:
+        """Build from explicit owned source without importing optional native frontends.
+
+        Args:
+            solver_type (type[RKO]): Ordinary public solver class.
+            source (ExtractedLinearModel): Trusted original source records, not native handles.
+            options (ModelOptions): Explicit compilation, construction and execution settings.
+
+        Returns:
+            RKO: Solver retaining owned original semantics and completed model evidence.
+
+        Raises:
+            ValueError: If owned source, constructor or backend is invalid.
+            TypeError: If options contain unknown keywords.
+        """
+        settings = ModelFactory._settings(options)
+        if not isinstance(source, ExtractedLinearModel):
+            raise ValueError("Expected owned ExtractedLinearModel source records.")
+        return ModelFactory._build(solver_type, source, settings, time.perf_counter())
+
+    @staticmethod
+    def _settings(options: ModelOptions) -> ModelFactorySettings:
+        """Validate backend and explicit callable before extracting or compiling source.
+
+        Args:
+            options (ModelOptions): Trusted caller construction settings.
+
+        Returns:
+            ModelFactorySettings: Unchanged defaults and admitted explicit options.
+
+        Raises:
+            ValueError: If backend or custom construction is unsupported.
+            TypeError: If an unknown option is supplied.
+        """
         settings = ModelFactorySettings(**options)
+        ModelConstruction.validate_deadline(settings.construction_deadline)
+        if settings.construction_deadline is not None and settings.construction is None:
+            raise ValueError("construction_deadline requires an explicit construction callable.")
         if settings.engine != "python" or settings.execution not in (
             "process",
             "thread",
             "sequential",
         ):
             raise ValueError("Model decoders require engine='python' and Python execution.")
-        started = time.perf_counter()
-        source = ModelAdapter.extract(model)
+        if settings.construction is not None and not callable(settings.construction):
+            raise ValueError("construction must be a trusted callable, not an artifact or path.")
+        return settings
+
+    @staticmethod
+    def _build(
+        solver_type: type[RKO],
+        source: ExtractedLinearModel,
+        settings: ModelFactorySettings,
+        started: float,
+    ) -> RKO:
+        """Compile original numerical semantics once and bind only explicit construction.
+
+        Args:
+            solver_type (type[RKO]): Ordinary solver class.
+            source (ExtractedLinearModel): Trusted original owned source.
+            settings (ModelFactorySettings): Validated numerical and execution policy.
+            started (float): Original extraction/compilation monotonic origin.
+
+        Returns:
+            RKO: Ordinary solver with original-source and callback-owner provenance.
+
+        Raises:
+            ValueError: If numerical compilation or solver settings fail validation.
+        """
         snapshot = source.compile(
             search_bounds=settings.search_bounds,
             scoring=settings.scoring,
@@ -150,9 +227,16 @@ class ModelFactory:
             repair=settings.repair,
             repair_max_sweeps=settings.repair_max_sweeps,
         )
+        callbacks = (
+            ModelConstruction.bind(
+                snapshot, source, settings.construction, deadline=settings.construction_deadline
+            )
+            if settings.construction is not None and snapshot.n_keys
+            else snapshot
+        )
         compilation_seconds = time.perf_counter() - started
         solver = solver_type(
-            Callbacks(snapshot.decode, snapshot.cost, snapshot.n_keys),
+            Callbacks(callbacks.decode, callbacks.cost, callbacks.n_keys),
             algorithms=settings.algorithms,
             adaptation=settings.adaptation,
             control=settings.control,
@@ -170,6 +254,6 @@ class ModelFactory:
             trace=settings.trace,
         )
         solver._model_source = source
-        solver._model_snapshot = snapshot
+        solver._model_snapshot = callbacks
         solver._model_compilation_seconds = compilation_seconds
         return solver

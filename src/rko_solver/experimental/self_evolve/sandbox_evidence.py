@@ -21,6 +21,7 @@ Inputs/Outputs:
 from __future__ import annotations
 
 import math
+from .model_data import ModelProblem
 from .problems import Problem
 from typing import Any
 from typing import cast
@@ -70,7 +71,7 @@ class WorkerEvidence:
         """
         self.record = record
 
-    def witness(self, problem: Problem) -> dict[str, Any]:
+    def witness(self, problem: Problem | ModelProblem) -> dict[str, Any]:
         """Recompute the witness and compare exact objective claims.
 
         Args:
@@ -83,6 +84,11 @@ class WorkerEvidence:
             SandboxError: If witness evaluation or objective claims fail.
         """
         record = self.record
+        if isinstance(problem, ModelProblem):
+            try:
+                return problem.verify_record(record)
+            except (KeyError, ValueError, TypeError) as error:
+                raise SandboxError("Model witness failed independent verification.") from error
         try:
             evidence = problem.evaluate(record["solution"])
         except (KeyError, ValueError, TypeError) as error:

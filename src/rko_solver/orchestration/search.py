@@ -30,13 +30,16 @@ Inputs/Outputs:
 
 from __future__ import annotations
 
+import hashlib
 import math
 import numpy as np
 import threading
 import time
+from ..modeling.construction import ModelConstruction
 from ..modeling.linear import CompiledLinearModel
 from ..modeling.linear import ModelEvaluation
 from ..modeling.linear import ModelEvidence
+from ..modeling.records import ModelStatistics
 from ..tracing import _ACTIVE_STORE
 from ..tracing import _CURRENT
 from ..tracing import TraceConfig
@@ -118,16 +121,23 @@ class SearchSession:
         """
         owner = getattr(decoder, "__self__", None)
         self._model = (
-            owner if isinstance(owner, CompiledLinearModel) and cost is owner.cost else None
+            owner
+            if isinstance(owner, (CompiledLinearModel, ModelConstruction)) and cost is owner.cost
+            else None
         )
         self._model_incumbent: ModelEvaluation | None = None
         self._model_feasible: ModelEvaluation | None = None
         self._model_first_feasible_at: float | None = None
+        self._model_infeasible = 0
+        self._model_outputs: set[str] | None = (
+            set() if isinstance(self._model, ModelConstruction) else None
+        )
         self._trace_config = trace
         self._trace_store = _TraceStore(trace, trace_source) if trace is not None else None
         self.decoder = (
             partial(self._model.decode, _budget_check=self._check)
-            if self._model is not None and self._model._repair_free
+            if self._model is not None
+            and (isinstance(self._model, ModelConstruction) or self._model._repair_free)
             else decoder
         )
         self.cost = cost
@@ -154,7 +164,14 @@ class SearchSession:
         if self._model_incumbent is None:
             return None
         return ModelEvidence(
-            self._model_incumbent, self._model_feasible, self._model_first_feasible_at
+            self._model_incumbent,
+            self._model_feasible,
+            self._model_first_feasible_at,
+            ModelStatistics(
+                self.n_evaluations,
+                self._model_infeasible,
+                tuple(sorted(self._model_outputs)) if self._model_outputs is not None else None,
+            ),
         )
 
     def _record_history(self, elapsed: float) -> None:
@@ -169,6 +186,16 @@ class SearchSession:
         self._history.append(HistoryPoint(elapsed, self.n_evaluations, float(self.best[1])))
         if len(self._history) > self._history_limit:
             self._history = self._history[:1] + self._history[2:-1:2] + self._history[-1:]
+
+    def set_deadline(self, deadline: float) -> None:
+        """Bind an invocation deadline without renewing a constructed model's owner budget.
+
+        Args:
+            deadline (float): Absolute monotonic session deadline.
+        """
+        if isinstance(self._model, ModelConstruction) and self._model.deadline is not None:
+            deadline = min(deadline, self._model.deadline)
+        self.deadline = deadline
 
     def _check(self) -> None:
         """Stop after a valid result exists or when another worker failed.
@@ -305,10 +332,11 @@ class SearchSession:
         self._model_incumbent = None
         self._model_feasible = None
         self._model_first_feasible_at = None
+        self._reset_model_statistics()
         self.n_evaluations = 0
         self.metadata = None
         self._stop_reason = "completed"
-        self.deadline = started + duration if deadline is None else deadline
+        self.set_deadline(started + duration if deadline is None else deadline)
         self.cancelled = cancelled
         self.max_evaluations = max_evaluations
         original_decoder, original_cost = algorithm.decoder, algorithm.cost
@@ -357,6 +385,7 @@ class SearchSession:
             value (float): Successfully completed finite scalar score.
         """
         if self._model is not None:
+            self._record_model_statistics(evidence)
             if evidence.feasible and (
                 self._model_feasible is None
                 or (
@@ -370,6 +399,24 @@ class SearchSession:
                 self._model_feasible = evidence
             if self._model_incumbent is None or value < self._model_incumbent.score:
                 self._model_incumbent = evidence
+
+    def _reset_model_statistics(self) -> None:
+        """Reset completed model counts and optional assignment identities for a new solve."""
+        self._model_infeasible = 0
+        if self._model_outputs is not None:
+            self._model_outputs.clear()
+
+    def _record_model_statistics(self, evidence: ModelEvaluation) -> None:
+        """Retain completed counts and opt-in constructed-output hashes without trajectories.
+
+        Args:
+            evidence (ModelEvaluation): Protected successfully completed model payload.
+        """
+        self._model_infeasible += not evidence.feasible
+        if self._model_outputs is not None and len(self._model_outputs) < 256:
+            self._model_outputs.add(
+                hashlib.sha256((np.asarray(evidence.values) + 0.0).tobytes()).hexdigest()
+            )
 
     def _selected_result(self, result: RunResult) -> RunResult:
         """Keep exact completed generated-model identity even when scores tie.

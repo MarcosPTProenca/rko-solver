@@ -23,6 +23,7 @@ import math
 import numpy as np
 from ...components.random_streams import RandomStreams
 from .artifacts import FAMILIES
+from .model_data import ModelProblem
 from dataclasses import dataclass
 from typing import Any
 
@@ -67,6 +68,22 @@ class Problem:
         if len(encoded.encode("utf-8")) > 24576:
             raise ValueError("Instance data exceed the 24 KiB worker envelope.")
         object.__setattr__(self, "data", json.loads(encoded))
+
+    @staticmethod
+    def restore(family: str, data: dict[str, Any]) -> Problem | ModelProblem:
+        """Restore explicit mathematical or pilot data without guessing a formulation.
+
+        Args:
+            family (str): Declared artifact input family.
+            data (dict): Frozen bounded instance/model envelope.
+
+        Returns:
+            Problem | ModelProblem: Trusted evaluator with its unchanged numerical semantics.
+
+        Raises:
+            ValueError: If the family, schema, model identity or mathematical data are invalid.
+        """
+        return ModelProblem(data) if family == "linear_model" else Problem(family, data)
 
     @staticmethod
     def _validate_field(name: str, value: object) -> None:
