@@ -5,6 +5,13 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ## Unreleased
 
+### Added
+
+- [Convergence guarantees](docs/guarantees.md): the protected-exploration property, its
+  `(1 - mu)^(p + m*G)` miss bound for BRKGA, and what it does not say. Two tests back it: the best
+  cost never loses an improvement on any engine, and BRKGA's miss rate on a five-bit target stays
+  under the bound.
+
 ### Changed
 
 - BRKGA rejects settings where `int(p * pm)` is zero, in every engine, and adaptive grids skip

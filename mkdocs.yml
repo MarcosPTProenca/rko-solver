@@ -67,6 +67,7 @@ nav:
       - Building and publishing these docs: documentation-site.md
   - Reference:
       - Development status and limitations: status.md
+      - Convergence guarantees: guarantees.md
       - C++ compatibility: cpp-compatibility.md
   - Scientific diagnostics:
       - Performance baseline: performance-baseline.md
