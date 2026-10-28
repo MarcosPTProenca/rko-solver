@@ -181,7 +181,7 @@ for arbitrary applications**. Recalibrate heavy adapters/reports before increasi
 limits. Run:
 
 ```bash
-uv run --locked --extra service --extra reports --group service-test pytest src/rko_solver/tests/service -q
+uv run --locked --extra service --extra reports --group service-test pytest tests/service -q
 uv run --locked ruff check .
 uv run --locked ruff format --check .
 ```

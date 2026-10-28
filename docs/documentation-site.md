@@ -59,7 +59,7 @@ limitations. It must never imply that main equals a published stable PyPI packag
 ## Validation
 
 ```bash
-uv run --locked --group docs pytest src/rko_solver/tests/test_documentation_site.py -q
+uv run --locked --group docs pytest tests/test_documentation_site.py -q
 uv run --locked --only-group docs mkdocs build --strict
 ```
 

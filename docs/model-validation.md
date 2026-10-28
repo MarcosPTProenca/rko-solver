@@ -275,9 +275,9 @@ From the repository root:
 uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt python -m benchmarks.modeling_validation --seeds 10 --time-limit 0.5 --repair continuous --repair-max-sweeps 1024 --output docs/audits/my-model-validation.jsonl
 uv run --locked python -m benchmarks.modeling_validation --summarize benchmarks/modeling-validation-reference-13b6934.jsonl
 uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt python -m benchmarks.modeling_validation --seeds 10 --time-limit 0.5 --repair none --output docs/audits/my-box-control.jsonl
-uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt pytest src/rko_solver/tests/benchmarks/test_modeling_validation.py -q
+uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt pytest tests/benchmarks/test_modeling_validation.py -q
 uv run --locked python -m benchmarks.modeling_overhead --repeats 51 --target-seconds 0.8 --baseline 8917000 --output docs/audits/my-model-overhead.json
-uv run --locked pytest src/rko_solver/tests/benchmarks/test_modeling_overhead.py -q
+uv run --locked pytest tests/benchmarks/test_modeling_overhead.py -q
 ```
 
 Output creation is exclusive: choose a new path rather than overwriting a prior

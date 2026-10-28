@@ -69,7 +69,7 @@ include = [
     { path = "src/rko_solver/service/templates/.dockerignore", format = ["sdist", "wheel"] },
 ]
 exclude = [
-    "src/rko_solver/tests/**",
+    "tests/**",
     "**/__pycache__/**",
     "src/rko_solver/examples/results/**",
 ]
@@ -134,7 +134,7 @@ force-single-line = true
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]
-testpaths = ["src/rko_solver/tests"]
+testpaths = ["tests"]
 
 [tool.mutmut]
 source_paths = ["src"]
@@ -154,22 +154,22 @@ only_mutate = [
 ]
 mutate_only_covered_lines = true
 pytest_add_cli_args_test_selection = [
-    "src/rko_solver/tests/test_property_invariants.py",
-    "src/rko_solver/tests/components/test_solution_pool_pytest.py",
-    "src/rko_solver/tests/rko/test_pool_sampling.py",
-    "src/rko_solver/tests/components/test_parameter_contracts.py",
-    "src/rko_solver/tests/components/test_q_learning_pytest.py",
-    "src/rko_solver/tests/components/test_q_state_graph.py",
-    "src/rko_solver/tests/components/test_initialization_and_operators_pytest.py",
-    "src/rko_solver/tests/metaheuristics/test_validation.py",
-    "src/rko_solver/tests/metaheuristics/test_algorithm_regressions.py",
-    "src/rko_solver/tests/metaheuristics/test_metaheuristics_pytest.py",
-    "src/rko_solver/tests/rko/test_solver.py",
-    "src/rko_solver/tests/rko/test_hyperparameters.py",
-    "src/rko_solver/tests/rko/test_stopping.py",
-    "src/rko_solver/tests/rko/test_search_metadata.py",
-    "src/rko_solver/tests/rko/test_result_metadata.py",
-    "src/rko_solver/tests/rko/test_default_workers.py",
+    "tests/test_property_invariants.py",
+    "tests/components/test_solution_pool_pytest.py",
+    "tests/rko/test_pool_sampling.py",
+    "tests/components/test_parameter_contracts.py",
+    "tests/components/test_q_learning_pytest.py",
+    "tests/components/test_q_state_graph.py",
+    "tests/components/test_initialization_and_operators_pytest.py",
+    "tests/metaheuristics/test_validation.py",
+    "tests/metaheuristics/test_algorithm_regressions.py",
+    "tests/metaheuristics/test_metaheuristics_pytest.py",
+    "tests/rko/test_solver.py",
+    "tests/rko/test_hyperparameters.py",
+    "tests/rko/test_stopping.py",
+    "tests/rko/test_search_metadata.py",
+    "tests/rko/test_result_metadata.py",
+    "tests/rko/test_default_workers.py",
     "-k",
     "not test_solution_pool_implements_search_protocols",
 ]
@@ -177,11 +177,11 @@ pytest_add_cli_args_test_selection = [
 [tool.mypy]
 python_version = "3.14"
 ignore_missing_imports = true
-exclude = ["src/rko_solver/tests/"]
+exclude = ["tests/"]
 
 [tool.vulture]
 paths = ["src/rko_solver", "tools"]
-exclude = ["src/rko_solver/tests/"]
+exclude = ["tests/"]
 min_confidence = 80
 ignore_names = ["page"]
 

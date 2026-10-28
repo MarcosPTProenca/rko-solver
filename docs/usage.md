@@ -443,7 +443,7 @@ not competitive solution quality or fixed-work speedup.
 ```bash
 uv run --locked ruff check .
 uv run --locked ruff format --check .
-uv run --locked pytest src/rko_solver/tests -q
+uv run --locked pytest tests -q
 ```
 
 GitHub Actions runs the full suite on Linux and Windows. Tests include real

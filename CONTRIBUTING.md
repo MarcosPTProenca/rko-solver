@@ -38,7 +38,7 @@ uv run --locked ruff format --check .
 uv run --locked python tools/quality_gate.py
 uv run --locked vulture
 cargo deny check
-uv run --locked pytest src/rko_solver/tests -q
+uv run --locked pytest tests -q
 uv run --locked pre-commit run --all-files
 uv build
 ```
@@ -52,7 +52,7 @@ the smaller baseline. Do not regenerate the baselines with `--write-baseline` to
 pass; refactor instead. `--skip-types` runs the fast subset used by the pre-commit hook.
 
 Every Python block in the README and `docs/*.md` is executed by
-`src/rko_solver/tests/test_documentation_examples.py`: complete programs (with an
+`tests/test_documentation_examples.py`: complete programs (with an
 `if __name__ == "__main__":` guard) run as scripts, fragments run in order on their page with
 `decode`, `objective`, `n_variables` and Knapsack data predefined, and `RKO.solve` is capped
 at half a second. A block that cannot run in CI carries an invisible comment right before its
@@ -69,7 +69,7 @@ non-increasing, so no step between a search, the shared pool and the result can 
 stays under `(1 - mu)^(p + m*G)` (see `docs/guarantees.md`) and that every engine finds the target.
 `test_golden_runs.py` freezes seeded results of every algorithm on the reproducible
 configurations; if a behavior change is intended, regenerate with
-`RKO_UPDATE_GOLDEN=1 uv run pytest src/rko_solver/tests/test_golden_runs.py` and review the
+`RKO_UPDATE_GOLDEN=1 uv run pytest tests/test_golden_runs.py` and review the
 diff of `golden/runs.json`.
 
 Coverage is a ratchet from measured values, not a target: the Python package must keep at least
@@ -78,7 +78,7 @@ the C++ engine installed; the floor is `fail_under` in `pyproject.toml`) and the
 least 93 percent line coverage from the Rust tests alone (measured 96.7, benchmark runners
 excluded). Raise a floor when a change durably improves the measurement; never lower one to make
 a change pass. Run `uv run --extra service --extra reports --group service-test pytest
-src/rko_solver/tests --cov` and `cargo llvm-cov -p rko-core -p rko-cpp --release
+tests --cov` and `cargo llvm-cov -p rko-core -p rko-cpp --release
 --ignore-filename-regex '(bench|/bin/)' --summary-only` locally. Code that runs only in spawned
 processes or the generated service container counts less than it should, so a number below the
 floor needs a look at what is actually untested before anything else.
@@ -139,7 +139,7 @@ Use the reported `/rko-solver/` URL. Docs tools are a separate locked group, not
 runtime dependencies. Before a docs change, run:
 
 ```bash
-uv run --locked --group docs pytest src/rko_solver/tests/test_documentation_site.py -q
+uv run --locked --group docs pytest tests/test_documentation_site.py -q
 uv run --locked --only-group docs mkdocs build --strict
 ```
 

@@ -251,5 +251,5 @@ problems like those measured, `engine="rust"` is already the right choice. Detai
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --release -- -D warnings
 cargo test --release
-uv run pytest src/rko_solver/tests/rko/test_rust_engine.py -q
+uv run pytest tests/rko/test_rust_engine.py -q
 ```
