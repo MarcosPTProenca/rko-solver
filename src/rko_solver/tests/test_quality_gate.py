@@ -239,6 +239,25 @@ def test_type_errors_are_ratcheted_per_file(tmp_path: Path) -> None:
     assert json.loads(gate.types_baseline.read_text())["files"] == {}
 
 
+def test_type_errors_outside_the_type_paths_are_not_counted(tmp_path: Path) -> None:
+    """An error inside an imported third-party module never enters or fails the gate.
+
+    Args:
+        tmp_path (Path): Temporary repository root.
+    """
+    gate = build(
+        tmp_path,
+        {
+            "pkg/__init__.py": "",
+            "pkg/mod.py": "import vendored\n\nvalue: int = vendored.number\n",
+            "vendored.py": "number: int = 1\n\n\ndef broken(x: int) -> str:\n    return x\n",
+            "pyproject.toml": '[tool.quality]\ntype-paths = ["pkg"]\n',
+        },
+    )
+    assert gate.collect_types() == {"files": {}}
+    assert gate.run() == 0
+
+
 def test_command_line_modes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """The entry point returns statuses, writes baselines and rejects conflicting flags.
 

@@ -389,7 +389,7 @@ class RKO:
         Raises:
             ValueError: If callbacks, dimensions, settings or serialization are invalid.
             RuntimeError: If an algorithm fails or a process exits unexpectedly.
-            TimeoutError: If process startup, initialization or search exceeds its grace.
+            TimeoutError: If a process phase exceeds its watchdog before any solution exists.
             OSError: If parameter files cannot be read.
         """
         self.result_ = None

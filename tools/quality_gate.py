@@ -326,8 +326,8 @@ class QualityGate:
         """Count `mypy` errors per file, using the configuration in `pyproject.toml`.
 
         Returns:
-            Json: `files` mapping each file with errors to its error count; empty when
-            `type-paths` is empty.
+            Json: `files` mapping each file under `type-paths` with errors to its error count
+            (followed third-party imports never count); empty without `type-paths`.
 
         Raises:
             RuntimeError: If `mypy` fails to run (exit status above 1).
@@ -347,7 +347,8 @@ class QualityGate:
         for line in completed.stdout.splitlines():
             if line.startswith("{"):
                 name = Path(json.loads(line)["file"]).as_posix()
-                files[name] = files.get(name, 0) + 1
+                if any(name == path or name.startswith(f"{path}/") for path in self.type_paths):
+                    files[name] = files.get(name, 0) + 1
         return {"files": files}
 
     @staticmethod
