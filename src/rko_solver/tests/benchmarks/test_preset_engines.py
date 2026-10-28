@@ -263,3 +263,45 @@ def test_real_engine_confirmation_resumes_without_new_selection(
     assert run.report(engine) == first
     with pytest.raises(ValueError, match="Frozen"):
         run.run(engine, 1)
+
+
+def test_engine_reference_reconstructs_scales_locks_and_all_acceptance_gates() -> None:
+    """The identified engine reference preserves original inputs and reproduces both decisions."""
+    import hashlib
+    from benchmarks.tuning.preset_analysis import PresetAnalysis
+    from benchmarks.tuning.preset_analysis import PresetDesign
+
+    root = Path(__file__).resolve().parents[4] / "benchmarks"
+    reference = root / "general-sa-preset-reference.json"
+    original = json.loads(reference.read_text())
+    data = json.loads((root / "general-sa-preset-engines-reference.json").read_text())
+    digest = hashlib.sha256(reference.read_text().encode()).hexdigest()
+    assert data["reference_sha256"] == digest
+    assert data["selection"] == original["selection"]
+    design = PresetDesign(**original["protocol"]["design"])
+    for engine in ("python", "cpp"):
+        protocol = data["protocols"][engine]
+        assert protocol["engine"] == engine and protocol["source_sha"].startswith("1a544ca")
+        assert protocol["reference_sha256"] == digest
+        assert protocol["design"] == original["protocol"]["design"]
+        assert protocol["default"] == original["protocol"]["candidates"]["default"]
+        assert protocol["selection"] == original["selection"]
+        rows = data["measurements"][engine]
+        assert len(rows) == 24 and all(row["engine"] == engine for row in rows)
+        result = PresetAnalysis(design).confirmation(rows, data["selection"]["candidate"])
+        expected = data["summaries"][engine]
+        assert result["passed"] is expected["passed"] is True
+        assert result["delta"] == pytest.approx(expected["delta"], abs=1e-12)
+        assert result["upper"] == pytest.approx(expected["upper"], abs=1e-12)
+        for actual, stored in zip(result["cells"], expected["cells"], strict=True):
+            assert actual["passed"] is stored["passed"] is True
+            assert actual["upper"] == pytest.approx(stored["upper"], abs=1e-12)
+        for row in rows:
+            offset = design.offset(row["family"], row["size"])
+            path = f"cohort-{offset}/size-{row['size']}/calibration-{row['family']}.json"
+            scales = original["calibration"][path]
+            for index, (cost, score) in enumerate(zip(row["costs"], row["scores"], strict=True)):
+                scale = scales[f"{row['family']}-test-{index}"]
+                assert score == pytest.approx(
+                    (cost - scale["best"]) / (scale["anchor"] - scale["best"])
+                )
