@@ -510,7 +510,7 @@ can be startup-only.
 
 ## Project status and attribution
 
-Version `0.3.0a3` is a prerelease, not a stable release. Matching or exceeding C++ RKO is a
+Version `0.3.0a4` is a prerelease, not a stable release. Matching or exceeding C++ RKO is a
 performance target, **not an achieved claim**; read the [limitations](https://marcosptproenca.github.io/rko-solver/status/)
 and [C++ compatibility](https://marcosptproenca.github.io/rko-solver/cpp-compatibility/) before relying on it.
 Wheel/sdist installation and the full test suite are checked on Ubuntu, Windows and macOS;
