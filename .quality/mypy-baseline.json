@@ -1,6 +1,5 @@
 {
   "files": {
-    ".venv/lib/python3.14/site-packages/numba/core/decorators.pyi": 1,
     "src/rko_solver/assessment.py": 2,
     "src/rko_solver/components/adaptive_control/q_learning.py": 5,
     "src/rko_solver/components/validation.py": 11,
