@@ -6,8 +6,8 @@ Portions derive from the earlier RKO Python implementation by Felipe Silvestre C
 Roberto and João Assaoka (github.com/RKO-solver/RKO_Python, Apache-2.0); that attribution
 is retained here as the license requires. The algorithms are inspired by RKO C++ v2.
 
-Bundled reference fixtures retain their separate upstream MIT license and
-provenance under src/rko_solver/examples/instances/.
+Reference fixtures in the source repository (examples/instances/, not part of the
+distributions) retain their separate upstream MIT license and provenance.
 
 engines/cpp/vendor/rko_cpp_v2 contains the algorithm headers of RKO C++ v2.0
 (github.com/RKO-solver/RKO_Cpp_v2.0, revision 126e35873e50dc308795b58b8c75d37f8de4c857),

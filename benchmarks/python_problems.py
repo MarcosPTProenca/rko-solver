@@ -45,11 +45,11 @@ import time
 from collections.abc import Callable
 from collections.abc import Mapping
 from collections.abc import Sequence
+from examples.run_kp_cpp_instances import read_kp_instance
 from pathlib import Path
 from rko_solver import RKO
 from rko_solver import Blocks
 from rko_solver import Numba
-from rko_solver.examples.run_kp_cpp_instances import read_kp_instance
 from rko_solver.parameters.loader import default_params_dir
 from typing import Any
 

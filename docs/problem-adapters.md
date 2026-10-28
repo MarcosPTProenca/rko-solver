@@ -41,8 +41,9 @@ The following file-backed scheduling example shows the missing data lifecycle.
 
 ## A complete file-backed example
 
-The maintained implementation is
-[`rko_solver.examples.instance_pipeline`](https://github.com/MarcosPTProenca/rko-solver/blob/main/src/rko_solver/examples/instance_pipeline.py).
+The maintained implementation, which lives in the repository's `examples/` directory and is not
+installed with the wheel (run these snippets from the repository root), is
+[`examples.instance_pipeline`](https://github.com/MarcosPTProenca/rko-solver/blob/main/examples/instance_pipeline.py).
 It solves an illustrative single-machine scheduling problem: each job has a
 processing duration and due date. The decoder constructs completion times from
 priority keys; the objective minimizes total tardiness.
@@ -88,8 +89,8 @@ Save the following as `solve_schedule.py` beside your JSON file:
 ```python
 import numpy as np
 from pathlib import Path
-from rko_solver.examples.instance_pipeline import SchedulingProblem
-from rko_solver.examples.instance_pipeline import read_data
+from examples.instance_pipeline import SchedulingProblem
+from examples.instance_pipeline import read_data
 from rko_solver.metaheuristics import SA
 
 
@@ -157,8 +158,8 @@ gives each selected algorithm its own allowance, unlike the shared process deadl
 The synthetic fixture is packaged, so no current-working-directory input is needed:
 
 ```bash
-uv run --locked python -m rko_solver.examples.instance_pipeline
-uv run --locked python -m rko_solver.examples.instance_pipeline my_instance.json \
+uv run --locked python -m examples.instance_pipeline
+uv run --locked python -m examples.instance_pipeline my_instance.json \
   --algorithms SA PSO --execution process --n-jobs 2 --time-limit 2
 ```
 
@@ -170,7 +171,7 @@ To generate a report with the existing optional reports feature:
 
 ```bash
 uv sync --locked --extra reports
-uv run --locked --extra reports python -m rko_solver.examples.instance_pipeline \
+uv run --locked --extra reports python -m examples.instance_pipeline \
   my_instance.json --time-limit 2 --report schedule.html
 ```
 
@@ -192,7 +193,7 @@ For a different domain, replace the JSON reader/schema, adapter data and the two
 methods—not algorithm internals. Data can come from files, a database, an API or
 an existing in-memory object; load/validate it in your application before solving.
 
-The existing [Knapsack runner](https://github.com/MarcosPTProenca/rko-solver/blob/main/src/rko_solver/examples/run_kp_cpp_instances.py) is an
+The existing [Knapsack runner](https://github.com/MarcosPTProenca/rko-solver/blob/main/examples/run_kp_cpp_instances.py) is an
 unrelated example: `read_kp_instance` loads weights, benefits and capacity;
 `KnapsackCost(instance)` stores them for scoring. Its threshold decoder does not
 need the data itself, unlike scheduling construction. Knapsack input and execution

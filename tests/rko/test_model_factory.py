@@ -25,6 +25,7 @@ import json
 import numpy as np
 import pickle
 import pytest
+from examples.model_conversion import LinearModelExample
 from itertools import product
 from pathlib import Path
 from rko_solver import RKO
@@ -33,7 +34,6 @@ from rko_solver import ModelResult
 from rko_solver import ModelSolution
 from rko_solver import RKOResult
 from rko_solver.assessment import assess_result
-from rko_solver.examples.model_conversion import LinearModelExample
 from rko_solver.modeling.linear import CompiledLinearModel
 from rko_solver.modeling.linear import ModelEvaluation
 from rko_solver.modeling.linear import ModelEvidence

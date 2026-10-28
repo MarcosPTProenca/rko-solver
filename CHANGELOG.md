@@ -5,6 +5,18 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ## Unreleased
 
+### Removed
+
+- **The example programs and the `rko-solver` command are no longer part of the distribution.**
+  `rko_solver.examples` (the scheduling and Knapsack examples, `decision_trace`, `decoder_diagram`,
+  `analysis_report`, `model_conversion`), its reference instances and the `rko-solver` console
+  script are gone from the wheel and sdist. They now live in `examples/` at the repository root and
+  run from a checkout, for example `uv run python -m examples.run_kp_cpp_instances
+  examples/instances/kp50.txt`. `rko-solver-service` is unchanged. The release checks now reject an
+  artifact that contains `examples/`.
+- The service scaffold's `adapter.py` carries its own scheduling problem instead of importing
+  `rko_solver.examples`, so a scaffolded service depends only on the installed `rko-solver`.
+
 ### Changed
 
 - BRKGA rejects settings where `int(p * pm)` is zero, in every engine, and adaptive grids skip

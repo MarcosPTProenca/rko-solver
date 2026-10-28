@@ -53,8 +53,8 @@ from benchmarks.cpp_python_knapsack import SolverOutput
 from benchmarks.cpp_python_knapsack import TrialRecord
 from benchmarks.knapsack_utils import exact_profit
 from collections.abc import Sequence
+from examples.run_kp_cpp_instances import read_kp_instance
 from pathlib import Path
-from rko_solver.examples.run_kp_cpp_instances import read_kp_instance
 
 IMPLEMENTATIONS = (
     "python",

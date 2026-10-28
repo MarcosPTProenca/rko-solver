@@ -404,7 +404,7 @@ Like C++ `runTest INSTANCE T`, the supplied problem adapter runs Knapsack:
 
 ```bash
 uv sync --locked
-uv run --locked rko-solver src/rko_solver/examples/instances/kp50.txt \
+uv run --locked python -m examples.run_kp_cpp_instances examples/instances/kp50.txt \
   --limit-time 10 --execution process --random-state 42 \
   --output-csv results/kp50.csv
 ```
@@ -416,11 +416,12 @@ final results only.
 Pass `--params-dir configs/my-run` to select your own `config.toml` and algorithm
 TOMLs. See [running an instance](running.md) for copying/editing configuration,
 a four-worker portfolio, instance format, PowerShell and legacy batch selection.
-The supplied command does not infer arbitrary problem formats: other problems
+The supplied runner does not infer arbitrary problem formats: other problems
 require their own reader/decoder, analogous to adapting C++ `Problem.h`.
 
-The two bundled references live in `src/rko_solver/examples/instances/`, with upstream
-revision and MIT license. No C++ checkout or `PYTHONPATH` setting is required.
+The two reference instances live in `examples/instances/`, with upstream
+revision and MIT license, in the repository only. No C++ checkout or `PYTHONPATH` setting is
+required when running from the repository root.
 Omit `--output-csv` to save under the caller's `results/` directory.
 
 The decoder uses `key > 0.5`. Cost is negative profit with a penalty of 100000

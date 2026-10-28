@@ -28,17 +28,17 @@ import pytest
 import shutil
 import time
 from dataclasses import dataclass
+from examples.run_kp_cpp_instances import decode_knapsack
+from examples.run_kp_cpp_instances import default_instances_dir
+from examples.run_kp_cpp_instances import evaluate_solution
+from examples.run_kp_cpp_instances import make_cost
+from examples.run_kp_cpp_instances import read_kp_instance
 from functools import partial
 from multiprocessing.connection import Connection
 from pathlib import Path
 from rko_solver import RKO
 from rko_solver import run
 from rko_solver.components.random_streams import RandomStreams
-from rko_solver.examples.run_kp_cpp_instances import decode_knapsack
-from rko_solver.examples.run_kp_cpp_instances import default_instances_dir
-from rko_solver.examples.run_kp_cpp_instances import evaluate_solution
-from rko_solver.examples.run_kp_cpp_instances import make_cost
-from rko_solver.examples.run_kp_cpp_instances import read_kp_instance
 from rko_solver.orchestration import processes
 from rko_solver.orchestration.configuration import MH_SPECS
 from rko_solver.orchestration.processes import PoolManager

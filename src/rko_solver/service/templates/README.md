@@ -2,8 +2,9 @@
 
 This is a reference, not a hardened public SaaS or an untrusted-Python sandbox.
 Edit `adapter.py` to bind your installed schema, reader/construction function,
-decoder, objective and optional checker. The included scheduling adapter reuses
-RKO's existing example. Clients send JSON values, never Python or import paths.
+decoder, objective and optional checker. The included scheduling adapter defines its
+own self-contained scheduling problem, so the scaffold needs nothing but the installed
+`rko-solver`. Clients send JSON values, never Python or import paths.
 
 ## Build without publishing a release
 

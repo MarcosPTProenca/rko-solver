@@ -196,9 +196,7 @@ PAGES = sorted(page for page in [ROOT / "README.md", *(ROOT / "docs").glob("*.md
 
 FIXTURES = {
     "instance.json": json.dumps({"lower": [-5, -5, -5], "upper": [5, 5, 5], "target": [1, 2, 3]}),
-    "my_instance.json": (ROOT / "src/rko_solver/examples/instances/scheduling.json").read_text(
-        encoding="utf-8"
-    ),
+    "my_instance.json": (ROOT / "examples/instances/scheduling.json").read_text(encoding="utf-8"),
 }
 
 
@@ -212,7 +210,11 @@ def execute(command: list[str], directory: Path) -> subprocess.CompletedProcess[
     Returns:
         subprocess.CompletedProcess[str]: Finished process with captured output.
     """
-    environment = {**os.environ, "PYTHONPATH": str(directory), "MPLBACKEND": "Agg"}
+    environment = {
+        **os.environ,
+        "PYTHONPATH": os.pathsep.join((str(directory), str(ROOT))),
+        "MPLBACKEND": "Agg",
+    }
     return subprocess.run(
         [sys.executable, *command],
         cwd=directory,

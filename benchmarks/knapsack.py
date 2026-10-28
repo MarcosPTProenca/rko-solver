@@ -33,13 +33,13 @@ import shutil
 import tempfile
 import time
 from benchmarks.knapsack_utils import exact_profit
+from examples.run_kp_cpp_instances import KpInstance
+from examples.run_kp_cpp_instances import decode_knapsack
+from examples.run_kp_cpp_instances import default_instances_dir
+from examples.run_kp_cpp_instances import make_cost
+from examples.run_kp_cpp_instances import read_kp_instance
 from pathlib import Path
 from rko_solver import RKO
-from rko_solver.examples.run_kp_cpp_instances import KpInstance
-from rko_solver.examples.run_kp_cpp_instances import decode_knapsack
-from rko_solver.examples.run_kp_cpp_instances import default_instances_dir
-from rko_solver.examples.run_kp_cpp_instances import make_cost
-from rko_solver.examples.run_kp_cpp_instances import read_kp_instance
 from rko_solver.parameters.loader import default_params_dir
 
 

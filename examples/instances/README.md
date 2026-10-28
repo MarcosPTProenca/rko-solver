@@ -3,7 +3,7 @@
 ## Synthetic scheduling tutorial
 
 `scheduling.json` is a four-job synthetic input authored for the
-`rko_solver.examples.instance_pipeline` tutorial. It supplies a name, positive integer
+`examples.instance_pipeline` tutorial. It supplies a name, positive integer
 processing times and nonnegative integer due dates. It is not imported from C++
 and is not a competitive-performance benchmark. See the file-backed adapter guide
 in `docs/problem-adapters.md` in the repository.

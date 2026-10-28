@@ -24,12 +24,12 @@ Inputs/Outputs:
 - Output: results/decoder-diagram.html and results/decoder-diagram.json.
 """
 
-from ..assessment import assess_result
-from ..explain import DecoderDiagram
-from ..reporting import OptimizationReport
-from ..solver import RKO
-from . import instance_pipeline
+from examples import instance_pipeline
 from pathlib import Path
+from rko_solver.assessment import assess_result
+from rko_solver.explain import DecoderDiagram
+from rko_solver.reporting import OptimizationReport
+from rko_solver.solver import RKO
 
 
 def main() -> None:

@@ -37,8 +37,8 @@ from .knapsack_utils import exact_profit
 from .modeling_schema import CaseRow
 from .modeling_schema import CaseVariable
 from .modeling_schema import PracticalCase
-from rko_solver.examples.run_kp_cpp_instances import default_instances_dir
-from rko_solver.examples.run_kp_cpp_instances import read_kp_instance
+from examples.run_kp_cpp_instances import default_instances_dir
+from examples.run_kp_cpp_instances import read_kp_instance
 from typing import Any
 
 

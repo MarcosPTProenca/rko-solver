@@ -45,8 +45,9 @@ environment output. Read the generated README before customizing deployment.
 ## Bind trusted application code
 
 `adapter.py` contains a cheap bounded Pydantic instance schema and an importable
-`build_problem(validated_json) -> ProblemDefinition` function. The reference reuses
-`SchedulingInstance`/`SchedulingProblem` from the existing example unchanged.
+`build_problem(validated_json) -> ProblemDefinition` function. The reference defines its own
+self-contained `SchedulingInstance`/`SchedulingProblem`, a copy of the ones in
+`examples/instance_pipeline.py`, so the scaffold depends only on the installed `rko-solver`.
 Already-loaded JSON needs no filesystem reader. For another domain, replace only
 this schema/binding with your own trusted reader/construction logic and callbacks.
 

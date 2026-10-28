@@ -67,7 +67,6 @@ class ReleaseManager:
     licenses = (
         "LICENSE",
         "NOTICE",
-        "src/rko_solver/examples/instances/LICENSE",
         "engines/cpp/vendor/rko_cpp_v2/LICENSE",
         "engines/THIRD_PARTY_LICENSES.txt",
     )
@@ -387,16 +386,8 @@ class ReleaseManager:
                 or (self.binary_suffix.search(name) and name not in allowed)
             ):
                 raise ValueError("Archive contains excluded/private/native build material.")
-        fixture_prefix = resource_prefix + "examples/instances/"
-        fixtures = {"LICENSE", "README.md", "kp10.txt", "kp50.txt", "scheduling.json"}
-        if any(
-            name.startswith(fixture_prefix)
-            and name[len(fixture_prefix) :]
-            and name[len(fixture_prefix) :] not in fixtures
-            for name in names
-            if not name.endswith("/")
-        ):
-            raise ValueError("Archive contains an unreviewed example dataset.")
+        if any(name.startswith(resource_prefix + "examples/") for name in names):
+            raise ValueError("Archive contains example material that is excluded from the release.")
         message = BytesParser(policy=policy.default).parsebytes(metadata)
         if (
             message["Name"] != "rko-solver"
@@ -420,9 +411,6 @@ class ReleaseManager:
             )
             if any(tool in parsed.name.lower() for tool in banned):
                 raise ValueError("Release tooling must not become a runtime dependency.")
-        for resource in ("examples/instances/scheduling.json", "examples/instances/kp10.txt"):
-            if resource_prefix + resource not in names:
-                raise ValueError("Packaged example data is missing.")
         if not any(
             name.startswith(resource_prefix + "parameters/") and name.endswith(".toml")
             for name in names
