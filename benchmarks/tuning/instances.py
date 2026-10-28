@@ -103,27 +103,40 @@ class InstanceBank:
 
     Attributes:
         directory (Path): Folder with instance files and `calibration-<family>.json`.
-        size (dict[str, int]): Problem size per family.
+        size (int | None): Explicit dimension for every generated family, or packaged sizes.
         evaluations (int): Evaluation limit of every scored run.
         seed_offset (int): Offset selecting a separately stored instance cohort.
     """
 
     SIZES = {"kp": 300, "tsp": 60, "rastrigin": 30}
 
-    def __init__(self, directory: Path, evaluations: int = 50_000, seed_offset: int = 0) -> None:
+    def __init__(
+        self,
+        directory: Path,
+        evaluations: int = 50_000,
+        seed_offset: int = 0,
+        *,
+        size: int | None = None,
+    ) -> None:
         """Create a bank rooted at a cohort-specific directory.
 
         Args:
             directory (Path): Parent folder for instances and calibration.
             evaluations (int): Evaluation limit of every scored run.
             seed_offset (int): Nonnegative seed offset; zero preserves the original files.
+            size (int | None): Positive explicit dimension, stored in its own subdirectory.
 
         Raises:
-            ValueError: If the seed offset is negative or not an integer.
+            ValueError: If the seed offset or explicit size is invalid.
         """
         if type(seed_offset) is not int or seed_offset < 0:
             raise ValueError("seed_offset must be a nonnegative integer.")
+        if size is not None and (type(size) is not int or size < 1):
+            raise ValueError("size must be a positive integer.")
         self.directory = directory / f"cohort-{seed_offset}" if seed_offset else directory
+        if size is not None:
+            self.directory = self.directory / f"size-{size}"
+        self.size = size
         self.evaluations = evaluations
         self.seed_offset = seed_offset
         self._compiled: dict[str, tuple[int, Callable[[np.ndarray], float]]] = {}
@@ -170,7 +183,7 @@ class InstanceBank:
         Returns:
             str: File content in the format the benchmark objectives read.
         """
-        size = self.SIZES[family]
+        size = self.SIZES[family] if self.size is None else self.size
         if family == "kp":
             weights = rng.integers(10, 1001, size)
             profits = np.maximum(1, weights + rng.integers(-100, 101, size))

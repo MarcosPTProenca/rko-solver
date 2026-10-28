@@ -1908,3 +1908,112 @@ for family in ("kp", "tsp", "rastrigin"):
     print(family, new.interval(second - first))
 PY
 ```
+
+### One cross-family fixed-preset validation
+
+`benchmarks.tuning.preset` selects one configuration using **training data only**, then seals it
+before generating a separate confirmation set. This evidence-only experiment does not change
+packaged parameters and makes no claim about the library's configured adaptive mode.
+
+The candidate pool contains all 30 trained simulated-annealing configurations from
+`tuning-wide-expanded-reference.jsonl`, without filtering on their historical test scores,
+plus the packaged fixed default. Exact configurations are deduplicated. The selection score
+averages sizes and budgets within each family, then gives all three families equal weight.
+Candidates losing more than 0.02 normalized-gap units in any training cell are ineligible;
+the fixed default remains an eligible fallback. Ties prefer the default, then a stable identifier.
+
+Frozen design:
+
+- Knapsack: 100 and 600 items; travelling salesperson: 30 and 100 cities; Rastrigin: 10 and 60 dimensions.
+- Two budgets: 50,000 and 500,000 evaluations; Rust engine, one search worker, fixed parameters.
+- Six training instances per context, two shared solver seeds per instance.
+- Twelve untouched confirmation instances per context, five fresh shared solver seeds per instance.
+- Base cohort offset 2,000,000, with separate offsets 10,000 apart for the six size/family contexts.
+- Calibration uses the existing default-parameter reference and short-search anchor, not tuned results.
+
+The predeclared confirmation gates both must pass:
+
+1. The family-balanced candidate-minus-default difference has a one-sided 95% bootstrap upper
+   bound below zero.
+2. Every one of the twelve family/size/budget cells has an upper bound no larger than **0.02**
+   normalized-gap units. These upper bounds use the Bonferroni-adjusted percentile
+   `1 - 0.05 / 12`. This margin is not two percent of raw objective value.
+
+The 20,000 bootstrap draws resample paired instances, sharing index draws across budgets within
+each context. Percentile-bootstrap coverage and its multiplicity adjustment are approximate.
+A failed gate is a negative result, not permission to relax the margin or reselect on test data.
+
+```bash
+uv run --locked --group tuning python -m benchmarks.tuning.preset select --directory "$HOME/rko-general-preset" --workers 3
+uv run --locked --group tuning python -m benchmarks.tuning.preset confirm --directory "$HOME/rko-general-preset" --workers 3
+uv run --locked --group tuning python -m benchmarks.tuning.preset report --directory "$HOME/rko-general-preset"
+```
+
+The work directory holds `protocol.json`, `train.jsonl`, a hash-bound `selection.json`,
+`test.jsonl` and `summary.json`. Selection and scoring require the same frozen source revision;
+read-only reporting verifies the recorded hashes without reselecting a configuration. Interrupted
+scoring resumes completed cells, but changing the design, pool or source revision is rejected.
+
+#### Cross-family preset results
+
+Reference: [`general-sa-preset-reference.json`](general-sa-preset-reference.json). The full protocol
+was committed at `aa9f29e` before measurement. All 372 training cells completed; the candidate
+was locked while zero confirmation instance files existed. Only then were 72 confirmation
+instances generated, followed by 24 paired scoring cells. The reference contains all measurements,
+calibration scales, instance hashes and the sealed selection; no packaged parameters changed.
+
+Training selected candidate `2c10f3beab1c2e7b` from the fixed pool of 31 configurations:
+
+| Fixed parameter | Packaged value | Locked candidate |
+| --- | ---: | ---: |
+| `sa_max` | 1000 | 1027 |
+| `t0` | 1000000 | 340.3863933617792 |
+| `alpha` | 0.99 | 0.8601360548373771 |
+| `beta_min` | 0.01 | 0.0035204893377555175 |
+| `beta_max` | 0.05 | 0.008242788398191462 |
+
+Confirmation results below report normalized gaps, not percentages of objective value. The upper
+bounds are the predeclared multiplicity-adjusted one-sided bounds. A cell passes if its upper
+bound is at most +0.02; all twelve observed bounds were below zero.
+
+| Family | Size | Evaluations | Fixed default | Candidate | Difference | Adjusted upper bound |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Knapsack | 100 | 50,000 | 0.49698 | 0.12533 | -0.37165 | -0.34740 |
+| Knapsack | 100 | 500,000 | 0.14515 | 0.03662 | -0.10854 | -0.08999 |
+| Knapsack | 600 | 50,000 | 0.57347 | 0.13368 | -0.43979 | -0.42148 |
+| Knapsack | 600 | 500,000 | 0.31963 | -0.02354 | -0.34317 | -0.33293 |
+| Travelling salesperson | 30 | 50,000 | 0.62919 | 0.04898 | -0.58021 | -0.53609 |
+| Travelling salesperson | 30 | 500,000 | 0.26049 | 0.00847 | -0.25202 | -0.21784 |
+| Travelling salesperson | 100 | 50,000 | 0.53202 | 0.05712 | -0.47490 | -0.45377 |
+| Travelling salesperson | 100 | 500,000 | 0.26066 | -0.01095 | -0.27161 | -0.26093 |
+| Rastrigin | 10 | 50,000 | 1.04121 | 0.04935 | -0.99186 | -0.92626 |
+| Rastrigin | 10 | 500,000 | 0.37387 | 0.00011 | -0.37376 | -0.33131 |
+| Rastrigin | 60 | 50,000 | 0.38230 | 0.06421 | -0.31809 | -0.29816 |
+| Rastrigin | 60 | 500,000 | 0.09482 | 0.00037 | -0.09445 | -0.08938 |
+
+**Both frozen gates passed.** The family-balanced mean candidate-minus-default difference was
+-0.38500, with a one-sided 95% upper bound of -0.37809. No candidate was reselected, no regression
+margin was relaxed and no test score fed back into training. Negative gaps beat the calibration
+reference; values above one are also possible because the anchor is a short reference search,
+not a bound on every algorithm's outcome.
+
+This supports proposing the **exact tested fixed preset** separately; rounding or modifying it
+would create another candidate requiring validation. It does not establish optimality or a
+universal default: only three synthetic families, two sizes, two evaluation budgets and the Rust
+engine were measured. Arbitrary objective rescaling, wall-clock budgets, Python/C++ quality and
+adaptive-control behavior remain outside this evidence. Shared parameter-file changes require a
+separate compatibility and cross-engine quality review; none is made here.
+
+To recompute the selection and confirmation decision directly from the committed measurement:
+
+```bash
+uv run --locked --group tuning python - <<'PY'
+import json
+from pathlib import Path
+from benchmarks.tuning.preset_analysis import PresetAnalysis, PresetDesign
+data = json.loads(Path("benchmarks/general-sa-preset-reference.json").read_text())
+analysis = PresetAnalysis(PresetDesign(**data["protocol"]["design"]))
+print(analysis.ranking(data["training"], set(data["protocol"]["candidates"]))[0])
+print(analysis.confirmation(data["confirmation"], data["selection"]["candidate"]))
+PY
+```
