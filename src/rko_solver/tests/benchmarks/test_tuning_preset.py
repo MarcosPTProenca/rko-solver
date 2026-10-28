@@ -350,3 +350,70 @@ def test_freeze_rejects_changed_design_or_candidate_source(
     candidate_source.write_text(candidate_source.read_text().replace('"t0": 0.1', '"t0": 0.2'))
     with pytest.raises(ValueError, match="Frozen"):
         study.freeze()
+
+
+def test_sealed_report_rejects_changed_selection_or_training(
+    tmp_path: Path, candidate_source: Path, design: PresetDesign
+) -> None:
+    """Read-only reporting cannot hide changes to the selected configuration or training bytes.
+
+    Args:
+        tmp_path (Path): Study directory parent.
+        candidate_source (Path): Fixed source configurations.
+        design (PresetDesign): Synthetic study design.
+    """
+    from benchmarks.tuning.preset import PresetStudy
+
+    study = PresetStudy(tmp_path / "sealed", candidate_source, design)
+    study.freeze()
+    pool = study.pool()
+    rows = evidence(
+        design, "train", {name: {family: 1.0 for family, _ in design.sizes} for name in pool}
+    )
+    training = study.directory / "train.jsonl"
+    training.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
+    selection = study.select()
+    path = study.directory / "selection.json"
+    changed = dict(selection, config=dict(selection["config"], alpha=0.7))
+    path.write_text(json.dumps(changed))
+    with pytest.raises(ValueError, match="configuration"):
+        study.report()
+    path.write_text(json.dumps(selection))
+    training.write_text(training.read_text() + "\n")
+    with pytest.raises(ValueError, match="hashes"):
+        study.report()
+
+
+def test_general_preset_reference_reconstructs_selection_scales_and_gates() -> None:
+    """The committed reference reconstructs its locked selection, normalization and decision."""
+    import hashlib
+
+    path = Path(__file__).resolve().parents[4] / "benchmarks" / "general-sa-preset-reference.json"
+    data = json.loads(path.read_text())
+    design = PresetDesign(**data["protocol"]["design"])
+    analysis = PresetAnalysis(design)
+    selected = data["selection"]
+    assert len(data["training"]) == 372 and len(data["confirmation"]) == 24
+    assert len(data["instances"]) == len(set(data["instances"].values())) == 108
+    assert data["protocol"]["source_sha"].startswith("aa9f29e")
+    ranking = analysis.ranking(data["training"], set(data["protocol"]["candidates"]))
+    assert ranking[0]["candidate"] == selected["candidate"]
+    protocol = json.dumps(data["protocol"], sort_keys=True, allow_nan=False)
+    training = "".join(
+        json.dumps(row, sort_keys=True, allow_nan=False) + "\n" for row in data["training"]
+    )
+    assert hashlib.sha256(protocol.encode()).hexdigest() == selected["protocol_sha256"]
+    assert hashlib.sha256(training.encode()).hexdigest() == selected["training_sha256"]
+    result = analysis.confirmation(data["confirmation"], selected["candidate"])
+    assert result["passed"] == data["summary"]["passed"]
+    assert result["upper"] == pytest.approx(data["summary"]["upper"], abs=1e-12)
+    assert result["delta"] == pytest.approx(data["summary"]["delta"], abs=1e-12)
+    for row in data["training"] + data["confirmation"]:
+        cohort = design.offset(row["family"], row["size"])
+        name = f"cohort-{cohort}/size-{row['size']}/calibration-{row['family']}.json"
+        calibration = data["calibration"][name]
+        for index, (cost, score) in enumerate(zip(row["costs"], row["scores"], strict=True)):
+            point = calibration[f"{row['family']}-{row['phase']}-{index}"]
+            assert score == pytest.approx(
+                (cost - point["best"]) / (point["anchor"] - point["best"])
+            )
