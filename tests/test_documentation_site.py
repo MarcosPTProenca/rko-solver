@@ -21,6 +21,7 @@ Inputs/Outputs:
 - Output: assertions for public-file selection, version notices and subpath-safe links.
 """
 
+import importlib
 import importlib.util
 import json
 import pytest
@@ -108,6 +109,23 @@ def test_site_links_reject_missing_assets_and_root_escapes(tmp_path: Path, link:
     parser.feed(f'<a href="{link}">Link</a>')
     with pytest.raises(AssertionError):
         parser.verify()
+
+
+@pytest.mark.parametrize(
+    "expected",
+    ["[source installation guide](installation.md)", "Ubuntu, Windows and macOS"],
+)
+def test_development_banner_uses_current_guidance(expected: str) -> None:
+    """Keep shared installation links and platform wording aligned with maintained guides.
+
+    Args:
+        expected (str): Required installation link or checked-platform wording.
+    """
+    pytest.importorskip("mkdocs")
+    hook = importlib.import_module("tools.docs_hooks")
+    rendered = hook.DocumentationSite.on_page_markdown("Maintained content", None, None, None)
+    assert expected in rendered
+    assert rendered.endswith("Maintained content")
 
 
 def test_docs_dependencies_and_deployment_permissions_are_isolated() -> None:

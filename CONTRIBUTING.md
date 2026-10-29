@@ -10,7 +10,9 @@ interpreting a passing test suite as release or scientific validation.
 The [architecture guide](docs/architecture.md) maps the public API, the three engines
 (`src/rko_solver`, `engines/rust`, `engines/cpp`) and where to change what.
 
-Use Python 3.14 and [uv](https://docs.astral.sh/uv/):
+Use Python 3.14, [uv](https://docs.astral.sh/uv/) and a [Rust toolchain](https://rustup.rs/).
+[Installation/version boundaries](docs/installation.md) explain why this source checkout
+can differ from a published package with the same version string:
 
 ```bash
 git clone https://github.com/MarcosPTProenca/rko-solver.git
@@ -20,7 +22,7 @@ uv run --locked pre-commit install
 ```
 
 Run tools from the repository root. NumPy is the only runtime Python dependency;
-the native engines in `engines/` needs a Rust toolchain at build time. `uv sync`
+the native extension in `engines/` needs a Rust toolchain at build time. `uv sync`
 rebuilds the extension when Rust sources change. Keep callback/result contracts
 and packaged TOML/fixture resources intact.
 
@@ -79,7 +81,7 @@ stays under `(1 - mu)^(p + m*G)` (see `docs/guarantees.md`) and that every engin
 `test_golden_runs.py` freezes seeded results of every algorithm on the reproducible
 configurations; if a behavior change is intended, regenerate with
 `RKO_UPDATE_GOLDEN=1 uv run pytest tests/test_golden_runs.py` and review the
-diff of `golden/runs.json`.
+diff of `tests/golden/runs.json`.
 
 Coverage is a ratchet from measured values, not a target: the Python package must keep at least
 88 percent combined line and branch coverage (measured 90.9 with the service and reports extras and
@@ -130,8 +132,11 @@ import alone does not prove an installed package works. CI currently uses Python
 3.14; additional interpreter/platform support needs explicit coverage.
 
 Documentation changes should keep relative links and runnable examples correct.
-Keep the [README](README.md) as the short entry point and detailed contracts in
-[the documentation index](docs/index.md). Use [the extension guide](docs/extending.md)
+Keep the [README](README.md) as the entry point and detailed contracts in
+[the documentation index](docs/index.md). Preserve a complete runnable first solve;
+link optional-feature instructions instead of duplicating their full programs.
+Keep [installation](docs/installation.md), [status](docs/status.md) and release notes
+consistent with verified index publication, not only the source version string. Use [the extension guide](docs/extending.md)
 when implementing an algorithm or replacing operators. Update the
 [parameter reference](docs/parameters.md) alongside defaults or validation changes.
 Link new user-facing pages from an existing guide.
@@ -188,8 +193,9 @@ analysis stay ignored under the repository's existing conventions.
 ## Before a release
 
 A version in source is **not evidence of publication or stable readiness**.
-The initial controlled candidate is a platform-wheel prerelease; follow
-[RELEASING](RELEASING.md).
+Published alpha versions are immutable snapshots, not stable-release certification.
+Development can advance without an immediate version bump; the next publication
+needs a new version and verified artifacts under [RELEASING](RELEASING.md).
 Before tagging/publishing each version:
 
 - Preserve the attribution in [NOTICE](NOTICE)

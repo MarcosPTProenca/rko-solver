@@ -7,6 +7,8 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- [Installation and version guidance](docs/installation.md) separates current source from
+  published prereleases, optional extras, regular artifacts and free-threading limits.
 - Development-only Import Linter contracts, enforced in continuous integration and pre-commit,
   keep installed library code independent of repository tools, deployment and research separate
   from the runtime, and direct modeling imports out of numerical implementation packages.
@@ -41,6 +43,12 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Changed
 
+- Public documentation is consolidated around installation, first solve, usage and explicit
+  limits. The shorter README retains its complete data-loading/validation program and both
+  tested single-algorithm forms, while linking optional workflows instead of duplicating them.
+  Outdated alias, command, compiler, publication and qualification descriptions are corrected;
+  the shared site banner links the installation guide and includes macOS functional checks.
+  Historical measurements and numerical behavior are unchanged.
 - Free-threaded CPython 3.14 source-install verification now runs the complete installed-package
   smoke, including Python sequential/thread/process execution and Rust callback/block solves.
   The smoke rejects fallback to an enabled global interpreter lock. Published wheel targets

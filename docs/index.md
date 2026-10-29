@@ -1,50 +1,55 @@
-# Documentation
+# RKO documentation
 
-RKO is a random-key **minimization** library. Implement a decoder and an objective
-once; use them with any built-in algorithm or a cooperating portfolio. It is a
-development library, not a claim of release readiness or C++ equivalence.
+RKO minimizes an objective over random-key vectors. You provide the instance data,
+a decoder and an objective; the library provides the searches and cooperating
+portfolio. Domain feasibility and final validation remain your responsibility.
 
-## Learn
+This is the **development site for `main`**, not a versioned manual for every
+published package. Start with [installation and version boundaries](installation.md).
+The [current limitations](status.md) distinguish implemented behavior, alpha-release
+boundaries and scientific claims that have not been established.
 
-Development port: [bounded model conversion](modeling.md) and
-[historical qualification](model-validation.md). Current source uses `rko_solver`
-and explicit Python engine/execution settings; historical measurements are not
-relabeled as qualification of the renamed port.
+## Start here
 
-1. [Getting started](getting-started.md): solve your first problem with one algorithm.
-2. [Read instance data and bind callbacks](problem-adapters.md): a complete file-to-solution tutorial, representations and constraints.
-3. [Parameter reference](parameters.md): choose fixed or adaptive settings and understand each knob.
+1. [Choose and install a version](installation.md): source versus a published package,
+   optional extras, platform artifacts and free-threading limits.
+2. [Run a first solve](getting-started.md): one algorithm, explicit execution and result decoding.
+3. [Load your own instance](problem-adapters.md): bind application data to ordinary callbacks
+   and optionally check the final solution. No adapter base class is required.
+4. [Configure the solver](usage.md): engine selection, execution, budgets, results and errors.
 
-[Controlled releases](https://github.com/MarcosPTProenca/rko-solver/blob/main/RELEASING.md)
-are owner-approved, not automatic publication from main.
+## Choose a workflow
 
-## Apply and extend
+| Goal | Maintained guide |
+| --- | --- |
+| Select an individual algorithm | [Standalone solvers](standalone.md) |
+| Set fixed scalars or adaptive grids | [Parameter reference](parameters.md) |
+| Run compiled, block or built-in objectives | [Rust and C++ engines](native.md) |
+| Run from the terminal | [Repository example runner](running.md) |
+| Understand workers, startup and resource limits | [Process workers](process-workers.md), [initialization](driver-initialization.md), [native threads](native-threads.md) |
+| Convert a bounded mathematical model | [Model contracts](modeling.md), [historical qualification](model-validation.md) |
+| Check a final solution | [Optional validation](solution-validation.md) |
+| Export offline analysis | [Reports](reporting.md) |
+| Illustrate declared decoder structure | [Static diagrams](decoder-diagrams.md) |
+| Retain authored decisions from original evaluations | [Observed decisions](decision-traces.md) |
+| Bind trusted callbacks to a private HTTP service | [Service and scaffold](service.md) |
+| Explore bounded decoder generation and held-out studies | [Experimental evolution](self-evolve.md), [locked studies](confirmation-study.md) |
 
-- [Standalone algorithms](standalone.md): all eleven classes, tuning and result metadata.
-- [Optional solution validation](solution-validation.md): final domain checks and report diagnostics.
-- [Interactive reports](reporting.md): offline HTML charts, bounded histories and JSON export.
-- [Static decoder diagrams](decoder-diagrams.md): optional declared logic or supported Python structure, not execution traces.
-- [Observed decoder decisions](decision-traces.md): bounded opt-in authored events from an original evaluation, without replay.
-- [Experimental decoder evolution](self-evolve.md): bounded Pi-assisted seed modifications, isolated evaluation and saved-artifact replay.
-- [Locked artifact studies](confirmation-study.md): frozen test panels, bounded collection and instance-paired analysis without interim significance peeking.
-- [Private FastAPI/Docker service](service.md): optional authenticated, bounded Linux reference and no-overwrite scaffold.
-- [Documentation website](documentation-site.md): local preview, publication boundaries and Pages setup.
-- [Architecture](architecture.md): the public API, the three engines and where each lives.
-- [Extension guide](extending.md): replace local search/shaking or implement a new algorithm.
-- [Portfolio and execution API](usage.md): sharing elites, processes, budgets and reproducibility.
-- [Rust and C++ engines](native.md): the compiled engines, problem styles and their limits.
-- [Terminal usage](running.md): the supplied Knapsack adapter and custom TOML files.
-- [Contributing](https://github.com/MarcosPTProenca/rko-solver/blob/main/CONTRIBUTING.md): development setup, tests and release gates.
+## Understand the limits
 
-## Investigate
+[Execution accounting](usage.md#execution-modes), [convergence guarantees](guarantees.md),
+[C++ compatibility](cpp-compatibility.md) and [performance criteria](performance.md)
+answer different questions. Passing installation tests does not establish solution
+quality, universal thread safety, timing guarantees or general C++ parity.
+Identified measurements and their original provenance stay in the
+[benchmark reference](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md).
 
-- [Limitations](status.md), [convergence guarantees](guarantees.md) and [C++ compatibility](cpp-compatibility.md).
-- [Measurements](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md), not general performance promises.
-- Algorithm module docstrings describe technical strategy, pseudocode and stopping
-  criteria. Public classes such as `SA` share RKO's constructor options and solve
-  contract: read `help(SA)` and `help(SA.solve)` for managed usage. Explicit kernel
-  imports are reserved for advanced operator integration.
+## Extend and maintain
 
-Guides use `adaptation="fixed"` and `adaptation="adaptive"` rather than legacy
-`control=0` / `control=1`. These names describe parameter selection, **not** network
-connectivity, model training, execution mode, or a different objective.
+- [Architecture](architecture.md): public contracts, source layout and enforced import boundaries.
+- [Extension guide](extending.md): replace operators or implement an algorithm.
+- [Contributing](https://github.com/MarcosPTProenca/rko-solver/blob/main/CONTRIBUTING.md): tests,
+  quality checks, evidence rules and review expectations.
+- [Documentation site](documentation-site.md): local preview, publication boundaries and recovery.
+- [Controlled releases](https://github.com/MarcosPTProenca/rko-solver/blob/main/RELEASING.md):
+  owner-approved publication, not an automatic consequence of merging code.

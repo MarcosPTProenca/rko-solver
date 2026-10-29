@@ -1,6 +1,10 @@
-# Practical mathematical model validation
+# Historical mathematical model validation
 
-The development preview was exercised with actual **Pyomo 6.10.1, PuLP 4.2.0 and
+This page preserves an identified historical campaign, not a fresh qualification
+of every current source revision. See [current model contracts](modeling.md) and
+[version boundaries](installation.md).
+
+The preview was exercised with actual **Pyomo 6.10.1, PuLP 4.2.0 and
 OR-Tools MathOpt 9.15.6755** objects built from cited production, transportation,
 Knapsack and assignment formulations. This goes beyond adapter-only unit tests,
 but the inputs are still small public teaching/reference cases, not industrial
@@ -44,9 +48,10 @@ search, used for repair or used to recover missing feasible candidates.
 
 Historical artifact: `benchmarks/references/modeling-validation-reference-13b6934.jsonl`.
 These data are preserved unchanged from the qualified pre-rename implementation;
-**they are not measurements of the new `rko_solver` port**. The renamed port has
-passing local feature tests but still fails the canonical structure/type gate.
-Fresh full/platform/performance qualification must follow that refactor.
+**they are not measurements of the current `rko_solver` source**. Current code has
+hosted functional, installed-extra and structure/type checks; those checks do not
+rerun or requalify this scientific campaign. Read the exact revision's workflow
+results and perform a new source-identified campaign before making new performance claims.
 It contains one source/input/runtime metadata record plus **480 run records**:
 
 - eight models × three frontends × two scoring modes × ten seeds, 0–9;

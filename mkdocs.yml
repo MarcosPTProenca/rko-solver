@@ -35,7 +35,8 @@ exclude_docs: |
 nav:
   - Start:
       - Overview: index.md
-      - First solve and installation: getting-started.md
+      - Installation and versions: installation.md
+      - First solve: getting-started.md
   - Use:
       - Portfolio usage: usage.md
       - Individual solvers: standalone.md

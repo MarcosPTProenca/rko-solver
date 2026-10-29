@@ -14,7 +14,8 @@ They are not a general speed guarantee.
 Pick by how much of the objective you can compile or vectorize. Evaluations per second
 below are 2-second SA/BRKGA/ILS runs on one 500-item Knapsack, same machine, same
 algorithms ([study](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md#native-engine-versus-c-and-python) has the
-controlled comparison):
+controlled comparison). These measurements used a lock-enabled interpreter; the
+lock column describes that setup, not a free-threading performance claim:
 
 | Style | You write | Interpreter lock | Evaluations (millions) |
 | --- | --- | --- | ---: |
@@ -35,9 +36,10 @@ result = RKO(
 ```
 
 Each call receives a fresh NumPy array, exceptions raised in callbacks propagate
-unchanged, and non-finite objectives fail the solve. Callbacks execute under the
-interpreter lock, so worker threads take turns: the engine removes its own overhead
-(startup, framework bookkeeping) but cannot add parallelism to Python code.
+unchanged, and non-finite objectives fail the solve. When the global interpreter
+lock is enabled, callbacks require it and worker threads take turns. A free-threaded
+build removes that lock constraint, not the need for thread-safe callback state or
+separate evidence of a speedup. See [installation limits](installation.md#platforms-c-and-free-threading).
 
 **Block objective (vectorize).** One function receives a fresh `(rows, n)` float array and
 returns one finite cost per row (a NumPy array or a list):
@@ -86,8 +88,8 @@ result = RKO(rko_solver.Numba(objective, n_variables), engine="rust", random_sta
 The function must be pure: reentrant, free of Python objects, never raising, and must not
 write through or keep the key array (it is a view of engine memory during the call). A
 `numba.cfunc` with signature `float64(CPointer(float64), intp)` is also accepted.
-Compilation happens before the timed search. Install Numba with
-`pip install "rko-solver[compiled]"`; it is optional.
+Compilation happens before the timed search. Numba is optional; select the `compiled`
+extra using [the installation workflow matching your source or package](installation.md#optional-features).
 
 **Native problem (fastest to start).** The decoder and objective run inside Rust. Python
 exposes a built-in 0/1 Knapsack as an example (`RKO(rko_solver.problems.Knapsack(...), engine="rust")`); the
@@ -100,16 +102,17 @@ problem means implementing the `Problem` trait in `engines/rust/rko-core` (optio
 
 - `n_jobs` sets Rust worker threads. By default problems that run without the interpreter
   lock (native, Numba) use one thread per algorithm, as the C++ driver does. Python callbacks
-  and NumPy block objectives hold the lock, so ten threads only fight for it: they default to
-  **one** thread that runs the algorithms one after another, each with an equal share of the
+  and NumPy block objectives default to **one** thread, including on free-threaded builds.
+  On a lock-enabled interpreter, extra threads contend for the lock. The default worker
+  runs the algorithms one after another, each with an equal share of the
   remaining time. On a ten-algorithm portfolio at 2 s, one thread beat ten for NumPy block
   objectives on TSP (36.3k against 51.1k tour length), Rastrigin (0.5 against 136) and
   Knapsack, and tied for scalar callbacks. An explicit `n_jobs` always wins, and with fewer
   threads than algorithms each worker splits its remaining time among its searches.
 - Seeds make a single-worker run reproducible only up to timing, as in every engine.
   Random streams are the engine's own, so trajectories differ from the Python engine.
-- `max_evaluations=N` stops each search after exactly `N` completed evaluations (block
-  objectives score only the rows that fit before reporting the stop); the time limit still applies.
+- `max_evaluations=N` caps each search at `N` completed evaluations. Block objectives
+  score only the rows that fit; the time limit can stop a search before it reaches the cap.
 - `prefill_pool=True` fills the pool with `pool_size` random evaluated vectors first and
   reports it as `PoolInitializationMetadata`; the default stays off.
 - Nelder-Mead takes its two pool vertices from the best pool entries for SA, GA, LNS, PSO
@@ -138,11 +141,14 @@ problem means implementing the `Problem` trait in `engines/rust/rko-core` (optio
 behind the same problem types as the Rust engine: built-in problems, Python callbacks,
 `rko_solver.Numba` objectives and the full parameter, Q-learning and result interface. It exists
 to compare engines on identical objectives and for users who want the published
-algorithms exactly. It is not compiled by default, so a normal install needs no C++ compiler
-or OpenMP:
+algorithms with the documented wrapper limits. Linux release artifacts include it;
+non-Linux release artifacts do not. Source builds opt in explicitly and need a suitable
+C++ compiler and OpenMP runtime. For a Linux source build with GNU C++ and OpenMP
+(Open Multi-Processing):
 
 ```bash
-RKO_BUILD_CPP=1 uv sync        # Linux, g++ with OpenMP (libgomp)
+RKO_BUILD_CPP=1 uv sync --locked
+RKO_BUILD_CPP=1 uv run --locked python -c "from rko_solver import _native; print(_native.cpp_available())"
 ```
 
 <!-- doc-test: requires cpp -->
@@ -152,9 +158,10 @@ solver = RKO(problem, engine="cpp", random_state=7)
 result = solver.solve(10)
 ```
 
-Package managers cache built wheels without looking at `RKO_BUILD_CPP`; install with
-`uv pip install --no-cache` (or `pip install --no-cache-dir`) when switching it. Check
-`rko_solver._native.cpp_available()` to see whether a build includes it; without it,
+The checkout's `uv` cache keys include `RKO_BUILD_CPP`. Keep that setting on subsequent
+`uv run` commands; changing it can synchronize a build without the C++ engine. Other
+installation workflows may reuse cached artifacts, so inspect actual availability rather
+than assuming an environment variable changed an already built package. Without it,
 `engine="cpp"` raises an error that names `RKO_BUILD_CPP`.
 
 Differences from the Rust engine, all imposed by the reference code:
@@ -176,8 +183,8 @@ Differences from the Rust engine, all imposed by the reference code:
   shared engine seed; the reference
   also draws part of its local-search neighborhood from an unseeded `rand()`, so equal
   `random_state` values do not give equal results.
-- Python callbacks run on the reference's threads and need the interpreter lock, so a
-  callback portfolio is serialized, as with the Rust engine.
+- Python callbacks run on the reference's threads and require the global interpreter
+  lock when it is enabled. With free threading, callback state must still be thread-safe.
 
 ## Automatic engine
 
