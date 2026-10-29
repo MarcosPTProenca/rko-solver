@@ -5,6 +5,7 @@ Objective:
   workers, validation and failure handling.
 
 Technical approach:
+- Gate first native evaluations in an owned subprocess to observe worker overlap.
 - Skip when Numba or the extension is unavailable; compile a Knapsack objective once.
 - Recompute every returned objective independently in Python.
 
@@ -14,15 +15,20 @@ Flow (pseudocode):
 3. Check validation errors and nonfinite handling.
 
 Important criteria:
-- Tests use short budgets and never assert timing-dependent quality.
+- Functional tests never infer parallel execution from elapsed-time thresholds.
+- A bounded subprocess owns the native-worker synchronization probe.
 
 Inputs/Outputs:
 - Input: a small synthetic instance and short time limits.
 - Output: pass/fail assertions.
 """
 
+import ctypes
+import multiprocessing as mp
 import numpy as np
 import pytest
+import threading
+from multiprocessing.connection import Connection
 from rko_solver import RKO
 from rko_solver import Numba
 
@@ -77,15 +83,126 @@ def test_njit_objective_runs_and_matches_independent_scoring(name: str) -> None:
     assert result.searches[0].n_evaluations > 100
 
 
+class CompiledOverlapProbe:
+    """Observe native-worker overlap through a test-only compiled synchronization entry point.
+
+    Responsibilities:
+    - Require four distinct workers to enter their first objective before any can finish it.
+    - Isolate a potential interpreter-lock deadlock in a killable child process.
+
+    Attributes:
+        None: Each invocation owns its process, connection and synchronization objects.
+    """
+
+    @staticmethod
+    def worker(connection: Connection) -> None:
+        """Run a real compiled portfolio whose first objective waits for all workers.
+
+        Args:
+            connection (Connection): Owned pipe used to return observations or a bounded error.
+
+        Raises:
+            OSError: If the parent closes the observation pipe before the worker responds.
+        """
+        barrier = threading.Barrier(4, timeout=10)
+        arrivals: set[int] = set()
+        guard = threading.Lock()
+
+        @ctypes.CFUNCTYPE(ctypes.c_double, ctypes.POINTER(ctypes.c_double), ctypes.c_ssize_t)
+        def synchronized(keys: object, size: int) -> float:
+            """Gate a test-only native callback until four distinct worker threads arrive.
+
+            Args:
+                keys (object): Unmodified engine-owned key buffer; unused by this probe.
+                size (int): Key-buffer length; unused by this probe.
+
+            Returns:
+                float: Zero after concurrent arrival, or NaN when synchronization fails.
+            """
+            with guard:
+                arrivals.add(threading.get_ident())
+            try:
+                barrier.wait()
+            except threading.BrokenBarrierError:
+                return float("nan")
+            return 0.0
+
+        signature = numba.types.float64(numba.types.CPointer(numba.types.float64), numba.types.intp)
+
+        @numba.cfunc(signature)
+        def entry(keys: object, size: int) -> float:
+            """Forward the raw compiled call to the test-only synchronization observer.
+
+            Args:
+                keys (object): Unmodified engine-owned key buffer.
+                size (int): Number of keys in the buffer.
+
+            Returns:
+                float: The synchronization observer's objective value.
+            """
+            return synchronized(keys, size)
+
+        try:
+            result = RKO(
+                Numba(entry, 8),
+                engine="rust",
+                algorithms=["SA", "BRKGA", "ILS", "GA"],
+                max_evaluations=1,
+                random_state=1,
+            ).solve(60.0)
+            connection.send(
+                {
+                    "workers": result.n_workers,
+                    "arrivals": len(arrivals),
+                    "counts": tuple(search.n_evaluations for search in result.searches),
+                    "stops": tuple(search.stop_reason for search in result.searches),
+                }
+            )
+        except Exception as error:
+            connection.send({"error": str(error)})
+        finally:
+            connection.close()
+
+    @staticmethod
+    def run() -> dict[str, object]:
+        """Collect worker-overlap evidence with a bounded native-call lifetime.
+
+        Returns:
+            dict[str, object]: Child observations or a reported engine error.
+
+        Raises:
+            AssertionError: If the child hangs or exits unsuccessfully.
+            OSError: If the process or observation pipe cannot be created.
+            EOFError: If the child exits without sending its observations.
+        """
+        context = mp.get_context("spawn")
+        parent, child = context.Pipe(duplex=False)
+        process = context.Process(target=CompiledOverlapProbe.worker, args=(child,))
+        try:
+            process.start()
+            child.close()
+            assert parent.poll(30), "Native overlap probe stalled before reporting worker arrivals"
+            observations = parent.recv()
+            process.join(timeout=5)
+            assert process.exitcode == 0, f"Native overlap probe exited with {process.exitcode}"
+            return observations
+        finally:
+            if process.is_alive():
+                process.kill()
+                process.join()
+            process.close()
+            parent.close()
+            child.close()
+
+
 def test_workers_run_in_parallel_without_the_interpreter_lock() -> None:
-    """Several compiled searches overlap in time instead of serializing on the GIL."""
-    result = RKO(
-        Numba(knapsack, 60), engine="rust", algorithms=["SA", "BRKGA", "ILS", "GA"], random_state=1
-    ).solve(0.5)
-    assert result.n_workers == 4
-    assert all(search.elapsed_seconds >= 0.45 for search in result.searches)
-    assert result.elapsed_seconds < 0.5 * 2
-    assert all(search.n_evaluations > 1000 for search in result.searches)
+    """Require simultaneous native-worker arrivals without a throughput or elapsed-time claim."""
+    observations = CompiledOverlapProbe.run()
+    assert "error" not in observations, observations
+    assert observations["workers"] == 4
+    assert observations["arrivals"] == 4
+    assert observations["counts"] == (1, 1, 1, 1)
+    assert observations["stops"] == ("max_evaluations",) * 4
 
 
 def test_cfunc_is_accepted_directly() -> None:
