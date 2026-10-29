@@ -194,3 +194,5 @@ jobs:
           assert RKO(problem, engine="rust", random_state=1).solve(1).cost < 0
           assert not sys._is_gil_enabled()
           PY
+      - name: Check canonical APIs and execution modes on the free-threaded source installation
+        run: uv run --isolated --no-project --python 3.14t --with dist/*.tar.gz python -I tools/smoke_installed.py

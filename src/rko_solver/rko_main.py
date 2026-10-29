@@ -26,7 +26,6 @@ from .orchestration.types import DecoderFn
 from .solver import RKO
 from .solver import Engine
 from .solver import Execution
-from .solver import LegacyBackend
 from pathlib import Path
 
 
@@ -39,7 +38,6 @@ def run(
     params_dir: Path | None = None,
     engine: Engine | None = None,
     execution: Execution | None = None,
-    backend: LegacyBackend | None = None,
     n_jobs: int | None = None,
     random_state: int | None = None,
     verbose: bool = False,
@@ -55,7 +53,6 @@ def run(
         params_dir (Path | None): Optional parameter TOML directory.
         engine (Engine | None): Python (default), rust, cpp or auto, exactly as for RKO.
         execution (Execution | None): Python-engine process, thread or sequential scheduling.
-        backend (LegacyBackend | None): Deprecated combined name, removed in 0.4.
         n_jobs (int | None): Optional process or Rust worker budget.
         random_state (int | None): Nonnegative per-search seed in every engine.
         verbose (bool): Flush lifecycle and pool updates; quiet by default.
@@ -79,7 +76,6 @@ def run(
         params_dir=params_dir,
         engine=engine,
         execution=execution,
-        backend=backend,
         n_jobs=n_jobs,
         random_state=random_state,
         verbose=verbose,

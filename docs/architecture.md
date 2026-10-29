@@ -98,7 +98,24 @@ These are static Python dependency checks, not a security sandbox. Computed dyna
 caller-provided callbacks and native Rust/C++ dependencies are outside their scope. The optional
 features stay in the same repository and distribution; no public functionality is removed.
 
-## Deprecated import paths (removed in 0.4)
+## Canonical public API
 
-`rko_solver.batch`, `rko_solver.compiled`, `rko_solver.orchestration.native` and `rko_solver.native` re-export the modules that
-moved to `rko_solver.engines.rust` and `rko_solver.problems` and emit a `DeprecationWarning` on import.
+Deprecated compatibility names have been removed without another deprecation period.
+Use `engine="python"|"rust"|"cpp"|"auto"` and, for Python only,
+`execution="process"|"thread"|"sequential"`. The `backend` keyword and the solver/result
+`backend` properties no longer exist. Defaults remain Python with process execution.
+
+Construct `RKO(problem, engine=...)` with `Callbacks`, `Numba`, `Blocks` or a built-in
+from `rko_solver.problems`. The short callback form and `rko_solver.run` remain supported;
+`RKO.native`, `RKO.compiled` and `RKO.batched` do not.
+
+Removed imports have these maintained replacements:
+
+| Removed module | Maintained location |
+| --- | --- |
+| `rko_solver.batch` | Public `rko_solver.Blocks`; implementation in `rko_solver.engines.rust.batch` |
+| `rko_solver.compiled` | Public `rko_solver.Numba`; implementation in `rko_solver.engines.rust.compiled` |
+| `rko_solver.orchestration.native` | `rko_solver.engines.rust.runner` |
+| `rko_solver.native` | `rko_solver.problems` |
+
+The repository Knapsack example also rejects `--backend`; use `--engine` and `--execution`.

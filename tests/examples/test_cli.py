@@ -204,22 +204,23 @@ def test_console_runs_external_instance_and_parameters(
     assert before == {path.name: path.read_bytes() for path in parameters.iterdir()}
 
 
-def test_backend_flag_is_a_deprecated_alias(
+def test_backend_flag_is_rejected(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """Translate `--backend` to engine and execution and say it is deprecated.
+    """Reject the removed flag and retain the default canonical selection.
 
     Args:
         tmp_path (Path): Directory holding the instance file.
         monkeypatch (pytest.MonkeyPatch): Supply command-line arguments.
-        capsys (pytest.CaptureFixture[str]): Capture the warning on standard error.
+        capsys (pytest.CaptureFixture[str]): Capture the parser error on standard error.
     """
     instance = tmp_path / "tiny.txt"
     instance.write_text("3 5 6 1 10 2 12 3", encoding="utf-8")
     monkeypatch.setattr(sys, "argv", ["rko-solver", str(instance), "--backend", "serial"])
-    args = parse_args()
-    assert (args.engine, args.execution) == ("python", "sequential")
-    assert "--backend is deprecated" in capsys.readouterr().err
+    with pytest.raises(SystemExit) as error:
+        parse_args()
+    assert error.value.code == 2
+    assert "unrecognized arguments: --backend serial" in capsys.readouterr().err
     monkeypatch.setattr(sys, "argv", ["rko-solver", str(instance)])
     args = parse_args()
     assert (args.engine, args.execution) == ("python", None)

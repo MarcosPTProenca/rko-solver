@@ -32,6 +32,7 @@ import random
 import shutil
 import subprocess
 import sys
+import sysconfig
 from dataclasses import dataclass
 from pathlib import Path
 from rko_solver import RKO
@@ -162,6 +163,16 @@ def objective(keys: np.ndarray) -> float:
     return float(np.dot(keys, keys))
 
 
+def _check_free_threading() -> None:
+    """Reject interpreter-lock fallback when checking a free-threaded installation.
+
+    Raises:
+        RuntimeError: If this free-threaded build has enabled its global interpreter lock.
+    """
+    if sysconfig.get_config_var("Py_GIL_DISABLED") and sys._is_gil_enabled():
+        raise RuntimeError("Free-threaded installation enabled the global interpreter lock.")
+
+
 def _run_additional_smokes() -> None:
     """Run installed-package smokes not included in the core check.
 
@@ -184,6 +195,11 @@ def main() -> None:
     assert (default_params_dir() / "config.toml").is_file()
     assert len(list(default_params_dir().glob("*.toml"))) == 12
     assert not (package / "examples").exists()
+    assert not any(
+        (package / name).exists()
+        for name in ("batch.py", "compiled.py", "native.py", "orchestration/native.py")
+    )
+    assert not any(hasattr(RKO, name) for name in ("backend", "native", "compiled", "batched"))
     assert shutil.which("rko-solver", path=str(Path(sys.executable).parent)) is None
     assert package.resolve() != Path(__file__).resolve().parents[1] / "src" / "rko_solver"
     controller = QLearningController(
@@ -402,5 +418,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    _check_free_threading()
     main()
     _run_additional_smokes()
+    _check_free_threading()

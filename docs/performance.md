@@ -186,7 +186,10 @@ Kernel, Python-callback and native-callback paths must be measured separately.
 6. **Separate ABI claims.** Stable-ABI and GIL/free-threaded wheel compatibility
    are distinct, version-sensitive concerns [6]. Do not assume a single `abi3`
    wheel covers CPython 3.14's free-threaded build or every NumPy binding. Current
-   RKO CI does not certify a native engine or free-threaded Python.
+   release checks install the source distribution on free-threaded CPython 3.14 on Linux
+   and run the installed-package smoke without enabling the global interpreter lock.
+   Published wheels remain regular `cp314-abi3` builds; this source-install check does not
+   certify free-threaded wheels or prove a threading speedup.
 7. **Resolve attribution and release policy.** The upstream C++ MIT license is
    visible [7], but it does not settle the combined project's imported-code review
    in [NOTICE](https://github.com/MarcosPTProenca/rko-solver/blob/main/NOTICE). The optional C++ engine

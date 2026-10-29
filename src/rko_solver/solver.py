@@ -30,10 +30,8 @@ import numpy as np
 import os
 import platform
 import time
-import warnings
 from .components.random_streams import RandomStreams
 from .components.solution_pool import SolutionPool
-from .engines.rust.batch import BatchFn
 from .engines.rust.batch import BatchObjective
 from .engines.rust.batch import identity_decoder
 from .engines.rust.runner import NativeRunner
@@ -86,7 +84,6 @@ from typing import Unpack
 
 Engine = Literal["python", "rust", "cpp", "auto"]
 Execution = Literal["process", "thread", "sequential"]
-LegacyBackend = Literal["process", "thread", "serial", "native", "cpp", "auto"]
 Problem = Callbacks | Numba | Blocks | NativeProblem
 
 
@@ -139,7 +136,6 @@ class RKO:
         params_dir: Path | None = None,
         engine: Engine | None = None,
         execution: Execution | None = None,
-        backend: LegacyBackend | None = None,
         auto_time: float | None = None,
         auto_candidates: Sequence[str] | None = None,
         n_jobs: int | None = None,
@@ -173,13 +169,12 @@ class RKO:
             params_dir (Path | None): Optional parameter TOML directory.
             engine (Engine | None): "python" (default), "rust" (compiled engine), "cpp" (C++
                 reference, available only in builds made with `RKO_BUILD_CPP=1`) or "auto".
-                Python callbacks serialize on the interpreter lock in the compiled engines;
-                `Numba` and built-in problems run in parallel and need rust, cpp or auto.
+                Python callbacks in compiled engines require the global interpreter lock
+                when it is enabled; `Numba` and built-ins need rust, cpp or auto.
             execution (Execution | None): Python engine only: "process" (default),
-                "thread" (legacy, GIL-bound) or "sequential" (algorithms one after another in
-                the calling thread, each with the full time limit).
-            backend (LegacyBackend | None): Deprecated combined name, removed in 0.4;
-                cannot be combined with `engine` or `execution`.
+                "thread" (Python threads, sharing the global interpreter lock when enabled)
+                or "sequential" (algorithms one after another in the calling thread,
+                each with the full time limit).
             auto_time (float | None): For `engine="auto"`, total seconds of the selection
                 simulation, separate from the search `time_limit`; None uses 10 percent of it.
                 Each candidate runs twice; a probe gets `auto_time / (2 * candidates)`
@@ -206,7 +201,6 @@ class RKO:
         Raises:
             TypeError: If a problem object is combined with `cost` or `n_variables`, the
                 short form lacks them, or `problem` and `decoder` are both given.
-            ValueError: If `backend` is unknown or combined with `engine` or `execution`.
         """
         self._native_problem: Problem | None = None
         self._batch: BatchObjective | None = None
@@ -241,7 +235,7 @@ class RKO:
         self.pool_size = pool_size
         self.prefill_pool = prefill_pool
         self.params_dir = params_dir
-        self.engine, self.execution = EngineSelection.request(engine, execution, backend)
+        self.engine, self.execution = EngineSelection.request(engine, execution)
         self.auto_time = auto_time
         self.auto_candidates = auto_candidates
         self.n_jobs = n_jobs
@@ -256,106 +250,6 @@ class RKO:
         self._model_source: ExtractedLinearModel | None = None
         self._model_snapshot: CompiledLinearModel | ModelConstruction | None = None
         self._model_compilation_seconds = 0.0
-
-    @property
-    def backend(self) -> str:
-        """Return the deprecated combined backend name for this solver.
-
-        Returns:
-            str: `process`, `thread`, `serial`, `native`, `cpp` or `auto`.
-        """
-        warnings.warn(
-            "'RKO.backend' is deprecated and will be removed in 0.4; use 'engine' and 'execution'.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if self.engine == "auto":
-            return "auto"
-        return EngineSelection.legacy_name(self.engine, self.execution)
-
-    @classmethod
-    def native(cls, problem: NativeProblem, **options: object) -> RKO:
-        """Build a solver around a built-in problem; deprecated, use `RKO(problem, engine=...)`.
-
-        Args:
-            problem (NativeProblem): Built-in problem from `rko_solver.problems`.
-            options (object): Solver settings as for `RKO`; `engine` defaults to "rust".
-
-        Returns:
-            RKO: Solver that runs the compiled engine on `problem`.
-        """
-        warnings.warn(
-            "'RKO.native' is deprecated and will be removed in 0.4; "
-            "use RKO(problem, engine='rust').",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return cls._legacy_constructor(problem, options)
-
-    @classmethod
-    def compiled(cls, objective: object, n_variables: int, **options: object) -> RKO:
-        """Build a solver around a Numba objective; deprecated, use `rko_solver.Numba`.
-
-        Args:
-            objective (object): An `@njit` function or `cfunc`, as for `rko_solver.Numba`.
-            n_variables (int): Positive key dimension.
-            options (object): Solver settings as for `RKO`; `engine` defaults to "rust".
-
-        Returns:
-            RKO: Solver running the compiled engine on `objective`.
-
-        Raises:
-            ImportError: If Numba is not installed.
-            ValueError: If `objective` is not a Numba function or the dimension is invalid.
-        """
-        warnings.warn(
-            "'RKO.compiled' is deprecated and will be removed in 0.4; "
-            "use RKO(rko_solver.Numba(function, n_variables), engine='rust').",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return cls._legacy_constructor(Numba(objective, n_variables), options)
-
-    @classmethod
-    def batched(
-        cls, batch_objective: BatchFn, n_variables: int, batch_size: int = 64, **options: object
-    ) -> RKO:
-        """Build a solver around a block objective; deprecated, use `rko_solver.Blocks`.
-
-        Args:
-            batch_objective (BatchFn): Decodes and scores a block of random-key vectors.
-            n_variables (int): Positive key dimension.
-            batch_size (int): Largest block per call, from 1 to 4096.
-            options (object): Solver settings as for `RKO`; `engine` defaults to "rust".
-
-        Returns:
-            RKO: Solver using the block objective.
-
-        Raises:
-            ValueError: If the function or block size is invalid.
-        """
-        warnings.warn(
-            "'RKO.batched' is deprecated and will be removed in 0.4; "
-            "use RKO(rko_solver.Blocks(function, n_variables, batch_size), engine='rust').",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return cls._legacy_constructor(Blocks(batch_objective, n_variables, batch_size), options)
-
-    @classmethod
-    def _legacy_constructor(cls, problem: Problem, options: dict[str, object]) -> RKO:
-        """Apply the historical Rust default of the deprecated alternative constructors.
-
-        Args:
-            problem (Problem): Problem object to solve.
-            options (dict[str, object]): Caller keyword settings.
-
-        Returns:
-            RKO: Solver on the Rust engine unless `engine` or `backend` is given.
-        """
-        if "engine" not in options and "backend" not in options:
-            options = {**options, "engine": "rust"}
-        return cls(problem, **options)
 
     @classmethod
     def from_model(cls, model: object, **options: Unpack[ModelOptions]) -> RKO:

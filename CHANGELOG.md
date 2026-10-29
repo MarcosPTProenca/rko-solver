@@ -20,6 +20,12 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Removed
 
+- **Deprecated engine and execution aliases are removed without another deprecation period.**
+  `backend=` is rejected by `RKO`, single-algorithm solvers and `run`; solver/result `backend`
+  properties, `RKO.native`, `RKO.compiled`, `RKO.batched` and the four deprecated import shims
+  are gone. Use canonical problem objects with `engine` and `execution`; see
+  [the replacements](docs/architecture.md#canonical-public-api). The checkout Knapsack example
+  also rejects `--backend`. Default engine, execution and search behavior are unchanged.
 - **The example programs and the `rko-solver` command are no longer part of the distribution.**
   `rko_solver.examples` (the scheduling and Knapsack examples, `decision_trace`, `decoder_diagram`,
   `analysis_report`, `model_conversion`), its reference instances and the `rko-solver` console
@@ -32,6 +38,11 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Changed
 
+- Free-threaded CPython 3.14 source-install verification now runs the complete installed-package
+  smoke, including Python sequential/thread/process execution and Rust callback/block solves.
+  The smoke rejects fallback to an enabled global interpreter lock. Published wheel targets
+  remain the six regular `cp314-abi3` platforms; no free-threaded wheel support or performance
+  gain is implied.
 - Repository-only benchmark scripts are grouped under `runtime`, `algorithms`, `engines`,
   `modeling` and `problems`; use `python -m benchmarks.<group>.<study>` from the repository root.
   The existing `tuning` and `self_evolve` groups stay in the project. Identified measurements move
