@@ -16,7 +16,8 @@ kernel therefore could not remove the cost, and the implemented route is the one
 page lists as a whole Rust engine: search loops, operators, per-search RNG streams, the
 shared pool, Q-learning and a thread scheduler in `engines/rust/rko-core`, bound to Python
 through PyO3 (`engine="rust"`, [guide](native.md)). Python callbacks still run
-through the interpreter and serialize on its lock; block-scored NumPy objectives amortize
+through the interpreter and serialize when its global lock is enabled;
+block-scored NumPy objectives amortize
 the call; Numba objectives and native problems run without the lock.
 
 [The study](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md#native-engine-versus-c-and-python) measured the engine
@@ -48,7 +49,7 @@ current library's performance from it. The historical runner is now available as
 `benchmarks/engines/cpp_python_knapsack.py`, with the completed two-second reference clearly
 separated in [benchmark documentation](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md#python-versus-c-knapsack-comparison).
 Fresh invocations execute the current checkout, not the archived implementation;
-use new source-identified output/cache locations after the protected run finishes.
+use new source-identified output/cache locations rather than resuming archived campaigns.
 The integrated runner's TOML/helper fingerprint checks prevent unsafe resume across
 those changes. It still needs the additional resource/stage diagnostics below to
 serve as a full current-revision acceptance test. No unfinished long-run results
@@ -144,7 +145,9 @@ A full-engine change that also removes IPC/startup has a different decomposition
 | Native engine plus explicitly native problem adapter | Can keep most work outside the interpreter; strongest route toward compiled end-to-end execution | Extra adapter work for users; native-only wins are not general Python-callback gains |
 | Bind/refactor the C++ implementation or use another compiled extension | A comparison alternative; Rust is not inherently faster than C++ | Existing application/global-state integration, compatibility, ownership and build work remain |
 
-**Recommended investigation order, not implementation approval:** profile first;
+**Historical discovery criteria:** the following proposal predates the implemented
+engine selector. It is not a second implementation plan or a description of today's
+packaging. Profile first;
 then a bounded optional-kernel experiment if callback-free work can justify it.
 Evaluate a whole Rust engine only if larger native ownership is necessary to meet
 the C++ target. A compiled adapter must remain optional for a general-purpose
@@ -163,7 +166,7 @@ Kernel, Python-callback and native-callback paths must be measured separately.
 1. **Profile the real cost.** Separate reader/import/spawn, initialization,
    candidate generation, copies, decoder/objective, local search, elite IPC and
    adaptive control. Use cheap, expensive/native and application callbacks, plus
-   algorithm-stage completion. No new local timing work during the protected run.
+   algorithm-stage completion. Do not compete for resources with an active protected campaign.
 2. **Use a disposable, bounded experiment.** One kernel or one algorithm, same
    objective/problem and work limits, Python fallback, release-mode native build.
    Include native compute with and without Python callbacks to expose bridge cost.
@@ -177,12 +180,15 @@ Kernel, Python-callback and native-callback paths must be measured separately.
    Python/native code from mutating aliased storage [3]. Do not reuse borrowed
    scratch after giving a callback a retainable/mutable view, or promise zero-copy
    merely because Rust compiles. Test noncontiguous arrays and concurrent access.
-5. **Prove delivery.** Pure-Python installation must remain usable. Test built
-   wheels/sdists, bundled TOMLs/fixtures, exceptions and results on supported
+5. **Prove delivery.** The default Python search engine must remain usable.
+   Source installation builds the native extension and requires Rust; a matching
+   prebuilt artifact needs no compiler. Test built distributions, packaged parameters,
+   exceptions and results on supported
    platforms. Native wheels add OS/architecture/interpreter/NumPy and toolchain
    compatibility work; Linux distribution needs compatible manylinux/musllinux
-   handling [4, 5]. Pin compatible versions in a real prototype; this discovery
-   does not choose a crate version or change the current setuptools build.
+   handling [4, 5]. The implemented mixed Python/Rust build uses Maturin; current
+   configuration and pinned native dependencies live in `pyproject.toml` and
+   `Cargo.lock`. The original discovery did not select those later implementation details.
 6. **Separate ABI claims.** Stable-ABI and GIL/free-threaded wheel compatibility
    are distinct, version-sensitive concerns [6]. Do not assume a single `abi3`
    wheel covers CPython 3.14's free-threaded build or every NumPy binding. Current

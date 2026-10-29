@@ -95,8 +95,9 @@ class DocumentationSite:
         banner = (
             f'!!! warning "Development documentation — {version} / main"\n\n'
             "    This is the development branch, not a published stable release. "
-            "Use the [source installation guide](getting-started.md). "
-            "Ubuntu and Windows CI are exercised; other platforms are not certified. "
+            "Use the [source installation guide](installation.md). "
+            "Functional checks cover Ubuntu, Windows and macOS; interpreter, artifact "
+            "and optional-feature limits still apply. "
             "Read [support, release gates and known limitations](status.md) "
             "before relying on results.\n\n"
         )

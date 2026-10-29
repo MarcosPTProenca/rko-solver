@@ -45,6 +45,7 @@ DOC_ALLOW = frozenset(
         "SECURITY.md",
         "LICENSE",
         "LICENSE.md",
+        "docs/installation.md",
     }
 )
 

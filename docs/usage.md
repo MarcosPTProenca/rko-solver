@@ -7,7 +7,8 @@ by the same `.solve(time_limit=...)` call and settings as RKO.
 The [parameter reference](parameters.md) explains every fixed scalar and adaptive
 mode; the [extension guide](extending.md) covers custom operators and algorithms.
 Commands and example paths assume the repository root. The Python library needs
-neither a C++ checkout nor a Rust compiler.
+no C++ checkout. A matching prebuilt package needs no compiler; source installation
+requires Rust. See [installation and version boundaries](installation.md).
 
 - [Solver configuration](#class-based-solver-api)
 - [Execution modes](#execution-modes)
@@ -36,9 +37,10 @@ standard hooks directory. If `core.hooksPath` is centrally managed, integrate
 pre-commit with those existing hooks instead; no global Git settings are changed
 by this setup.
 
-The distribution is named `rko-solver` and imports as `rko_solver`; version `0.3.0a4`
-identifies this prerelease, not a PyPI publication. Attribution and licensing
-boundaries are in [NOTICE](https://github.com/MarcosPTProenca/rko-solver/blob/main/NOTICE).
+The distribution is named `rko-solver` and imports as `rko_solver`. The published
+`0.3.0a4` predates current development changes; a matching version string does not
+identify identical source. Follow [the matching installation guide](installation.md).
+Attribution and licensing boundaries are in [NOTICE](https://github.com/MarcosPTProenca/rko-solver/blob/main/NOTICE).
 
 ## Class-based solver API
 
@@ -58,7 +60,8 @@ The first three arguments are required in the short form. The others are keyword
 
 | Argument | Meaning / default |
 | --- | --- |
-| `decoder` | Callable receiving a detached NumPy key vector and returning your domain payload |
+| `problem` | First argument: a problem object, or the decoder in the short callback form |
+| `decoder` | Keyword spelling of the short form's decoder; do not also pass `problem` |
 | `cost` | Callable mapping that payload to a finite scalar to minimize |
 | `n_variables` | Positive integer chromosome length |
 | `algorithms=None` | Nonempty selection of canonical names, otherwise packaged TOML portfolio |
@@ -70,13 +73,15 @@ The first three arguments are required in the short form. The others are keyword
 | `params_dir=None` | Custom TOML directory, otherwise installed resources |
 | `engine="python"` | `"python"`, `"rust"` (compiled engine), `"cpp"` (reference engine, opt-in build) or `"auto"`; see [Rust and C++ engines](native.md) |
 | `execution=None` | Python engine only: `"process"` (default), `"thread"` or `"sequential"`; rejected for other engines |
+| `auto_time=None` | For `engine="auto"`, separate probe allowance; defaults to 10 percent of the final search budget |
+| `auto_candidates=None` | Optional supported subset of automatic-engine probe candidates; see [automatic selection](native.md#automatic-engine) |
 | `n_jobs=None` | Process or Rust worker cap; process default uses discovered CPU capacity, Rust default one thread per algorithm |
 | `random_state=None` | Nonnegative library seed, or fresh assigned seeds |
 | `verbose=False` | Opt-in lifecycle/shared-pool progress to stdout |
 | `max_evaluations=None` | Positive number of completed evaluations after which **each** algorithm stops, in every engine; see [evaluation limit](#evaluation-limit-and-reproducibility) |
 | `history_limit=0` | Opt-in per-search scalar history cap, 2–10000; see [interactive reports](reporting.md) |
 | `trace=None` | Opt-in bounded original-decoder events with `TraceConfig`; see [observed decisions](decision-traces.md) |
-| `hyperparameters=None` | Partial named scalar overrides, requiring `control=0` |
+| `hyperparameters=None` | Partial named scalar overrides, requiring `adaptation="fixed"` (or `control=0`) |
 
 `solve(time_limit)` requires positive finite seconds, at most one year (31,536,000 s). Other
 upper bounds, checked before any engine starts and with the same message on every engine:
@@ -153,21 +158,25 @@ The `engine` chooses who runs the search. `execution` only exists for the Python
   also share its callback instances; mutable callback state is not reset between
   searches. Native BLAS/OpenMP threads are separate from this worker limit;
   use the [native-thread launch guide](native-threads.md) for numerical callbacks.
-- **`engine="python", execution="thread"`:** legacy shared-memory execution; arbitrary
-  local callbacks work, but CPU-bound Python code is subject to the standard GIL.
+- **`engine="python", execution="thread"`:** shared-memory execution; local callbacks work.
+  Processor-bound Python callbacks share the global interpreter lock when it is enabled.
+  Free threading does not remove the need to manage callback state or establish a speedup.
 - **`engine="python", execution="sequential"`:** debugging/reference execution with shared
   elites. Each algorithm gets its own time budget, so total search time can approach
   algorithm count times `limit_time`. This is not an equal-wall-time benchmark
   against concurrent modes.
-- **`engine="rust"`:** the compiled engine; Python callbacks serialize on the
-  interpreter lock, built-in problems do not. See [Rust and C++ engines](native.md).
+- **`engine="rust"`:** the compiled engine; Python callbacks require the global
+  interpreter lock when it is enabled. Built-in problems avoid Python callbacks.
+  See [Rust and C++ engines](native.md).
 - **`engine="cpp"`:** the C++ reference algorithms, available in builds made with
   `RKO_BUILD_CPP=1`.
 - **`engine="auto"`:** short probes choose among the others for your problem.
 
-The deprecated `backend=` argument (`"process"`, `"thread"`, `"serial"`, `"native"`,
-`"cpp"`, `"auto"`) and `RKO.native`, `RKO.compiled` and `RKO.batched` still work, with a
-`DeprecationWarning`, and will be removed in 0.4.
+Development `main` rejects `backend=`. `RKO.backend`, `RKOResult.backend`, `RKO.native`,
+`RKO.compiled`, `RKO.batched` and the deprecated import shims are removed; use
+`engine`, `execution` and canonical problem objects. See
+[the replacement table](architecture.md#canonical-public-api). Published `0.3.0a4`
+predates this removal; use the documentation matching your source or package.
 
 IPR consumes elite pairs. If fewer than two elites exist at startup, it inserts
 its initial evaluated candidate and tries at most one additional random seed,
@@ -185,7 +194,7 @@ of at least two; a pool unable to retain a pair still uses bounded waiting after
 those seed attempts. Seeds are not domain-specific feasibility repairs. Process
 occupancy queries transfer only a count rather than the entire pool.
 
-Algorithm defaults live in packaged `rko/parameters/` TOMLs.
+Algorithm defaults live in packaged `rko_solver/parameters/` files.
 Use `algorithms=["SA", "GA"]` to select a smaller portfolio without copying files.
 Custom default TOMLs can still be supplied through `params_dir`.
 Constructors and configured runs validate scalar domains, population sizes and
@@ -323,7 +332,7 @@ computed at dispatch, not equal fixed fractions or the requested portfolio budge
 The portfolio reason is `time_limit` if any search used its budget or could not
 start, otherwise `max_evaluations` if any search reached its limit; detailed reports
 preserve the distinction. Unstarted entries retain their
-nominal slice but have zero evaluations and zero elapsed search time. Cancelled peers normally belong
+assigned zero budget and have zero evaluations and zero elapsed search time. Cancelled peers normally belong
 to a failed portfolio, which raises instead of returning a result. Session elapsed
 time excludes startup and queueing; `result.elapsed_seconds` remains end-to-end.
 
@@ -335,11 +344,12 @@ exceed a reported budget.
 
 ### Evaluation limit and reproducibility
 
-`max_evaluations=N` stops **each** algorithm after exactly `N` completed objective
+`max_evaluations=N` caps **each** algorithm at `N` completed objective
 evaluations, on the Python, Rust and C++ engines alike; `time_limit` still applies and
 whichever comes first ends the search (`search.stop_reason` says which). It does not count
-the opt-in pool prefill, which is reported separately, and the C++ reference's own
-mandatory 10-vector prefill is likewise reported only under `result.initialization`.
+random pool prefill or caller-provided `initial_keys`, which are reported separately
+under `result.initialization` and `result.initial_keys`. The C++ reference's mandatory
+10-vector prefill is likewise reported under `result.initialization`.
 Because it does not depend on machine speed, it is the way to compare engines, write
 regression tests or repeat a run.
 
@@ -445,11 +455,11 @@ workers; it is not a measured worker count. To retain dedicated workers, explici
 request the selected portfolio size. See [default-worker migration](process-workers.md).
 These two small instances are correctness checks, not production-scale evidence.
 
-The [larger benchmark](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md) includes a runnable experiment and
-one current reference CSV. Re-run on October 18 against the standalone solver,
-all six trials were feasible, but the best process gap was **17.82%**, versus
-**0.00474%** for a simple greedy baseline. This demonstrates multicore execution,
-not competitive solution quality or fixed-work speedup.
+The [historical benchmark](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md) preserves its source-identified
+reference CSV separately from the runnable current-checkout experiment. In the
+archived October 18 run, all six trials were feasible, but the best process gap
+was **17.82%**, versus **0.00474%** for a simple greedy baseline. Those observations
+are not current-source measurements, competitive-quality evidence or a fixed-work speedup.
 
 ## Quality checks
 
@@ -459,15 +469,16 @@ uv run --locked ruff format --check .
 uv run --locked pytest tests -q
 ```
 
-GitHub Actions runs the full suite on Linux and Windows. Tests include real
+GitHub Actions runs the full suite on Linux, Windows and macOS. Tests include real
 spawn execution, shared elites, independent RNG streams, algorithm execution,
 callback exceptions, abrupt exits, blocked callbacks and interruption cleanup.
 Property-based tests use deterministic generated cases for pool, key-vector,
 validation, Q-learning and solver-result invariants.
 
-Scoped mutation testing is on demand because it reruns tests for generated code
-mutations. It covers selected high-risk components listed in `pyproject.toml`;
-surviving mutants are review findings, not a CI score gate. The mutation run
+Scoped mutation testing runs weekly and on demand because it reruns tests for generated
+code mutations. It covers selected high-risk components listed in `pyproject.toml`;
+per-module floors are enforced by `tools/mutation_report.py`. Surviving mutants still
+need review; a passing score is not proof that every bug is detectable. The mutation run
 excludes the runtime-Protocol conformance test because mutmut instrumentation
 adds methods to Protocols; the test remains in the normal CI suite:
 
@@ -476,13 +487,11 @@ uv run --locked mutmut run
 uv run --locked mutmut results
 ```
 
-## Remaining release work
+## Release and evidence boundaries
 
-The library is **not yet release-ready**. See [contributor release gates](https://github.com/MarcosPTProenca/rko-solver/blob/main/CONTRIBUTING.md#before-a-release)
-and the [C++/native evaluation criteria](performance.md). [Current limitations](status.md)
-for the outstanding scheduling, parity, results, documentation and licensing work.
-[C++ compatibility](cpp-compatibility.md) distinguishes verified reference
-behavior from deliberate corrections and still-unimplemented functionality.
-Installation and correctness checks are not evidence of competitive optimization.
-Internal audits, agent plans and migration diaries are local working material,
-not maintained public documentation.
+The published prerelease and development `main` are distinct snapshots. Neither a
+successful solve nor a passing installation check makes the library a stable release
+or proves competitive optimization. Follow [installation/version guidance](installation.md),
+[current limitations](status.md), [C++ differences](cpp-compatibility.md) and the
+[controlled release procedure](https://github.com/MarcosPTProenca/rko-solver/blob/main/RELEASING.md).
+Internal audits and session plans are not maintained public documentation.

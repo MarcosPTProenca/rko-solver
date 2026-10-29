@@ -9,6 +9,10 @@ metaheuristics, inspired by [RKO C++ v2](https://github.com/RKO-solver/RKO_Cpp_v
 You provide a decoder and an objective to minimize; RKO searches for good key
 vectors without assuming a problem format or solution representation.
 
+> **Development documentation:** this README follows `main`, which contains changes newer
+> than the published `0.3.0a4` prerelease. A matching version string does not mean matching code.
+> Choose the correct [installation and documentation version](https://marcosptproenca.github.io/rko-solver/installation/).
+
 ## What you implement
 
 **For optimization, you provide the data reader, decoder and objective function.
@@ -49,7 +53,7 @@ not prerequisites. See the [complete data-loading example](https://marcosptproen
   (`rko_solver.problems`); `engine="auto"` picks the engine for your problem by short probes.
   See [Rust and C++ engines](https://marcosptproenca.github.io/rko-solver/native/).
 - Python callbacks for arbitrary problems; **NumPy is the only required runtime dependency**
-  (Numba is optional: `pip install "rko-solver[compiled]"`).
+  (Numba is an optional extra; see the [installation guide](https://marcosptproenca.github.io/rko-solver/installation/#optional-features)).
   Installing a prebuilt wheel needs no compiler; building from source needs a Rust
   toolchain. No C++ installation or agent framework is required.
 
@@ -242,12 +246,12 @@ can overrun its deadline. `time_limit` is not a hard end-to-end timeout.
 
 ## Run one metaheuristic instead
 
-Keep `read_data`, the data-bound `decode`/`cost` functions and optional assessment
-unchanged. Replace only the solver block inside `main`.
+Keep the loaded data, decoder, objective and optional validation unchanged. Replace
+only the solver block inside `main` with one of these forms.
 
-**Through the main RKO API**, select one algorithm:
+Select one algorithm through the portfolio API:
 
-<!-- doc-test: skip fragment that replaces the solver block inside main() of the first program, whose names are local to main -->
+<!-- doc-test: skip fragment replaces the solver block inside main; dedicated README tests execute it with loaded callbacks -->
 ```python
 solver = RKO(
     decoder=decode, cost=cost, n_variables=data["lower"].size,
@@ -257,10 +261,10 @@ solver = RKO(
 result = solver.solve(time_limit=1.0)
 ```
 
-**Through the direct algorithm API**, import `SA` from `rko_solver.metaheuristics`
-alongside the other imports, then use:
+Or import `SA` from `rko_solver.metaheuristics` alongside the other imports and use
+its direct solver class:
 
-<!-- doc-test: skip fragment that replaces the solver block inside main() of the first program, whose names are local to main -->
+<!-- doc-test: skip fragment replaces the solver block inside main; dedicated README tests execute it with loaded callbacks -->
 ```python
 solver = SA(
     decoder=decode, cost=cost, n_variables=data["lower"].size,
@@ -270,254 +274,52 @@ solver = SA(
 result = solver.solve(time_limit=1.0)
 ```
 
-Both forms use the **same configure-then-solve lifecycle** and return `RKOResult`.
-`SA` selects SA automatically; `PSO`, `GRASP` and the other
-[built-in classes](https://marcosptproenca.github.io/rko-solver/standalone/#algorithm-catalog) select their own algorithm.
-They inherit RKO's execution, stopping, RNG ownership, history and `result_` behavior.
-The examples explicitly select sequential execution; all public solvers otherwise share
-RKO's default process execution and configured adaptation mode.
+Both return the same `RKOResult` contract without requiring a user-managed pool or
+search loop. See the [algorithm catalog and scalar settings](https://marcosptproenca.github.io/rko-solver/standalone/).
 
-### Algorithm hyperparameters
+## Choose another workflow
 
-`hyperparameters` is an explicit constructor parameter for **both** RKO and the
-individual solver classes. Use the same nested dictionary: algorithm name -> scalar
-overrides. It controls the algorithm itself, not worker or engine settings. Only keys
-you provide replace defaults; manual scalar overrides require `adaptation="fixed"`.
+Keep detailed contracts in the guides rather than duplicating them here:
 
-| Algorithm | Configurable scalar keys |
+| Need | Guide |
 | --- | --- |
-| SA | `sa_max`, `t0`, `alpha`, `beta_min`, `beta_max` |
-| ILS | `beta_min`, `beta_max` |
-| VNS | `k_max`, `beta_min` |
-| LNS | `beta_min`, `beta_max`, `t0`, `alpha_lns` |
-| BRKGA / BRKGA-CS | `p`, `pe`, `pm`, `rhoe` |
-| GA (`GeneticAlgorithm`) | `size_pop`, `prob_cros`, `prob_mut` |
-| PSO | `p_size`, `c1`, `c2`, `w` |
-| GRASP | `hs`, `he` |
-| IPR / MultiStart | No configurable search scalars |
+| Choose source versus a published package, or install optional features | [Installation](https://marcosptproenca.github.io/rko-solver/installation/) |
+| Configure engines, execution, budgets, stopping and results | [Usage and API](https://marcosptproenca.github.io/rko-solver/usage/) |
+| Load your own data and bind callbacks | [File-to-solution tutorial](https://marcosptproenca.github.io/rko-solver/problem-adapters/) |
+| Choose one algorithm or tune fixed/adaptive settings | [Individual solvers](https://marcosptproenca.github.io/rko-solver/standalone/), [parameters](https://marcosptproenca.github.io/rko-solver/parameters/) |
+| Use compiled or block objectives and automatic engine selection | [Rust and C++ engines](https://marcosptproenca.github.io/rko-solver/native/) |
+| Check final solutions or generate offline reports | [Validation](https://marcosptproenca.github.io/rko-solver/solution-validation/), [reports](https://marcosptproenca.github.io/rko-solver/reporting/) |
+| Inspect declared decoder structure or record original decisions | [Diagrams](https://marcosptproenca.github.io/rko-solver/decoder-diagrams/), [observed decisions](https://marcosptproenca.github.io/rko-solver/decision-traces/) |
+| Convert a bounded mathematical model | [Model conversion](https://marcosptproenca.github.io/rko-solver/modeling/) |
+| Host trusted callbacks privately or explore decoder evolution | [Service](https://marcosptproenca.github.io/rko-solver/service/), [experimental evolution](https://marcosptproenca.github.io/rko-solver/self-evolve/) |
+| Extend the library or inspect evidence and limitations | [Architecture](https://marcosptproenca.github.io/rko-solver/architecture/), [contributing](https://github.com/MarcosPTProenca/rko-solver/blob/main/CONTRIBUTING.md), [status](https://marcosptproenca.github.io/rko-solver/status/) |
 
-See the [parameter reference](https://marcosptproenca.github.io/rko-solver/parameters/) for meanings, defaults, joint
-constraints and adaptive grids. Some identically named keys have different meanings
-between algorithms (notably BRKGA versus BRKGA-CS `pm`); do not copy interpretations
-blindly. Each dictionary entry must name an algorithm actually selected by the solver.
+## Run repository examples
 
-## Use your own instance data
+Examples live in the checkout's `examples/` directory. They are not included in
+current development distributions, and the old installed `rko-solver` demo command
+is removed. `rko-solver-service` remains available with the service extra.
 
-The application loads data **once before searching** and binds it to the decoder
-and objective. Metaheuristics do not need their own file readers:
-
-```text
-your read_data(path) -> loaded data
-                    -> your decoder + objective (data bound once)
-                    -> chosen algorithm or RKO (provided by the library)
-                    -> best keys -> explicit final decoding
-```
-
-A complete [file-to-solution tutorial](https://marcosptproenca.github.io/rko-solver/problem-adapters/) shows a JSON
-scheduling instance where the decoder uses loaded processing times and the objective
-uses loaded due dates. The tutorial groups these two callbacks in an importable
-class for convenience; you can use functions instead. The same callbacks work
-unchanged with `SA(...).solve(...)`, other built-in classes and RKO portfolios. There is
-no required base class.
-
-Run the example from the repository checkout without creating an input file:
+Run the data-loading, solving and validation tutorial:
 
 ```bash
 uv run --locked --no-dev python -m examples.instance_pipeline
 ```
 
-For your own file, use the tutorial's schema or replace its reader/adapter with your
-application's format. Loading once does not mean shared RAM across process workers;
-keep callbacks pickleable and account for copied data when choosing `n_jobs`.
+For the supplied Knapsack instances, use the
+[terminal guide](https://marcosptproenca.github.io/rko-solver/running/). Its instance format is
+an example, not a required RKO input format or competitive-performance evidence.
+Run all repository commands from the checkout root.
 
-## Interactive analysis reports
+## Status and attribution
 
-Install the optional reporting dependency with `uv sync --locked --extra reports`.
-To plot convergence, add `history_limit=1000` to the solve call above. Import
-`OptimizationReport` from `rko_solver.reporting` alongside your other imports, then add
-this after assessment inside `main`:
+This is an alpha library, not a stable release or a universal C++ performance guarantee.
+The [current limitations](https://marcosptproenca.github.io/rko-solver/status/) distinguish functional
+checks, historical measurements and open qualification work. Read the
+[identified benchmarks](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md)
+instead of extrapolating from a language, one instance or one machine.
 
-<!-- doc-test: skip uses result and assessment, which are local to main() of the first program -->
-```python
-report = OptimizationReport(result, assessment=assessment)
-report.write_html("run.html")
-report.write_json("run.json")
-```
-
-If you skipped optional validation, use `OptimizationReport(result)` instead.
-
-The HTML embeds Plotly once and works offline with hover, zoom and trace selection.
-Reports are generated after search, never by reevaluating callbacks. History is off
-by default; compacted curves are labelled approximate. See [interpretation and
-privacy boundaries](https://marcosptproenca.github.io/rko-solver/reporting/); automatic PDF export is not included.
-Core optimization still requires only NumPy.
-
-Reports can optionally include an [author-declared or source-derived decoder
-diagram](https://marcosptproenca.github.io/rko-solver/decoder-diagrams/), explicitly attached through `decoder_diagram`.
-Source inspection never runs automatically and static structure is not an execution
-trace, a complete explanation or a feasibility/optimality certificate.
-
-## Bounded mathematical models (development port)
-
-The optional Pyomo, PuLP and MathOpt model converter is being ported to this
-repository. It generates owned sparse callbacks with bounded continuous
-feasibility restoration and independent feasible-witness evidence.
-
-```python
-import importlib.util
-from rko_solver import RKO
-
-if importlib.util.find_spec("pyomo") is not None:
-    import pyomo.environ as p
-
-    model = p.ConcreteModel()
-    model.x = p.Var(bounds=(0, 1))
-    model.y = p.Var(bounds=(0, 1))
-    model.balance = p.Constraint(expr=model.x + model.y == 1)
-    model.objective = p.Objective(expr=model.x + 2 * model.y)
-    solver = RKO.from_model(model, engine="python", execution="sequential", repair="continuous")
-    result = solver.solve(0.1)
-    print(result.model.status)
-else:
-    print("Install rko-solver[pyomo] to run this optional example.")
-```
-
-Install the matching extra (`rko-solver[pyomo]`, `[pulp]` or `[mathopt]`). Integer
-choices remain fixed during repair; this is not a complete MILP feasibility solver.
-`repair="none"` retains box-only mapping. Rust/C++/automatic engine selection is
-not supported for this factory because those paths lack its model-witness contract.
-
-[Model contracts](https://marcosptproenca.github.io/rko-solver/modeling/) and
-[historical qualification](https://marcosptproenca.github.io/rko-solver/model-validation/)
-distinguish prior measurements from this renamed port. Local feature tests and mandatory
-quality ratchets pass; fresh hosted-platform, artifact and performance qualification
-remain pending.
-
-## Optional observed decoder decisions
-
-To retain decisions from the **original evaluated decoder invocation**, explicitly
-emit `record_decision(action, reason)` inside your decoder and opt in with
-`RKO(..., trace=TraceConfig())`, importing both helpers from `rko_solver.tracing`.
-Existing callback signatures and uninstrumented usage remain unchanged.
-
-Try the instrumented scheduling adapter and its optional offline report:
-
-```bash
-uv run --locked python -m examples.decision_trace
-uv run --locked --extra reports python -m examples.decision_trace --html results/observed-decisions.html
-```
-
-`result.trace` distinguishes recorded, no-events, truncated and unavailable evidence.
-Recording is bounded and off by default; it can be expensive for cheap callbacks and
-uses the existing search budget. The engine never replays callbacks or borrows a
-matching keys/cost trace when evaluation identity is lost. Observations are partial
-author-emitted decisions, **not static flowcharts, complete execution logs or
-feasibility proofs**. See the [instrumentation, identity, privacy and overhead
-guide](https://marcosptproenca.github.io/rko-solver/decision-traces/) before enabling it or sharing event text.
-
-## Optional private FastAPI/Docker service
-
-Expose your existing decoder/objective and optional checker through an authenticated
-HTTP API without rewriting the solver. The maintained reference includes a trusted
-scheduling adapter, supervised job cancellation/timeouts, offline report downloads
-and a resource-limited Docker Compose configuration. HTTP dependencies remain
-optional; core optimization still requires only NumPy.
-
-From the reviewed source checkout, build the SDK and generate a new service project.
-Set `SDK_WHEEL` to the **actual absolute path** of the wheel just built in `dist/`;
-do not assume an older PyPI release contains this API. The destination must not exist.
-A working Docker Linux engine and Docker Compose are required.
-
-```bash
-uv sync --locked --extra service --extra reports
-uv build --wheel
-SDK_WHEEL=/absolute/path/to/the-reviewed-rko-wheel.whl
-uv run --locked rko-solver-service scaffold ../my-private-service --wheel "$SDK_WHEEL"
-cd ../my-private-service
-export RKO_WHEEL="${SDK_WHEEL##*/}"
-export RKO_SERVICE_API_KEY="$(uv run --no-project python -c 'import secrets; print(secrets.token_urlsafe(32))')"
-docker compose up --build -d
-curl --fail http://127.0.0.1:8000/health
-```
-
-Submit bounded JSON to the reference adapter using the generated bearer secret:
-
-```bash
-curl --fail http://127.0.0.1:8000/jobs \
-  -H "Authorization: Bearer $RKO_SERVICE_API_KEY" -H 'Content-Type: application/json' \
-  -d '{"instance":{"name":"demo","processing_times":[3,2,5],"due_dates":[3,6,9]},"options":{"algorithms":["SA","PSO"],"time_limit":0.2,"validate_solution":true,"include_solution":true,"report":true}}'
-```
-
-The response contains a job UUID; poll authenticated `GET /jobs/UUID` for its result.
-Edit the generated `adapter.py` to bind your application's bounded schema and trusted
-callbacks. Clients submit data/settings, **never Python code, imports or host paths**.
-
-This is a **private single-tenant Linux-container reference**, not a public SaaS or
-an untrusted-code sandbox. Keep the supplied localhost binding, authentication and
-CPU/RAM/PID/disk limits. Only one job runs at a time; results expire and container
-replacement can erase them. Native Windows supervision is unsupported; Windows/WSL
-hosts use Linux Docker. Stop the reference with `docker compose down`.
-See the [complete FastAPI/Docker guide](https://marcosptproenca.github.io/rko-solver/service/) for integration, API endpoints,
-cancellation, retention, resource limits and deployment/security requirements.
-
-## Run the supplied Knapsack adapter
-
-```bash
-uv run --locked --no-dev python -m examples.run_kp_cpp_instances examples/instances/kp50.txt \
-  --limit-time 10 --execution process --random-state 42 \
-  --output-csv results/kp50.csv
-```
-
-The supplied runner handles Knapsack, not arbitrary input formats. Its two
-instances under `examples/instances/` are correctness fixtures, not competitive-performance evidence.
-See [terminal/configuration usage](https://marcosptproenca.github.io/rko-solver/running/) for custom instances,
-TOMLs, progress output and worker limits.
-
-## Documentation
-
-Start at the [documentation index](https://marcosptproenca.github.io/rko-solver/): tutorials, how-to guides,
-parameter reference and contributor guidance.
-
-| Need | Guide |
-| --- | --- |
-| Solve your first problem | [Getting started](https://marcosptproenca.github.io/rko-solver/getting-started/) |
-| Use any one algorithm without managing a pool | [Standalone algorithms](https://marcosptproenca.github.io/rko-solver/standalone/) |
-| Load instance data and implement decoder/objective callbacks | [File-to-solution tutorial](https://marcosptproenca.github.io/rko-solver/problem-adapters/) |
-| Understand fixed/adaptive modes and every search knob | [Parameter reference](https://marcosptproenca.github.io/rko-solver/parameters/) |
-| Replace operators or implement an algorithm | [Extension guide](https://marcosptproenca.github.io/rko-solver/extending/) |
-| Generate offline interactive HTML charts and data-only exports | [Analysis reports](https://marcosptproenca.github.io/rko-solver/reporting/) |
-| Optionally check the final domain solution | [Post-solve validation](https://marcosptproenca.github.io/rko-solver/solution-validation/) |
-| Optionally illustrate decoder logic without executing it | [Static decoder diagrams](https://marcosptproenca.github.io/rko-solver/decoder-diagrams/) |
-| Record bounded author-emitted decisions from an original evaluation | [Observed decoder decisions](https://marcosptproenca.github.io/rko-solver/decision-traces/) |
-| Connect trusted callbacks to a bounded private HTTP container | [Optional FastAPI/Docker service](https://marcosptproenca.github.io/rko-solver/service/) |
-| Preview/build the development documentation website | [Documentation website](https://marcosptproenca.github.io/rko-solver/documentation-site/) |
-| Configure the solver, callbacks, hyperparameters and results | [Usage and API guide](https://marcosptproenca.github.io/rko-solver/usage/) |
-| Choose workers and understand startup/time accounting | [Execution modes](https://marcosptproenca.github.io/rko-solver/usage/#execution-modes), [workers](https://marcosptproenca.github.io/rko-solver/process-workers/), [startup](https://marcosptproenca.github.io/rko-solver/driver-initialization/) |
-| Run from the terminal or avoid WSL setup overhead | [Running guide](https://marcosptproenca.github.io/rko-solver/running/) |
-| Use the compiled engines and built-in problems | [Rust and C++ engines](https://marcosptproenca.github.io/rko-solver/native/) |
-| Understand the C++ target and native-engine evidence | [Performance and native-engine evaluation](https://marcosptproenca.github.io/rko-solver/performance/) |
-| Inspect measurements rather than speed claims | [Benchmarks](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md), [expanded quality study](https://marcosptproenca.github.io/rko-solver/prefill-expanded-work/) |
-| Check algorithm differences and remaining risks | [C++ compatibility](https://marcosptproenca.github.io/rko-solver/cpp-compatibility/), [current limitations](https://marcosptproenca.github.io/rko-solver/status/) |
-| See how the API, the three engines and the folders fit together | [Architecture](https://marcosptproenca.github.io/rko-solver/architecture/) |
-| Develop, test or report an issue | [Contributing](https://github.com/MarcosPTProenca/rko-solver/blob/main/CONTRIBUTING.md) |
-
-`engine` selects the Python, Rust or C++ engine (or `"auto"`), and `execution` selects
-process, thread or sequential scheduling for the **Python** engine. Rust results versus pinned C++ and Python are reported with
-their limits in [benchmarks](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md#native-engine-versus-c-and-python);
-they do not extend to untested problem families, budgets or hardware. Prefill remains
-opt-in: broader IPR benefits include regressions, and large-GRASP short-budget wins
-can be startup-only.
-
-## Project status and attribution
-
-Version `0.3.0a4` is a prerelease, not a stable release. Matching or exceeding C++ RKO is a
-performance target, **not an achieved claim**; read the [limitations](https://marcosptproenca.github.io/rko-solver/status/)
-and [C++ compatibility](https://marcosptproenca.github.io/rko-solver/cpp-compatibility/) before relying on it.
-Wheel/sdist installation and the full test suite are checked on Ubuntu, Windows and macOS;
-that is not a supported-version or release guarantee.
-
-The [LICENSE](https://github.com/MarcosPTProenca/rko-solver/blob/main/LICENSE) (Apache-2.0) applies.
-[NOTICE](https://github.com/MarcosPTProenca/rko-solver/blob/main/NOTICE) lists the required attributions
-and the fixture and vendored C++ licenses. New third-party additions and every publication
-still require review and approval.
+The [LICENSE](https://github.com/MarcosPTProenca/rko-solver/blob/main/LICENSE) and
+[NOTICE](https://github.com/MarcosPTProenca/rko-solver/blob/main/NOTICE) retain project, fixture
+and vendored-code attribution. Every publication still requires separate owner approval.
 Report reproducible bugs through [GitHub issues](https://github.com/MarcosPTProenca/rko-solver/issues).

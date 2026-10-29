@@ -1,15 +1,16 @@
 # Mathematical model conversion — development preview
 
 `RKO.from_model` converts an existing supported LP/MILP model into owned generated
-callbacks and runs the existing RKO algorithms. This is a **development preview**:
-completed hosted platform and performance qualification are still required before
-release-readiness claims. Existing handwritten decoder/objective workflows are unchanged.
+callbacks and runs the existing RKO algorithms. This remains a **bounded development
+preview**, not a complete mathematical-programming solver. Existing handwritten
+decoder/objective workflows are unchanged.
 
-The development port targets canonical `rko-solver`. Local feature tests and
-mandatory quality ratchets pass against `rko_solver`, but historical
-platform/performance measurements identify the preserved `13b6934` implementation,
-not this renamed source. Fresh hosted-platform, artifact and performance
-qualification remain pending.
+Current source has hosted functional and installed-extra checks for the pinned
+frontends in the [integration workflow](https://github.com/MarcosPTProenca/rko-solver/blob/main/.github/workflows/ci.yml).
+Read results for the exact reviewed revision, not as a permanent certification.
+Historical performance measurements identify the preserved `13b6934` implementation,
+not automatically the current source. Fresh scientific qualification remains separate.
+See [version boundaries](installation.md) and [historical measurements](model-validation.md).
 
 ## Public workflow
 
@@ -46,7 +47,8 @@ else:
 Generated models use `engine="python"`, with `execution="process"`, `"thread"`
 or `"sequential"`. The `rust`, `cpp` and `auto` engines do not collect generated
 model witnesses and are rejected by this factory, including changes after conversion. This
-does not change `RKO.native`, `RKO.compiled` or ordinary callback execution.
+does not change ordinary callback execution or canonical `Numba`/`Blocks` problems.
+The deprecated alternative constructors are removed from development `main`.
 
 Here `model` is an already constructed, trusted native model from one qualified
 frontend below. No handwritten decoder/objective is required. All eleven existing
@@ -56,9 +58,9 @@ solver constructors retain their behavior.
 Run the maintained equivalent mixed-integer example with any selected extra:
 
 ```bash
-uv run --extra pyomo python -m examples.model_conversion pyomo
-uv run --extra pulp python -m examples.model_conversion pulp
-uv run --extra mathopt python -m examples.model_conversion mathopt
+uv run --locked --no-dev --extra pyomo python -m examples.model_conversion pyomo
+uv run --locked --no-dev --extra pulp python -m examples.model_conversion pulp
+uv run --locked --no-dev --extra mathopt python -m examples.model_conversion mathopt
 ```
 
 The example is an original reproducible formulation with an analytic maximum of

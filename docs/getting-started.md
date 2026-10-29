@@ -4,16 +4,10 @@
 
 ## Install
 
-Requires Python 3.14+ and uv. From the repository root:
-
-```bash
-git clone https://github.com/MarcosPTProenca/rko-solver.git
-cd rko-solver
-uv sync --locked --no-dev
-```
-
-This is an unreleased development API; record the Git revision and lockfile.
-The PyPI package named `rko` is a different project; this one is `rko-solver`.
+Follow [installation and version boundaries](installation.md) first. This guide follows
+`main`; a published package may contain an older API even when its version string matches.
+Commands below assume the reviewed source checkout, its locked environment and the repository
+root. Source installation requires Rust; installing a matching prebuilt package does not.
 
 ## Run one algorithm
 

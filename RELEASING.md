@@ -12,9 +12,14 @@ NOTICE as an owner attestation, not an independent legal certification. Source u
 C++ reference headers retain MIT, hence the combined distribution expression
 `Apache-2.0 AND MIT`. Review new third-party additions before every release.
 
-The current candidate is **0.3.0a4**. (0.3.0a1 reached TestPyPI only, where its post-upload
-check failed on a test-harness bug, and 0.3.0a2 and 0.3.0a3 are already on PyPI; an index version can never
-be reused, so each candidate gets a new number.) The payload is **one CPython 3.14 abi3
+The latest published prerelease is **0.3.0a4**, verified against
+[official index metadata](https://pypi.org/pypi/rko-solver/json) on 2026-10-29.
+Development `main` contains later changes despite retaining that source version.
+Prepare a new version and changelog before another candidate; a published index
+version can never be reused. Follow [installation/version boundaries](docs/installation.md)
+when choosing documentation for an existing package.
+
+The release policy requires **one CPython 3.14 abi3
 wheel per platform plus the sdist**: Linux x86_64 and aarch64 (`manylinux_2_28`, with
 the optional C++ reference engine and its OpenMP runtime bundled), Windows x86_64 and
 ARM64, and macOS arm64 and x86_64. Core is NumPy-only; reports are optional. The
@@ -41,6 +46,10 @@ callback speed is implied.
 
 ## One-time owner setup
 
+These steps configure a new publication destination or repair its setup. They are
+not a claim that every existing environment remains correctly configured; verify
+protections before each publication.
+
 1. Protect main and version tags `v*` against unauthorized changes/deletion.
 2. Create GitHub environments named **testpypi** and **pypi**, each with at least
    one required reviewer and main-only deployment rules. Prefer separate reviewers
@@ -60,9 +69,9 @@ callback speed is implied.
 5. Use no API token/password secret. Publishing is short-lived OIDC through the
    pinned official PyPA action; its PEP740 attestations remain enabled.
 
-The agent has not created environments/publishers/tags or uploaded packages.
-Owner confirmation authorizes preparation, not an implicit upload. Ordinary PR
-jobs remain read-only and receive no publisher OIDC permission.
+Preparation or a source merge does not authorize an implicit upload. Owner approval
+and protected publication workflows remain required. Ordinary pull-request jobs
+stay read-only and receive no publisher identity permission.
 
 ## Prepare and review a candidate
 
