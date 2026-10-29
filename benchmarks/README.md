@@ -2179,8 +2179,15 @@ The paired difference against sort has a 95 percent bootstrap interval of -1.58 
 -0.50 to -0.25 at 10 s for the priority decoder. The greedy value/weight solution alone (keys at
 0.5, no search) has a mean gap of 0.257, so search around the prior still improves on it.
 
+Scope: the prior is hand-written for Knapsack (value/weight), so this is an example of a
+caller-supplied, problem-specific decoder and not a general capability of the solver. Nothing in
+`rko_solver` changes. The measured fact is narrow: when the user can encode a good prior in the
+decoder, the portfolio gains from it, and `initial_keys` already lets a user warm-start from one.
+A claim that the solver improves on arbitrary problems would need a problem-agnostic mechanism
+measured on several unrelated problem families, which this study does not do.
+
 Limits: only Knapsack with at most 300 items and three generated families, one machine, one run,
-and the chosen spread sits at the edge of its grid. The prior is the classic greedy rule, so this
-shows the value of an analytic prior, not of a learned one: the remaining headroom on these
-families is under 0.01 percent. The quantile decoder costs one cumulative sum per position, which
-did not cost it wins at these sizes, but it was not tested beyond 300 items.
+and the chosen spread sits at the edge of its grid. The remaining headroom on these families is
+under 0.01 percent, so there is little left for a learned prior to gain here. The quantile decoder
+costs one cumulative sum per position, which did not cost it wins at these sizes, but it was not
+tested beyond 300 items.
