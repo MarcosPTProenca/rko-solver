@@ -2221,3 +2221,76 @@ Reading: on this study the prior is worth the same whether it enters through the
 one seed, so the decoders add nothing over `initial_keys`. What matters is a good starting solution,
 and the open question for a general solver is where one comes from when nothing is known about the
 problem.
+
+## Surrogate seeds across unrelated problems (negative result)
+
+`benchmarks/engines/surrogate_seed_study.py` asks whether starting keys built from a model fitted only
+to `(keys, cost)` pairs, with no domain features, improve the default portfolio at equal wall time on
+problems of different structure. It is the test that had to pass before designing any problem-agnostic
+learned decoder: the priority-decoder control above showed that a good starting solution is what
+matters, so the question is whether one can be obtained without knowing the problem.
+
+Five families share one decoder/cost interface: Knapsack with a sort decoder, Knapsack with the
+threshold decoder, TSP with a sort decoder, a shifted sphere and a shifted Rastrigin function. The
+surrogate samples `4n` uniform keys, fits a ridge regression of cost rank on key (penalty chosen on a
+held-out fifth) and offers three keys that move against the fitted gradient. A held-out correlation
+below 0.2 means no signal and no seed is offered. Arms: plain, plain repeated (noise floor), the three
+best sampled keys (to separate the surrogate from sampling) and the surrogate. Sampling and fitting
+time is taken out of the solve budget, so total wall time is equal. The score is the gap
+`(cost - best_known) / (median_random - best_known)`, where `best_known` is the lowest cost any arm
+found on the instance.
+
+Decision rule, fixed in the commit before the first result: promising only if the surrogate beats
+plain on at least three of five families with a 95 percent bootstrap interval entirely below zero,
+loses significantly on none, and also beats best-random on the families it wins.
+
+```bash
+uv run --locked python -m benchmarks.engines.surrogate_seed_study --output results/surrogate-seed-study.json
+uv run --locked python -m benchmarks.engines.surrogate_seed_study --size 300 --instances 8 --output results/surrogate-seed-study-n300.json
+```
+
+| Run | Keys | Instances per family | Families won | Significant losses | Verdict |
+|---|---:|---:|---|---|---|
+| [confirmatory](references/surrogate-seed-study-n100-reference.json) | 100 | 12 | none | Knapsack threshold | not promising |
+| [exploratory](references/surrogate-seed-study-n300-reference.json) | 300 | 8 | Knapsack sort, sphere | none | not promising (2 of 5) |
+
+Confirmatory run, 2 s: plain RKO is already at a normalized gap of 0.000 to 0.025 on every family, so
+there is almost nothing to improve and the test has little power. The surrogate is statistically tied
+with plain on four families and loses on the Knapsack threshold decoder (+0.001, interval +0.000 to
++0.003).
+
+The exploratory run used 300 keys because plain was measurably short of the optimum there in the
+priority-decoder study. This choice was made after seeing the 100-key result, so it is exploratory and
+not a second confirmation. Mean normalized gap, lower is better:
+
+| Family | plain | plain repeat | best-random | surrogate | Held-out correlation | Fallbacks |
+|---|---:|---:|---:|---:|---:|---:|
+| Knapsack, sort decoder | 0.028 | 0.053 | 0.035 | 0.001 | 0.76 | 0/8 |
+| Knapsack, threshold decoder | 0.009 | 0.010 | 0.006 | 0.012 | 0.57 | 0/8 |
+| TSP, sort decoder | 0.077 | 0.070 | 0.061 | 0.054 | 0.00 | 8/8 |
+| Shifted sphere | 0.001 | 0.003 | 0.003 | 0.000 | 0.81 | 0/8 |
+| Shifted Rastrigin | 0.047 | 0.046 | 0.036 | 0.045 | 0.15 | 6/8 |
+
+Where the surrogate wins, its paired interval against plain is -0.043 to -0.011 on Knapsack sort and
+-0.002 to -0.000 on the sphere, and it also beats best-random (-0.047 to -0.023 and -0.004 to -0.001),
+so the gain is not just sampling.
+
+What this supports and what it does not:
+
+- A linear surrogate finds usable structure only when cost depends roughly additively on the keys:
+  held-out correlation is 0.57 to 0.81 on Knapsack and the sphere, and about 0 on TSP with a sort
+  decoder and 0.15 on Rastrigin, where it mostly falls back to plain. On those two families the ties
+  say nothing about seeding itself, because no seeds were offered.
+- Even where it finds structure, the gain is not uniform: Knapsack with the threshold decoder shows
+  none and a small significant loss at 100 keys.
+- The noise floor is large. Plain rerun against plain differs by +0.025 on Knapsack sort at 300 keys
+  with an interval of +0.001 to +0.049, comparable to the size of the surrogate's gain, although the
+  surrogate's mean gap (0.001) is far below both plain runs (0.028 and 0.053).
+- Eight instances per family, one machine and one run per trial. Only a linear surrogate was tried, with
+  fixed sample size, amplitudes and fallback threshold; a nonlinear or neural model might do better and
+  this study does not say otherwise.
+
+Conclusion for the neural-decoder direction: no problem-agnostic seeding mechanism has passed its test.
+The linear surrogate is a negative result under its own rule, with a partial positive on
+separable-like problems. A neural decoder should not be designed as a library feature until some
+mechanism clears this same test on more than two of five unrelated families.
