@@ -36,6 +36,11 @@ public API: rko_solver.RKO, rko_solver.Callbacks | Numba | Blocks, rko_solver.pr
 | `engines/rust/rko-py/` | PyO3 bindings that build the `rko_solver._native` extension. |
 | `engines/cpp/` | The `rko-cpp` crate: wrapper, driver and the vendored RKO C++ v2.0 headers (`vendor/`, unchanged, MIT). Compiled only with `RKO_BUILD_CPP=1` on Linux. |
 | `engines/THIRD_PARTY_LICENSES.txt` | Inventory of the Rust crates linked into the extension, checked in CI. |
+| `src/rko_solver/modeling/` | Owned numerical models, optional frontend adapters and integration with `RKO.from_model`. |
+| `src/rko_solver/service/` | Optional private-service integration and application scaffolding. |
+| `src/rko_solver/experimental/` | Opt-in research features, including self-evolve. |
+| `tests/` | Repository-only tests of library behavior and development tools. |
+| `examples/` | Runnable demonstrations and reference instances, not installed with the library. |
 | `benchmarks/` | Reproducible measurements and the studies that produce them. |
 | `tools/` | Release validation, license inventory and installed-artifact smoke checks. |
 
@@ -59,6 +64,39 @@ public API: rko_solver.RKO, rko_solver.Callbacks | Numba | Blocks, rko_solver.pr
   `rko-py` and `rko_solver.problems`.
 - Native changes need `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --release
   -- -D warnings` and `cargo test --release`; see [Rust and C++ engines](native.md).
+
+## Import boundaries
+
+Run the development-only architecture check from the repository root:
+
+```bash
+uv run --locked lint-imports --no-cache
+```
+
+The four contracts live in `pyproject.toml`; continuous integration and a local pre-commit hook
+run the same command. The checker parses Python source rather than executing the library or its
+optional dependencies. `tests/test_import_boundaries.py` uses the real configuration against small
+isolated packages to verify both allowed and forbidden directions.
+
+| Contract | Enforced boundary |
+| --- | --- |
+| `repository-isolation` | No part of `rko_solver` imports `benchmarks`, `examples`, `tests` or `tools`. These repository areas may consume the library, not the reverse. |
+| `runtime-isolation` | Runtime children of `rko_solver` cannot depend on `service` or `experimental`, directly or indirectly. This includes newly added child modules. Each optional area may import its own internals, but not the other optional area. |
+| `public-facade-isolation` | The `rko_solver` package initializer and its public exports cannot load service or experimental modules through static import chains. Model result exports remain supported. |
+| `numerical-modeling-boundary` | `components`, `parameters`, `engines` and `metaheuristics` have no direct imports of `modeling`. |
+
+Imports under `if TYPE_CHECKING:` are checked too. Do not add ignore lists to hide a new dependency;
+keep feature-specific wiring at its existing integration boundary instead.
+
+The modeling rule deliberately permits indirect dependencies. The public solver, search sessions,
+result records and reporting already integrate `RKO.from_model`, and the single-algorithm facades
+use that solver. A transitive ban on all modeling code would reject this supported behavior.
+This contract prevents direct model-specific imports from spreading into numerical implementation
+packages; it does not claim the existing integration has been completely decoupled.
+
+These are static Python dependency checks, not a security sandbox. Computed dynamic imports,
+caller-provided callbacks and native Rust/C++ dependencies are outside their scope. The optional
+features stay in the same repository and distribution; no public functionality is removed.
 
 ## Deprecated import paths (removed in 0.4)
 

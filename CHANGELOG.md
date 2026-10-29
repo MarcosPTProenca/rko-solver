@@ -7,6 +7,12 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- Development-only Import Linter contracts, enforced in continuous integration and pre-commit,
+  keep installed library code independent of repository tools, deployment and research separate
+  from the runtime, and direct modeling imports out of numerical implementation packages.
+  Regression tests check the policy against isolated source trees. Existing model conversion and
+  the public API are unchanged; see [import boundaries](docs/architecture.md#import-boundaries).
+
 - [Convergence guarantees](docs/guarantees.md): the protected-exploration property, its
   `(1 - mu)^(p + m*G)` miss bound for BRKGA, and what it does not say. Two tests back it: the best
   cost never loses an improvement on any engine, and BRKGA's miss rate on a five-bit target stays
