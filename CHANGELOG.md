@@ -7,6 +7,13 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- Development-only quality automation. Local hooks now mirror the hosted quality job: commit hooks
+  add the document-noise gate and dead-code detection, push hooks add the type-error ratchet and the
+  debt counters, and a test fails when a hosted check that can run locally has no hook. Dependabot
+  refreshes GitHub Actions, `Cargo.lock` and `uv.lock` weekly in grouped pull requests, with a
+  seven-day cooldown and `lockfile-only` for Cargo and uv, so exact pins and tested minimums are
+  never rewritten. A pull request template and a [security policy](SECURITY.md) are added, and the
+  Python coverage floor rises from 88 to 89 percent. The installed library is unchanged.
 - [Installation and version guidance](docs/installation.md) separates current source from
   published prereleases, optional extras, regular artifacts and free-threading limits.
 - Development-only Import Linter contracts, enforced in continuous integration and pre-commit,
