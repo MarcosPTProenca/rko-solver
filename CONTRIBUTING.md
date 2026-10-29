@@ -145,7 +145,8 @@ Link new user-facing pages from an existing guide.
 ## Automation and policy
 
 `pre-commit install` registers two hook types. The commit hooks are fast: Ruff, import contracts,
-the structure and comment gate, the document-noise gate for new Markdown, and dead-code detection.
+the structure and comment gate, the document-noise gate for new Markdown, dead-code detection,
+and a hook that regenerates the service image lock when `uv.lock` or `pyproject.toml` change.
 The push hooks add the type-error ratchet and the debt counters. Run them without pushing with
 `uv run --locked pre-commit run --all-files --hook-stage pre-push`. The hosted `quality-gate` job
 runs the same checks plus the network-bound dependency audits (`pip-audit`, `cargo deny`).
@@ -163,7 +164,11 @@ pins, the tested minimum NumPy, the qualified model-frontend extras or the studi
 dependencies; change those by hand and say why. GitHub Actions are pinned to commit SHAs; the
 bot updates the SHA, so adjust the version in the step name when it merges a new release. Cargo
 updates change `Cargo.lock`, so regenerate `engines/THIRD_PARTY_LICENSES.txt` with
-`uv run python tools/third_party_licenses.py` when the license inventory check fails.
+`uv run python tools/third_party_licenses.py` when the license inventory check fails. A uv
+update that moves a runtime dependency also changes the hash-pinned `requirements.lock` of the
+service image, which the hosted `service` job compares with a fresh export; run
+`uv run --locked pre-commit run service-lock --all-files`, which rewrites the file and fails
+once, then commit the result.
 
 The pull request description follows [the template](.github/pull_request_template.md). Report
 security issues as described in [SECURITY](SECURITY.md), not in a public issue.

@@ -32,6 +32,12 @@ repos:
         language: system
         pass_filenames: false
         types: [python]
+      - id: service-lock
+        name: service image lock (regenerated from uv.lock)
+        entry: uv export --locked --no-default-groups --extra service --extra reports --no-emit-project --no-header --no-annotate --output-file src/rko_solver/service/templates/requirements.lock
+        language: system
+        pass_filenames: false
+        files: ^(uv\.lock|pyproject\.toml|src/rko_solver/service/templates/requirements\.lock)$
       - id: quality-gate-types
         name: quality gate (type-error ratchet)
         entry: uv run --locked python tools/quality_gate.py
