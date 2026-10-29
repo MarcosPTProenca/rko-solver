@@ -2148,3 +2148,39 @@ for engine, records in data["measurements"].items():
     print(engine, analysis.confirmation(records, data["selection"]["candidate"]))
 PY
 ```
+
+## Priority decoder pilot (training-free, Knapsack only)
+
+`benchmarks/engines/priority_decoder_study.py` asks whether an analytic item prior inside the
+decoder helps the default portfolio, before any network is trained. The decoders live in
+`examples/priority_decoders.py`: the plain sort decoder, a residual-priority decoder
+(`(1 - score) + spread * (key - 0.5)`, where keys at 0.5 give the greedy value/weight solution) and
+a quantile-codec decoder that draws each position with softmax probabilities of the score.
+
+```bash
+uv run --locked python -m benchmarks.engines.priority_decoder_study --output results/priority-decoder-e1.json
+```
+
+The study uses 24 test instances (three Pisinger families, 100 and 300 items, seeds 2000-2003,
+exact optima from the NumPy DP oracle). The hyperparameters were chosen on validation seeds 1000
+and then frozen. Budgets, seeds, portfolio and cost are identical across decoders.
+
+Mean optimality gap in percent, lower is better
+([reference](references/priority-decoder-e1-reference.json), one WSL2 machine, one run):
+
+| Decoder | 2 s | 10 s | Wins/losses/ties vs sort (2 s, 10 s) |
+|---|---:|---:|---|
+| threshold (C++ reference rule) | 2.694 | 1.094 | 1/22/1, 0/24/0 |
+| sort | 1.003 | 0.378 | reference |
+| priority (spread 0.25) | 0.009 | 0.005 | 22/0/2, 21/0/3 |
+| quantile (temperature 0.05) | 0.021 | 0.012 | 22/0/2, 21/0/3 |
+
+The paired difference against sort has a 95 percent bootstrap interval of -1.58 to -0.56 at 2 s and
+-0.50 to -0.25 at 10 s for the priority decoder. The greedy value/weight solution alone (keys at
+0.5, no search) has a mean gap of 0.257, so search around the prior still improves on it.
+
+Limits: only Knapsack with at most 300 items and three generated families, one machine, one run,
+and the chosen spread sits at the edge of its grid. The prior is the classic greedy rule, so this
+shows the value of an analytic prior, not of a learned one: the remaining headroom on these
+families is under 0.01 percent. The quantile decoder costs one cumulative sum per position, which
+did not cost it wins at these sizes, but it was not tested beyond 300 items.
