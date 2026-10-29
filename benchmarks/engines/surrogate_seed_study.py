@@ -1,21 +1,23 @@
 """Test whether surrogate-built `initial_keys` help RKO across unrelated problem families.
 
 Objective:
-- Decide, before designing any problem-agnostic learned decoder, whether a model fitted only to
-  (keys, cost) pairs, with no domain features, can produce starting keys that improve the default
-  portfolio at equal wall time on problems of different structure.
+- Measure whether a model fitted only to (keys, cost) pairs, without domain features, can produce
+  starting keys that improve the default portfolio after charging probing to the search allowance.
 
 Technical approach:
-- Five unrelated families share one interface (a pickleable decoder and cost over random keys):
-  Knapsack with a sort decoder, Knapsack with the threshold decoder, TSP with a sort decoder, a
+- Five benchmark groups share one interface (a pickleable decoder and cost over random keys):
+  Knapsack with two decoder variants, the traveling salesman problem with a sort decoder, a
   shifted sphere and a shifted Rastrigin function.
 - The surrogate samples `4 * n_variables` uniform keys, rank-transforms the costs, fits a ridge
   regression of cost rank on key with the penalty chosen on a held-out fifth, and proposes keys
   that move against the fitted gradient at three amplitudes. A held-out correlation below
   `MIN_CORRELATION` means the model found no signal and no seed is offered.
-- Four arms use the same instances, solver seeds and total wall time: plain, plain repeated (the
+- `--model mlp` swaps the ridge model for the NumPy network in `mlp_surrogate`; arms, rule and
+  threshold are unchanged.
+- Four arms use the same instances, solver seeds and nominal allowance: plain, plain repeated (the
   noise floor), best-random (the three best sampled keys, to isolate the surrogate from sampling)
-  and surrogate. Probe time is subtracted from the solve budget of the seeded arms.
+  and surrogate. Probe time is subtracted from the solve allowance of the seeded arms; process
+  startup and seed evaluation remain outside it, and a 0.05-second minimum can exceed the budget.
 - Quality is the normalized gap `(cost - best_known) / (median_random - best_known)`, where
   `best_known` is the lowest cost any arm found on that instance.
 
@@ -29,8 +31,11 @@ Important criteria:
 - Decision rule, fixed before any result existed: the surrogate is promising only if it beats plain
   on at least three of five families with a 95 percent bootstrap interval entirely below zero, it
   does not lose significantly on any family, and it also beats best-random on the families it wins.
-  Otherwise the problem-agnostic direction stops here.
-- Wall time is equal: sampling and fitting seconds are taken from the seeded arms' solve budget.
+  Otherwise this candidate fails the acceptance rule; other learned models remain untested.
+- Sampling and fitting reduce the seeded arms' search allowance. This is not a hard end-to-end
+  deadline: record probe time, remaining allowance and overruns rather than claiming exact parity.
+- The network run is fixed before any result: `--model mlp --size 300 --instances 12 --budget 2`,
+  the same rule and the same 0.2 held-out threshold as the linear run.
 - No domain knowledge reaches the surrogate; only keys and costs do.
 - Losses, fallbacks and failures are reported.
 
@@ -46,6 +51,7 @@ import json
 import numpy as np
 import sys
 import time
+from benchmarks.engines.mlp_surrogate import MlpSurrogate
 from benchmarks.engines.priority_decoder_study import InstanceFactory
 from benchmarks.engines.priority_decoder_study import PairedStatistics
 from collections.abc import Callable
@@ -242,14 +248,17 @@ class SurrogateSeeds:
         correlation (float): Held-out correlation of the selected model.
     """
 
-    def __init__(self, problem: Problem, seed: int) -> None:
+    def __init__(self, problem: Problem, seed: int, model: str = "linear") -> None:
         """Sample and evaluate the probe keys.
 
         Args:
             problem (Problem): Problem to sample.
             seed (int): Sampling seed.
+            model (str): `linear` for the ridge surrogate or `mlp` for the NumPy network.
         """
         self.problem = problem
+        self.model = model
+        self.seed = seed
         self.rng = np.random.default_rng(seed)
         count = SAMPLES_PER_KEY * problem.n_variables
         self.keys = self.rng.random((count, problem.n_variables))
@@ -302,6 +311,11 @@ class SurrogateSeeds:
         Returns:
             list[list[float]]: Starting keys, empty when the surrogate found no signal.
         """
+        if self.model == "mlp":
+            network = MlpSurrogate(self.keys, self.costs, self.seed)
+            seeds = network.propose(MIN_CORRELATION)
+            self.correlation = network.correlation
+            return seeds
         weights = self.fit()
         if weights is None:
             return []
@@ -329,9 +343,12 @@ class SeedingStudy:
         budget (float): Total wall seconds per arm.
         instances (int): Instances per family.
         resamples (int): Bootstrap resamples.
+        model (str): Surrogate used by the `surrogate` arm, `linear` or `mlp`.
     """
 
-    def __init__(self, size: int, budget: float, instances: int, resamples: int) -> None:
+    def __init__(
+        self, size: int, budget: float, instances: int, resamples: int, model: str = "linear"
+    ) -> None:
         """Store the study design.
 
         Args:
@@ -339,14 +356,16 @@ class SeedingStudy:
             budget (float): Total wall seconds per arm.
             instances (int): Instances per family.
             resamples (int): Bootstrap resamples.
+            model (str): Surrogate of the `surrogate` arm, `linear` or `mlp`.
         """
+        self.model = model
         self.size = size
         self.budget = budget
         self.instances = instances
         self.resamples = resamples
 
     def solve(self, problem: Problem, seed: int, arm: str) -> dict[str, Any]:
-        """Run one arm on one instance within the total budget.
+        """Run one arm after deducting probe work from its nominal search allowance.
 
         Args:
             problem (Problem): Instance to solve.
@@ -354,17 +373,18 @@ class SeedingStudy:
             arm (str): One of `ARMS`.
 
         Returns:
-            dict[str, Any]: Arm, instance, final cost, seeds offered, correlation and total
-            wall seconds.
+            dict[str, Any]: Arm, instance, cost, seeds, correlation, end-to-end seconds, probe
+            seconds, remaining search allowance and whether probing exhausted the allowance.
         """
         started = time.perf_counter()
         seeds: list[list[float]] = []
         correlation = None
         if arm in ("best_random", "surrogate"):
-            sampler = SurrogateSeeds(problem, seed)
+            sampler = SurrogateSeeds(problem, seed, self.model)
             seeds = sampler.best_random() if arm == "best_random" else sampler.surrogate()
             correlation = sampler.correlation if arm == "surrogate" else None
-        remaining = max(self.budget - (time.perf_counter() - started), 0.05)
+        probe_seconds = time.perf_counter() - started
+        remaining = max(self.budget - probe_seconds, 0.05)
         result = RKO(
             problem.decoder,
             problem.cost,
@@ -379,6 +399,9 @@ class SeedingStudy:
             "cost": float(result.cost),
             "seeds": len(seeds),
             "correlation": correlation,
+            "probe_seconds": probe_seconds,
+            "search_budget_seconds": remaining,
+            "probe_over_budget": probe_seconds >= self.budget,
             "seconds": time.perf_counter() - started,
         }
 
@@ -508,6 +531,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--budget", type=float, default=2.0)
     parser.add_argument("--instances", type=int, default=12)
     parser.add_argument("--resamples", type=int, default=10000)
+    parser.add_argument("--model", choices=("linear", "mlp"), default="linear")
     parser.add_argument("--output", type=Path, default=Path("results/surrogate-seed-study.json"))
     return parser.parse_args(argv)
 
@@ -522,7 +546,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         int: Process exit status.
     """
     options = parse_args(argv)
-    study = SeedingStudy(options.size, options.budget, options.instances, options.resamples)
+    study = SeedingStudy(
+        options.size, options.budget, options.instances, options.resamples, options.model
+    )
     rows = study.run()
     report = {
         "design": vars(options) | {"output": str(options.output)},

@@ -2225,18 +2225,21 @@ problem.
 ## Surrogate seeds across unrelated problems (negative result)
 
 `benchmarks/engines/surrogate_seed_study.py` asks whether starting keys built from a model fitted only
-to `(keys, cost)` pairs, with no domain features, improve the default portfolio at equal wall time on
-problems of different structure. It is the test that had to pass before designing any problem-agnostic
-learned decoder: the priority-decoder control above showed that a good starting solution is what
-matters, so the question is whether one can be obtained without knowing the problem.
+to `(keys, cost)` pairs, with no domain features, improve the default portfolio after charging probing
+to the search allowance. It tests one candidate mechanism, not every possible learned decoder. The
+priority-decoder control above motivates asking whether useful starting keys can be obtained without
+hand-written domain features.
 
-Five families share one decoder/cost interface: Knapsack with a sort decoder, Knapsack with the
-threshold decoder, TSP with a sort decoder, a shifted sphere and a shifted Rastrigin function. The
+Five benchmark groups share one decoder/cost interface: Knapsack with a sort decoder, Knapsack with
+the threshold decoder, the traveling salesman problem with a sort decoder, a shifted sphere and a
+shifted Rastrigin function. The two Knapsack groups are decoder variants, not independent families. The
 surrogate samples `4n` uniform keys, fits a ridge regression of cost rank on key (penalty chosen on a
 held-out fifth) and offers three keys that move against the fitted gradient. A held-out correlation
 below 0.2 means no signal and no seed is offered. Arms: plain, plain repeated (noise floor), the three
 best sampled keys (to separate the surrogate from sampling) and the surrogate. Sampling and fitting
-time is taken out of the solve budget, so total wall time is equal. The score is the gap
+time is taken out of the search allowance, but this is not a strict end-to-end deadline: process
+startup and seed evaluation are extra, and the 0.05-second search minimum can overrun the allowance.
+The score is the gap
 `(cost - best_known) / (median_random - best_known)`, where `best_known` is the lowest cost any arm
 found on the instance.
 
@@ -2277,8 +2280,8 @@ so the gain is not just sampling.
 
 What this supports and what it does not:
 
-- A linear surrogate finds usable structure only when cost depends roughly additively on the keys:
-  held-out correlation is 0.57 to 0.81 on Knapsack and the sphere, and about 0 on TSP with a sort
+- In this run, the linear surrogate finds more predictive signal on Knapsack and the sphere:
+  validation correlation is 0.57 to 0.81 there, about 0 on the traveling salesman problem with a sort
   decoder and 0.15 on Rastrigin, where it mostly falls back to plain. On those two families the ties
   say nothing about seeding itself, because no seeds were offered.
 - Even where it finds structure, the gain is not uniform: Knapsack with the threshold decoder shows
@@ -2290,7 +2293,67 @@ What this supports and what it does not:
   fixed sample size, amplitudes and fallback threshold; a nonlinear or neural model might do better and
   this study does not say otherwise.
 
-Conclusion for the neural-decoder direction: no problem-agnostic seeding mechanism has passed its test.
-The linear surrogate is a negative result under its own rule, with a partial positive on
-separable-like problems. A neural decoder should not be designed as a library feature until some
-mechanism clears this same test on more than two of five unrelated families.
+Conclusion for the linear candidate: it fails its acceptance rule, with a partial positive on two
+benchmark groups. This does not establish that neural decoders cannot work. Model conversion and
+decoder self-evolution remain separate mechanisms; these experiments neither replace nor invalidate
+them.
+
+### Nonlinear seed pilot: a small NumPy network
+
+The follow-up trains a one-hidden-layer neural network on sampled `(keys, cost)` pairs for each
+instance. It is a neural cost predictor that proposes starting keys, not a learned replacement for
+the user's decoder. No problem-specific features or pretrained weights enter the model. No public
+solver code, runtime dependency or library feature changes.
+
+Protocol commit: `73fda98`, before the full run. The model has 16 tanh hidden units, trains for
+150 full-batch Adam epochs on 80 percent of 1,200 samples, and selects a checkpoint using the other
+20 percent. Correlation below 0.2 produces no seeds. Otherwise, three best sampled keys take
+30 projected gradient steps through the network. The rule remains three qualifying wins, no
+significant loss, and better mean quality than best-random on the winning groups.
+
+```bash
+uv run --locked python -m benchmarks.engines.surrogate_seed_study --model mlp --size 300 --instances 12 --budget 2 --output results/surrogate-seed-study-mlp-n300.json
+```
+
+[Reference measurement](references/surrogate-seed-study-mlp-n300-reference.json): 240 trials, 12 instances
+per group, 300 keys, nominal 2-second allowance, one machine. Scores below are normalized gaps, not
+percent optimality gaps; lower is better. Intervals are unadjusted paired 95 percent bootstrap
+intervals for network minus plain, resampling instances.
+
+| Group | Plain | Network | Difference interval | No-seed fallbacks |
+|---|---:|---:|---|---:|
+| Knapsack, sort decoder | 0.0324 | 0.0142 | -0.0418 to +0.0051 | 0/12 |
+| Knapsack, threshold decoder | 0.0191 | 0.0256 | -0.0140 to +0.0254 | 0/12 |
+| Traveling salesman, sort decoder | 0.0411 | 0.2817 | +0.1301 to +0.3737 | 12/12 |
+| Shifted sphere | 0.0139 | 0.1326 | +0.0443 to +0.2015 | 0/12 |
+| Shifted Rastrigin | 0.0305 | 0.4859 | +0.3055 to +0.5945 | 9/12 |
+
+The network has zero qualifying wins and three significant losses under the declared rule. Its
+Knapsack-sort mean improves and beats best-random in this comparison, but the interval against plain
+still crosses zero. For the traveling salesman group, every run offers zero seeds, so that loss
+cannot be attributed to bad proposed seeds: probing consumes time without contributing a warm start.
+
+Timing qualification matters. Mean end-to-end times in the full run were 3.215 seconds for plain and
+3.278 for the network, including startup. The original full-run records did not separate sampling,
+training and search time, so they do not establish which phase caused each loss. Later repeated
+training checks were much slower than the initial 0.2–0.3-second preflight; that initial timing is
+not a reliable overhead estimate.
+
+A separately labeled [timing diagnostic](references/surrogate-seed-study-mlp-timing-reference.json)
+adds phase timing fields without changing the model or rule. On the first instance of each group,
+sampling plus training and seed generation took 1.05–2.80 seconds, leaving 0.05–0.95 seconds of search.
+Three of the five probes exhausted the nominal 2-second allowance; the existing 0.05-second minimum
+then overruns it. This diagnostic is not a replacement full study or a new acceptance result. It
+shows that this fixed training procedure cannot reliably fit the proposed short budget on this host.
+
+Limits: one small network, one architecture and seed-generation strategy, one machine, one run per
+trial, and twelve instances per group. Instance seeds 3000–3011 reuse the earlier study workload;
+the first seed was also used for timing preflight. These are not an untouched new test set. The
+checkpoint-selection subset also supplies the correlation threshold, so its score is not an
+independent estimate after model selection. No deeper network, long-budget training, learned
+constructive decoder or direct comparison with model conversion or decoder self-evolution was tested.
+
+Decision: do not promote this implementation to a general solver feature on the present evidence.
+That is a result about this short-budget neural seeding procedure, not proof that deep-learning
+decoders are impossible. The experiment still requires an existing decoder and therefore does not
+solve automatic decoder construction.
