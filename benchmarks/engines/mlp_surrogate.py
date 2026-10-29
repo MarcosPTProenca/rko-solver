@@ -6,8 +6,8 @@ Objective:
 
 Technical approach:
 - `MlpSurrogate` regresses a centered cost rank on the keys with one tanh hidden layer, trained by
-  full-batch Adam with weight decay on 80 percent of the samples. The remaining fifth selects the
-  epoch (early stopping) and gives the held-out correlation used as the no-signal test.
+  full-batch Adam with weight decay on 80 percent of the samples. Training runs for all epochs;
+  the remaining fifth selects a checkpoint and supplies the correlation used as the no-signal test.
 - Proposals run projected gradient descent on the fitted model, in key space, from the lowest-cost
   sampled keys; the input gradient is analytic, so the real objective is not evaluated again.
 - Everything is NumPy on CPU with a fixed seed; no framework and no GPU.
@@ -48,7 +48,7 @@ class MlpSurrogate:
     """Fit a small tanh network to cost ranks and descend it in key space.
 
     Responsibilities:
-    - Train with early stopping on a held-out fifth and report its correlation.
+    - Train for the fixed epoch count and select a checkpoint using a validation fifth.
     - Propose keys by projected gradient descent on the fitted model.
 
     Attributes:

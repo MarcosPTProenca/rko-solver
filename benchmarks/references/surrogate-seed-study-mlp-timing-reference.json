@@ -1,0 +1,532 @@
+{
+  "design": {
+    "size": 300,
+    "budget": 2.0,
+    "instances": 1,
+    "resamples": 100,
+    "model": "mlp",
+    "output": "results/surrogate-seed-study-mlp-timing-diagnostic.json"
+  },
+  "verdict": {
+    "paired_vs_plain": {
+      "knapsack_sort": {
+        "plain_repeat": {
+          "candidate_gap": 0.0,
+          "reference_gap": 0.008850615955029303,
+          "difference": -0.008850615955029303,
+          "ci_low": -0.008850615955029303,
+          "ci_high": -0.008850615955029303,
+          "wins": 1,
+          "losses": 0,
+          "ties": 0
+        },
+        "best_random": {
+          "candidate_gap": 0.019614878603037914,
+          "reference_gap": 0.008850615955029303,
+          "difference": 0.01076426264800861,
+          "ci_low": 0.01076426264800861,
+          "ci_high": 0.01076426264800861,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "surrogate": {
+          "candidate_gap": 0.35833034326037555,
+          "reference_gap": 0.008850615955029303,
+          "difference": 0.34947972730534627,
+          "ci_low": 0.34947972730534627,
+          "ci_high": 0.34947972730534627,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "surrogate_vs_best_random": {
+          "candidate_gap": 0.35833034326037555,
+          "reference_gap": 0.019614878603037914,
+          "difference": 0.33871546465733765,
+          "ci_low": 0.33871546465733765,
+          "ci_high": 0.33871546465733765,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "beats_plain": false,
+        "loses_to_plain": true
+      },
+      "knapsack_threshold": {
+        "plain_repeat": {
+          "candidate_gap": 0.00036895647801287183,
+          "reference_gap": 0.00022415097857771246,
+          "difference": 0.00014480549943515937,
+          "ci_low": 0.00014480549943515937,
+          "ci_high": 0.00014480549943515937,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "best_random": {
+          "candidate_gap": 0.0,
+          "reference_gap": 0.00022415097857771246,
+          "difference": -0.00022415097857771246,
+          "ci_low": -0.00022415097857771246,
+          "ci_high": -0.00022415097857771246,
+          "wins": 1,
+          "losses": 0,
+          "ties": 0
+        },
+        "surrogate": {
+          "candidate_gap": 0.0016245986854437743,
+          "reference_gap": 0.00022415097857771246,
+          "difference": 0.0014004477068660618,
+          "ci_low": 0.0014004477068660618,
+          "ci_high": 0.0014004477068660618,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "surrogate_vs_best_random": {
+          "candidate_gap": 0.0016245986854437743,
+          "reference_gap": 0.0,
+          "difference": 0.0016245986854437743,
+          "ci_low": 0.0016245986854437743,
+          "ci_high": 0.0016245986854437743,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "beats_plain": false,
+        "loses_to_plain": true
+      },
+      "tsp_sort": {
+        "plain_repeat": {
+          "candidate_gap": 0.0,
+          "reference_gap": 0.011420910214624838,
+          "difference": -0.011420910214624838,
+          "ci_low": -0.011420910214624838,
+          "ci_high": -0.011420910214624838,
+          "wins": 1,
+          "losses": 0,
+          "ties": 0
+        },
+        "best_random": {
+          "candidate_gap": 0.08034590697678559,
+          "reference_gap": 0.011420910214624838,
+          "difference": 0.06892499676216075,
+          "ci_low": 0.06892499676216075,
+          "ci_high": 0.06892499676216075,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "surrogate": {
+          "candidate_gap": 0.597591320103305,
+          "reference_gap": 0.011420910214624838,
+          "difference": 0.5861704098886801,
+          "ci_low": 0.5861704098886801,
+          "ci_high": 0.5861704098886801,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "surrogate_vs_best_random": {
+          "candidate_gap": 0.597591320103305,
+          "reference_gap": 0.08034590697678559,
+          "difference": 0.5172454131265194,
+          "ci_low": 0.5172454131265194,
+          "ci_high": 0.5172454131265194,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "beats_plain": false,
+        "loses_to_plain": true
+      },
+      "sphere": {
+        "plain_repeat": {
+          "candidate_gap": 0.06614908627005069,
+          "reference_gap": 0.0,
+          "difference": 0.06614908627005069,
+          "ci_low": 0.06614908627005069,
+          "ci_high": 0.06614908627005069,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "best_random": {
+          "candidate_gap": 0.0357240338444971,
+          "reference_gap": 0.0,
+          "difference": 0.0357240338444971,
+          "ci_low": 0.0357240338444971,
+          "ci_high": 0.0357240338444971,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "surrogate": {
+          "candidate_gap": 0.45195995989253884,
+          "reference_gap": 0.0,
+          "difference": 0.45195995989253884,
+          "ci_low": 0.45195995989253884,
+          "ci_high": 0.45195995989253884,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "surrogate_vs_best_random": {
+          "candidate_gap": 0.45195995989253884,
+          "reference_gap": 0.0357240338444971,
+          "difference": 0.4162359260480417,
+          "ci_low": 0.4162359260480417,
+          "ci_high": 0.4162359260480417,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "beats_plain": false,
+        "loses_to_plain": true
+      },
+      "rastrigin": {
+        "plain_repeat": {
+          "candidate_gap": 0.0,
+          "reference_gap": 0.12327966052337634,
+          "difference": -0.12327966052337634,
+          "ci_low": -0.12327966052337634,
+          "ci_high": -0.12327966052337634,
+          "wins": 1,
+          "losses": 0,
+          "ties": 0
+        },
+        "best_random": {
+          "candidate_gap": 0.07709707841949368,
+          "reference_gap": 0.12327966052337634,
+          "difference": -0.046182582103882666,
+          "ci_low": -0.046182582103882666,
+          "ci_high": -0.046182582103882666,
+          "wins": 1,
+          "losses": 0,
+          "ties": 0
+        },
+        "surrogate": {
+          "candidate_gap": 0.827485634865847,
+          "reference_gap": 0.12327966052337634,
+          "difference": 0.7042059743424707,
+          "ci_low": 0.7042059743424707,
+          "ci_high": 0.7042059743424707,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "surrogate_vs_best_random": {
+          "candidate_gap": 0.827485634865847,
+          "reference_gap": 0.07709707841949368,
+          "difference": 0.7503885564463534,
+          "ci_low": 0.7503885564463534,
+          "ci_high": 0.7503885564463534,
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        },
+        "beats_plain": false,
+        "loses_to_plain": true
+      }
+    },
+    "wins": [],
+    "significant_losses": [
+      "knapsack_sort",
+      "knapsack_threshold",
+      "tsp_sort",
+      "sphere",
+      "rastrigin"
+    ],
+    "promising": false
+  },
+  "trials": [
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3000",
+      "family": "knapsack_sort",
+      "cost": -11788.0,
+      "seeds": 0,
+      "correlation": null,
+      "probe_seconds": 1.6420017345808446e-06,
+      "search_budget_seconds": 1.9999983579982654,
+      "probe_over_budget": false,
+      "seconds": 3.521576028000709,
+      "gap": 0.008850615955029303
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3000",
+      "family": "knapsack_sort",
+      "cost": -11825.0,
+      "seeds": 0,
+      "correlation": null,
+      "probe_seconds": 1.3739991118200123e-06,
+      "search_budget_seconds": 1.9999986260008882,
+      "probe_over_budget": false,
+      "seconds": 3.6500141770011396,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3000",
+      "family": "knapsack_sort",
+      "cost": -11743.0,
+      "seeds": 3,
+      "correlation": null,
+      "probe_seconds": 0.10809006600175053,
+      "search_budget_seconds": 1.8919099339982495,
+      "probe_over_budget": false,
+      "seconds": 3.6134035030008818,
+      "gap": 0.019614878603037914
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3000",
+      "family": "knapsack_sort",
+      "cost": -10327.0,
+      "seeds": 3,
+      "correlation": 0.7463140693785686,
+      "probe_seconds": 2.0684854490027647,
+      "search_budget_seconds": 0.05,
+      "probe_over_budget": true,
+      "seconds": 3.9635712780000176,
+      "gap": 0.35833034326037555
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3000",
+      "family": "knapsack_threshold",
+      "cost": -11498.0,
+      "seeds": 0,
+      "correlation": null,
+      "probe_seconds": 1.2919990695081651e-06,
+      "search_budget_seconds": 1.9999987080009305,
+      "probe_over_budget": false,
+      "seconds": 3.80079984799886,
+      "gap": 0.00022415097857771246
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3000",
+      "family": "knapsack_threshold",
+      "cost": -11425.0,
+      "seeds": 0,
+      "correlation": null,
+      "probe_seconds": 7.899980118963867e-07,
+      "search_budget_seconds": 1.999999210001988,
+      "probe_over_budget": false,
+      "seconds": 3.720528576999641,
+      "gap": 0.00036895647801287183
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3000",
+      "family": "knapsack_threshold",
+      "cost": -11611.0,
+      "seeds": 3,
+      "correlation": null,
+      "probe_seconds": 0.1314154689971474,
+      "search_budget_seconds": 1.8685845310028526,
+      "probe_over_budget": false,
+      "seconds": 3.454735289000382,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3000",
+      "family": "knapsack_threshold",
+      "cost": -10792.0,
+      "seeds": 3,
+      "correlation": 0.5997198447451378,
+      "probe_seconds": 1.0501320860021224,
+      "search_budget_seconds": 0.9498679139978776,
+      "probe_over_budget": false,
+      "seconds": 3.5011392859996704,
+      "gap": 0.0016245986854437743
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3000",
+      "family": "tsp_sort",
+      "cost": 82.73217011808015,
+      "seeds": 0,
+      "correlation": null,
+      "probe_seconds": 6.849986675661057e-07,
+      "search_budget_seconds": 1.9999993150013324,
+      "probe_over_budget": false,
+      "seconds": 3.567417154998111,
+      "gap": 0.011420910214624838
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3000",
+      "family": "tsp_sort",
+      "cost": 81.88495627934657,
+      "seeds": 0,
+      "correlation": null,
+      "probe_seconds": 8.029965101741254e-07,
+      "search_budget_seconds": 1.9999991970034898,
+      "probe_over_budget": false,
+      "seconds": 3.5151731049991213,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3000",
+      "family": "tsp_sort",
+      "cost": 87.84509106695462,
+      "seeds": 3,
+      "correlation": null,
+      "probe_seconds": 0.07221197499893606,
+      "search_budget_seconds": 1.927788025001064,
+      "probe_over_budget": false,
+      "seconds": 3.6623278229999414,
+      "gap": 0.08034590697678559
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3000",
+      "family": "tsp_sort",
+      "cost": 126.21484126962268,
+      "seeds": 0,
+      "correlation": 0.13927007361628838,
+      "probe_seconds": 1.6291110130005109,
+      "search_budget_seconds": 0.37088898699948913,
+      "probe_over_budget": false,
+      "seconds": 3.8731024199987587,
+      "gap": 0.597591320103305
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3000",
+      "family": "sphere",
+      "cost": 3.206671688431773,
+      "seeds": 0,
+      "correlation": null,
+      "probe_seconds": 7.779999577905983e-07,
+      "search_budget_seconds": 1.9999992220000422,
+      "probe_over_budget": false,
+      "seconds": 4.617240880997997,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3000",
+      "family": "sphere",
+      "cost": 5.676787564276583,
+      "seeds": 0,
+      "correlation": null,
+      "probe_seconds": 7.189992174971849e-07,
+      "search_budget_seconds": 1.9999992810007825,
+      "probe_over_budget": false,
+      "seconds": 4.75597892299993,
+      "gap": 0.06614908627005069
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3000",
+      "family": "sphere",
+      "cost": 4.540665975038598,
+      "seeds": 3,
+      "correlation": null,
+      "probe_seconds": 0.02209191799920518,
+      "search_budget_seconds": 1.9779080820007948,
+      "probe_over_budget": false,
+      "seconds": 4.316035427000315,
+      "gap": 0.0357240338444971
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3000",
+      "family": "sphere",
+      "cost": 20.083601289834238,
+      "seeds": 3,
+      "correlation": 0.7721740476018257,
+      "probe_seconds": 2.8036319879975053,
+      "search_budget_seconds": 0.05,
+      "probe_over_budget": true,
+      "seconds": 4.866775967999274,
+      "gap": 0.45195995989253884
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3000",
+      "family": "rastrigin",
+      "cost": 1668.6015362707894,
+      "seeds": 0,
+      "correlation": null,
+      "probe_seconds": 1.344000338576734e-06,
+      "search_budget_seconds": 1.9999986559996614,
+      "probe_over_budget": false,
+      "seconds": 4.046582041002694,
+      "gap": 0.12327966052337634
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3000",
+      "family": "rastrigin",
+      "cost": 1115.1831322258852,
+      "seeds": 0,
+      "correlation": null,
+      "probe_seconds": 4.760004230774939e-07,
+      "search_budget_seconds": 1.999999523999577,
+      "probe_over_budget": false,
+      "seconds": 3.6944152590003796,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3000",
+      "family": "rastrigin",
+      "cost": 1461.2819283638783,
+      "seeds": 3,
+      "correlation": null,
+      "probe_seconds": 0.05037613500098814,
+      "search_budget_seconds": 1.9496238649990119,
+      "probe_over_budget": false,
+      "seconds": 3.7784654349998164,
+      "gap": 0.07709707841949368
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3000",
+      "family": "rastrigin",
+      "cost": 4829.87359676286,
+      "seeds": 0,
+      "correlation": 0.037739237465573,
+      "probe_seconds": 2.1093706529973133,
+      "search_budget_seconds": 0.05,
+      "probe_over_budget": true,
+      "seconds": 3.9207402349966287,
+      "gap": 0.827485634865847
+    }
+  ],
+  "provenance": {
+    "machine": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "processor": "Intel Core i7-1255U",
+    "logical_cpus": 6,
+    "python": "3.14.7 free-threading build (main, Aug 25 2026, 14:01:34) [Clang 22.1.3 ]",
+    "protocol_commit": "73fda98",
+    "base_commit": "8e44682",
+    "model": {
+      "hidden_units": 16,
+      "epochs": 150,
+      "learning_rate": 0.01,
+      "weight_decay": 0.001,
+      "samples_per_key": 4,
+      "minimum_correlation": 0.2,
+      "proposal_steps": 30,
+      "proposal_step_size": 0.02,
+      "starts": 3
+    },
+    "role": "post-result phase-timing diagnostic; not an acceptance study",
+    "source": "instrumented working tree after 73fda98",
+    "raw_measurement_sha256": "776203843c670a19b1eb9a9ae7a69e1218802841a4d7f9aeede093d3b048f30c",
+    "command": "uv run --locked --no-sync python -m benchmarks.engines.surrogate_seed_study --model mlp --size 300 --instances 1 --budget 2 --resamples 100 --output results/surrogate-seed-study-mlp-timing-diagnostic.json",
+    "instrumented_source_sha256": {
+      "benchmarks/engines/mlp_surrogate.py": "c7271875a0cf452929692419d1a9d1c6a127832c12918ff3d5a54f4d3dfa1218",
+      "benchmarks/engines/surrogate_seed_study.py": "c4316fbf8351ea6dc97e7a64700302a98a267558798357938a8a290b3f82e3a1"
+    }
+  }
+}

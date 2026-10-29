@@ -1,0 +1,2667 @@
+{
+  "design": {
+    "size": 300,
+    "budget": 2.0,
+    "instances": 12,
+    "resamples": 10000,
+    "model": "mlp",
+    "output": "results/surrogate-seed-study-mlp-n300.json"
+  },
+  "verdict": {
+    "paired_vs_plain": {
+      "knapsack_sort": {
+        "plain_repeat": {
+          "candidate_gap": 0.03038759115020051,
+          "reference_gap": 0.03244621728881333,
+          "difference": -0.0020586261386128127,
+          "ci_low": -0.016498816882637782,
+          "ci_high": 0.010926798398331695,
+          "wins": 6,
+          "losses": 6,
+          "ties": 0
+        },
+        "best_random": {
+          "candidate_gap": 0.03060637446930073,
+          "reference_gap": 0.03244621728881333,
+          "difference": -0.001839842819512602,
+          "ci_low": -0.01980487277035676,
+          "ci_high": 0.01880593264715219,
+          "wins": 7,
+          "losses": 5,
+          "ties": 0
+        },
+        "surrogate": {
+          "candidate_gap": 0.014193232253263861,
+          "reference_gap": 0.03244621728881333,
+          "difference": -0.018252985035549462,
+          "ci_low": -0.04179640970636317,
+          "ci_high": 0.00511574446060402,
+          "wins": 6,
+          "losses": 6,
+          "ties": 0
+        },
+        "surrogate_vs_best_random": {
+          "candidate_gap": 0.014193232253263861,
+          "reference_gap": 0.03060637446930073,
+          "difference": -0.01641314221603686,
+          "ci_low": -0.031195549813597213,
+          "ci_high": -0.0010622872178615626,
+          "wins": 7,
+          "losses": 5,
+          "ties": 0
+        },
+        "beats_plain": false,
+        "loses_to_plain": false
+      },
+      "knapsack_threshold": {
+        "plain_repeat": {
+          "candidate_gap": 0.017917980305497624,
+          "reference_gap": 0.019057716211776987,
+          "difference": -0.0011397359062793658,
+          "ci_low": -0.023190283112075733,
+          "ci_high": 0.01994039604335321,
+          "wins": 8,
+          "losses": 4,
+          "ties": 0
+        },
+        "best_random": {
+          "candidate_gap": 0.017081618418289857,
+          "reference_gap": 0.019057716211776987,
+          "difference": -0.0019760977934871315,
+          "ci_low": -0.025102408965601373,
+          "ci_high": 0.019465742724387208,
+          "wins": 7,
+          "losses": 5,
+          "ties": 0
+        },
+        "surrogate": {
+          "candidate_gap": 0.02557267387323527,
+          "reference_gap": 0.019057716211776987,
+          "difference": 0.006514957661458281,
+          "ci_low": -0.014019042264531927,
+          "ci_high": 0.02535948267963004,
+          "wins": 4,
+          "losses": 8,
+          "ties": 0
+        },
+        "surrogate_vs_best_random": {
+          "candidate_gap": 0.02557267387323527,
+          "reference_gap": 0.017081618418289857,
+          "difference": 0.008491055454945415,
+          "ci_low": -0.0016231137020804776,
+          "ci_high": 0.018993183037321806,
+          "wins": 4,
+          "losses": 8,
+          "ties": 0
+        },
+        "beats_plain": false,
+        "loses_to_plain": false
+      },
+      "tsp_sort": {
+        "plain_repeat": {
+          "candidate_gap": 0.07146168861492884,
+          "reference_gap": 0.04113536502649853,
+          "difference": 0.030326323588430293,
+          "ci_low": -0.022051133828279855,
+          "ci_high": 0.09160918503811791,
+          "wins": 6,
+          "losses": 6,
+          "ties": 0
+        },
+        "best_random": {
+          "candidate_gap": 0.08617204891518626,
+          "reference_gap": 0.04113536502649853,
+          "difference": 0.04503668388868773,
+          "ci_low": -0.012422436814857996,
+          "ci_high": 0.105451192421237,
+          "wins": 6,
+          "losses": 6,
+          "ties": 0
+        },
+        "surrogate": {
+          "candidate_gap": 0.2817169197187264,
+          "reference_gap": 0.04113536502649853,
+          "difference": 0.24058155469222794,
+          "ci_low": 0.13012712554827607,
+          "ci_high": 0.3736877930176368,
+          "wins": 0,
+          "losses": 12,
+          "ties": 0
+        },
+        "surrogate_vs_best_random": {
+          "candidate_gap": 0.2817169197187264,
+          "reference_gap": 0.08617204891518626,
+          "difference": 0.1955448708035402,
+          "ci_low": 0.09106562501483426,
+          "ci_high": 0.32781939752239847,
+          "wins": 2,
+          "losses": 10,
+          "ties": 0
+        },
+        "beats_plain": false,
+        "loses_to_plain": true
+      },
+      "sphere": {
+        "plain_repeat": {
+          "candidate_gap": 0.01190976249415474,
+          "reference_gap": 0.013863502527386802,
+          "difference": -0.0019537400332320636,
+          "ci_low": -0.014911457056683952,
+          "ci_high": 0.010917145087513033,
+          "wins": 4,
+          "losses": 8,
+          "ties": 0
+        },
+        "best_random": {
+          "candidate_gap": 0.026074215592803787,
+          "reference_gap": 0.013863502527386802,
+          "difference": 0.012210713065416982,
+          "ci_low": -0.01458258072501177,
+          "ci_high": 0.036193540323813604,
+          "wins": 3,
+          "losses": 9,
+          "ties": 0
+        },
+        "surrogate": {
+          "candidate_gap": 0.1326209202874812,
+          "reference_gap": 0.013863502527386802,
+          "difference": 0.1187574177600944,
+          "ci_low": 0.04434986057867835,
+          "ci_high": 0.2014687012593533,
+          "wins": 3,
+          "losses": 9,
+          "ties": 0
+        },
+        "surrogate_vs_best_random": {
+          "candidate_gap": 0.1326209202874812,
+          "reference_gap": 0.026074215592803787,
+          "difference": 0.10654670469467743,
+          "ci_low": 0.03774650931571921,
+          "ci_high": 0.18418654802594878,
+          "wins": 3,
+          "losses": 9,
+          "ties": 0
+        },
+        "beats_plain": false,
+        "loses_to_plain": true
+      },
+      "rastrigin": {
+        "plain_repeat": {
+          "candidate_gap": 0.045125590888460576,
+          "reference_gap": 0.030473465615780987,
+          "difference": 0.01465212527267959,
+          "ci_low": -0.02318193696592774,
+          "ci_high": 0.05286930763816606,
+          "wins": 6,
+          "losses": 6,
+          "ties": 0
+        },
+        "best_random": {
+          "candidate_gap": 0.046618849184865786,
+          "reference_gap": 0.030473465615780987,
+          "difference": 0.0161453835690848,
+          "ci_low": -0.015641945442220848,
+          "ci_high": 0.04815766933237154,
+          "wins": 5,
+          "losses": 7,
+          "ties": 0
+        },
+        "surrogate": {
+          "candidate_gap": 0.4859043777850232,
+          "reference_gap": 0.030473465615780987,
+          "difference": 0.4554309121692423,
+          "ci_low": 0.3054832392051774,
+          "ci_high": 0.5944809607718105,
+          "wins": 1,
+          "losses": 11,
+          "ties": 0
+        },
+        "surrogate_vs_best_random": {
+          "candidate_gap": 0.4859043777850232,
+          "reference_gap": 0.046618849184865786,
+          "difference": 0.4392855286001575,
+          "ci_low": 0.3049099944759705,
+          "ci_high": 0.5650150197047434,
+          "wins": 1,
+          "losses": 11,
+          "ties": 0
+        },
+        "beats_plain": false,
+        "loses_to_plain": true
+      }
+    },
+    "wins": [],
+    "significant_losses": [
+      "tsp_sort",
+      "sphere",
+      "rastrigin"
+    ],
+    "promising": false
+  },
+  "trials": [
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3000",
+      "family": "knapsack_sort",
+      "cost": -12103.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9326306660004775,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3000",
+      "family": "knapsack_sort",
+      "cost": -12016.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0709633660007967,
+      "gap": 0.01951328922283279
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3000",
+      "family": "knapsack_sort",
+      "cost": -11746.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.8221401259979757,
+      "gap": 0.08007177301783111
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3000",
+      "family": "knapsack_sort",
+      "cost": -11922.0,
+      "seeds": 3,
+      "correlation": 0.7463140693785686,
+      "seconds": 3.0746663909994822,
+      "gap": 0.0405966132107211
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3001",
+      "family": "knapsack_sort",
+      "cost": -11907.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.195726811998611,
+      "gap": 0.048355224921539
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3001",
+      "family": "knapsack_sort",
+      "cost": -11784.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.2025710829984746,
+      "gap": 0.07694990119725677
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3001",
+      "family": "knapsack_sort",
+      "cost": -11932.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.0408315690001473,
+      "gap": 0.04254329884923864
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3001",
+      "family": "knapsack_sort",
+      "cost": -12115.0,
+      "seeds": 3,
+      "correlation": 0.8115026171237918,
+      "seconds": 3.3412062669995066,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3002",
+      "family": "knapsack_sort",
+      "cost": -11935.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.095262675000413,
+      "gap": 0.0856338028169014
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3002",
+      "family": "knapsack_sort",
+      "cost": -12185.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.2709103540000797,
+      "gap": 0.029295774647887324
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3002",
+      "family": "knapsack_sort",
+      "cost": -12062.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.0740198040002724,
+      "gap": 0.057014084507042255
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3002",
+      "family": "knapsack_sort",
+      "cost": -12315.0,
+      "seeds": 3,
+      "correlation": 0.7902299955857096,
+      "seconds": 3.0763974910005345,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3003",
+      "family": "knapsack_sort",
+      "cost": -11521.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0280242020016885,
+      "gap": 0.010424242424242424
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3003",
+      "family": "knapsack_sort",
+      "cost": -11409.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0879530439997325,
+      "gap": 0.037575757575757575
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3003",
+      "family": "knapsack_sort",
+      "cost": -11564.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.1111237709992565,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3003",
+      "family": "knapsack_sort",
+      "cost": -11509.0,
+      "seeds": 3,
+      "correlation": 0.7624578124024947,
+      "seconds": 3.0580491249966144,
+      "gap": 0.013333333333333334
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3004",
+      "family": "knapsack_sort",
+      "cost": -11739.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0658105409966083,
+      "gap": 0.022000453617600363
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3004",
+      "family": "knapsack_sort",
+      "cost": -11671.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.194541759999993,
+      "gap": 0.03742345202993876
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3004",
+      "family": "knapsack_sort",
+      "cost": -11836.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.0836222139987512,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3004",
+      "family": "knapsack_sort",
+      "cost": -11781.0,
+      "seeds": 3,
+      "correlation": 0.7668739295481729,
+      "seconds": 3.0315105879999464,
+      "gap": 0.012474484009979588
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3005",
+      "family": "knapsack_sort",
+      "cost": -11477.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0658187740009453,
+      "gap": 0.010473641335971139
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3005",
+      "family": "knapsack_sort",
+      "cost": -11522.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.004230438000377,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3005",
+      "family": "knapsack_sort",
+      "cost": -11475.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.089534595001169,
+      "gap": 0.010939136506458745
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3005",
+      "family": "knapsack_sort",
+      "cost": -11462.0,
+      "seeds": 3,
+      "correlation": 0.7106088374402935,
+      "seconds": 2.988458542000444,
+      "gap": 0.013964855114628185
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3006",
+      "family": "knapsack_sort",
+      "cost": -11652.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9268227920001664,
+      "gap": 0.01653282947567312
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3006",
+      "family": "knapsack_sort",
+      "cost": -11722.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.011590726997383,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3006",
+      "family": "knapsack_sort",
+      "cost": -11433.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.882873266000388,
+      "gap": 0.0682569674067076
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3006",
+      "family": "knapsack_sort",
+      "cost": -11612.0,
+      "seeds": 3,
+      "correlation": 0.7663169202282359,
+      "seconds": 3.008207032999053,
+      "gap": 0.025980160604629193
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3007",
+      "family": "knapsack_sort",
+      "cost": -12130.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.004069951999554,
+      "gap": 0.012603005332040717
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3007",
+      "family": "knapsack_sort",
+      "cost": -12182.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.020634741002141,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3007",
+      "family": "knapsack_sort",
+      "cost": -12128.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.0067269840001245,
+      "gap": 0.013087736306349976
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3007",
+      "family": "knapsack_sort",
+      "cost": -12047.0,
+      "seeds": 3,
+      "correlation": 0.7622287055069661,
+      "seconds": 3.0269786749995546,
+      "gap": 0.03271934076587494
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3008",
+      "family": "knapsack_sort",
+      "cost": -11877.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.896687305998057,
+      "gap": 0.07758526751661764
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3008",
+      "family": "knapsack_sort",
+      "cost": -12007.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.024527821002266,
+      "gap": 0.04925356870436962
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3008",
+      "family": "knapsack_sort",
+      "cost": -12062.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.0635112290001416,
+      "gap": 0.037267080745341616
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3008",
+      "family": "knapsack_sort",
+      "cost": -12233.0,
+      "seeds": 3,
+      "correlation": 0.7827034947810888,
+      "seconds": 2.923452016999363,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3009",
+      "family": "knapsack_sort",
+      "cost": -11758.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9984387469994545,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3009",
+      "family": "knapsack_sort",
+      "cost": -11726.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.954964723001467,
+      "gap": 0.007518796992481203
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3009",
+      "family": "knapsack_sort",
+      "cost": -11699.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.9604328089990304,
+      "gap": 0.013862781954887217
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3009",
+      "family": "knapsack_sort",
+      "cost": -11625.0,
+      "seeds": 3,
+      "correlation": 0.7849409859440314,
+      "seconds": 3.0077744310001435,
+      "gap": 0.03125
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3010",
+      "family": "knapsack_sort",
+      "cost": -11980.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.028911164998135,
+      "gap": 0.06070215175537939
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3010",
+      "family": "knapsack_sort",
+      "cost": -11918.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9191349520006042,
+      "gap": 0.07474518686296716
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3010",
+      "family": "knapsack_sort",
+      "cost": -12148.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.992274238000391,
+      "gap": 0.022650056625141562
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3010",
+      "family": "knapsack_sort",
+      "cost": -12248.0,
+      "seeds": 3,
+      "correlation": 0.7480001938355889,
+      "seconds": 3.187687628000276,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_sort-300-3011",
+      "family": "knapsack_sort",
+      "cost": -11659.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9292830160011363,
+      "gap": 0.04504398826979472
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_sort-300-3011",
+      "family": "knapsack_sort",
+      "cost": -11713.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9300132080024923,
+      "gap": 0.03237536656891496
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_sort-300-3011",
+      "family": "knapsack_sort",
+      "cost": -11759.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.9470577460015193,
+      "gap": 0.02158357771260997
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_sort-300-3011",
+      "family": "knapsack_sort",
+      "cost": -11851.0,
+      "seeds": 3,
+      "correlation": 0.7249125437243582,
+      "seconds": 2.990078591999918,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3000",
+      "family": "knapsack_threshold",
+      "cost": -11586.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.000945034000324,
+      "gap": 0.0001348758101226279
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3000",
+      "family": "knapsack_threshold",
+      "cost": -11654.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.037261451998347,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3000",
+      "family": "knapsack_threshold",
+      "cost": -11641.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.912521733996982,
+      "gap": 2.578508134697298e-05
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3000",
+      "family": "knapsack_threshold",
+      "cost": -11578.0,
+      "seeds": 3,
+      "correlation": 0.5997198447451378,
+      "seconds": 2.9797357540010125,
+      "gap": 0.0001507435524899959
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3001",
+      "family": "knapsack_threshold",
+      "cost": -11570.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.079270631998952,
+      "gap": 0.042450554751567775
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3001",
+      "family": "knapsack_threshold",
+      "cost": -11708.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0147759950014006,
+      "gap": 0.015822479498311625
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3001",
+      "family": "knapsack_threshold",
+      "cost": -11790.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.0351300069996796,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3001",
+      "family": "knapsack_threshold",
+      "cost": -11667.0,
+      "seeds": 3,
+      "correlation": 0.4410440705330428,
+      "seconds": 3.0004030560012325,
+      "gap": 0.02373371924746744
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3002",
+      "family": "knapsack_threshold",
+      "cost": -11448.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.4378338319984323,
+      "gap": 0.001774161578678867
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3002",
+      "family": "knapsack_threshold",
+      "cost": -11699.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.4250989639986074,
+      "gap": 0.00014297272795214312
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3002",
+      "family": "knapsack_threshold",
+      "cost": -11721.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.27158611699997,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3002",
+      "family": "knapsack_threshold",
+      "cost": -9410.0,
+      "seeds": 3,
+      "correlation": 0.5772215926901764,
+      "seconds": 3.257961033999891,
+      "gap": 0.015018635195336489
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3003",
+      "family": "knapsack_threshold",
+      "cost": -11293.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.3742451859980065,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3003",
+      "family": "knapsack_threshold",
+      "cost": -10969.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9801076160001685,
+      "gap": 0.06608873023967364
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3003",
+      "family": "knapsack_threshold",
+      "cost": -11165.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.9863765869995405,
+      "gap": 0.02610912799592045
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3003",
+      "family": "knapsack_threshold",
+      "cost": -11127.0,
+      "seeds": 3,
+      "correlation": 0.576765994766949,
+      "seconds": 3.0516525019993423,
+      "gap": 0.033860275369709335
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3004",
+      "family": "knapsack_threshold",
+      "cost": -11365.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0443363939994015,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3004",
+      "family": "knapsack_threshold",
+      "cost": -11324.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.7014244320016587,
+      "gap": 0.007797641688855078
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3004",
+      "family": "knapsack_threshold",
+      "cost": -11316.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.584752691000176,
+      "gap": 0.009319132750095093
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3004",
+      "family": "knapsack_threshold",
+      "cost": -11176.0,
+      "seeds": 3,
+      "correlation": 0.5542896309683156,
+      "seconds": 3.034697743001743,
+      "gap": 0.03594522632179536
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3005",
+      "family": "knapsack_threshold",
+      "cost": -11102.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.935056787002395,
+      "gap": 0.010692124105011934
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3005",
+      "family": "knapsack_threshold",
+      "cost": -11158.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.976612116999604,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3005",
+      "family": "knapsack_threshold",
+      "cost": -11108.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.02315985200039,
+      "gap": 0.00954653937947494
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3005",
+      "family": "knapsack_threshold",
+      "cost": -10873.0,
+      "seeds": 3,
+      "correlation": 0.6258567129152954,
+      "seconds": 3.392673959999229,
+      "gap": 0.05441527446300716
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3006",
+      "family": "knapsack_threshold",
+      "cost": -10890.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.481213040999137,
+      "gap": 0.09606736197493063
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3006",
+      "family": "knapsack_threshold",
+      "cost": -11214.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.717756316997111,
+      "gap": 0.03406372595923835
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3006",
+      "family": "knapsack_threshold",
+      "cost": -11392.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.1118429210000613,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3006",
+      "family": "knapsack_threshold",
+      "cost": -11264.0,
+      "seeds": 3,
+      "correlation": 0.6110251695736802,
+      "seconds": 3.0369392319989856,
+      "gap": 0.02449526361113769
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3007",
+      "family": "knapsack_threshold",
+      "cost": -11836.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.045307512002182,
+      "gap": 0.002612183972385484
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3007",
+      "family": "knapsack_threshold",
+      "cost": -11850.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9932386159998714,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3007",
+      "family": "knapsack_threshold",
+      "cost": -11780.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.9712117929993838,
+      "gap": 0.013060919861927419
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3007",
+      "family": "knapsack_threshold",
+      "cost": -11781.0,
+      "seeds": 3,
+      "correlation": 0.5127625589759252,
+      "seconds": 3.014435692999541,
+      "gap": 0.012874335292471313
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3008",
+      "family": "knapsack_threshold",
+      "cost": -12088.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9337816680017568,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3008",
+      "family": "knapsack_threshold",
+      "cost": -11836.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.112968440000259,
+      "gap": 0.043213581411300696
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3008",
+      "family": "knapsack_threshold",
+      "cost": -11634.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.979967258997931,
+      "gap": 0.0778530395267084
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3008",
+      "family": "knapsack_threshold",
+      "cost": -11714.0,
+      "seeds": 3,
+      "correlation": 0.6030963696484702,
+      "seconds": 3.0589327239977138,
+      "gap": 0.0641344422532796
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3009",
+      "family": "knapsack_threshold",
+      "cost": -11466.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9743466780018935,
+      "gap": 6.681068080083736e-05
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3009",
+      "family": "knapsack_threshold",
+      "cost": -11482.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9683145790004346,
+      "gap": 2.7219166252193e-05
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3009",
+      "family": "knapsack_threshold",
+      "cost": -11493.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.973704734999046,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3009",
+      "family": "knapsack_threshold",
+      "cost": -11456.0,
+      "seeds": 3,
+      "correlation": 0.6172847365750518,
+      "seconds": 3.067536623999331,
+      "gap": 9.155537739374009e-05
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3010",
+      "family": "knapsack_threshold",
+      "cost": -11644.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9963450100003683,
+      "gap": 0.06797734088637121
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3010",
+      "family": "knapsack_threshold",
+      "cost": -12052.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9658663469999738,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3010",
+      "family": "knapsack_threshold",
+      "cost": -11771.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.977873693998845,
+      "gap": 0.046817727424191935
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3010",
+      "family": "knapsack_threshold",
+      "cost": -11799.0,
+      "seeds": 3,
+      "correlation": 0.5760894985787655,
+      "seconds": 3.1720730130000447,
+      "gap": 0.04215261579473509
+    },
+    {
+      "arm": "plain",
+      "instance": "knapsack_threshold-300-3011",
+      "family": "knapsack_threshold",
+      "cost": -11511.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.2166344369979925,
+      "gap": 0.006917180781454478
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "knapsack_threshold-300-3011",
+      "family": "knapsack_threshold",
+      "cost": -11292.0,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0041675029970065,
+      "gap": 0.047859412974387734
+    },
+    {
+      "arm": "best_random",
+      "instance": "knapsack_threshold-300-3011",
+      "family": "knapsack_threshold",
+      "cost": -11429.0,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.0557567549985833,
+      "gap": 0.02224714899981305
+    },
+    {
+      "arm": "surrogate",
+      "instance": "knapsack_threshold-300-3011",
+      "family": "knapsack_threshold",
+      "cost": -11548.0,
+      "seeds": 3,
+      "correlation": 0.6030286564965164,
+      "seconds": 2.9368969249990187,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3000",
+      "family": "tsp_sort",
+      "cost": 64.367841593544,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9895773569987796,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3000",
+      "family": "tsp_sort",
+      "cost": 85.55996292663777,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.1540677740013052,
+      "gap": 0.23110764718492852
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3000",
+      "family": "tsp_sort",
+      "cost": 75.74682768067507,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.166665570999612,
+      "gap": 0.12409190475142423
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3000",
+      "family": "tsp_sort",
+      "cost": 86.58222789337574,
+      "seeds": 0,
+      "correlation": 0.13927007361628838,
+      "seconds": 3.106268129002274,
+      "gap": 0.24225581152152367
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3001",
+      "family": "tsp_sort",
+      "cost": 66.17855129293443,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.976463392998994,
+      "gap": 0.07065133319320568
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3001",
+      "family": "tsp_sort",
+      "cost": 59.370525200489354,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0103330460005964,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3001",
+      "family": "tsp_sort",
+      "cost": 66.13376570564732,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 2.974867536999227,
+      "gap": 0.07018656390373626
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3001",
+      "family": "tsp_sort",
+      "cost": 69.67382951800647,
+      "seeds": 0,
+      "correlation": 0.08302209933276042,
+      "seconds": 3.126798489000066,
+      "gap": 0.10692411815749357
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3002",
+      "family": "tsp_sort",
+      "cost": 71.84653931003541,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.1959546569996746,
+      "gap": 0.12704383834832197
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3002",
+      "family": "tsp_sort",
+      "cost": 65.73172632319256,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.1942380660002527,
+      "gap": 0.0647774720048314
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3002",
+      "family": "tsp_sort",
+      "cost": 59.3703124439097,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.0233308380011295,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3002",
+      "family": "tsp_sort",
+      "cost": 79.67196332992091,
+      "seeds": 0,
+      "correlation": 0.049259267422942635,
+      "seconds": 3.2400774369998544,
+      "gap": 0.20672914023143316
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3003",
+      "family": "tsp_sort",
+      "cost": 66.25858908347456,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.021153936999326,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3003",
+      "family": "tsp_sort",
+      "cost": 69.14686800170641,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.2849671550029598,
+      "gap": 0.03413420947001245
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3003",
+      "family": "tsp_sort",
+      "cost": 75.91096231186117,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.019049583999731,
+      "gap": 0.11407351540071765
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3003",
+      "family": "tsp_sort",
+      "cost": 73.6931866336003,
+      "seeds": 0,
+      "correlation": 0.021665738530699433,
+      "seconds": 3.145620286999474,
+      "gap": 0.08786343607583075
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3004",
+      "family": "tsp_sort",
+      "cost": 65.91421559403612,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.097925533002126,
+      "gap": 0.025157683320347075
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3004",
+      "family": "tsp_sort",
+      "cost": 63.58487500318654,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0274123400013195,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3004",
+      "family": "tsp_sort",
+      "cost": 74.62812019401687,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.0288493539992487,
+      "gap": 0.11927086422279055
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3004",
+      "family": "tsp_sort",
+      "cost": 81.2045006695687,
+      "seeds": 0,
+      "correlation": 0.015613966976038725,
+      "seconds": 3.144418960000621,
+      "gap": 0.19029804592733593
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3005",
+      "family": "tsp_sort",
+      "cost": 65.56554096679797,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.998193857001752,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3005",
+      "family": "tsp_sort",
+      "cost": 69.1772931472991,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.1685392600011255,
+      "gap": 0.04065202449611087
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3005",
+      "family": "tsp_sort",
+      "cost": 70.33627415962202,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.137217964998854,
+      "gap": 0.05369691853890807
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3005",
+      "family": "tsp_sort",
+      "cost": 106.42721036844046,
+      "seeds": 0,
+      "correlation": -0.010340766741949019,
+      "seconds": 3.1422982279982534,
+      "gap": 0.4599179297060954
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3006",
+      "family": "tsp_sort",
+      "cost": 66.36140715213817,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0112471860011283,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3006",
+      "family": "tsp_sort",
+      "cost": 73.23520094816715,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.160480665999785,
+      "gap": 0.07517609182029364
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3006",
+      "family": "tsp_sort",
+      "cost": 90.06368585138895,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.2243424510015757,
+      "gap": 0.2592228880759337
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3006",
+      "family": "tsp_sort",
+      "cost": 115.22809201718569,
+      "seeds": 0,
+      "correlation": -0.10421109313406812,
+      "seconds": 3.8485816680004064,
+      "gap": 0.5344365131363739
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3007",
+      "family": "tsp_sort",
+      "cost": 68.79933398916697,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0735341110012087,
+      "gap": 0.05256973710349685
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3007",
+      "family": "tsp_sort",
+      "cost": 87.79442944728635,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.1599005600000964,
+      "gap": 0.263826869143076
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3007",
+      "family": "tsp_sort",
+      "cost": 64.07254836612783,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.068797734002146,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3007",
+      "family": "tsp_sort",
+      "cost": 87.01144425446972,
+      "seeds": 0,
+      "correlation": -0.02767805356661189,
+      "seconds": 3.2342043069984356,
+      "gap": 0.25511876832681013
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3008",
+      "family": "tsp_sort",
+      "cost": 73.08884173253426,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0378519620026054,
+      "gap": 0.05102860845498146
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3008",
+      "family": "tsp_sort",
+      "cost": 68.5575255765517,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.234840463999717,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3008",
+      "family": "tsp_sort",
+      "cost": 71.78198796819247,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.4229869800001325,
+      "gap": 0.036311707944636076
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3008",
+      "family": "tsp_sort",
+      "cost": 139.9153161703049,
+      "seeds": 0,
+      "correlation": 0.12390899160790562,
+      "seconds": 3.5442806239989295,
+      "gap": 0.803583027773002
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3009",
+      "family": "tsp_sort",
+      "cost": 74.71863271453282,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.5611672720006027,
+      "gap": 0.05805684693064405
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3009",
+      "family": "tsp_sort",
+      "cost": 82.31262756150716,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.455732678001368,
+      "gap": 0.14786594925989302
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3009",
+      "family": "tsp_sort",
+      "cost": 69.80951565414213,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.2774767619994236,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3009",
+      "family": "tsp_sort",
+      "cost": 84.93775117535662,
+      "seeds": 0,
+      "correlation": 0.1350778659353952,
+      "seconds": 3.193766124000831,
+      "gap": 0.1789115319886024
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3010",
+      "family": "tsp_sort",
+      "cost": 73.22862997600231,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.1991085990011925,
+      "gap": 0.05917488113808705
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3010",
+      "family": "tsp_sort",
+      "cost": 67.88075631100187,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.1334604939984274,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3010",
+      "family": "tsp_sort",
+      "cost": 71.20651528823313,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.117719385001692,
+      "gap": 0.03679993292653254
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3010",
+      "family": "tsp_sort",
+      "cost": 79.0708714102644,
+      "seeds": 0,
+      "correlation": 0.01762510113951616,
+      "seconds": 3.0789470700001402,
+      "gap": 0.12382000256550925
+    },
+    {
+      "arm": "plain",
+      "instance": "tsp_sort-300-3011",
+      "family": "tsp_sort",
+      "cost": 61.159795915363134,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.997121843000059,
+      "gap": 0.049941451828898226
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "tsp_sort-300-3011",
+      "family": "tsp_sort",
+      "cost": 56.21938914337071,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 2.9840263170008257,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "tsp_sort-300-3011",
+      "family": "tsp_sort",
+      "cost": 78.02325057452644,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.2159575149999,
+      "gap": 0.2204102912175561
+    },
+    {
+      "arm": "surrogate",
+      "instance": "tsp_sort-300-3011",
+      "family": "tsp_sort",
+      "cost": 75.08861357512002,
+      "seeds": 0,
+      "correlation": 0.07865284191811486,
+      "seconds": 3.0604201530004502,
+      "gap": 0.19074471121470707
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3000",
+      "family": "sphere",
+      "cost": 0.06498278576998262,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0438577249988157,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3000",
+      "family": "sphere",
+      "cost": 0.09328165772963164,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.222690688999137,
+      "gap": 0.0006990251873332629
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3000",
+      "family": "sphere",
+      "cost": 0.08329614080062794,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.1708497389990953,
+      "gap": 0.0004523677286236314
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3000",
+      "family": "sphere",
+      "cost": 3.2008330206643123,
+      "seeds": 3,
+      "correlation": 0.7721740476018257,
+      "seconds": 3.164402304999385,
+      "gap": 0.07746027124408575
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3001",
+      "family": "sphere",
+      "cost": 0.5055257027203277,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.3699219379996066,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3001",
+      "family": "sphere",
+      "cost": 0.5745469183257073,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.7616929590003565,
+      "gap": 0.0016423277558854697
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3001",
+      "family": "sphere",
+      "cost": 1.1738850200623823,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.2164819080026064,
+      "gap": 0.015903299415230356
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3001",
+      "family": "sphere",
+      "cost": 0.8221555362586593,
+      "seeds": 3,
+      "correlation": 0.8488225705083615,
+      "seconds": 3.4553013220029243,
+      "gap": 0.007534059772787719
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3002",
+      "family": "sphere",
+      "cost": 0.19927126698810196,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.3542778700029885,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3002",
+      "family": "sphere",
+      "cost": 0.3759327489243651,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.6598065360012697,
+      "gap": 0.004337062464818938
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3002",
+      "family": "sphere",
+      "cost": 1.2981700461961057,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.4090773579991946,
+      "gap": 0.026978108615990697
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3002",
+      "family": "sphere",
+      "cost": 7.064353984203894,
+      "seeds": 3,
+      "correlation": 0.7694243343278444,
+      "seconds": 3.4590899590002664,
+      "gap": 0.16853867772634182
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3003",
+      "family": "sphere",
+      "cost": 0.30012810985270166,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.4777113320014905,
+      "gap": 0.004979822986406769
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3003",
+      "family": "sphere",
+      "cost": 0.6995827094414411,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.3585557009973854,
+      "gap": 0.014441950472392074
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3003",
+      "family": "sphere",
+      "cost": 0.4800974980844547,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.3467663980009092,
+      "gap": 0.009242868891440414
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3003",
+      "family": "sphere",
+      "cost": 0.08989915235828924,
+      "seeds": 3,
+      "correlation": 0.8376493923144867,
+      "seconds": 3.2659449620005034,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3004",
+      "family": "sphere",
+      "cost": 0.07410628701611197,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.0353845999998157,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3004",
+      "family": "sphere",
+      "cost": 0.34871615202868633,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.4963971650031453,
+      "gap": 0.006592494195701625
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3004",
+      "family": "sphere",
+      "cost": 2.5665301661928517,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.75333280400082,
+      "gap": 0.05983503162185525
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3004",
+      "family": "sphere",
+      "cost": 3.681276970489021,
+      "seeds": 3,
+      "correlation": 0.8208257948514901,
+      "seconds": 3.19136762099879,
+      "gap": 0.08659649496791139
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3005",
+      "family": "sphere",
+      "cost": 0.7897126674640642,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.3814232620024995,
+      "gap": 0.011601630257521946
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3005",
+      "family": "sphere",
+      "cost": 0.456566229168498,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.133272703998955,
+      "gap": 0.003507733423825879
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3005",
+      "family": "sphere",
+      "cost": 0.3121872086980494,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.1308190419986204,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3005",
+      "family": "sphere",
+      "cost": 0.7183237893247904,
+      "seeds": 3,
+      "correlation": 0.8372044513874543,
+      "seconds": 3.1351189730012265,
+      "gap": 0.00986721515259458
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3006",
+      "family": "sphere",
+      "cost": 0.8501269295001472,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.3977519779982686,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3006",
+      "family": "sphere",
+      "cost": 1.0232494507522325,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.124602108000545,
+      "gap": 0.004352259737090692
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3006",
+      "family": "sphere",
+      "cost": 2.5815191932496,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.2014773289993173,
+      "gap": 0.0435267969997652
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3006",
+      "family": "sphere",
+      "cost": 1.169415697528379,
+      "seeds": 3,
+      "correlation": 0.7846462313009192,
+      "seconds": 3.242218433999369,
+      "gap": 0.008026845031739767
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3007",
+      "family": "sphere",
+      "cost": 0.749615137721853,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.2510483789992577,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3007",
+      "family": "sphere",
+      "cost": 2.572707021496904,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.3858973839996906,
+      "gap": 0.04526929773267488
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3007",
+      "family": "sphere",
+      "cost": 0.983067877006795,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.760336749997805,
+      "gap": 0.00579687818000432
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3007",
+      "family": "sphere",
+      "cost": 11.321603825379327,
+      "seeds": 3,
+      "correlation": 0.8284356303054716,
+      "seconds": 3.9528992980012845,
+      "gap": 0.2625136493598087
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3008",
+      "family": "sphere",
+      "cost": 4.736030886190932,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 4.038765743000113,
+      "gap": 0.055069206670775
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3008",
+      "family": "sphere",
+      "cost": 3.3090864430839653,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 4.125895749999472,
+      "gap": 0.016828818778170468
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3008",
+      "family": "sphere",
+      "cost": 2.6811171477147453,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.719783192998875,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3008",
+      "family": "sphere",
+      "cost": 14.398949898058655,
+      "seeds": 3,
+      "correlation": 0.7633057140364732,
+      "seconds": 3.5374653690014384,
+      "gap": 0.31402376721700165
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3009",
+      "family": "sphere",
+      "cost": 3.570112335211396,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.548133038002561,
+      "gap": 0.08251282554174671
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3009",
+      "family": "sphere",
+      "cost": 1.5970649743017349,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.6781064460010384,
+      "gap": 0.035207355254203446
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3009",
+      "family": "sphere",
+      "cost": 0.12861367370855364,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.56631872700018,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3009",
+      "family": "sphere",
+      "cost": 0.4360222676101055,
+      "seeds": 3,
+      "correlation": 0.7388030241563294,
+      "seconds": 3.1866351689968724,
+      "gap": 0.007370379643720649
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3010",
+      "family": "sphere",
+      "cost": 0.6867276240168705,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.252451120999467,
+      "gap": 0.012198544872191207
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3010",
+      "family": "sphere",
+      "cost": 0.19338253469882957,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.297825351000938,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3010",
+      "family": "sphere",
+      "cost": 3.087099336723641,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.6112934349985153,
+      "gap": 0.07155059414031642
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3010",
+      "family": "sphere",
+      "cost": 17.63761734886207,
+      "seeds": 3,
+      "correlation": 0.7709086473673362,
+      "seconds": 3.535390383000049,
+      "gap": 0.43132948061925447
+    },
+    {
+      "arm": "plain",
+      "instance": "sphere-300-3011",
+      "family": "sphere",
+      "cost": 0.46953203918717545,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.438373611003044,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "sphere-300-3011",
+      "family": "sphere",
+      "cost": 0.879055402165986,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.5344862669990107,
+      "gap": 0.01003882492776015
+    },
+    {
+      "arm": "best_random",
+      "instance": "sphere-300-3011",
+      "family": "sphere",
+      "cost": 3.7169201288047873,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.7411531479992846,
+      "gap": 0.07960464152041913
+    },
+    {
+      "arm": "surrogate",
+      "instance": "sphere-300-3011",
+      "family": "sphere",
+      "cost": 9.370373146356325,
+      "seeds": 3,
+      "correlation": 0.7739980168657313,
+      "seconds": 4.575545501997112,
+      "gap": 0.21819020271452802
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3000",
+      "family": "rastrigin",
+      "cost": 1282.6093174003593,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.6460459459995036,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3000",
+      "family": "rastrigin",
+      "cost": 1769.8467986636972,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.5593151969987957,
+      "gap": 0.1127419922715328
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3000",
+      "family": "rastrigin",
+      "cost": 1675.4081943891626,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.6057455579975795,
+      "gap": 0.09088982202049373
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3000",
+      "family": "rastrigin",
+      "cost": 4621.924744420996,
+      "seeds": 0,
+      "correlation": 0.037739237465573,
+      "seconds": 3.851196585997968,
+      "gap": 0.7726849607078845
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3001",
+      "family": "rastrigin",
+      "cost": 1045.177006822651,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.53698906900172,
+      "gap": 0.04903633201441863
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3001",
+      "family": "rastrigin",
+      "cost": 1105.2765748943866,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.8681766200024867,
+      "gap": 0.06158407139562575
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3001",
+      "family": "rastrigin",
+      "cost": 878.8926912438137,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.7416900130010617,
+      "gap": 0.01431907327180691
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3001",
+      "family": "rastrigin",
+      "cost": 810.3090131263025,
+      "seeds": 0,
+      "correlation": 0.19082274374791708,
+      "seconds": 3.0356009650022315,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3002",
+      "family": "rastrigin",
+      "cost": 850.7819346672482,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.1069615870001144,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3002",
+      "family": "rastrigin",
+      "cost": 1328.3673788104047,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.3746561099978862,
+      "gap": 0.10065315615393426
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3002",
+      "family": "rastrigin",
+      "cost": 989.1432138036535,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.562362092001422,
+      "gap": 0.02916022589331724
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3002",
+      "family": "rastrigin",
+      "cost": 3688.5496768634266,
+      "seeds": 0,
+      "correlation": 0.10100830852261186,
+      "seconds": 3.411626522000006,
+      "gap": 0.5980715769014341
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3003",
+      "family": "rastrigin",
+      "cost": 1015.3044116867586,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.437326523999218,
+      "gap": 0.000522097394650664
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3003",
+      "family": "rastrigin",
+      "cost": 1012.9126624231017,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.23490197999854,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3003",
+      "family": "rastrigin",
+      "cost": 1188.8983385638155,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.4471977050015994,
+      "gap": 0.03841609336106436
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3003",
+      "family": "rastrigin",
+      "cost": 3355.002892241294,
+      "seeds": 0,
+      "correlation": 0.15852768856817231,
+      "seconds": 3.335790483997698,
+      "gap": 0.5112572733294007
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3004",
+      "family": "rastrigin",
+      "cost": 1280.8640487496255,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.376687456999207,
+      "gap": 0.039382098685883216
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3004",
+      "family": "rastrigin",
+      "cost": 1103.9158340536637,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.6221372520012665,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3004",
+      "family": "rastrigin",
+      "cost": 1802.3655825213132,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.752947706998384,
+      "gap": 0.15544896549844098
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3004",
+      "family": "rastrigin",
+      "cost": 4212.686223913707,
+      "seeds": 0,
+      "correlation": 0.1551832178868975,
+      "seconds": 3.869523217999813,
+      "gap": 0.6918967930565617
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3005",
+      "family": "rastrigin",
+      "cost": 1433.4495303559102,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.4437305249994097,
+      "gap": 0.04151800173167443
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3005",
+      "family": "rastrigin",
+      "cost": 1253.225165496246,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.551972139001009,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3005",
+      "family": "rastrigin",
+      "cost": 1347.6012278893515,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.809272475002217,
+      "gap": 0.02174126414548137
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3005",
+      "family": "rastrigin",
+      "cost": 4740.134734115538,
+      "seeds": 3,
+      "correlation": 0.24074101771114448,
+      "seconds": 3.954826355999103,
+      "gap": 0.8032738393660372
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3006",
+      "family": "rastrigin",
+      "cost": 1238.4345311528318,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.4888426369980152,
+      "gap": 0.07015145801716131
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3006",
+      "family": "rastrigin",
+      "cost": 976.7322773835315,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.40242569199836,
+      "gap": 0.014436263066621186
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3006",
+      "family": "rastrigin",
+      "cost": 908.923081276525,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.4558914020017255,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3006",
+      "family": "rastrigin",
+      "cost": 2907.9815088534137,
+      "seeds": 0,
+      "correlation": 0.15632650036218051,
+      "seconds": 3.4522506479988806,
+      "gap": 0.42559025918114596
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3007",
+      "family": "rastrigin",
+      "cost": 1145.4219056988286,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.475337699001102,
+      "gap": 0.023679371764486562
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3007",
+      "family": "rastrigin",
+      "cost": 1566.565908964602,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.4860918470003526,
+      "gap": 0.1159253526664875
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3007",
+      "family": "rastrigin",
+      "cost": 1037.3150231853372,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.510273905998474,
+      "gap": 0.0
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3007",
+      "family": "rastrigin",
+      "cost": 2488.9584379922217,
+      "seeds": 0,
+      "correlation": 0.11355422221375604,
+      "seconds": 3.405055032002565,
+      "gap": 0.31796314248901975
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3008",
+      "family": "rastrigin",
+      "cost": 987.2384744029919,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.332900522997079,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3008",
+      "family": "rastrigin",
+      "cost": 1244.61049000897,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.3551150530001905,
+      "gap": 0.05599371655116818
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3008",
+      "family": "rastrigin",
+      "cost": 1344.1119146890537,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.2758534329987015,
+      "gap": 0.0776411927029795
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3008",
+      "family": "rastrigin",
+      "cost": 2085.3920580674653,
+      "seeds": 3,
+      "correlation": 0.21542949222735153,
+      "seconds": 3.316339685999992,
+      "gap": 0.2389136998775163
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3009",
+      "family": "rastrigin",
+      "cost": 823.6395543882636,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.5908409650000976,
+      "gap": 0.0
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3009",
+      "family": "rastrigin",
+      "cost": 1206.5618361228017,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.5843152970010124,
+      "gap": 0.08017253855615722
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3009",
+      "family": "rastrigin",
+      "cost": 965.1552488205145,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.5759741670008225,
+      "gap": 0.029629178058738357
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3009",
+      "family": "rastrigin",
+      "cost": 3073.6931434266617,
+      "seeds": 3,
+      "correlation": 0.20386962478407689,
+      "seconds": 3.4912907110010565,
+      "gap": 0.47109431006069924
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3010",
+      "family": "rastrigin",
+      "cost": 1343.6107753864353,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.372946431998571,
+      "gap": 0.09009652158786349
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3010",
+      "family": "rastrigin",
+      "cost": 921.7615303833118,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.619682681000995,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3010",
+      "family": "rastrigin",
+      "cost": 1081.0105071772368,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.5544131630013,
+      "gap": 0.034011626298994097
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3010",
+      "family": "rastrigin",
+      "cost": 1984.377492382006,
+      "seeds": 0,
+      "correlation": 0.12358353516971184,
+      "seconds": 3.4646063959989988,
+      "gap": 0.22694837810866486
+    },
+    {
+      "arm": "plain",
+      "instance": "rastrigin-300-3011",
+      "family": "rastrigin",
+      "cost": 1276.5353872568687,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.6574501329996565,
+      "gap": 0.051295706193233565
+    },
+    {
+      "arm": "plain_repeat",
+      "instance": "rastrigin-300-3011",
+      "family": "rastrigin",
+      "cost": 1042.4288996267908,
+      "seeds": 0,
+      "correlation": null,
+      "seconds": 3.5448775039985776,
+      "gap": 0.0
+    },
+    {
+      "arm": "best_random",
+      "instance": "rastrigin-300-3011",
+      "family": "rastrigin",
+      "cost": 1353.5416139483468,
+      "seeds": 3,
+      "correlation": null,
+      "seconds": 3.6817178370001784,
+      "gap": 0.06816874896707292
+    },
+    {
+      "arm": "surrogate",
+      "instance": "rastrigin-300-3011",
+      "family": "rastrigin",
+      "cost": 4571.016134457815,
+      "seeds": 0,
+      "correlation": 0.14095106741601227,
+      "seconds": 3.777764193000621,
+      "gap": 0.7731583003419151
+    }
+  ],
+  "provenance": {
+    "machine": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "processor": "Intel Core i7-1255U",
+    "logical_cpus": 6,
+    "python": "3.14.7 free-threading build (main, Aug 25 2026, 14:01:34) [Clang 22.1.3 ]",
+    "protocol_commit": "73fda98",
+    "base_commit": "8e44682",
+    "model": {
+      "hidden_units": 16,
+      "epochs": 150,
+      "learning_rate": 0.01,
+      "weight_decay": 0.001,
+      "samples_per_key": 4,
+      "minimum_correlation": 0.2,
+      "proposal_steps": 30,
+      "proposal_step_size": 0.02,
+      "starts": 3
+    },
+    "role": "full fixed-protocol run; not a fresh independent instance set",
+    "source": "73fda98",
+    "raw_measurement_sha256": "69604e794dbcddf228d1b06b5396fb5d9afd82753edf6cebb846be180e5b9552",
+    "command": "uv run --locked --no-sync python -m benchmarks.engines.surrogate_seed_study --model mlp --size 300 --instances 12 --budget 2 --resamples 10000 --output results/surrogate-seed-study-mlp-n300.json",
+    "phase_timing_available": false
+  }
+}

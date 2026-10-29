@@ -24,6 +24,7 @@ Inputs/Outputs:
 import numpy as np
 import pickle
 import pytest
+from benchmarks.engines import surrogate_seed_study
 from benchmarks.engines.surrogate_seed_study import AMPLITUDES
 from benchmarks.engines.surrogate_seed_study import ARMS
 from benchmarks.engines.surrogate_seed_study import BEST_RANDOM
@@ -34,7 +35,9 @@ from benchmarks.engines.surrogate_seed_study import ProblemFamily
 from benchmarks.engines.surrogate_seed_study import SeedingStudy
 from benchmarks.engines.surrogate_seed_study import SphereCost
 from benchmarks.engines.surrogate_seed_study import SurrogateSeeds
+from types import SimpleNamespace
 from typing import Any
+from unittest.mock import Mock
 
 
 @pytest.mark.parametrize("family", FAMILIES)
@@ -173,3 +176,36 @@ def test_mlp_model_option_routes_through_the_network() -> None:
     seeds = sampler.surrogate()
     assert sampler.correlation > 0.2 and len(seeds) == 3
     assert all(0.0 <= key < 1.0 for seed in seeds for key in seed)
+
+
+@pytest.mark.parametrize("arm", ["best_random", "surrogate"])
+@pytest.mark.parametrize("probe_seconds", [0.4, 2.5])
+def test_probe_time_reduces_search_allowance_and_reports_overruns(
+    monkeypatch: pytest.MonkeyPatch, arm: str, probe_seconds: float
+) -> None:
+    """Charge probing to search time without concealing the minimum-budget overrun.
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): Replaces the clock, sampling and solver boundaries.
+        arm (str): Seeded study arm under test.
+        probe_seconds (float): Simulated sampling and training time.
+    """
+    clock = Mock(side_effect=[100.0, 100.0 + probe_seconds, 103.5])
+    sampler = SimpleNamespace(
+        correlation=0.5,
+        best_random=Mock(return_value=[[0.25, 0.75]]),
+        surrogate=Mock(return_value=[[0.25, 0.75]]),
+    )
+    solver = Mock()
+    solver.return_value.solve.return_value = SimpleNamespace(cost=1.0)
+    monkeypatch.setattr(surrogate_seed_study.time, "perf_counter", clock)
+    monkeypatch.setattr(surrogate_seed_study, "SurrogateSeeds", Mock(return_value=sampler))
+    monkeypatch.setattr(surrogate_seed_study, "RKO", solver)
+    problem = ProblemFamily.make("sphere", 2, 1)
+    row = SeedingStudy(2, 2.0, 1, 100, "mlp").solve(problem, 1, arm)
+    allowance = max(2.0 - probe_seconds, 0.05)
+    solver.return_value.solve.assert_called_once_with(pytest.approx(allowance))
+    assert row["probe_seconds"] == pytest.approx(probe_seconds)
+    assert row["search_budget_seconds"] == pytest.approx(allowance)
+    assert row["probe_over_budget"] == (probe_seconds >= 2.0)
+    assert row["seconds"] == pytest.approx(3.5)

@@ -1,13 +1,12 @@
 """Test whether surrogate-built `initial_keys` help RKO across unrelated problem families.
 
 Objective:
-- Decide, before designing any problem-agnostic learned decoder, whether a model fitted only to
-  (keys, cost) pairs, with no domain features, can produce starting keys that improve the default
-  portfolio at equal wall time on problems of different structure.
+- Measure whether a model fitted only to (keys, cost) pairs, without domain features, can produce
+  starting keys that improve the default portfolio after charging probing to the search allowance.
 
 Technical approach:
-- Five unrelated families share one interface (a pickleable decoder and cost over random keys):
-  Knapsack with a sort decoder, Knapsack with the threshold decoder, TSP with a sort decoder, a
+- Five benchmark groups share one interface (a pickleable decoder and cost over random keys):
+  Knapsack with two decoder variants, the traveling salesman problem with a sort decoder, a
   shifted sphere and a shifted Rastrigin function.
 - The surrogate samples `4 * n_variables` uniform keys, rank-transforms the costs, fits a ridge
   regression of cost rank on key with the penalty chosen on a held-out fifth, and proposes keys
@@ -15,9 +14,10 @@ Technical approach:
   `MIN_CORRELATION` means the model found no signal and no seed is offered.
 - `--model mlp` swaps the ridge model for the NumPy network in `mlp_surrogate`; arms, rule and
   threshold are unchanged.
-- Four arms use the same instances, solver seeds and total wall time: plain, plain repeated (the
+- Four arms use the same instances, solver seeds and nominal allowance: plain, plain repeated (the
   noise floor), best-random (the three best sampled keys, to isolate the surrogate from sampling)
-  and surrogate. Probe time is subtracted from the solve budget of the seeded arms.
+  and surrogate. Probe time is subtracted from the solve allowance of the seeded arms; process
+  startup and seed evaluation remain outside it, and a 0.05-second minimum can exceed the budget.
 - Quality is the normalized gap `(cost - best_known) / (median_random - best_known)`, where
   `best_known` is the lowest cost any arm found on that instance.
 
@@ -31,8 +31,9 @@ Important criteria:
 - Decision rule, fixed before any result existed: the surrogate is promising only if it beats plain
   on at least three of five families with a 95 percent bootstrap interval entirely below zero, it
   does not lose significantly on any family, and it also beats best-random on the families it wins.
-  Otherwise the problem-agnostic direction stops here.
-- Wall time is equal: sampling and fitting seconds are taken from the seeded arms' solve budget.
+  Otherwise this candidate fails the acceptance rule; other learned models remain untested.
+- Sampling and fitting reduce the seeded arms' search allowance. This is not a hard end-to-end
+  deadline: record probe time, remaining allowance and overruns rather than claiming exact parity.
 - The network run is fixed before any result: `--model mlp --size 300 --instances 12 --budget 2`,
   the same rule and the same 0.2 held-out threshold as the linear run.
 - No domain knowledge reaches the surrogate; only keys and costs do.
@@ -364,7 +365,7 @@ class SeedingStudy:
         self.resamples = resamples
 
     def solve(self, problem: Problem, seed: int, arm: str) -> dict[str, Any]:
-        """Run one arm on one instance within the total budget.
+        """Run one arm after deducting probe work from its nominal search allowance.
 
         Args:
             problem (Problem): Instance to solve.
@@ -372,8 +373,8 @@ class SeedingStudy:
             arm (str): One of `ARMS`.
 
         Returns:
-            dict[str, Any]: Arm, instance, final cost, seeds offered, correlation and total
-            wall seconds.
+            dict[str, Any]: Arm, instance, cost, seeds, correlation, end-to-end seconds, probe
+            seconds, remaining search allowance and whether probing exhausted the allowance.
         """
         started = time.perf_counter()
         seeds: list[list[float]] = []
@@ -382,7 +383,8 @@ class SeedingStudy:
             sampler = SurrogateSeeds(problem, seed, self.model)
             seeds = sampler.best_random() if arm == "best_random" else sampler.surrogate()
             correlation = sampler.correlation if arm == "surrogate" else None
-        remaining = max(self.budget - (time.perf_counter() - started), 0.05)
+        probe_seconds = time.perf_counter() - started
+        remaining = max(self.budget - probe_seconds, 0.05)
         result = RKO(
             problem.decoder,
             problem.cost,
@@ -397,6 +399,9 @@ class SeedingStudy:
             "cost": float(result.cost),
             "seeds": len(seeds),
             "correlation": correlation,
+            "probe_seconds": probe_seconds,
+            "search_budget_seconds": remaining,
+            "probe_over_budget": probe_seconds >= self.budget,
             "seconds": time.perf_counter() - started,
         }
 

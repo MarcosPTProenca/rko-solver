@@ -23,6 +23,7 @@ Inputs/Outputs:
 
 import numpy as np
 from benchmarks.engines.mlp_surrogate import STARTS
+from benchmarks.engines.mlp_surrogate import WEIGHT_DECAY
 from benchmarks.engines.mlp_surrogate import MlpSurrogate
 from benchmarks.engines.surrogate_seed_study import MIN_CORRELATION
 from benchmarks.engines.surrogate_seed_study import SurrogateSeeds
@@ -81,3 +82,41 @@ def test_fixed_seed_reproduces_the_proposals() -> None:
     first = MlpSurrogate(keys, costs, 9).propose(MIN_CORRELATION)
     second = MlpSurrogate(keys, costs, 9).propose(MIN_CORRELATION)
     assert first == second and first
+
+
+def regression_loss(weights: dict[str, np.ndarray], keys: np.ndarray, target: np.ndarray) -> float:
+    """Evaluate the regularized loss independently of the derivative implementation.
+
+    Args:
+        weights (dict[str, np.ndarray]): Candidate network parameters.
+        keys (np.ndarray): Centered input samples.
+        target (np.ndarray): Scalar regression targets.
+
+    Returns:
+        float: Mean squared residual plus quadratic weight regularization.
+    """
+    hidden = np.tanh(keys @ weights["w1"] + weights["b1"])
+    residual = hidden @ weights["w2"] + weights["b2"] - target
+    decay = np.sum(weights["w1"] ** 2) + np.sum(weights["w2"] ** 2)
+    return float(np.mean(residual**2) + 0.5 * WEIGHT_DECAY * decay)
+
+
+def test_parameter_gradients_match_central_finite_differences() -> None:
+    """Backpropagation agrees with the independent numerical loss derivative."""
+    keys, costs = quadratic_samples(10, 3, 13)
+    model = MlpSurrogate(keys, costs, 17)
+    weights = model.init(3)
+    centered = keys - 0.5
+    gradients = model.gradients(weights, centered, model.target)
+    step = 1e-6
+    for name, value in weights.items():
+        numerical = np.zeros_like(value)
+        for index in np.ndindex(value.shape):
+            original = value[index]
+            value[index] = original + step
+            above = regression_loss(weights, centered, model.target)
+            value[index] = original - step
+            below = regression_loss(weights, centered, model.target)
+            value[index] = original
+            numerical[index] = (above - below) / (2.0 * step)
+        np.testing.assert_allclose(gradients[name], numerical, atol=1e-8, rtol=1e-5)
