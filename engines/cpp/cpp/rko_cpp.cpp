@@ -300,7 +300,8 @@ static void run_algorithm(int algorithm, const TRunData &run, const TProblemData
 }
 
 extern "C" int32_t rko_cpp_run(const rko_cpp_config *config, const rko_cpp_spec *specs, size_t spec_count,
-                               rko_cpp_eval_fn eval, void *user, const rko_cpp_outputs *outputs)
+                               rko_cpp_eval_fn eval, void *user, const double *initial_keys,
+                               size_t initial_key_count, const rko_cpp_outputs *outputs)
 {
     size_t dimension = config->dimension;
     rko_cpp_report *reports = outputs->reports;
@@ -363,6 +364,48 @@ extern "C" int32_t rko_cpp_run(const rko_cpp_config *config, const rko_cpp_spec 
     initialization->elapsed = init_elapsed;
     initialization->best_cost = pool[0].ofv;
     initialization->hit_limit = 0;
+
+    ThreadStats initial_key_stats;
+    initial_key_stats.started = std::chrono::steady_clock::now();
+    t_stats = &initial_key_stats;
+    for (size_t row = 0; row < initial_key_count; row++)
+    {
+        TSol candidate;
+        candidate.rk.assign(initial_keys + row * dimension, initial_keys + (row + 1) * dimension);
+        candidate.ofv = Decoder(candidate, data);
+        candidate.best_time = get_time_in_seconds();
+        std::strcpy(candidate.nameMH, "initial_keys");
+        if (g_failure.load() != 0)
+        {
+            t_stats = nullptr;
+            t_engine = nullptr;
+            return 1;
+        }
+        auto duplicate = std::find_if(pool.begin(), pool.end(), [&](const TSol &entry) {
+            return entry.rk == candidate.rk;
+        });
+        if (duplicate != pool.end())
+        {
+            if (candidate.ofv >= duplicate->ofv)
+            {
+                continue;
+            }
+            pool.erase(duplicate);
+        }
+        if (pool.size() >= (size_t)run.sizePool && candidate.ofv >= pool.back().ofv)
+        {
+            continue;
+        }
+        auto position = std::upper_bound(pool.begin(), pool.end(), candidate.ofv,
+                                         [](double value, const TSol &entry) { return value < entry.ofv; });
+        pool.insert(position, candidate);
+        if (pool.size() > (size_t)run.sizePool)
+        {
+            pool.pop_back();
+        }
+    }
+    t_stats = nullptr;
+    t_engine = nullptr;
 
     std::vector<ThreadStats> stats(spec_count);
     std::vector<double> elapsed(spec_count, 0.0);

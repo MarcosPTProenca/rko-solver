@@ -42,12 +42,14 @@ from .execution import select_best_result
 from .factory import build_metaheuristic
 from .factory import normalize_hyperparameters
 from .initialization import initialize_pool
+from .initialization import seed_pool
 from .search import SearchReporting
 from .search import SearchSession
 from .stopped import StoppedSearches
 from .types import CostFn
 from .types import DecoderFn
 from .types import Hyperparameters
+from .types import InitialKeysMetadata
 from .types import ModelCallbackOptions
 from .types import PoolInitializationMetadata
 from .types import RunConfig
@@ -185,6 +187,7 @@ def _worker(
     initialization_start: Event | None = None,
     initialization_duration: float | None = None,
     initialization_random_state: int | None = None,
+    initial_keys: np.ndarray | None = None,
     history_limit: int = 0,
     trace: TraceConfig | None = None,
     **capture_options: Unpack[WorkerCaptureOptions],
@@ -207,6 +210,7 @@ def _worker(
         initialization_start (Event | None): Gate supplied only to the designated initializer.
         initialization_duration (float | None): Separate cooperative startup allowance.
         initialization_random_state (int | None): Source for the reserved startup stream.
+        initial_keys (np.ndarray | None): Validated caller vectors for the designated initializer.
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decoder recording.
         max_evaluations (int | None): Completed evaluations after which each search stops.
@@ -236,20 +240,27 @@ def _worker(
             prepared.append((mh, streams))
         connection.send(("ready", None))
         if initialization_start is not None:
-            name = "initial_pool"
             initialization_start.wait()
-            assert initialization_duration is not None
-            report = initialize_pool(
-                pool,
-                decoder,
-                cost,
-                dimension,
-                config.pool_size,
-                initialization_duration,
-                initialization_random_state,
-                **callback_options,
-            )
-            connection.send(("initialized", report))
+            initialization_report = None
+            if config.prefill_pool:
+                name = "initial_pool"
+                assert initialization_duration is not None
+                initialization_report = initialize_pool(
+                    pool,
+                    decoder,
+                    cost,
+                    dimension,
+                    config.pool_size,
+                    initialization_duration,
+                    initialization_random_state,
+                    **callback_options,
+                )
+            if initial_keys is not None:
+                name = "initial_keys"
+                report = seed_pool(pool, decoder, cost, initial_keys, trace, model_evidence)
+                connection.send(("initial_keys", report))
+            if initialization_report is not None:
+                connection.send(("initialized", initialization_report))
         start.wait()
         best: RunResult | None = None
         reports: list[SearchMetadata] = []
@@ -357,6 +368,8 @@ def run_processes(
     hyperparameters: Hyperparameters | None = None,
     search_metadata: list[SearchMetadata] | None = None,
     initialization_metadata: list[PoolInitializationMetadata] | None = None,
+    initial_keys: np.ndarray | None = None,
+    initial_keys_metadata: list[InitialKeysMetadata] | None = None,
     history_limit: int = 0,
     max_evaluations: int | None = None,
     **callback_options: Unpack[ModelCallbackOptions],
@@ -377,7 +390,9 @@ def run_processes(
         started_at (float | None): Parent solve's monotonic origin for elapsed log times.
         hyperparameters (Hyperparameters | None): Partial offline scalar mappings.
         search_metadata (list[SearchMetadata] | None): Optional collector for all algorithms.
-        initialization_metadata (list | None): Separate opt-in startup report collector.
+        initialization_metadata (list | None): Separate opt-in random-startup report collector.
+        initial_keys (np.ndarray | None): Validated caller vectors evaluated before search release.
+        initial_keys_metadata (list[InitialKeysMetadata] | None): Seed-key report collector.
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decoder recording.
         max_evaluations (int | None): Completed evaluations after which each search stops.
@@ -411,8 +426,9 @@ def run_processes(
     with PoolManager(ctx=context) as manager:
         pool = manager.SolutionPool(config.pool_size, verbose=verbose, started_at=started_at)
         start = context.Event()
-        initialization_start = context.Event() if config.prefill_pool else None
-        initialization_done = not config.prefill_pool
+        startup_required = config.prefill_pool or initial_keys is not None
+        initialization_start = context.Event() if startup_required else None
+        initialization_done = not startup_required
         initialization_released, phase = False, "startup"
         deadline = context.Value("d", 0.0)
         processes: list[mp.Process] = []
@@ -447,6 +463,7 @@ def run_processes(
                         initialization_start if group_index == 0 else None,
                         limit_time,
                         random_state,
+                        initial_keys if group_index == 0 else None,
                         history_limit,
                         trace,
                     ),
@@ -480,6 +497,11 @@ def run_processes(
                         raise RuntimeError(f"{name}: worker failed.\n{details}") from cause
                     if status == "ready":
                         ready.add(connection)
+                    elif status == "initial_keys":
+                        if initial_keys_metadata is not None:
+                            initial_keys_metadata.append(payload)
+                        if not config.prefill_pool:
+                            initialization_done = True
                     elif status == "initialized":
                         initialization_done = True
                         if initialization_metadata is not None:

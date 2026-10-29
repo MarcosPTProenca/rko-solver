@@ -123,6 +123,35 @@ pub fn run_portfolio(
     specs: &[Spec],
     config: &Config,
 ) -> Result<PortfolioResult, EngineError> {
+    run_portfolio_with_initial_keys(problem, specs, config, &[])
+}
+
+/// Runs a portfolio after offering validated caller-supplied key vectors to its shared pool.
+///
+/// Each input row is evaluated once before workers start. The vectors are subject to the same
+/// fixed-capacity, distinct-key admission rules as candidates produced by search operators.
+///
+/// # Arguments
+///
+/// * `problem` - Decoder/objective implementation shared by initialization and searches.
+/// * `specs` - Nonempty portfolio of validated algorithm specifications.
+/// * `config` - Shared search budget, pool capacity and worker settings.
+/// * `initial_keys` - Rows with the problem dimension and finite values in `[0, 1)`.
+///
+/// # Returns
+///
+/// The best result across seeded candidates and completed searches.
+///
+/// # Errors
+///
+/// Returns `EngineError::Invalid` for malformed key rows or invalid configuration and
+/// `EngineError::InvalidCost` when a seeded candidate has a non-finite objective.
+pub fn run_portfolio_with_initial_keys(
+    problem: &dyn Problem,
+    specs: &[Spec],
+    config: &Config,
+    initial_keys: &[Vec<f64>],
+) -> Result<PortfolioResult, EngineError> {
     if specs.is_empty() {
         return Err(EngineError::Invalid(
             "at least one algorithm is required".to_owned(),
@@ -132,9 +161,21 @@ pub fn run_portfolio(
     for spec in specs {
         spec.validate().map_err(EngineError::Invalid)?;
     }
+    let dimension = problem.dimension();
+    if initial_keys.iter().any(|keys| {
+        keys.len() != dimension
+            || keys
+                .iter()
+                .any(|key| !key.is_finite() || !(0.0..1.0).contains(key))
+    }) {
+        return Err(EngineError::Invalid(
+            "'initial_keys' rows must match the problem dimension and contain finite values in [0, 1)."
+                .to_owned(),
+        ));
+    }
     let workers = config.threads.unwrap_or(specs.len()).clamp(1, specs.len());
-    let started = Instant::now();
-    let deadline = started + Duration::from_secs_f64(config.time_limit);
+    let overall_started = Instant::now();
+    let startup_deadline = overall_started + Duration::from_secs_f64(config.time_limit);
     let pool = Pool::new(config.pool_size);
     let cancel = AtomicBool::new(false);
     let failure: std::sync::Mutex<Option<&'static str>> = std::sync::Mutex::new(None);
@@ -142,7 +183,7 @@ pub fn run_portfolio(
     if config.prefill {
         let seed = derive_seed(config.seed, u64::MAX);
         let mut rng = Rng::new(seed);
-        let mut search = Search::new(problem, &cancel, started, deadline, 0);
+        let mut search = Search::new(problem, &cancel, overall_started, startup_deadline, 0);
         let mut keys = vec![0.0; problem.dimension()];
         let mut outcome = Ok(());
         problem.with_thread_context(&mut || {
@@ -172,6 +213,39 @@ pub fn run_portfolio(
         });
     }
 
+    if !initial_keys.is_empty() {
+        let mut outcome = Ok(());
+        problem.with_thread_context(&mut || {
+            for keys in initial_keys {
+                let seed_started = Instant::now();
+                let seed_deadline = seed_started + Duration::from_secs_f64(config.time_limit);
+                let mut search = Search::new(problem, &cancel, seed_started, seed_deadline, 0);
+                match search.eval(keys) {
+                    Ok(cost) => {
+                        pool.insert(cost, keys, specs.len());
+                    }
+                    Err(stop) => {
+                        outcome = Err(stop);
+                        break;
+                    }
+                }
+            }
+        });
+        if let Err(stop) = outcome {
+            if stop == Stop::InvalidCost {
+                return Err(EngineError::InvalidCost {
+                    algorithm: "initial_keys",
+                });
+            }
+            return Err(EngineError::Invalid(format!(
+                "initial_keys evaluation stopped: {}",
+                stop.label()
+            )));
+        }
+    }
+
+    let started = Instant::now();
+    let deadline = started + Duration::from_secs_f64(config.time_limit);
     let outcome = std::thread::scope(|scope| {
         let handles: Vec<_> = (0..workers)
             .map(|worker| {
@@ -276,7 +350,7 @@ pub fn run_portfolio(
         best_keys,
         best_cost,
         reports,
-        elapsed: started.elapsed().as_secs_f64(),
+        elapsed: overall_started.elapsed().as_secs_f64(),
         workers,
         initialization,
     })

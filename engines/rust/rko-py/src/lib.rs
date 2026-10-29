@@ -314,10 +314,13 @@ fn execute(
     problem: &dyn Problem,
     specs: &[Spec],
     config: &Config,
+    initial_keys: &[Vec<f64>],
 ) -> Result<PortfolioResult, EngineError> {
     match engine {
-        "cpp" => rko_cpp::run_portfolio(problem, specs, config),
-        _ => rko_core::engine::run_portfolio(problem, specs, config),
+        "cpp" => rko_cpp::run_portfolio_with_initial_keys(problem, specs, config, initial_keys),
+        _ => {
+            rko_core::engine::run_portfolio_with_initial_keys(problem, specs, config, initial_keys)
+        }
     }
 }
 
@@ -329,7 +332,7 @@ fn cpp_available() -> bool {
 
 /// Runs a native portfolio and returns a result dictionary.
 #[pyfunction]
-#[pyo3(signature = (problem, specs, time_limit, seed, pool_size, threads=None, history_limit=0, ls_strategy=1, prefill=false, engine="rust", max_evaluations=None))]
+#[pyo3(signature = (problem, specs, time_limit, seed, pool_size, threads=None, history_limit=0, ls_strategy=1, prefill=false, engine="rust", max_evaluations=None, initial_keys=None))]
 #[allow(clippy::too_many_arguments)]
 fn run<'py>(
     py: Python<'py>,
@@ -344,8 +347,10 @@ fn run<'py>(
     prefill: bool,
     engine: &str,
     max_evaluations: Option<u64>,
+    initial_keys: Option<Vec<Vec<f64>>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     let specs = parse_specs(specs)?;
+    let initial_keys = initial_keys.unwrap_or_default();
     let config = Config {
         time_limit,
         seed,
@@ -358,7 +363,8 @@ fn run<'py>(
     };
     if let Ok(knapsack) = problem.cast::<KnapsackProblem>() {
         let knapsack = knapsack.get();
-        let outcome = py.detach(|| execute(engine, &knapsack.inner, &specs, &config));
+        let outcome =
+            py.detach(|| execute(engine, &knapsack.inner, &specs, &config, &initial_keys));
         return match outcome {
             Ok(result) => result_to_dict(py, &result),
             Err(error) => Err(engine_error(&error)),
@@ -367,7 +373,7 @@ fn run<'py>(
     if let Ok(callback) = problem.cast::<CallbackProblem>() {
         let callback = callback.get();
         let adapter = CallbackAdapter(callback);
-        let outcome = py.detach(|| execute(engine, &adapter, &specs, &config));
+        let outcome = py.detach(|| execute(engine, &adapter, &specs, &config, &initial_keys));
         let stored = callback
             .failure
             .lock()
@@ -384,7 +390,7 @@ fn run<'py>(
     if let Ok(batch) = problem.cast::<BatchProblem>() {
         let batch = batch.get();
         let adapter = BatchAdapter(batch);
-        let outcome = py.detach(|| execute(engine, &adapter, &specs, &config));
+        let outcome = py.detach(|| execute(engine, &adapter, &specs, &config, &initial_keys));
         let stored = batch.failure.lock().expect("failure lock poisoned").take();
         if let Some(error) = stored {
             return Err(error);
@@ -396,7 +402,7 @@ fn run<'py>(
     }
     if let Ok(compiled) = problem.cast::<CompiledProblem>() {
         let adapter = CompiledAdapter(compiled.get());
-        let outcome = py.detach(|| execute(engine, &adapter, &specs, &config));
+        let outcome = py.detach(|| execute(engine, &adapter, &specs, &config, &initial_keys));
         return match outcome {
             Ok(result) => result_to_dict(py, &result),
             Err(error) => Err(engine_error(&error)),

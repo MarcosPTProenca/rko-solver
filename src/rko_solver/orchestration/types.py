@@ -157,6 +157,22 @@ class SearchMetadata:
 
 
 @dataclass(frozen=True)
+class InitialKeysMetadata:
+    """Report objective work spent evaluating caller-supplied initial keys.
+
+    Responsibilities:
+    - Account for every supplied row evaluated before portfolio searches.
+
+    Attributes:
+        n_keys (int): Number of supplied key vectors evaluated once each.
+        n_evaluations (int): Completed finite objective evaluations for those vectors.
+    """
+
+    n_keys: int
+    n_evaluations: int
+
+
+@dataclass(frozen=True)
 class PoolInitializationMetadata:
     """Report shared startup work independently of algorithm search reports.
 

@@ -17,6 +17,9 @@ versions must be verified against their tag, manifest and package-index metadata
   `(1 - mu)^(p + m*G)` miss bound for BRKGA, and what it does not say. Two tests back it: the best
   cost never loses an improvement on any engine, and BRKGA's miss rate on a five-bit target stays
   under the bound.
+- `RKO(..., initial_keys=...)` evaluates copied, validated random-key vectors once before search
+  and offers them to the shared pool across Python, Rust and C++; `result.initial_keys` reports
+  seeded evaluations separately, while total evaluation counts include them.
 
 ### Removed
 

@@ -65,7 +65,8 @@ The first three arguments are required in the short form. The others are keyword
 | `adaptation=None` | Configured mode; `"fixed"` settings or `"adaptive"` Q-learning where supported |
 | `control=None` | Legacy alias: `0` fixed or `1` adaptive; conflicting aliases are rejected |
 | `pool_size=None` | Configured elite capacity; not a prebuilt population |
-| `prefill_pool=None` | Configured startup policy; packaged default is off |
+| `prefill_pool=None` | Configured random-pool startup policy; packaged default is off |
+| `initial_keys=None` | Optional copied matrix of caller-supplied random-key vectors evaluated before search |
 | `params_dir=None` | Custom TOML directory, otherwise installed resources |
 | `engine="python"` | `"python"`, `"rust"` (compiled engine), `"cpp"` (reference engine, opt-in build) or `"auto"`; see [Rust and C++ engines](native.md) |
 | `execution=None` | Python engine only: `"process"` (default), `"thread"` or `"sequential"`; rejected for other engines |
@@ -98,6 +99,17 @@ population. Opt in with `prefill_pool=True` (CLI `--prefill-pool`) for
 Startup has its own cooperative allowance equal to `time_limit`, followed by fresh
 search allowances; total elapsed can increase. `result.initialization` reports its
 work separately, and `result.n_evaluations` includes startup plus searches once.
+
+Pass `initial_keys` to offer known vectors to the shared pool. Each row must have exactly
+`n_variables` finite values in `[0, 1)`. The solver copies the matrix at construction; an empty
+matrix is a no-op. Every supplied row is evaluated once, including duplicate rows, after optional
+random prefill and before search. The pool applies its usual capacity and distinct-key rules, so it
+may discard a worse vector; every input row is still evaluated. `result.initial_keys` reports the
+number of supplied rows and their completed evaluations, separately from `result.initialization`
+(random prefill), and `result.n_evaluations` includes both. C++ retains its existing reference
+prefill even when `prefill_pool=False`. With `engine="auto"`, calibration probes do not evaluate
+`initial_keys`; only the final selected run does. A direct model solve that bypasses search rejects
+nonempty `initial_keys`.
 The [1,440-pair quality expansion](prefill-expanded-work.md) finds broader but
 non-universal IPR benefits, mixed GRASP and mostly neutral MultiStart; keep startup
 opt-in. Large-GRASP gains can be startup-only before construction completes.

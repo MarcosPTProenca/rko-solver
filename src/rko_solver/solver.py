@@ -53,6 +53,7 @@ from .orchestration.execution import select_best_result
 from .orchestration.factory import build_metaheuristic
 from .orchestration.factory import normalize_hyperparameters
 from .orchestration.initialization import initialize_pool
+from .orchestration.initialization import seed_pool
 from .orchestration.limits import RunLimits
 from .orchestration.preparation import SolverPreparation
 from .orchestration.processes import run_processes
@@ -62,6 +63,7 @@ from .orchestration.types import CostFn
 from .orchestration.types import DecoderFn
 from .orchestration.types import ExecutionMetadata
 from .orchestration.types import Hyperparameters
+from .orchestration.types import InitialKeysMetadata
 from .orchestration.types import NativeProblem
 from .orchestration.types import PoolInitializationMetadata
 from .orchestration.types import RunConfig
@@ -103,7 +105,9 @@ class RKO:
         control (int | None): Legacy mode override; None leaves configuration in charge.
         adaptation (Adaptation | None): Readable fixed/adaptive mode override.
         pool_size (int | None): Shared elite capacity; None uses TOML defaults.
-        prefill_pool (bool | None): Opt-in reference-style startup; None uses TOML.
+        prefill_pool (bool | None): Opt-in reference-style random startup; None uses TOML.
+        initial_keys (Sequence[Sequence[float]] | None): Caller-owned key vectors evaluated once
+            and offered to the shared pool before searches. Inputs are copied at construction.
         params_dir (Path | None): Optional parameter directory.
         engine (str): `python`, `rust`, `cpp` or `auto`; auto chooses among the others by a
             short simulation on this problem.
@@ -133,6 +137,7 @@ class RKO:
         control: int | None = None,
         pool_size: int | None = None,
         prefill_pool: bool | None = None,
+        initial_keys: Sequence[Sequence[float]] | None = None,
         params_dir: Path | None = None,
         engine: Engine | None = None,
         execution: Execution | None = None,
@@ -164,8 +169,10 @@ class RKO:
             control (int | None): Legacy 0 (fixed) or 1 (adaptive); accepted on its own
                 for compatibility and rejected when it contradicts `adaptation`.
             pool_size (int | None): Elite capacity, or configured default.
-            prefill_pool (bool | None): Reference startup override; adds a separately
+            prefill_pool (bool | None): Reference random-startup override; adds a separately
                 accounted cooperative allowance equal to time_limit before fresh searches.
+            initial_keys (Sequence[Sequence[float]] | None): Optional matrix of supplied random-key
+                vectors. Every row is evaluated once before searches and counted separately.
             params_dir (Path | None): Optional parameter TOML directory.
             engine (Engine | None): "python" (default), "rust" (compiled engine), "cpp" (C++
                 reference, available only in builds made with `RKO_BUILD_CPP=1`) or "auto".
@@ -234,6 +241,7 @@ class RKO:
         self.control = control
         self.pool_size = pool_size
         self.prefill_pool = prefill_pool
+        self.initial_keys = copy.deepcopy(initial_keys)
         self.params_dir = params_dir
         self.engine, self.execution = EngineSelection.request(engine, execution)
         self.auto_time = auto_time
@@ -292,6 +300,7 @@ class RKO:
         model_state.validate()
         preparation = SolverPreparation(self)
         execution = preparation.validate(time_limit)
+        initial_keys = self._validate_initial_keys()
         if self.engine == "auto":
             return self._solve_auto(time_limit, started)
         config = parse_run_config(preparation.overrides(load_config(self.params_dir)))
@@ -310,6 +319,7 @@ class RKO:
             )
         metadata: list[SearchMetadata] = []
         initialization: list[PoolInitializationMetadata] = []
+        initial_keys_metadata: list[InitialKeysMetadata] = []
         engine, n_jobs, random_state, n_variables = (
             self.engine,
             self.n_jobs,
@@ -318,6 +328,8 @@ class RKO:
         )
         available_cpus = max(1, os.process_cpu_count() or 1) if execution == "process" else None
         no_search = model_state.no_search
+        if no_search and initial_keys is not None:
+            raise ValueError("'initial_keys' cannot be used when a model is solved directly.")
         if no_search:
             keys, value = model_state.direct()
         else:
@@ -328,6 +340,8 @@ class RKO:
                 hyperparameters=hyperparameters,
                 search_metadata=metadata,
                 initialization_metadata=initialization,
+                initial_keys=initial_keys,
+                initial_keys_metadata=initial_keys_metadata,
                 process_worker_limit=n_jobs if n_jobs is not None else available_cpus,
                 **model_state.arguments(),
             )
@@ -355,6 +369,7 @@ class RKO:
             ),
             available_cpus=None if no_search else available_cpus,
             initialization=initialization[0] if initialization else None,
+            initial_keys=initial_keys_metadata[0] if initial_keys_metadata else None,
             trace=DecisionTrace.selected(value, keys) if self.trace is not None else None,
             model=model_result,
             max_evaluations=self.max_evaluations,
@@ -394,6 +409,30 @@ class RKO:
             return "native"
         return "batch" if self._batch is not None else "callbacks"
 
+    def _validate_initial_keys(self) -> np.ndarray | None:
+        """Convert the copied initial-key input to an owned validated matrix.
+
+        Returns:
+            np.ndarray | None: Validated key rows, or None when no rows were supplied.
+
+        Raises:
+            ValueError: If rows are ragged, have the wrong dimension, or contain keys outside
+                the finite interval [0, 1).
+        """
+        if self.initial_keys is None:
+            return None
+        try:
+            if len(self.initial_keys) == 0:
+                return None
+            keys = np.asarray(self.initial_keys, dtype=np.float64)
+        except (OverflowError, TypeError, ValueError) as exc:
+            raise ValueError("'initial_keys' must be a rectangular numeric matrix.") from exc
+        if keys.ndim != 2 or keys.shape[1] != self.n_variables:
+            raise ValueError("'initial_keys' rows must match 'n_variables'.")
+        if not np.isfinite(keys).all() or np.any(keys < 0.0) or np.any(keys >= 1.0):
+            raise ValueError("'initial_keys' values must be finite and in [0, 1).")
+        return np.array(keys, dtype=np.float64, copy=True)
+
     def _variant(self, candidate: AutoCandidate, seed: int | None, probe: bool = True) -> RKO:
         """Copy this solver with another engine, sharing the problem definition.
 
@@ -413,6 +452,7 @@ class RKO:
         variant.result_ = None
         variant._native_workers = None
         if probe:
+            variant.initial_keys = None
             variant.verbose = False
             variant.history_limit = 0
             variant.trace = None
@@ -471,6 +511,8 @@ class RKO:
         search_metadata: list[SearchMetadata] | None = None,
         process_worker_limit: int | None = None,
         initialization_metadata: list[PoolInitializationMetadata] | None = None,
+        initial_keys: np.ndarray | None = None,
+        initial_keys_metadata: list[InitialKeysMetadata] | None = None,
         **context: Unpack[ExecutionMetadata],
     ) -> tuple[list[float], float]:
         """Dispatch a validated portfolio without retaining worker state.
@@ -481,7 +523,9 @@ class RKO:
             hyperparameters (Hyperparameters | None): Owned normalized offline overrides.
             search_metadata (list[SearchMetadata] | None): Optional immutable report collector.
             process_worker_limit (int | None): Resolved per-solve process cap.
-            initialization_metadata (list | None): Optional shared startup report collector.
+            initialization_metadata (list | None): Optional shared random-startup report collector.
+            initial_keys (np.ndarray | None): Validated keys to evaluate before searches.
+            initial_keys_metadata (list[InitialKeysMetadata] | None): Seed-key report collector.
             context (ExecutionMetadata): Required solve origin and optional bounded model archive.
 
         Returns:
@@ -516,6 +560,8 @@ class RKO:
                 self.history_limit,
                 search_metadata,
                 initialization_metadata,
+                initial_keys,
+                initial_keys_metadata,
                 self.max_evaluations,
             )
             self._native_workers = runner.workers
@@ -553,6 +599,8 @@ class RKO:
                 hyperparameters=hyperparameters,
                 search_metadata=search_metadata,
                 initialization_metadata=initialization_metadata,
+                initial_keys=initial_keys,
+                initial_keys_metadata=initial_keys_metadata,
                 history_limit=self.history_limit,
                 max_evaluations=self.max_evaluations,
                 **callback_options,
@@ -572,6 +620,11 @@ class RKO:
                 )
                 if initialization_metadata is not None:
                     initialization_metadata.append(report)
+            if initial_keys is not None:
+                assert initial_keys_metadata is not None
+                initial_keys_metadata.append(
+                    seed_pool(pool, self.decoder, self.cost, initial_keys, self.trace)
+                )
             if execution == "thread":
                 return select_best_result(
                     run_metaheuristics_parallel(

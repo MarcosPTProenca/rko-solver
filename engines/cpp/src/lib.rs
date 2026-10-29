@@ -70,6 +70,35 @@ pub fn run_portfolio(
     specs: &[Spec],
     config: &Config,
 ) -> Result<PortfolioResult, EngineError> {
+    run_portfolio_with_initial_keys(problem, specs, config, &[])
+}
+
+/// Runs the C++ reference portfolio after offering caller-supplied keys to its shared pool.
+///
+/// Each key row is evaluated once after the existing reference pool is initialized and before
+/// the search threads start. The fixed-capacity pool decides which distinct candidates it retains.
+///
+/// # Arguments
+///
+/// * `problem` - Decoder/objective implementation used by the reference evaluation hook.
+/// * `specs` - Nonempty validated C++ algorithm specifications.
+/// * `config` - Shared wall-clock budget, random seed and pool settings.
+/// * `initial_keys` - Rows with the problem dimension and finite values in `[0, 1)`.
+///
+/// # Returns
+///
+/// The best solution and per-search reports from the C++ reference engine.
+///
+/// # Errors
+///
+/// Returns `EngineError::Invalid` for malformed keys, unsupported settings or a build without
+/// the optional C++ engine, and `EngineError::InvalidCost` for non-finite seeded costs.
+pub fn run_portfolio_with_initial_keys(
+    problem: &dyn Problem,
+    specs: &[Spec],
+    config: &Config,
+    initial_keys: &[Vec<f64>],
+) -> Result<PortfolioResult, EngineError> {
     if specs.is_empty() {
         return Err(EngineError::Invalid(
             "at least one algorithm is required".to_owned(),
@@ -95,14 +124,26 @@ pub fn run_portfolio(
             "the C++ engine needs pool_size of at least 2".to_owned(),
         ));
     }
-    if problem.dimension() < 10 && specs.iter().any(|spec| spec.algorithm == Algorithm::Ipr) {
+    let dimension = problem.dimension();
+    if initial_keys.iter().any(|keys| {
+        keys.len() != dimension
+            || keys
+                .iter()
+                .any(|key| !key.is_finite() || !(0.0..1.0).contains(key))
+    }) {
+        return Err(EngineError::Invalid(
+            "'initial_keys' rows must match the problem dimension and contain finite values in [0, 1)."
+                .to_owned(),
+        ));
+    }
+    if dimension < 10 && specs.iter().any(|spec| spec.algorithm == Algorithm::Ipr) {
         return Err(EngineError::Invalid(
             "the C++ reference's IPR needs at least 10 keys: its block size is dimension / 10 and \
              it divides by zero below that"
                 .to_owned(),
         ));
     }
-    imp::run(problem, specs, config)
+    imp::run(problem, specs, config, initial_keys)
 }
 
 #[cfg(not(rko_cpp))]
@@ -113,6 +154,7 @@ mod imp {
         _problem: &dyn Problem,
         _specs: &[Spec],
         _config: &Config,
+        _initial_keys: &[Vec<f64>],
     ) -> Result<PortfolioResult, EngineError> {
         Err(EngineError::Invalid(
             "this build has no C++ engine; rebuild with RKO_BUILD_CPP=1 on Linux".to_owned(),

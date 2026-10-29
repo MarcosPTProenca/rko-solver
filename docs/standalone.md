@@ -81,7 +81,8 @@ All options below have **the same names, defaults and meanings as RKO**:
 | `adaptation=None` | Configured default; explicit `"fixed"` or `"adaptive"` |
 | `control=None` | Existing integer control override; must agree with adaptation |
 | `pool_size=None` | Configured elite capacity, not population size |
-| `prefill_pool=None` | Configured shared-startup policy; currently off by default |
+| `prefill_pool=None` | Configured shared random-startup policy; currently off by default |
+| `initial_keys=None` | Optional caller-supplied random-key vectors, evaluated once before search |
 | `params_dir=None` | Packaged defaults or a custom TOML directory |
 | `engine="python"` | `"python"`, `"rust"`, `"cpp"` or `"auto"`, exactly as for `RKO` |
 | `execution=None` | Python engine only: process (default), thread or sequential |

@@ -25,6 +25,7 @@ from .modeling.results import ModelResult
 from .orchestration.adaptation import Adaptation
 from .orchestration.adaptation import adaptation_name
 from .orchestration.auto import AutoSelection
+from .orchestration.types import InitialKeysMetadata
 from .orchestration.types import PoolInitializationMetadata
 from .orchestration.types import SearchMetadata
 from .tracing import DecisionTrace
@@ -54,7 +55,8 @@ class RKOResult:
             worker threads actually used.
         versions (tuple): RKO distribution, Python and NumPy runtime versions.
         available_cpus (int | None): Usable logical CPUs snapshotted for process execution.
-        initialization (PoolInitializationMetadata | None): Separate opt-in startup work.
+        initialization (PoolInitializationMetadata | None): Separate random-pool startup work.
+        initial_keys (InitialKeysMetadata | None): Caller-supplied key evaluations before searches.
         trace (DecisionTrace | None): Selected original-decision evidence or unavailable status.
         auto (AutoSelection | None): How auto selected the engine, absent for generated models.
         execution (str | None): Python scheduling, or None for native engines/direct evaluation.
@@ -77,6 +79,7 @@ class RKOResult:
     versions: tuple[tuple[str, str], ...] = ()
     available_cpus: int | None = None
     initialization: PoolInitializationMetadata | None = None
+    initial_keys: InitialKeysMetadata | None = None
     trace: DecisionTrace | None = None
     auto: AutoSelection | None = None
     execution: str | None = None
@@ -92,10 +95,12 @@ class RKOResult:
         """
         if self.model is not None and self.model.no_search:
             return self.model.direct_evaluations
-        if not self.searches and self.initialization is None:
+        if not self.searches and self.initialization is None and self.initial_keys is None:
             return None
-        return sum(report.n_evaluations for report in self.searches) + (
-            self.initialization.n_evaluations if self.initialization is not None else 0
+        return (
+            sum(report.n_evaluations for report in self.searches)
+            + (self.initialization.n_evaluations if self.initialization is not None else 0)
+            + (self.initial_keys.n_evaluations if self.initial_keys is not None else 0)
         )
 
     @property
