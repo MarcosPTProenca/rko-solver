@@ -50,8 +50,15 @@ class ProbeResult(Protocol):
         keys (tuple[float, ...]): Best random-key vector.
     """
 
-    cost: float
-    keys: tuple[float, ...]
+    @property
+    def cost(self) -> float:
+        """Return the best cost found."""
+        ...
+
+    @property
+    def keys(self) -> tuple[float, ...]:
+        """Return the best random-key vector."""
+        ...
 
 
 class Probeable(Protocol):
@@ -82,8 +89,8 @@ class SelectableSolver(Protocol):
         """Return `callbacks`, `batch` or `native`."""
         ...
 
-    def _variant(self, candidate: AutoCandidate, seed: int | None) -> Probeable:
-        """Return a probe copy running the candidate engine."""
+    def _variant(self, candidate: AutoCandidate, seed: int | None, probe: bool = True) -> Probeable:
+        """Return a copy running the candidate engine, quiet when `probe` is true."""
         ...
 
 

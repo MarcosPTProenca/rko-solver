@@ -247,6 +247,8 @@ extern "C"
         uint64_t max_evaluations;
         uint64_t history_limit;
         size_t dimension;
+        const double *initial_keys;
+        size_t initial_key_count;
     };
 
     struct rko_cpp_report
@@ -300,8 +302,7 @@ static void run_algorithm(int algorithm, const TRunData &run, const TProblemData
 }
 
 extern "C" int32_t rko_cpp_run(const rko_cpp_config *config, const rko_cpp_spec *specs, size_t spec_count,
-                               rko_cpp_eval_fn eval, void *user, const double *initial_keys,
-                               size_t initial_key_count, const rko_cpp_outputs *outputs)
+                               rko_cpp_eval_fn eval, void *user, const rko_cpp_outputs *outputs)
 {
     size_t dimension = config->dimension;
     rko_cpp_report *reports = outputs->reports;
@@ -368,7 +369,8 @@ extern "C" int32_t rko_cpp_run(const rko_cpp_config *config, const rko_cpp_spec 
     ThreadStats initial_key_stats;
     initial_key_stats.started = std::chrono::steady_clock::now();
     t_stats = &initial_key_stats;
-    for (size_t row = 0; row < initial_key_count; row++)
+    const double *initial_keys = config->initial_keys;
+    for (size_t row = 0; row < config->initial_key_count; row++)
     {
         TSol candidate;
         candidate.rk.assign(initial_keys + row * dimension, initial_keys + (row + 1) * dimension);

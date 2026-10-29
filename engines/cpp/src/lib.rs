@@ -64,40 +64,19 @@ pub fn reference_order(algorithm: Algorithm, values: &[f64]) -> Vec<f64> {
     }
 }
 
-/// Runs the portfolio on the C++ reference algorithms.
+/// Runs the C++ reference portfolio after offering `config.initial_keys` to its shared pool.
+///
+/// Each key row is evaluated once after the reference pool is initialized and before the search
+/// threads start; the fixed-capacity pool decides which distinct candidates it retains.
+///
+/// # Errors
+///
+/// Returns `EngineError::Invalid` for malformed keys, unsupported settings or a build without the
+/// optional C++ engine, and `EngineError::InvalidCost` for non-finite seeded costs.
 pub fn run_portfolio(
     problem: &dyn Problem,
     specs: &[Spec],
     config: &Config,
-) -> Result<PortfolioResult, EngineError> {
-    run_portfolio_with_initial_keys(problem, specs, config, &[])
-}
-
-/// Runs the C++ reference portfolio after offering caller-supplied keys to its shared pool.
-///
-/// Each key row is evaluated once after the existing reference pool is initialized and before
-/// the search threads start. The fixed-capacity pool decides which distinct candidates it retains.
-///
-/// # Arguments
-///
-/// * `problem` - Decoder/objective implementation used by the reference evaluation hook.
-/// * `specs` - Nonempty validated C++ algorithm specifications.
-/// * `config` - Shared wall-clock budget, random seed and pool settings.
-/// * `initial_keys` - Rows with the problem dimension and finite values in `[0, 1)`.
-///
-/// # Returns
-///
-/// The best solution and per-search reports from the C++ reference engine.
-///
-/// # Errors
-///
-/// Returns `EngineError::Invalid` for malformed keys, unsupported settings or a build without
-/// the optional C++ engine, and `EngineError::InvalidCost` for non-finite seeded costs.
-pub fn run_portfolio_with_initial_keys(
-    problem: &dyn Problem,
-    specs: &[Spec],
-    config: &Config,
-    initial_keys: &[Vec<f64>],
 ) -> Result<PortfolioResult, EngineError> {
     if specs.is_empty() {
         return Err(EngineError::Invalid(
@@ -107,7 +86,7 @@ pub fn run_portfolio_with_initial_keys(
     for spec in specs {
         spec.validate().map_err(EngineError::Invalid)?;
     }
-    config.validate()?;
+    config.validate_for(problem.dimension())?;
     if !(config.time_limit.is_finite() && config.time_limit >= 0.05) {
         return Err(EngineError::Invalid(
             "the C++ engine needs a time_limit of at least 0.05 seconds".to_owned(),
@@ -124,26 +103,14 @@ pub fn run_portfolio_with_initial_keys(
             "the C++ engine needs pool_size of at least 2".to_owned(),
         ));
     }
-    let dimension = problem.dimension();
-    if initial_keys.iter().any(|keys| {
-        keys.len() != dimension
-            || keys
-                .iter()
-                .any(|key| !key.is_finite() || !(0.0..1.0).contains(key))
-    }) {
-        return Err(EngineError::Invalid(
-            "'initial_keys' rows must match the problem dimension and contain finite values in [0, 1)."
-                .to_owned(),
-        ));
-    }
-    if dimension < 10 && specs.iter().any(|spec| spec.algorithm == Algorithm::Ipr) {
+    if problem.dimension() < 10 && specs.iter().any(|spec| spec.algorithm == Algorithm::Ipr) {
         return Err(EngineError::Invalid(
             "the C++ reference's IPR needs at least 10 keys: its block size is dimension / 10 and \
              it divides by zero below that"
                 .to_owned(),
         ));
     }
-    imp::run(problem, specs, config, initial_keys)
+    imp::run(problem, specs, config)
 }
 
 #[cfg(not(rko_cpp))]
@@ -154,7 +121,6 @@ mod imp {
         _problem: &dyn Problem,
         _specs: &[Spec],
         _config: &Config,
-        _initial_keys: &[Vec<f64>],
     ) -> Result<PortfolioResult, EngineError> {
         Err(EngineError::Invalid(
             "this build has no C++ engine; rebuild with RKO_BUILD_CPP=1 on Linux".to_owned(),
@@ -214,6 +180,7 @@ mod tests {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            initial_keys: Vec::new(),
         };
         assert!(!available());
         assert!(matches!(
@@ -255,6 +222,7 @@ mod tests {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            initial_keys: Vec::new(),
         }
     }
 

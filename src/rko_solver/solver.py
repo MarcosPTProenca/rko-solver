@@ -45,16 +45,14 @@ from .modeling.linear import ModelEvidence
 from .modeling.runtime import ModelRunState
 from .orchestration.adaptation import Adaptation
 from .orchestration.auto import AutoCandidate
-from .orchestration.auto import AutoEngine
-from .orchestration.auto import SelectableSolver
+from .orchestration.auto_run import AutoRun
 from .orchestration.configuration import parse_run_config
 from .orchestration.engine import EngineSelection
 from .orchestration.execution import run_metaheuristics_parallel
 from .orchestration.execution import select_best_result
 from .orchestration.factory import build_metaheuristic
 from .orchestration.factory import normalize_hyperparameters
-from .orchestration.initialization import initialize_pool
-from .orchestration.initialization import seed_pool
+from .orchestration.initialization import PoolStartup
 from .orchestration.limits import RunLimits
 from .orchestration.preparation import SolverPreparation
 from .orchestration.processes import run_processes
@@ -70,6 +68,7 @@ from .orchestration.types import PoolInitializationMetadata
 from .orchestration.types import RunConfig
 from .orchestration.types import RunResult
 from .orchestration.types import SearchMetadata
+from .orchestration.types import StartupJob
 from .parameters.loader import load_config
 from .problem import Blocks
 from .problem import Callbacks
@@ -78,13 +77,11 @@ from .result import RKOResult as RKOResult
 from .tracing import DecisionTrace
 from .tracing import TraceConfig
 from collections.abc import Sequence
-from dataclasses import replace
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version
 from pathlib import Path
 from typing import Literal
 from typing import Unpack
-from typing import cast
 
 Engine = Literal["python", "rust", "cpp", "auto"]
 Execution = Literal["process", "thread", "sequential"]
@@ -305,7 +302,7 @@ class RKO:
         preparation = SolverPreparation(self)
         execution = preparation.validate(time_limit)
         if self.engine == "auto":
-            return self._solve_auto(time_limit, started)
+            return AutoRun.solve(self, time_limit, started)
         config = parse_run_config(preparation.overrides(load_config(self.params_dir)))
         RunLimits.allocation("pool_size", config.pool_size, self.n_variables)
         hyperparameters = normalize_hyperparameters(
@@ -408,12 +405,13 @@ class RKO:
             return "native"
         return "batch" if self._batch is not None else "callbacks"
 
-    def _variant(self, candidate: AutoCandidate, seed: int | None) -> RKO:
+    def _variant(self, candidate: AutoCandidate, seed: int | None, probe: bool = True) -> RKO:
         """Copy this solver with another engine, sharing the problem definition.
 
         Args:
             candidate (AutoCandidate): Engine, execution and worker limit to run.
             seed (int | None): Seed for the copy.
+            probe (bool): Disable history, tracing and progress output for short probes.
 
         Returns:
             RKO: Independent solver object that can be solved separately.
@@ -425,62 +423,13 @@ class RKO:
         variant.random_state = seed
         variant.result_ = None
         variant._native_workers = None
+        if probe:
+            variant._initial_keys_input = None
+            variant.initial_keys = InitialKeys.from_values(None, self.n_variables)
+            variant.verbose = False
+            variant.history_limit = 0
+            variant.trace = None
         return variant
-
-    def _solve_auto(self, time_limit: float, started: float) -> RKOResult:
-        """Choose an engine by short probes, then run the full budget on the winner.
-
-        Args:
-            time_limit (float): Search seconds of the final run.
-            started (float): Monotonic origin of this solve.
-
-        Returns:
-            RKOResult: Best solution over probes and final run, with the selection record.
-
-        Raises:
-            ValueError: If the candidate list is invalid or `n_jobs` was given.
-            RuntimeError: If every candidate fails.
-        """
-        if self.n_jobs is not None:
-            raise ValueError("'n_jobs' cannot be combined with engine='auto'.")
-        from . import _native
-
-        cpp_available = _native.cpp_available()
-        probe_solver = copy.copy(self)
-        probe_solver._initial_keys_input = None
-        probe_solver.initial_keys = InitialKeys.from_values(None, self.n_variables)
-        probe_solver.verbose = False
-        probe_solver.history_limit = 0
-        probe_solver.trace = None
-        selection, probe_keys, probe_cost = AutoEngine.select(
-            cast(SelectableSolver, probe_solver),
-            time_limit,
-            self.auto_time,
-            self.auto_candidates,
-            cpp_available,
-            time.perf_counter,
-        )
-        cpus = max(1, os.process_cpu_count() or 1)
-        candidate = AutoEngine.build(selection.chosen, cpus)
-        if self.verbose:
-            print(
-                f"RKO AUTO chosen={selection.chosen} reason='{selection.reason}' "
-                f"scores={dict(selection.scores)}",
-                flush=True,
-            )
-        final = self._variant(candidate, self.random_state).solve(time_limit)
-        improved = probe_keys is not None and probe_cost < final.cost
-        selection = replace(selection, improved_by_probe=improved)
-        result = replace(
-            final,
-            keys=tuple(probe_keys) if improved else final.keys,
-            cost=float(probe_cost) if improved else final.cost,
-            elapsed_seconds=time.perf_counter() - started,
-            random_state=self.random_state,
-            auto=selection,
-        )
-        self.result_ = result
-        return result
 
     def _execute(
         self,
@@ -581,20 +530,11 @@ class RKO:
             )
         pool.start_progress()
         try:
-            if config.prefill_pool:
-                report = initialize_pool(
-                    pool,
-                    self.decoder,
-                    self.cost,
-                    self.n_variables,
-                    config.pool_size,
-                    time_limit,
-                    self.random_state,
-                    **callback_options,
-                )
-                if initialization_metadata is not None:
-                    initialization_metadata.append(report)
-            seed_pool(pool, self.decoder, self.cost, self.initial_keys, self.trace, model_evidence)
+            report = PoolStartup(self.decoder, self.cost, self.n_variables, **callback_options).run(
+                pool, config, StartupJob(time_limit, self.random_state, self.initial_keys)
+            )
+            if initialization_metadata is not None:
+                initialization_metadata.extend(report.initialization)
             if execution == "thread":
                 return select_best_result(
                     run_metaheuristics_parallel(

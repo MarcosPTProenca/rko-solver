@@ -56,6 +56,8 @@ struct RawConfig {
     max_evaluations: u64,
     history_limit: u64,
     dimension: usize,
+    initial_keys: *const f64,
+    initial_key_count: usize,
 }
 
 #[repr(C)]
@@ -90,8 +92,6 @@ unsafe extern "C" {
         spec_count: usize,
         eval: EvalFn,
         user: *mut c_void,
-        initial_keys: *const f64,
-        initial_key_count: usize,
         outputs: *const RawOutputs,
     ) -> i32;
 }
@@ -197,12 +197,11 @@ pub(super) fn run(
     problem: &dyn Problem,
     specs: &[Spec],
     config: &Config,
-    initial_keys: &[Vec<f64>],
 ) -> Result<PortfolioResult, EngineError> {
     let dimension = problem.dimension();
     let (offline, states) = reference_inputs(specs);
     let raw_specs = raw_specs(specs, &offline, &states);
-    let initial_key_values: Vec<f64> = initial_keys.iter().flatten().copied().collect();
+    let initial_key_values: Vec<f64> = config.initial_keys.iter().flatten().copied().collect();
     let raw_config = RawConfig {
         time_limit: config.time_limit,
         seed: config.seed,
@@ -211,6 +210,8 @@ pub(super) fn run(
         max_evaluations: config.max_evaluations.unwrap_or(0),
         history_limit: config.history_limit as u64,
         dimension,
+        initial_keys: initial_key_values.as_ptr(),
+        initial_key_count: config.initial_keys.len(),
     };
     let mut reports = vec![RawReport::default(); specs.len()];
     let mut report_keys = vec![0.0_f64; specs.len() * dimension];
@@ -242,8 +243,6 @@ pub(super) fn run(
             raw_specs.len(),
             trampoline,
             std::ptr::from_ref(&callback).cast_mut().cast::<c_void>(),
-            initial_key_values.as_ptr(),
-            initial_keys.len(),
             &outputs,
         )
     };

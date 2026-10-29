@@ -41,8 +41,7 @@ from ..tracing import TraceConfig
 from .execution import select_best_result
 from .factory import build_metaheuristic
 from .factory import normalize_hyperparameters
-from .initialization import initialize_pool
-from .initialization import seed_pool
+from .initialization import PoolStartup
 from .search import SearchReporting
 from .search import SearchSession
 from .stopped import StoppedSearches
@@ -51,16 +50,18 @@ from .types import DecoderFn
 from .types import ExecutionOptions
 from .types import Hyperparameters
 from .types import InitialKeys
-from .types import InitialKeysMetadata
 from .types import PoolInitializationMetadata
 from .types import RunConfig
 from .types import RunResult
 from .types import SearchMetadata
+from .types import StartupJob
+from .types import StartupReport
 from .types import WorkerCaptureOptions
 from multiprocessing.connection import Connection
 from multiprocessing.connection import wait
 from multiprocessing.managers import BaseManager
 from multiprocessing.managers import BaseProxy
+from multiprocessing.process import BaseProcess
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event
 from pathlib import Path
@@ -185,9 +186,7 @@ def _worker(
     connection: Connection,
     hyperparameters: Hyperparameters | None = None,
     collect_metadata: bool = False,
-    initialization_start: Event | None = None,
-    initialization_duration: float | None = None,
-    initialization_random_state: int | None = None,
+    startup: StartupJob | None = None,
     history_limit: int = 0,
     trace: TraceConfig | None = None,
     **capture_options: Unpack[WorkerCaptureOptions],
@@ -207,19 +206,13 @@ def _worker(
         connection (Connection): Dedicated result/control pipe.
         hyperparameters (Hyperparameters | None): Normalized partial offline overrides.
         collect_metadata (bool): Send compact reports, including unstarted queued searches.
-        initialization_start (Event | None): Gate supplied only to the designated initializer.
-        initialization_duration (float | None): Separate cooperative startup allowance.
-        initialization_random_state (int | None): Source for the reserved startup stream.
+        startup (StartupJob | None): Pool startup supplied only to the designated initializer.
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decoder recording.
         max_evaluations (int | None): Completed evaluations after which each search stops.
         capture_options (WorkerCaptureOptions): Evaluation cap and bounded model transport policy.
     """
     max_evaluations = capture_options.get("max_evaluations")
-    initial_keys = cast(
-        InitialKeys,
-        capture_options.get("initial_keys", InitialKeys.from_values(None, dimension)),
-    )
     model_evidence: list[ModelEvidence] | None = (
         [] if capture_options.get("collect_model_evidence", False) else None
     )
@@ -242,27 +235,14 @@ def _worker(
                 )
             prepared.append((mh, streams))
         connection.send(("ready", None))
-        if initialization_start is not None:
-            initialization_start.wait()
-            initialization_report = None
-            if config.prefill_pool:
-                name = "initial_pool"
-                assert initialization_duration is not None
-                initialization_report = initialize_pool(
-                    pool,
-                    decoder,
-                    cost,
-                    dimension,
-                    config.pool_size,
-                    initialization_duration,
-                    initialization_random_state,
-                    **callback_options,
-                )
-            name = "initial_keys"
-            report = seed_pool(pool, decoder, cost, initial_keys, trace, model_evidence)
-            connection.send(("initial_keys", report))
-            if initialization_report is not None:
-                connection.send(("initialized", initialization_report))
+        if startup is not None:
+            name = "startup"
+            assert startup.release is not None
+            startup.release.wait()
+            report = PoolStartup(decoder, cost, dimension, **callback_options).run(
+                pool, config, startup
+            )
+            connection.send(("initialized", report))
         start.wait()
         best: RunResult | None = None
         reports: list[SearchMetadata] = []
@@ -355,6 +335,39 @@ class ProcessAssignments:
         return [assignments[index::worker_count] for index in range(worker_count)]
 
 
+class WorkerShutdown:
+    """Stop and reap worker processes and close their result pipes.
+
+    Responsibilities:
+    - Give finished workers a short grace, then terminate and finally kill stragglers.
+    - Release every process and pipe resource exactly once.
+    """
+
+    @staticmethod
+    def release(processes: list[BaseProcess], connections: list[Connection]) -> None:
+        """Escalate from join to terminate to kill, then close all resources.
+
+        Args:
+            processes (list[BaseProcess]): Spawned workers, started or not.
+            connections (list[Connection]): Parent ends of the worker pipes.
+        """
+        for process in processes:
+            if process.pid is not None:
+                process.join(timeout=0.2)
+        for process in processes:
+            if process.is_alive():
+                process.terminate()
+        for process in processes:
+            if process.pid is not None:
+                process.join(timeout=1.0)
+                if process.is_alive():
+                    process.kill()
+                    process.join()
+            process.close()
+        for connection in connections:
+            connection.close()
+
+
 def run_processes(
     config: RunConfig,
     decoder: DecoderFn,
@@ -424,11 +437,13 @@ def run_processes(
     with PoolManager(ctx=context) as manager:
         pool = manager.SolutionPool(config.pool_size, verbose=verbose, started_at=started_at)
         start = context.Event()
-        initial_keys = callback_options.get(
-            "initial_keys", InitialKeys.from_values(None, dimension)
+        keys = callback_options.get("initial_keys", InitialKeys.from_values(None, dimension))
+        startup_required = config.prefill_pool or keys.has_keys
+        startup = (
+            StartupJob(limit_time, random_state, keys, context.Event())
+            if startup_required
+            else None
         )
-        startup_required = config.prefill_pool or initial_keys.has_keys
-        initialization_start = context.Event() if startup_required else None
         initialization_done = not startup_required
         initialization_released, phase = False, "startup"
         deadline = context.Value("d", 0.0)
@@ -461,20 +476,13 @@ def run_processes(
                         child,
                         hyperparameters,
                         search_metadata is not None,
-                        initialization_start if group_index == 0 else None,
-                        limit_time,
-                        random_state,
+                        startup if group_index == 0 else None,
                         history_limit,
                         trace,
                     ),
                     kwargs={
                         "max_evaluations": max_evaluations,
                         "collect_model_evidence": model_evidence is not None,
-                        "initial_keys": (
-                            initial_keys
-                            if group_index == 0
-                            else InitialKeys.from_values(None, dimension)
-                        ),
                     },
                 )
                 processes.append(process)
@@ -502,14 +510,12 @@ def run_processes(
                         raise RuntimeError(f"{name}: worker failed.\n{details}") from cause
                     if status == "ready":
                         ready.add(connection)
-                    elif status == "initial_keys":
-                        initial_keys.set_metadata(cast(InitialKeysMetadata | None, payload))
-                        if not config.prefill_pool:
-                            initialization_done = True
                     elif status == "initialized":
                         initialization_done = True
+                        report = cast(StartupReport, payload)
+                        keys.set_metadata(report.initial_keys)
                         if initialization_metadata is not None:
-                            initialization_metadata.append(payload)
+                            initialization_metadata.extend(report.initialization)
                     elif status == "model_evidence":
                         assert model_evidence is not None
                         model_evidence.extend(cast(list[ModelEvidence], payload))
@@ -526,27 +532,13 @@ def run_processes(
                         phase = "search"
                         start.set()
                     elif not initialization_released:
-                        assert initialization_start is not None
+                        assert startup is not None and startup.release is not None
                         initialization_released = True
                         phase = "initialization"
                         expires = time.perf_counter() + limit_time + 5.0
-                        initialization_start.set()
+                        startup.release.set()
             StoppedSearches.report(stopped, search_metadata, limit_time, history_limit)
             return select_best_result(results, pool)
         finally:
-            for process in processes:
-                if process.pid is not None:
-                    process.join(timeout=0.2)
-            for process in processes:
-                if process.is_alive():
-                    process.terminate()
-            for process in processes:
-                if process.pid is not None:
-                    process.join(timeout=1.0)
-                    if process.is_alive():
-                        process.kill()
-                        process.join()
-                process.close()
-            for connection in connections:
-                connection.close()
+            WorkerShutdown.release(processes, connections)
             pool.stop_progress()

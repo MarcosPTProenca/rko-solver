@@ -301,10 +301,9 @@ pub fn run(name: &str, engine: Engine) {
         seed,
         pool_size: 10,
         threads,
-        history_limit: 0,
         ls_strategy: strategy,
         prefill,
-        max_evaluations: None,
+        ..Config::default()
     };
     let (result, extra) = if kind == "rastrigin" {
         let function = Rastrigin::parse(&text).expect("instance malformed");

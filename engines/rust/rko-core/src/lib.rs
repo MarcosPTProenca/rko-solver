@@ -33,3 +33,4 @@ pub mod problem;
 pub mod qlearning;
 pub mod rng;
 pub mod search;
+pub mod seeding;

@@ -30,6 +30,7 @@ from collections.abc import Callable
 from collections.abc import Mapping
 from collections.abc import Sequence
 from dataclasses import dataclass
+from multiprocessing.synchronize import Event
 from typing import Any
 from typing import Literal
 from typing import Protocol
@@ -76,12 +77,10 @@ class WorkerCaptureOptions(ModelEvidenceOptions, total=False):
     Attributes:
         max_evaluations (int | None): Per-search successful-completion cap.
         collect_model_evidence (bool): Whether to transport bounded generated-model witnesses.
-        initial_keys (InitialKeys): Seed keys assigned to this process worker.
     """
 
     max_evaluations: int | None
     collect_model_evidence: bool
-    initial_keys: InitialKeys
 
 
 class ExecutionMetadata(ModelEvidenceOptions, total=False):
@@ -190,7 +189,7 @@ class InitialKeysMetadata:
     n_evaluations: int
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, eq=False)
 class InitialKeys:
     """Own validated caller keys and their separate startup evaluation report.
 
@@ -226,10 +225,10 @@ class InitialKeys:
                 the finite interval [0, 1).
         """
         if values is None:
-            return cls(np.empty((0, dimension), dtype=np.float64))
+            return cls(np.empty((0, 0), dtype=np.float64))
         try:
             if len(values) == 0:
-                return cls(np.empty((0, dimension), dtype=np.float64))
+                return cls(np.empty((0, 0), dtype=np.float64))
             keys = np.asarray(values, dtype=np.float64)
         except (OverflowError, TypeError, ValueError) as exc:
             raise ValueError("'initial_keys' must be a rectangular numeric matrix.") from exc
@@ -238,6 +237,21 @@ class InitialKeys:
         if not np.isfinite(keys).all() or np.any(keys < 0.0) or np.any(keys >= 1.0):
             raise ValueError("'initial_keys' values must be finite and in [0, 1).")
         return cls(np.array(keys, dtype=np.float64, copy=True))
+
+    def __eq__(self, other: object) -> bool:
+        """Compare the key matrices elementwise together with the startup reports.
+
+        Args:
+            other (object): Candidate for comparison.
+
+        Returns:
+            bool: True when `other` holds the same rows and report.
+        """
+        return (
+            isinstance(other, InitialKeys)
+            and np.array_equal(self.keys, other.keys)
+            and self.metadata == other.metadata
+        )
 
     @property
     def has_keys(self) -> bool:
@@ -329,12 +343,32 @@ class StartupReport:
     - Deliver the designated worker's complete startup accounting in one message.
 
     Attributes:
-        initialization (PoolInitializationMetadata | None): Random prefill report.
+        initialization (tuple[PoolInitializationMetadata, ...]): Random prefill report, if any.
         initial_keys (InitialKeysMetadata | None): Caller-key report.
     """
 
-    initialization: PoolInitializationMetadata | None
+    initialization: tuple[PoolInitializationMetadata, ...]
     initial_keys: InitialKeysMetadata | None
+
+
+@dataclass(frozen=True)
+class StartupJob:
+    """Describe the pool startup assigned to one execution context.
+
+    Responsibilities:
+    - Carry the prefill allowance, its seed source and the caller keys as one unit.
+
+    Attributes:
+        duration (float): Cooperative random-prefill allowance in seconds.
+        random_state (int | None): Seed source for the reserved prefill stream.
+        keys (InitialKeys): Validated caller rows evaluated after the prefill.
+        release (Event | None): Parent-controlled gate; None when the startup runs inline.
+    """
+
+    duration: float
+    random_state: int | None
+    keys: InitialKeys
+    release: Event | None = None
 
 
 @dataclass(frozen=True)
