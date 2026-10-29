@@ -32,6 +32,7 @@ from .modeling.linear import RepairDiagnostic
 from .modeling.results import ModelAssignment
 from .modeling.results import ModelResult
 from .modeling.results import ModelSolution
+from .orchestration.types import InitialKeysMetadata
 from .orchestration.types import PoolInitializationMetadata
 from .orchestration.types import SearchMetadata
 from .problem import Blocks
@@ -54,6 +55,7 @@ __all__ = [
     "RepairDiagnostic",
     "SearchMetadata",
     "PoolInitializationMetadata",
+    "InitialKeysMetadata",
     "run",
     "ValidationCheck",
     "ValidationReport",

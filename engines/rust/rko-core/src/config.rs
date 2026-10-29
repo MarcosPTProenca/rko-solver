@@ -22,6 +22,7 @@
 //! - Output: `Ok(())` or `EngineError::Invalid` naming the offending setting.
 
 use crate::engine::EngineError;
+use crate::seeding::Seeding;
 
 /// Largest accepted time limit in seconds (one year).
 pub const MAX_TIME_LIMIT: f64 = 31_536_000.0;
@@ -49,9 +50,41 @@ pub struct Config {
     /// Completed evaluations after which each search stops; `None` leaves only the time
     /// limit. It applies to every search separately and not to the prefill.
     pub max_evaluations: Option<u64>,
+    /// Caller-supplied key rows evaluated once and offered to the pool before the searches.
+    pub initial_keys: Vec<Vec<f64>>,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            time_limit: 1.0,
+            seed: 0,
+            pool_size: 10,
+            threads: None,
+            history_limit: 0,
+            ls_strategy: 1,
+            prefill: false,
+            max_evaluations: None,
+            initial_keys: Vec::new(),
+        }
+    }
 }
 
 impl Config {
+    /// Checks the settings and the caller-supplied key rows against the problem dimension.
+    ///
+    /// # Arguments
+    ///
+    /// * `dimension` - Number of random keys the problem expects.
+    ///
+    /// # Errors
+    ///
+    /// Returns `EngineError::Invalid` for any rejected setting or malformed key row.
+    pub fn validate_for(&self, dimension: usize) -> Result<(), EngineError> {
+        self.validate()?;
+        Seeding::validate(&self.initial_keys, dimension)
+    }
+
     /// Checks every setting against its domain and upper bound.
     ///
     /// # Errors
@@ -94,6 +127,7 @@ mod tests {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            initial_keys: Vec::new(),
         }
     }
 

@@ -333,7 +333,7 @@
       "nloc": 102
     },
     "src/rko_solver/metaheuristics/_solvers.py::_SingleAlgorithmSolver.__init__": {
-      "parameter_count": 21
+      "parameter_count": 22
     },
     "src/rko_solver/metaheuristics/brkga.py::BRKGA.__init__": {
       "parameter_count": 13
@@ -481,7 +481,7 @@
     },
     "src/rko_solver/solver.py::RKO.__init__": {
       "cyclomatic_complexity": 13,
-      "parameter_count": 22
+      "parameter_count": 23
     },
     "src/rko_solver/solver.py::RKO._execute": {
       "cyclomatic_complexity": 13,

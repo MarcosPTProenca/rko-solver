@@ -1,18 +1,21 @@
-"""Bounded reference-style shared-pool initialization before search release.
+"""Bounded shared-pool startup before search release.
 
 Objective:
-- Prefill only when explicitly requested, accounting for startup work separately.
+- Prefill only when explicitly requested and offer caller-supplied keys, accounting for each
+  startup work separately.
 
 Technical approach:
 - Use an owned RNG branch and the ordinary isolated finite-objective boundary.
 - Keep private slots for reference selection sorting and one cost-tie mutation pass.
 - Publish final/partial slots and the best completed observation through the pool.
+- `PoolStartup` runs the prefill and then evaluates every caller key once into the same pool.
 
 Flow (pseudocode):
 1. Evaluate P random vectors using a separate cooperative startup allowance.
 2. Selection-sort slots; perturb adjacent cost ties once, then re-sort if needed.
 3. On timeout retain completed work; publish without another objective call.
 4. Report actual seed, completed evaluations, elapsed time and admitted occupancy.
+5. Evaluate each caller key once and report the count separately from the prefill.
 
 Important criteria:
 - At most 2P-1 evaluations; no retry-until-unique loop or arbitrary callback reset.
@@ -34,10 +37,108 @@ from .search import SearchSession
 from .search import _BudgetExpired
 from .types import CostFn
 from .types import DecoderFn
+from .types import InitialKeys
+from .types import InitialKeysMetadata
 from .types import ModelCallbackOptions
 from .types import PoolInitializationMetadata
+from .types import RunConfig
+from .types import StartupJob
+from .types import StartupReport
 from typing import Literal
 from typing import Unpack
+
+
+class PoolStartup:
+    """Fill a shared pool before searches: random prefill, then caller-supplied keys.
+
+    Responsibilities:
+    - Run the optional reference-style prefill and the caller-key evaluation in order.
+    - Report both startup works separately.
+
+    Attributes:
+        decoder (DecoderFn): Original random-key decoder.
+        cost (CostFn): Finite minimization objective.
+        dimension (int): Positive random-key dimension.
+        options (ModelCallbackOptions): Optional trace and bounded model-witness capture.
+    """
+
+    def __init__(
+        self,
+        decoder: DecoderFn,
+        cost: CostFn,
+        dimension: int,
+        **callback_options: Unpack[ModelCallbackOptions],
+    ) -> None:
+        """Store the problem callbacks and capture options.
+
+        Args:
+            decoder (DecoderFn): Original random-key decoder.
+            cost (CostFn): Finite minimization objective.
+            dimension (int): Positive random-key dimension.
+            callback_options (ModelCallbackOptions): Optional trace and model-witness capture.
+        """
+        self.decoder = decoder
+        self.cost = cost
+        self.dimension = dimension
+        self.options = callback_options
+
+    def run(self, pool: ElitePool, config: RunConfig, job: StartupJob) -> StartupReport:
+        """Run the prefill when configured, then evaluate the caller keys.
+
+        Args:
+            pool (ElitePool): Shared pool that is not yet serving search workers.
+            config (RunConfig): Validated settings providing `prefill_pool` and `pool_size`.
+            job (StartupJob): Prefill allowance, seed source and caller keys.
+
+        Returns:
+            StartupReport: Prefill report, if requested, and the caller-key report, if supplied.
+
+        Raises:
+            Exception: If the decoder, objective or pool publication fails.
+            ValueError: If an objective evaluation is non-finite.
+        """
+        initialization: tuple[PoolInitializationMetadata, ...] = ()
+        if config.prefill_pool:
+            initialization = (
+                initialize_pool(
+                    pool,
+                    self.decoder,
+                    self.cost,
+                    self.dimension,
+                    config.pool_size,
+                    job.duration,
+                    job.random_state,
+                    **self.options,
+                ),
+            )
+        return StartupReport(initialization, self.seed(pool, job.keys))
+
+    def seed(self, pool: ElitePool, keys: InitialKeys) -> InitialKeysMetadata | None:
+        """Evaluate each validated caller key once and offer it to the shared pool.
+
+        Args:
+            pool (ElitePool): Shared pool that is not yet serving search workers.
+            keys (InitialKeys): Owned, validated caller matrix and metadata holder.
+
+        Returns:
+            InitialKeysMetadata | None: Completed report, or None when no rows were supplied.
+
+        Raises:
+            Exception: If the decoder, objective or pool publication fails.
+            ValueError: If an objective evaluation is non-finite.
+        """
+        if not keys.has_keys:
+            return None
+        trace = self.options.get("trace")
+        session = (
+            SearchSession(self.decoder, self.cost)
+            if trace is None
+            else SearchSession(self.decoder, self.cost, trace=trace, trace_source="initial_keys")
+        )
+        for row in keys.keys:
+            pool.insert((session.evaluate(session.decode(row)), row.tolist()), "initial_keys")
+        SearchReporting.collect(session, self.options.get("model_evidence"))
+        return keys.record()
 
 
 def initialize_pool(

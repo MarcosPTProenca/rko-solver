@@ -45,6 +45,7 @@ fn finishes_at_the_time_limit(spec: Spec, what: &str) {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            initial_keys: Vec::new(),
         };
         sender
             .send(run_portfolio(&problem, &[spec], &config).unwrap())

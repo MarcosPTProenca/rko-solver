@@ -66,6 +66,7 @@ class _SingleAlgorithmSolver(RKO):
         control: int | None = None,
         pool_size: int | None = None,
         prefill_pool: bool | None = None,
+        initial_keys: Sequence[Sequence[float]] | None = None,
         params_dir: Path | None = None,
         engine: Engine | None = None,
         execution: Execution | None = None,
@@ -90,6 +91,7 @@ class _SingleAlgorithmSolver(RKO):
             control (int | None): Legacy mode code; must agree with adaptation if supplied.
             pool_size (int | None): Elite capacity, or configured default.
             prefill_pool (bool | None): Separate shared-startup policy, or configured default.
+            initial_keys (Sequence[Sequence[float]] | None): Caller vectors offered before search.
             params_dir (Path | None): Optional custom TOML directory.
             engine (Engine | None): Python, rust, cpp or auto, exactly as for RKO.
             execution (Execution | None): Python-engine scheduling, exactly as for RKO.
@@ -115,6 +117,7 @@ class _SingleAlgorithmSolver(RKO):
             control=control,
             pool_size=pool_size,
             prefill_pool=prefill_pool,
+            initial_keys=initial_keys,
             params_dir=params_dir,
             engine=engine,
             execution=execution,

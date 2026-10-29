@@ -39,6 +39,7 @@ from ...orchestration.types import CostFn
 from ...orchestration.types import DecoderFn
 from ...orchestration.types import HistoryPoint
 from ...orchestration.types import Hyperparameters
+from ...orchestration.types import InitialKeys
 from ...orchestration.types import NativeProblem
 from ...orchestration.types import PoolInitializationMetadata
 from ...orchestration.types import RunConfig
@@ -89,6 +90,7 @@ class NativeRunner:
         self.n_variables = n_variables
         self.params_dir = params_dir
         self.hyperparameters = hyperparameters or {}
+        self.initial_keys = InitialKeys.from_values(None, n_variables)
 
     @staticmethod
     def module() -> ModuleType:
@@ -175,7 +177,7 @@ class NativeRunner:
                 and block objectives, which contend for it.
             history_limit (int): Per-search history cap; zero disables recording.
             search_metadata (list[SearchMetadata] | None): Optional report collector.
-            initialization_metadata (list | None): Optional prefill report collector.
+            initialization_metadata (list | None): Optional random-prefill report collector.
             max_evaluations (int | None): Completed evaluations after which each search stops.
 
         Returns:
@@ -208,6 +210,7 @@ class NativeRunner:
             self.config.prefill_pool,
             self.engine,
             max_evaluations=max_evaluations,
+            initial_keys=self.initial_keys.keys.tolist(),
         )
         self.workers = int(result["workers"])
         if search_metadata is not None:
@@ -240,4 +243,5 @@ class NativeRunner:
                     time_limit=float(time_limit),
                 )
             )
+        self.initial_keys.record()
         return list(result["keys"]), float(result["cost"])

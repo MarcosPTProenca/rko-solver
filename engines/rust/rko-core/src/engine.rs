@@ -31,6 +31,7 @@ use crate::pool::Pool;
 use crate::problem::Problem;
 use crate::rng::{Rng, derive_seed};
 use crate::search::{HistoryPoint, Search, Stop};
+use crate::seeding::Seeding;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
@@ -117,7 +118,12 @@ impl std::fmt::Display for EngineError {
 
 impl std::error::Error for EngineError {}
 
-/// Runs the portfolio to completion.
+/// Runs the portfolio to completion, offering `config.initial_keys` to the pool first.
+///
+/// # Errors
+///
+/// Returns `EngineError::Invalid` for a malformed configuration or key row and
+/// `EngineError::InvalidCost` when a seeded or searched candidate has a non-finite objective.
 pub fn run_portfolio(
     problem: &dyn Problem,
     specs: &[Spec],
@@ -128,50 +134,19 @@ pub fn run_portfolio(
             "at least one algorithm is required".to_owned(),
         ));
     }
-    config.validate()?;
+    config.validate_for(problem.dimension())?;
     for spec in specs {
         spec.validate().map_err(EngineError::Invalid)?;
     }
     let workers = config.threads.unwrap_or(specs.len()).clamp(1, specs.len());
-    let started = Instant::now();
-    let deadline = started + Duration::from_secs_f64(config.time_limit);
+    let overall_started = Instant::now();
     let pool = Pool::new(config.pool_size);
     let cancel = AtomicBool::new(false);
     let failure: std::sync::Mutex<Option<&'static str>> = std::sync::Mutex::new(None);
-    let mut initialization = None;
-    if config.prefill {
-        let seed = derive_seed(config.seed, u64::MAX);
-        let mut rng = Rng::new(seed);
-        let mut search = Search::new(problem, &cancel, started, deadline, 0);
-        let mut keys = vec![0.0; problem.dimension()];
-        let mut outcome = Ok(());
-        problem.with_thread_context(&mut || {
-            for _ in 0..config.pool_size {
-                crate::operators::random_keys(&mut keys, &mut rng);
-                match search.eval(&keys) {
-                    Ok(cost) => {
-                        pool.insert(cost, &keys, specs.len());
-                    }
-                    Err(stop) => {
-                        outcome = Err(stop);
-                        break;
-                    }
-                }
-            }
-        });
-        if outcome == Err(Stop::InvalidCost) {
-            return Err(EngineError::InvalidCost {
-                algorithm: "initialization",
-            });
-        }
-        initialization = Some(Initialization {
-            seed,
-            evaluations: search.evaluations(),
-            elapsed: search.elapsed(),
-            pool_len: pool.len(),
-        });
-    }
+    let initialization = Seeding::start(problem, config, specs.len(), &pool, &cancel)?;
 
+    let started = Instant::now();
+    let deadline = started + Duration::from_secs_f64(config.time_limit);
     let outcome = std::thread::scope(|scope| {
         let handles: Vec<_> = (0..workers)
             .map(|worker| {
@@ -276,7 +251,7 @@ pub fn run_portfolio(
         best_keys,
         best_cost,
         reports,
-        elapsed: started.elapsed().as_secs_f64(),
+        elapsed: overall_started.elapsed().as_secs_f64(),
         workers,
         initialization,
     })
@@ -344,6 +319,7 @@ mod tests {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            initial_keys: Vec::new(),
         }
     }
 

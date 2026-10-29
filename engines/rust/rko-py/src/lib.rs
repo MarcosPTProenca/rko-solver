@@ -329,10 +329,9 @@ fn cpp_available() -> bool {
 
 /// Runs a native portfolio and returns a result dictionary.
 #[pyfunction]
-#[pyo3(signature = (problem, specs, time_limit, seed, pool_size, threads=None, history_limit=0, ls_strategy=1, prefill=false, engine="rust", max_evaluations=None))]
+#[pyo3(signature = (problem, specs, time_limit, seed, pool_size, threads=None, history_limit=0, ls_strategy=1, prefill=false, engine="rust", max_evaluations=None, initial_keys=None))]
 #[allow(clippy::too_many_arguments)]
 fn run<'py>(
-    py: Python<'py>,
     problem: &Bound<'py, PyAny>,
     specs: Vec<SpecTuple>,
     time_limit: f64,
@@ -344,7 +343,9 @@ fn run<'py>(
     prefill: bool,
     engine: &str,
     max_evaluations: Option<u64>,
+    initial_keys: Option<Vec<Vec<f64>>>,
 ) -> PyResult<Bound<'py, PyDict>> {
+    let py = problem.py();
     let specs = parse_specs(specs)?;
     let config = Config {
         time_limit,
@@ -355,6 +356,7 @@ fn run<'py>(
         ls_strategy,
         prefill,
         max_evaluations,
+        initial_keys: initial_keys.unwrap_or_default(),
     };
     if let Ok(knapsack) = problem.cast::<KnapsackProblem>() {
         let knapsack = knapsack.get();

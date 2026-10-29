@@ -64,7 +64,15 @@ pub fn reference_order(algorithm: Algorithm, values: &[f64]) -> Vec<f64> {
     }
 }
 
-/// Runs the portfolio on the C++ reference algorithms.
+/// Runs the C++ reference portfolio after offering `config.initial_keys` to its shared pool.
+///
+/// Each key row is evaluated once after the reference pool is initialized and before the search
+/// threads start; the fixed-capacity pool decides which distinct candidates it retains.
+///
+/// # Errors
+///
+/// Returns `EngineError::Invalid` for malformed keys, unsupported settings or a build without the
+/// optional C++ engine, and `EngineError::InvalidCost` for non-finite seeded costs.
 pub fn run_portfolio(
     problem: &dyn Problem,
     specs: &[Spec],
@@ -78,7 +86,7 @@ pub fn run_portfolio(
     for spec in specs {
         spec.validate().map_err(EngineError::Invalid)?;
     }
-    config.validate()?;
+    config.validate_for(problem.dimension())?;
     if !(config.time_limit.is_finite() && config.time_limit >= 0.05) {
         return Err(EngineError::Invalid(
             "the C++ engine needs a time_limit of at least 0.05 seconds".to_owned(),
@@ -172,6 +180,7 @@ mod tests {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            initial_keys: Vec::new(),
         };
         assert!(!available());
         assert!(matches!(
@@ -213,6 +222,7 @@ mod tests {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            initial_keys: Vec::new(),
         }
     }
 
