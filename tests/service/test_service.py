@@ -245,6 +245,30 @@ def poll(client: TestClient, identifier: str, timeout: float = 15) -> dict[str, 
     raise AssertionError("Owned job did not become terminal within the test deadline.")
 
 
+@pytest.fixture
+def pace(tmp_path: Path) -> float:
+    """Measure how long this host currently needs to start and finish one real job.
+
+    Wall-clock windows in the timing tests must stay longer than worker start-up, which spawns
+    an interpreter and imports the optimizer; that cost grows several times over on a busy host
+    while the behavior under test does not change. A healthy host measures about a second.
+
+    Args:
+        tmp_path (Path): Pytest-owned directory; the calibration app uses its own subdirectory.
+
+    Returns:
+        float: Seconds measured for one default job, never below one, used as a window multiplier.
+    """
+    calibration = tmp_path / "calibration"
+    calibration.mkdir()
+    with TestClient(make_app(calibration)) as current:
+        current.headers["Authorization"] = f"Bearer {TOKEN}"
+        started = time.monotonic()
+        identifier = current.post("/jobs", json={"instance": {}}).json()["id"]
+        poll(current, identifier, timeout=120)
+        return max(1.0, time.monotonic() - started)
+
+
 def test_real_standalone_and_portfolio_preserve_counts(client: TestClient) -> None:
     """Run unchanged RKO callbacks without post-run objective replay.
 
@@ -372,21 +396,24 @@ def test_busy_health_cancel_and_descendant_cleanup(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("mode,expected", [("blocked", "timed_out"), ("post_blocked", "completed")])
-def test_deadline_preserves_numerical_snapshot(tmp_path: Path, mode: str, expected: str) -> None:
+def test_deadline_preserves_numerical_snapshot(
+    tmp_path: Path, pace: float, mode: str, expected: str
+) -> None:
     """Enforce a hard end-to-end deadline and keep completed numerical work after checker hangs.
 
     Args:
         tmp_path (Path): Fixture-owned storage.
+        pace (float): Measured host start-up seconds, scaling the deadline above worker start-up.
         mode (str): Trusted blocked optimization/checker test behavior.
         expected (str): Correct numerical lifecycle terminal state.
     """
-    limits = ServiceLimits(max_wall_seconds=2)
+    limits = ServiceLimits(max_wall_seconds=3 * pace)
     with TestClient(make_app(tmp_path, limits)) as current:
         current.headers["Authorization"] = f"Bearer {TOKEN}"
         response = current.post(
             "/jobs", json={"instance": {"mode": mode}, "options": {"validate_solution": True}}
         )
-        view = poll(current, response.json()["id"])
+        view = poll(current, response.json()["id"], timeout=3 * pace + 15)
         assert view["state"] == expected, view
         assert view["error"] == "job_deadline"
         if expected == "completed":
@@ -419,13 +446,14 @@ def test_numerical_validation_and_callback_failure_boundaries(
             assert view["result"]["postprocessing"]["state"] == "failed"
 
 
-def test_shutdown_restart_ttl_and_count_retention(tmp_path: Path) -> None:
+def test_shutdown_restart_ttl_and_count_retention(tmp_path: Path, pace: float) -> None:
     """Stop owned work on shutdown, preserve interruption metadata and bound retained records.
 
     Args:
         tmp_path (Path): Dedicated private restart store.
+        pace (float): Measured host start-up seconds, scaling retention above scheduling delay.
     """
-    limits = ServiceLimits(max_records=1, retention_seconds=1)
+    limits = ServiceLimits(max_records=1, retention_seconds=pace)
     with TestClient(make_app(tmp_path, limits)) as current:
         current.headers["Authorization"] = f"Bearer {TOKEN}"
         identifier = current.post("/jobs", json={"instance": {"mode": "blocked"}}).json()["id"]
@@ -437,7 +465,7 @@ def test_shutdown_restart_ttl_and_count_retention(tmp_path: Path) -> None:
         replacement = restarted.post("/jobs", json={"instance": {}}).json()["id"]
         assert restarted.get(f"/jobs/{identifier}").status_code == 410
         assert poll(restarted, replacement)["state"] == "completed"
-        time.sleep(1.2)
+        time.sleep(1.2 * pace)
         assert restarted.get(f"/jobs/{replacement}").status_code == 410
         assert not (tmp_path / "jobs" / replacement).exists()
 
@@ -511,19 +539,20 @@ def test_shutdown_stops_running_descendants(tmp_path: Path) -> None:
     assert state["state"] == "interrupted"
 
 
-def test_retention_expires_during_another_active_job(tmp_path: Path) -> None:
+def test_retention_expires_during_another_active_job(tmp_path: Path, pace: float) -> None:
     """Delete expired terminal artifacts even while another callback is blocked.
 
     Args:
         tmp_path (Path): Fixture-owned retention store.
+        pace (float): Measured host start-up seconds, scaling retention above scheduling delay.
     """
-    limits = ServiceLimits(retention_seconds=0.4)
+    limits = ServiceLimits(retention_seconds=0.4 * pace)
     with TestClient(make_app(tmp_path, limits)) as current:
         current.headers["Authorization"] = f"Bearer {TOKEN}"
         identifier = current.post("/jobs", json={"instance": {}}).json()["id"]
         assert poll(current, identifier)["state"] == "completed"
         current.post("/jobs", json={"instance": {"mode": "blocked"}})
-        time.sleep(1.2)
+        time.sleep(1.2 * pace)
         assert not (tmp_path / "jobs" / identifier).exists()
 
 
