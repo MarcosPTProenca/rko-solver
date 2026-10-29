@@ -115,7 +115,7 @@ cargo clippy --workspace --all-targets --release -- -D warnings
 cargo test --release
 ```
 
-- A native speed or quality claim needs `benchmarks/native_study.py` evidence against the
+- A native speed or quality claim needs `benchmarks/engines/native_study.py` evidence against the
   pinned C++ reference or the Python engine, with losses and failures reported.
 
 ## DON'T

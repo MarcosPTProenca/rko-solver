@@ -18,7 +18,7 @@ Inputs/Outputs:
 - Output: assertions on the public JSON record.
 """
 
-import benchmarks.performance_profile as benchmark_module
+import benchmarks.runtime.performance_profile as benchmark_module
 import hashlib
 import json
 import numpy as np
@@ -27,7 +27,7 @@ import pytest
 import random
 import subprocess
 import sys
-from benchmarks.performance_profile import PerformanceProbe
+from benchmarks.runtime.performance_profile import PerformanceProbe
 from pathlib import Path
 
 
@@ -42,7 +42,7 @@ def test_cli_records_fixed_work_and_baseline_provenance() -> None:
         [
             sys.executable,
             "-m",
-            "benchmarks.performance_profile",
+            "benchmarks.runtime.performance_profile",
             "--dimension",
             "4",
             "--evaluations",
@@ -173,8 +173,8 @@ def test_provenance_detects_helper_and_lockfile_changes(
     Raises:
         AssertionError: If changed helper or lockfile bytes retain an identity.
     """
-    scripts = tmp_path / "benchmarks"
-    scripts.mkdir()
+    scripts = tmp_path / "benchmarks" / "runtime"
+    scripts.mkdir(parents=True)
     helper = scripts / "fixed_work.py"
     helper.write_text("first helper", encoding="utf-8")
     lock = tmp_path / "uv.lock"

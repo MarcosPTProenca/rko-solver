@@ -33,7 +33,7 @@ jobs:
       - name: Run serial matched-work shard
         run: |
           mkdir -p raw
-          uv run --locked python benchmarks/prefill_work.py \
+          uv run --locked python -m benchmarks.algorithms.prefill_work \
             --dimension "${{ matrix.dimension }}" \
             --evaluations "${{ matrix.evaluations }}" \
             --capacity 10 --seeds 20 \
@@ -65,12 +65,12 @@ jobs:
           merge-multiple: true
       - name: Validate and compact paired evidence
         run: |
-          uv run --locked python benchmarks/prefill_report.py \
+          uv run --locked python -m benchmarks.algorithms.prefill_report \
             --input-dir raw --output-prefix report/prefill-expanded --run-url "$RUN_URL"
           uv run --locked python - <<'PY'
           import json
           from pathlib import Path
-          report = json.loads(Path('report/prefill-expanded-summary.json').read_text())
+          report = json.loads(Path('report/references/prefill-expanded-summary.json').read_text())
           assert report['pairs'] == 1440 and len(report['groups']) == 72
           assert all(row['pairs'] == 20 and row['capacity'] == 10 for row in report['groups'])
           assert {(row['dimension'], row['evaluations']) for row in report['groups']} == {

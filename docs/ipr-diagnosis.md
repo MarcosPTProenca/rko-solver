@@ -16,7 +16,7 @@ This diagnostic isolates those questions without another timed quality benchmark
 From the repository root:
 
 ```bash
-uv run --locked python benchmarks/ipr_diagnosis.py
+uv run --locked python -m benchmarks.algorithms.ipr_diagnosis
 ```
 
 Defaults: 32 coordinates, seeds 200–202, sphere/threshold/flat objectives and **1,024
@@ -37,7 +37,7 @@ The exact-vector control is isolated and single-threaded; it is **not a producti
 pool implementation or API option**. It retains different chromosomes with tied
 costs. Do not substitute objective-value equality for genotype equality.
 
-`benchmarks/ipr-diagnosis-reference.jsonl` records the source revision, solver/probe
+`benchmarks/references/ipr-diagnosis-reference.jsonl` records the source revision, solver/probe
 source SHA256, Python/NumPy versions, one direct path case and all 36 count traces.
 No wall/CPU timings are collected. The public C++/Python Knapsack benchmark,
 worktree, cache, environment and output are not accessed by this script.

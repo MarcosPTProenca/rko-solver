@@ -92,11 +92,11 @@ tests --cov` and `cargo llvm-cov -p rko-core -p rko-cpp --release
 processes or the generated service container counts less than it should, so a number below the
 floor needs a look at what is actually untested before anything else.
 
-A performance gate (`benchmarks/engine_ratio.py`, CI job `engine-ratio`) fails when the Rust engine's
+A performance gate (`benchmarks/engines/engine_ratio.py`, CI job `engine-ratio`) fails when the Rust engine's
 throughput relative to the Python engine on the same Knapsack falls more than 30 percent below the
 reference for the same processor model. The ratio depends on the processor: hosted runners mix AMD
 EPYC 7763, 9V45, 9V74 and Intel Xeon 8573C, and BRKGA and SA read about 28 percent lower on a 9V45
-than on a 7763, while one model repeats within 3 to 6 percent. So `benchmarks/engine-ratio-reference.json`
+than on a 7763, while one model repeats within 3 to 6 percent. So `benchmarks/references/engine-ratio-reference.json`
 has one entry per model, built from CI runs, and an unknown model is measured and reported but not
 gated. If a new model appears in the log, add its median from several CI runs; do not copy another
 model's numbers. This is a regression gate and says nothing about absolute speed.

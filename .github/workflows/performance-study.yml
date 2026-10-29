@@ -22,8 +22,8 @@ on:
   pull_request:
     paths:
       - ".github/workflows/performance-study.yml"
-      - "benchmarks/performance_*.py"
-      - "benchmarks/blending_work.py"
+      - "benchmarks/runtime/performance_*.py"
+      - "benchmarks/algorithms/blending_work.py"
       - "tests/benchmarks/test_blending_work.py"
       - "tests/benchmarks/test_performance_*.py"
 
@@ -70,7 +70,7 @@ jobs:
                 for mode in $modes; do
                   extra=()
                   if [[ "$mode" == profile ]]; then extra=(--profile); fi
-                  uv run --locked python -m benchmarks.performance_profile \
+                  uv run --locked python -m benchmarks.runtime.performance_profile \
                     --algorithm "$algorithm" --workload "$workload" \
                     --dimension "$DIMENSION" --evaluations 1024 --seed "$seed" \
                     "${extra[@]}" >> "$OUTPUT_DIR/baseline-$DIMENSION.jsonl"
@@ -129,7 +129,7 @@ jobs:
           SEED_START: ${{ inputs.seed_start }}
           EVALUATIONS: ${{ inputs.evaluations }}
         run: |
-          uv run --locked python -m benchmarks.blending_work \
+          uv run --locked python -m benchmarks.algorithms.blending_work \
             --candidate "$RUNNER_TEMP/blending-experiment/candidate.py" \
             --dimension "$DIMENSION" --evaluations "$EVALUATIONS" \
             --seeds "$SEEDS" --seed-start "$SEED_START" \
@@ -163,7 +163,7 @@ jobs:
           RAW: ${{ runner.temp }}/baseline-raw
           REPORT: ${{ runner.temp }}/baseline-report
         run: |
-          uv run --locked python -m benchmarks.performance_report \
+          uv run --locked python -m benchmarks.runtime.performance_report \
             --input-dir "$RAW" --output "$REPORT/summary.json"
           uv run --locked python - <<'PY'
           import json

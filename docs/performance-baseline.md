@@ -51,10 +51,10 @@ quality evidence or a reason to skip independent objective/feasibility validatio
 Run from the repository root on noncompeting resources:
 
 ```bash
-uv run --locked python -m benchmarks.performance_profile \
+uv run --locked python -m benchmarks.runtime.performance_profile \
   --algorithm SA --workload sphere --dimension 20 --evaluations 64 --seed 200
 
-uv run --locked python -m benchmarks.performance_profile \
+uv run --locked python -m benchmarks.runtime.performance_profile \
   --algorithm SA --workload sphere --dimension 20 --evaluations 64 --seed 200 --profile
 ```
 
@@ -102,7 +102,7 @@ Plain/profiled order alternates by seed; profile versus plain is an equivalence
 check, not a speed comparison. Output goes outside the checkout to avoid creating
 a dirty source identity while collecting it.
 
-`benchmarks.performance_report` rejects incomplete or duplicate pairs, mixed source/
+`benchmarks.runtime.performance_report` rejects incomplete or duplicate pairs, mixed source/
 runtime identities, changed result/pool/RNG fingerprints and invalid timing scopes.
 It reports unprofiled search medians separately from full-runner profile medians.
 Function fractions use the full profiler total, not search-only time or the sum
@@ -123,7 +123,7 @@ VMs, so their latency difference is not a controlled hardware-scaling experiment
 
 [Run 39809649686](https://github.com/MarcosPTProenca/rko-solver/actions/runs/39809649686)
 validated all 216 trials / 108 exact replay pairs / 36 groups. The selected compact
-[reference record](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/performance-baseline-reference.json) retains input
+[reference record](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/references/performance-baseline-reference.json) retains input
 and analysis SHA256 digests, producer revision, run URL and explicit limits. Both
 raw shards had clean Git state and the same source/runtime identity: Python 3.14.9,
 NumPy 2.4.3. The dimension-20 VM reported Intel Xeon Platinum 8573C; dimension 500
@@ -156,7 +156,7 @@ has read-only repository permissions and does not persist checkout credentials.
 An empty input retains the ordinary baseline screen. A candidate is transmitted
 through an environment variable, never interpolated into shell/Python source.
 
-The experimental job uses `benchmarks.blending_work`: kernel checks compare exact
+The experimental job uses `benchmarks.algorithms.blending_work`: kernel checks compare exact
 values, ownership, validation and RNG; paired real SA/GA/BRKGA searches compare
 cost, keys, pool, completed work and RNG fingerprints. Only Nelder-Mead's shared
 blending binding changes, not GA/BRKGA's separate crossover implementations.
@@ -176,7 +176,7 @@ independent tests, fresh confirmation seeds and whole-workflow/quality evidence.
 To reproduce a trusted candidate locally on noncompeting resources:
 
 ```bash
-uv run --locked python -m benchmarks.blending_work --candidate /tmp/candidate.py \
+uv run --locked python -m benchmarks.algorithms.blending_work --candidate /tmp/candidate.py \
   --dimension 500 --evaluations 8192 --seeds 5 --seed-start 200
 ```
 

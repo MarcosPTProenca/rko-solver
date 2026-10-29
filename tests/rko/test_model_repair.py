@@ -25,7 +25,7 @@ import numpy as np
 import pickle
 import pytest
 import threading
-from benchmarks.modeling_cases import PracticalModels
+from benchmarks.modeling.cases import PracticalModels
 from rko_solver import RKO
 from rko_solver.modeling.adapters import ModelAdapter
 from rko_solver.modeling.linear import CompiledLinearModel

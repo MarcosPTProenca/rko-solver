@@ -90,7 +90,11 @@ def reference(tmp_path: Path) -> Path:
     Returns:
         Path: Copied reference, never the maintained source artifact.
     """
-    source = Path(__file__).resolve().parents[2] / "benchmarks" / "general-sa-preset-reference.json"
+    source = (
+        Path(__file__).resolve().parents[2]
+        / "benchmarks"
+        / "references/general-sa-preset-reference.json"
+    )
     path = tmp_path / source.name
     path.write_bytes(source.read_bytes())
     return path
@@ -272,9 +276,9 @@ def test_engine_reference_reconstructs_scales_locks_and_all_acceptance_gates() -
     from benchmarks.tuning.preset_analysis import PresetDesign
 
     root = Path(__file__).resolve().parents[2] / "benchmarks"
-    reference = root / "general-sa-preset-reference.json"
+    reference = root / "references/general-sa-preset-reference.json"
     original = json.loads(reference.read_text())
-    data = json.loads((root / "general-sa-preset-engines-reference.json").read_text())
+    data = json.loads((root / "references/general-sa-preset-engines-reference.json").read_text())
     digest = hashlib.sha256(reference.read_text().encode()).hexdigest()
     assert data["reference_sha256"] == digest
     assert data["selection"] == original["selection"]

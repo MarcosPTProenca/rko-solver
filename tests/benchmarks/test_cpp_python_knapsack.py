@@ -20,18 +20,18 @@ Inputs/Outputs:
 - Output: assertions on exact selection and statistical results.
 """
 
-import benchmarks.cpp_python_knapsack as benchmark_module
+import benchmarks.engines.cpp_python_knapsack as benchmark_module
 import csv
 import hashlib
 import pytest
 import subprocess
-from benchmarks.cpp_python_knapsack import CPP_PORTFOLIO
-from benchmarks.cpp_python_knapsack import PYTHON_ALGORITHMS
-from benchmarks.cpp_python_knapsack import InstanceCase
-from benchmarks.cpp_python_knapsack import KnapsackBenchmark
-from benchmarks.cpp_python_knapsack import SolverOutput
-from benchmarks.cpp_python_knapsack import TrialRecord
-from benchmarks.knapsack_utils import exact_profit
+from benchmarks.engines.cpp_python_knapsack import CPP_PORTFOLIO
+from benchmarks.engines.cpp_python_knapsack import PYTHON_ALGORITHMS
+from benchmarks.engines.cpp_python_knapsack import InstanceCase
+from benchmarks.engines.cpp_python_knapsack import KnapsackBenchmark
+from benchmarks.engines.cpp_python_knapsack import SolverOutput
+from benchmarks.engines.cpp_python_knapsack import TrialRecord
+from benchmarks.problems.knapsack_utils import exact_profit
 from examples.run_kp_cpp_instances import KpInstance
 from pathlib import Path
 from unittest.mock import Mock
@@ -233,7 +233,10 @@ def test_trial_record_recomputes_objective_and_retains_provenance(tmp_path: Path
 
 def test_preliminary_reference_remains_historical_and_complete() -> None:
     """Preserve all old two-second records without confusing them with the active long run."""
-    source = Path(benchmark_module.__file__).with_name("cpp-python-knapsack-2s-preliminary.csv")
+    source = (
+        Path(benchmark_module.__file__).resolve().parents[1]
+        / "references/cpp-python-knapsack-2s-preliminary.csv"
+    )
     content = source.read_bytes().replace(b"\r\n", b"\n")
     assert hashlib.sha256(content).hexdigest() == (
         "1663785c936720f6974fae4cff90bc9db669a9f21cfc2d405d1c003ff2b1e390"
@@ -247,7 +250,7 @@ def test_preliminary_reference_remains_historical_and_complete() -> None:
 
 
 @pytest.mark.parametrize(
-    "changed", ["src/rko_solver/parameters/config.toml", "benchmarks/knapsack_utils.py"]
+    "changed", ["src/rko_solver/parameters/config.toml", "benchmarks/problems/knapsack_utils.py"]
 )
 def test_source_fingerprint_covers_parameters_and_oracle(
     tmp_path: Path,
@@ -265,9 +268,11 @@ def test_source_fingerprint_covers_parameters_and_oracle(
         "src/rko_solver/solver.py",
         "src/rko_solver/parameters/config.toml",
         "benchmarks/__init__.py",
-        "benchmarks/knapsack.py",
-        "benchmarks/knapsack_utils.py",
-        "benchmarks/cpp_python_knapsack.py",
+        "benchmarks/engines/__init__.py",
+        "benchmarks/engines/knapsack.py",
+        "benchmarks/problems/__init__.py",
+        "benchmarks/problems/knapsack_utils.py",
+        "benchmarks/engines/cpp_python_knapsack.py",
         "pyproject.toml",
         "uv.lock",
     )
@@ -276,7 +281,7 @@ def test_source_fingerprint_covers_parameters_and_oracle(
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("value = 1\n", encoding="utf-8")
     monkeypatch.setattr(
-        benchmark_module, "__file__", str(tmp_path / "benchmarks/cpp_python_knapsack.py")
+        benchmark_module, "__file__", str(tmp_path / "benchmarks/engines/cpp_python_knapsack.py")
     )
     benchmark = KnapsackBenchmark(tmp_path / "trials.csv", tmp_path / "cache")
     before = benchmark._python_source_hash()
@@ -301,7 +306,7 @@ def test_process_timeout_scales_with_search_budget(
         args=["fake"], returncode=0, stdout="", stderr="RKO_BENCH_SEED=17\n"
     )
     run = Mock(return_value=process)
-    monkeypatch.setattr("benchmarks.cpp_python_knapsack.subprocess.run", run)
+    monkeypatch.setattr("benchmarks.engines.cpp_python_knapsack.subprocess.run", run)
 
     result = benchmark._execute_process(["fake"], tmp_path, {}, started_ns=0)
 

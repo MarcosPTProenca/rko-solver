@@ -26,7 +26,7 @@ import multiprocessing as mp
 import numpy as np
 import pickle
 import pytest
-from benchmarks.modeling_overhead import ModelOverheadProbe
+from benchmarks.modeling.overhead import ModelOverheadProbe
 from pathlib import Path
 from rko_solver.orchestration.search import SearchSession
 

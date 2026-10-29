@@ -24,7 +24,7 @@ import json
 import pytest
 import subprocess
 import sys
-from benchmarks.performance_report import PerformanceReport
+from benchmarks.runtime.performance_report import PerformanceReport
 from pathlib import Path
 
 
@@ -243,7 +243,7 @@ def test_cli_reads_shards_and_writes_a_validated_summary(
         [
             sys.executable,
             "-m",
-            "benchmarks.performance_report",
+            "benchmarks.runtime.performance_report",
             "--input-dir",
             str(inputs),
             "--output",

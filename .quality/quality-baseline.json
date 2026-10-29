@@ -1,9 +1,9 @@
 {
   "files": {
-    "benchmarks/cpp_python_knapsack.py": 1814,
-    "benchmarks/native_problem_study.py": 842,
-    "benchmarks/native_report.py": 1185,
-    "benchmarks/native_study.py": 717,
+    "benchmarks/engines/cpp_python_knapsack.py": 1814,
+    "benchmarks/engines/native_problem_study.py": 842,
+    "benchmarks/engines/native_report.py": 1185,
+    "benchmarks/engines/native_study.py": 717,
     "engines/rust/rko-core/src/engine.rs": 654,
     "engines/rust/rko-core/src/local_search.rs": 605,
     "src/rko_solver/reporting.py": 674,
@@ -11,176 +11,176 @@
     "tools/release.py": 751
   },
   "functions": {
-    "benchmarks/auto_engine_study.py::AutoEngineStudy.__init__": {
+    "benchmarks/engines/auto_engine_study.py::AutoEngineStudy.__init__": {
       "parameter_count": 8
     },
-    "benchmarks/auto_engine_study.py::AutoEngineStudy.attempt": {
+    "benchmarks/engines/auto_engine_study.py::AutoEngineStudy.attempt": {
       "parameter_count": 7
     },
-    "benchmarks/auto_engine_study.py::AutoEngineStudy.summarize": {
+    "benchmarks/engines/auto_engine_study.py::AutoEngineStudy.summarize": {
       "cyclomatic_complexity": 19
     },
-    "benchmarks/blending_work.py::BlendingStudy.run": {
+    "benchmarks/algorithms/blending_work.py::BlendingStudy.run": {
       "cyclomatic_complexity": 19
     },
-    "benchmarks/blending_work.py::BlendingStudy.validate": {
+    "benchmarks/algorithms/blending_work.py::BlendingStudy.validate": {
       "cyclomatic_complexity": 16
     },
-    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._execute_process": {
+    "benchmarks/engines/cpp_python_knapsack.py::KnapsackBenchmark._execute_process": {
       "cyclomatic_complexity": 11
     },
-    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._failure_record": {
+    "benchmarks/engines/cpp_python_knapsack.py::KnapsackBenchmark._failure_record": {
       "parameter_count": 11
     },
-    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._patch_cpp_source": {
+    "benchmarks/engines/cpp_python_knapsack.py::KnapsackBenchmark._patch_cpp_source": {
       "cyclomatic_complexity": 11,
       "nloc": 108
     },
-    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._record_trial": {
+    "benchmarks/engines/cpp_python_knapsack.py::KnapsackBenchmark._record_trial": {
       "cyclomatic_complexity": 26,
       "nloc": 129,
       "parameter_count": 12
     },
-    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._run_python_trial": {
+    "benchmarks/engines/cpp_python_knapsack.py::KnapsackBenchmark._run_python_trial": {
       "parameter_count": 7
     },
-    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark._write_summary": {
+    "benchmarks/engines/cpp_python_knapsack.py::KnapsackBenchmark._write_summary": {
       "cyclomatic_complexity": 30,
       "nloc": 114
     },
-    "benchmarks/cpp_python_knapsack.py::KnapsackBenchmark.run": {
+    "benchmarks/engines/cpp_python_knapsack.py::KnapsackBenchmark.run": {
       "cyclomatic_complexity": 15
     },
-    "benchmarks/elite_pair.py::main": {
+    "benchmarks/algorithms/elite_pair.py::main": {
       "cyclomatic_complexity": 21
     },
-    "benchmarks/fixed_work.py::_run": {
+    "benchmarks/runtime/fixed_work.py::_run": {
       "parameter_count": 7
     },
-    "benchmarks/fixed_work.py::main": {
+    "benchmarks/runtime/fixed_work.py::main": {
       "cyclomatic_complexity": 17
     },
-    "benchmarks/ga_population_memory.py::_SingleGenerationGA.__init__": {
+    "benchmarks/algorithms/ga_population_memory.py::_SingleGenerationGA.__init__": {
       "parameter_count": 8
     },
-    "benchmarks/ipr.py::ScalarIPR._relink": {
+    "benchmarks/algorithms/ipr.py::ScalarIPR._relink": {
       "cyclomatic_complexity": 12
     },
-    "benchmarks/ipr.py::main": {
+    "benchmarks/algorithms/ipr.py::main": {
       "cyclomatic_complexity": 19
     },
-    "benchmarks/ipr_diagnosis.py::IPRProbe.__init__": {
+    "benchmarks/algorithms/ipr_diagnosis.py::IPRProbe.__init__": {
       "parameter_count": 7
     },
-    "benchmarks/knapsack.py::main": {
+    "benchmarks/engines/knapsack.py::main": {
       "cyclomatic_complexity": 17,
       "nloc": 116
     },
-    "benchmarks/native_problem_study.py::ProblemStudy.__init__": {
+    "benchmarks/engines/native_problem_study.py::ProblemStudy.__init__": {
       "parameter_count": 14
     },
-    "benchmarks/native_problem_study.py::ProblemStudy._run_rust": {
+    "benchmarks/engines/native_problem_study.py::ProblemStudy._run_rust": {
       "parameter_count": 7
     },
-    "benchmarks/native_problem_study.py::ProblemStudy.run": {
+    "benchmarks/engines/native_problem_study.py::ProblemStudy.run": {
       "cyclomatic_complexity": 33,
       "nloc": 108
     },
-    "benchmarks/native_problem_study.py::ProblemStudy.summary_rows": {
+    "benchmarks/engines/native_problem_study.py::ProblemStudy.summary_rows": {
       "cyclomatic_complexity": 17
     },
-    "benchmarks/native_report.py::NativeReport.analyze": {
+    "benchmarks/engines/native_report.py::NativeReport.analyze": {
       "cyclomatic_complexity": 39
     },
-    "benchmarks/native_report.py::NativeReport.bottom_line": {
+    "benchmarks/engines/native_report.py::NativeReport.bottom_line": {
       "cyclomatic_complexity": 21
     },
-    "benchmarks/native_report.py::NativeReport.detail": {
+    "benchmarks/engines/native_report.py::NativeReport.detail": {
       "cyclomatic_complexity": 11
     },
-    "benchmarks/native_report.py::NativeReport.forest_svg": {
+    "benchmarks/engines/native_report.py::NativeReport.forest_svg": {
       "cyclomatic_complexity": 13
     },
-    "benchmarks/native_report.py::NativeReport.scoreboard": {
+    "benchmarks/engines/native_report.py::NativeReport.scoreboard": {
       "cyclomatic_complexity": 26
     },
-    "benchmarks/native_report.py::NativeReport.scoreboard_svg": {
+    "benchmarks/engines/native_report.py::NativeReport.scoreboard_svg": {
       "cyclomatic_complexity": 15
     },
-    "benchmarks/native_study.py::NativeStudy.__init__": {
+    "benchmarks/engines/native_study.py::NativeStudy.__init__": {
       "parameter_count": 13
     },
-    "benchmarks/native_study.py::NativeStudy._run_rust_trial": {
+    "benchmarks/engines/native_study.py::NativeStudy._run_rust_trial": {
       "parameter_count": 7
     },
-    "benchmarks/native_study.py::NativeStudy.run": {
+    "benchmarks/engines/native_study.py::NativeStudy.run": {
       "cyclomatic_complexity": 27,
       "nloc": 140
     },
-    "benchmarks/native_study.py::NativeStudy.summarize": {
+    "benchmarks/engines/native_study.py::NativeStudy.summarize": {
       "cyclomatic_complexity": 19
     },
-    "benchmarks/native_threads.py::main": {
+    "benchmarks/runtime/native_threads.py::main": {
       "cyclomatic_complexity": 26,
       "nloc": 147
     },
-    "benchmarks/performance_profile.py::PerformanceProbe.provenance": {
+    "benchmarks/runtime/performance_profile.py::PerformanceProbe.provenance": {
       "cyclomatic_complexity": 14
     },
-    "benchmarks/performance_profile.py::PerformanceProbe.run": {
+    "benchmarks/runtime/performance_profile.py::PerformanceProbe.run": {
       "cyclomatic_complexity": 17,
       "parameter_count": 7
     },
-    "benchmarks/performance_report.py::PerformanceReport.summarize": {
+    "benchmarks/runtime/performance_report.py::PerformanceReport.summarize": {
       "cyclomatic_complexity": 25,
       "nloc": 103
     },
-    "benchmarks/performance_report.py::PerformanceReport.validate": {
+    "benchmarks/runtime/performance_report.py::PerformanceReport.validate": {
       "cyclomatic_complexity": 48
     },
-    "benchmarks/prefill_report.py::compile_report": {
+    "benchmarks/algorithms/prefill_report.py::compile_report": {
       "cyclomatic_complexity": 79,
       "nloc": 195
     },
-    "benchmarks/prefill_work.py::Trial.__init__": {
+    "benchmarks/algorithms/prefill_work.py::Trial.__init__": {
       "parameter_count": 8
     },
-    "benchmarks/prefill_work.py::Trial.run": {
+    "benchmarks/algorithms/prefill_work.py::Trial.run": {
       "cyclomatic_complexity": 11
     },
-    "benchmarks/prefill_work.py::main": {
+    "benchmarks/algorithms/prefill_work.py::main": {
       "cyclomatic_complexity": 11
     },
-    "benchmarks/process_budget.py::main": {
+    "benchmarks/runtime/process_budget.py::main": {
       "cyclomatic_complexity": 22,
       "nloc": 111
     },
-    "benchmarks/pso.py::ScalarPSO._move_particle": {
+    "benchmarks/algorithms/pso.py::ScalarPSO._move_particle": {
       "parameter_count": 7
     },
-    "benchmarks/pso.py::main": {
+    "benchmarks/algorithms/pso.py::main": {
       "cyclomatic_complexity": 17
     },
-    "benchmarks/q_learning.py::PairwiseController._create_states": {
+    "benchmarks/algorithms/q_learning.py::PairwiseController._create_states": {
       "cyclomatic_complexity": 16
     },
-    "benchmarks/q_learning.py::main": {
+    "benchmarks/algorithms/q_learning.py::main": {
       "cyclomatic_complexity": 25,
       "nloc": 113
     },
-    "benchmarks/q_state_memory.py::main": {
+    "benchmarks/algorithms/q_state_memory.py::main": {
       "cyclomatic_complexity": 31,
       "nloc": 125
     },
-    "benchmarks/random_streams.py::main": {
+    "benchmarks/algorithms/random_streams.py::main": {
       "cyclomatic_complexity": 24,
       "nloc": 120
     },
-    "benchmarks/scheduling.py::main": {
+    "benchmarks/runtime/scheduling.py::main": {
       "cyclomatic_complexity": 36,
       "nloc": 159
     },
-    "benchmarks/startup_stages.py::StartupProbe.run": {
+    "benchmarks/runtime/startup_stages.py::StartupProbe.run": {
       "cyclomatic_complexity": 11
     },
     "engines/cpp/src/lib.rs::run_portfolio": {

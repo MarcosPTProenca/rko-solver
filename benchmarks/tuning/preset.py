@@ -491,7 +491,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("stage", choices=("select", "confirm", "report"))
     parser.add_argument("--directory", type=Path, required=True)
     parser.add_argument(
-        "--source", type=Path, default=Path("benchmarks/tuning-wide-expanded-reference.jsonl")
+        "--source",
+        type=Path,
+        default=Path("benchmarks/references/tuning-wide-expanded-reference.jsonl"),
     )
     parser.add_argument("--workers", type=int, default=3)
     args = parser.parse_args(argv)

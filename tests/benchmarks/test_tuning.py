@@ -617,7 +617,7 @@ def test_expanded_reference_files_are_complete_and_paired(
         count (int): Expected number of measurement records per profile.
         field (str): Key holding each record's per-instance scores.
     """
-    root = Path(__file__).resolve().parents[2] / "benchmarks"
+    root = Path(__file__).resolve().parents[2] / "benchmarks" / "references"
     measurements = {}
     for profile in ("original", "expanded"):
         path = root / f"tuning-wide-{profile}{suffix}-reference.jsonl"

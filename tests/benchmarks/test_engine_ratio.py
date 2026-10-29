@@ -23,7 +23,7 @@ Inputs/Outputs:
 
 import json
 import pytest
-from benchmarks.engine_ratio import EngineRatio
+from benchmarks.engines.engine_ratio import EngineRatio
 from pathlib import Path
 
 native = pytest.importorskip("rko_solver._native")
@@ -76,7 +76,7 @@ def test_simulated_annealing_is_measured_with_the_historical_parameters_the_refe
     Args:
         monkeypatch (pytest.MonkeyPatch): Capture the settings passed to the solver.
     """
-    import benchmarks.engine_ratio as module
+    import benchmarks.engines.engine_ratio as module
 
     seen: list[dict[str, object]] = []
 

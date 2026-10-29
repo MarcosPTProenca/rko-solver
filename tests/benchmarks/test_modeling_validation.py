@@ -27,9 +27,9 @@ import json
 import math
 import numpy as np
 import pytest
-from benchmarks.modeling_cases import PracticalCase
-from benchmarks.modeling_cases import PracticalModels
-from benchmarks.modeling_validation import ModelValidationCampaign
+from benchmarks.modeling.cases import PracticalCase
+from benchmarks.modeling.cases import PracticalModels
+from benchmarks.modeling.validation import ModelValidationCampaign
 from pathlib import Path
 from rko_solver import RKO
 from rko_solver.modeling.adapters import ModelAdapter
@@ -319,8 +319,8 @@ def test_invalid_campaign_settings_fail_before_output(
 @pytest.mark.parametrize(
     "filename",
     [
-        "modeling-validation-reference-13b6934.jsonl",
-        "modeling-validation-box-reference-13b6934.jsonl",
+        "references/modeling-validation-reference-13b6934.jsonl",
+        "references/modeling-validation-box-reference-13b6934.jsonl",
     ],
 )
 def test_identified_reference_preserves_every_outcome_and_fixture(filename: str) -> None:

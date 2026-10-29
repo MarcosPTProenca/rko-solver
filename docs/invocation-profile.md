@@ -17,9 +17,9 @@ also requires the registered observation counts and complete case membership.
 
 | Probe | Existing implementation | Registered observations |
 | --- | --- | --- |
-| Adaptive startup | `benchmarks/startup_stages.py --repeats 3` | Six full-portfolio solves: one/four workers, three alternating repetitions, 128 keys, online control, 0.2-second search allowance |
-| Portfolio invocation/resources | `benchmarks/process_budget.py` | Twelve full-portfolio solves: sphere/ordering, seeds 42–44, automatic/ten dedicated workers, 128 keys, offline control, one-second search allowance |
-| Native callback prefixes | `benchmarks/native_threads.py --repeats 3 --dimension 128 --evaluations 64 --workers 1 4` | 36 inherited/one-thread observations across sphere/GEMV/GEMM and one/four workers, plus two parent-only negative controls |
+| Adaptive startup | `benchmarks/runtime/startup_stages.py --repeats 3` | Six full-portfolio solves: one/four workers, three alternating repetitions, 128 keys, online control, 0.2-second search allowance |
+| Portfolio invocation/resources | `benchmarks/runtime/process_budget.py` | Twelve full-portfolio solves: sphere/ordering, seeds 42–44, automatic/ten dedicated workers, 128 keys, offline control, one-second search allowance |
+| Native callback prefixes | `benchmarks/runtime/native_threads.py --repeats 3 --dimension 128 --evaluations 64 --workers 1 4` | 36 inherited/one-thread observations across sphere/GEMV/GEMM and one/four workers, plus two parent-only negative controls |
 
 The first two probes receive a copied one-thread native environment. The callback
 probe retains its inherited environment so the existing launch comparison and
@@ -81,7 +81,7 @@ C++ parity or default-policy superiority follows from a shorter invocation.
 
 [Run 39843491836](https://github.com/MarcosPTProenca/rko-solver/actions/runs/39843491836)
 passed all registered cases and existing seed/objective/accounting/native-team
-checks. The selected [compact reference](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/invocation-profile-reference.json)
+checks. The selected [compact reference](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/references/invocation-profile-reference.json)
 retains manifests, host summaries, input hashes and aggregation definitions. These
 are descriptive three-observation medians, not acceptance intervals.
 
@@ -129,9 +129,9 @@ Do not run these probes locally while the protected historical benchmark is acti
 Use a separate reference and never append to that benchmark's cache or results.
 
 ```bash
-uv run --locked --with threadpoolctl==3.7.0 python benchmarks/startup_stages.py --repeats 3
-uv run --locked --with threadpoolctl==3.7.0 python benchmarks/process_budget.py
-uv run --locked --with threadpoolctl==3.7.0 python benchmarks/native_threads.py \
+uv run --locked --with threadpoolctl==3.7.0 python -m benchmarks.runtime.startup_stages --repeats 3
+uv run --locked --with threadpoolctl==3.7.0 python -m benchmarks.runtime.process_budget
+uv run --locked --with threadpoolctl==3.7.0 python -m benchmarks.runtime.native_threads \
   --repeats 3 --dimension 128 --evaluations 64 --workers 1 4
 ```
 

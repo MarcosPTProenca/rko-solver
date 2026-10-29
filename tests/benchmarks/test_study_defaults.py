@@ -28,7 +28,11 @@ from benchmarks.tuning.spaces import SPACES
 from pathlib import Path
 from rko_solver.parameters.loader import load_offline
 
-REFERENCE = Path(__file__).resolve().parents[2] / "benchmarks" / "general-sa-preset-reference.json"
+REFERENCE = (
+    Path(__file__).resolve().parents[2]
+    / "benchmarks"
+    / "references/general-sa-preset-reference.json"
+)
 HISTORICAL_SA = {
     "sa_max": 1000.0,
     "t0": 1000000.0,

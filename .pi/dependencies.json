@@ -1,23 +1,23 @@
 {
-  "benchmarks/blending_work.py": [
-    "benchmarks/fixed_work.py",
-    "benchmarks/performance_profile.py"
+  "benchmarks/algorithms/blending_work.py": [
+    "benchmarks/runtime/fixed_work.py",
+    "benchmarks/runtime/performance_profile.py"
   ],
-  "benchmarks/cpp_python_knapsack.py": [
-    "benchmarks/knapsack_utils.py"
+  "benchmarks/engines/cpp_python_knapsack.py": [
+    "benchmarks/problems/knapsack_utils.py"
   ],
-  "benchmarks/knapsack.py": [
-    "benchmarks/knapsack_utils.py"
+  "benchmarks/engines/knapsack.py": [
+    "benchmarks/problems/knapsack_utils.py"
   ],
-  "benchmarks/native_problem_study.py": [
-    "benchmarks/cpp_python_knapsack.py"
+  "benchmarks/engines/native_problem_study.py": [
+    "benchmarks/engines/cpp_python_knapsack.py"
   ],
-  "benchmarks/native_study.py": [
-    "benchmarks/cpp_python_knapsack.py",
-    "benchmarks/knapsack_utils.py"
+  "benchmarks/engines/native_study.py": [
+    "benchmarks/engines/cpp_python_knapsack.py",
+    "benchmarks/problems/knapsack_utils.py"
   ],
-  "benchmarks/performance_profile.py": [
-    "benchmarks/fixed_work.py"
+  "benchmarks/runtime/performance_profile.py": [
+    "benchmarks/runtime/fixed_work.py"
   ],
   "benchmarks/tuning/__main__.py": [
     "benchmarks/tuning/analysis.py",
@@ -31,7 +31,7 @@
     "benchmarks/tuning/tuners.py"
   ],
   "benchmarks/tuning/instances.py": [
-    "benchmarks/python_problems.py",
+    "benchmarks/problems/synthetic.py",
     "benchmarks/tuning/spaces.py"
   ],
   "benchmarks/tuning/protocol.py": [
@@ -46,30 +46,30 @@
     "benchmarks/tuning/spaces.py"
   ],
   "tests/benchmarks/test_blending_work.py": [
-    "benchmarks/blending_work.py"
+    "benchmarks/algorithms/blending_work.py"
   ],
   "tests/benchmarks/test_cpp_python_knapsack.py": [
-    "benchmarks/cpp_python_knapsack.py",
-    "benchmarks/knapsack_utils.py"
+    "benchmarks/engines/cpp_python_knapsack.py",
+    "benchmarks/problems/knapsack_utils.py"
   ],
   "tests/benchmarks/test_engine_ratio.py": [
-    "benchmarks/engine_ratio.py"
+    "benchmarks/engines/engine_ratio.py"
   ],
   "tests/benchmarks/test_modeling_overhead.py": [
-    "benchmarks/modeling_overhead.py"
+    "benchmarks/modeling/overhead.py"
   ],
   "tests/benchmarks/test_modeling_validation.py": [
-    "benchmarks/modeling_cases.py",
-    "benchmarks/modeling_validation.py"
+    "benchmarks/modeling/cases.py",
+    "benchmarks/modeling/validation.py"
   ],
   "tests/benchmarks/test_native_report.py": [
-    "benchmarks/native_report.py"
+    "benchmarks/engines/native_report.py"
   ],
   "tests/benchmarks/test_performance_profile.py": [
-    "benchmarks/performance_profile.py"
+    "benchmarks/runtime/performance_profile.py"
   ],
   "tests/benchmarks/test_performance_report.py": [
-    "benchmarks/performance_report.py"
+    "benchmarks/runtime/performance_report.py"
   ],
   "tests/benchmarks/test_tuning.py": [
     "benchmarks/tuning/__init__.py",
@@ -82,10 +82,10 @@
     "benchmarks/tuning/tuners.py"
   ],
   "tests/metaheuristics/test_brkga_cs_correlation.py": [
-    "benchmarks/fixed_work.py"
+    "benchmarks/runtime/fixed_work.py"
   ],
   "tests/rko/test_model_repair.py": [
-    "benchmarks/modeling_cases.py"
+    "benchmarks/modeling/cases.py"
   ],
   "tests/test_mutation_report.py": [
     "tools/mutation_report.py"

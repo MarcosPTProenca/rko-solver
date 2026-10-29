@@ -19,7 +19,7 @@ import dataclasses
 import numpy as np
 import os
 import pytest
-from benchmarks.modeling_cases import PracticalModels
+from benchmarks.modeling.cases import PracticalModels
 from benchmarks.self_evolve.gap import GeneralizedAssignment
 from rko_solver.experimental.self_evolve.artifacts import DecoderArtifact
 from rko_solver.experimental.self_evolve.model_data import ModelProblem

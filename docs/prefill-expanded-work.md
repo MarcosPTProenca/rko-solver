@@ -23,8 +23,8 @@ change library defaults or the local benchmark environment.
   hashes unchanged). The report writer now emits LF too. No expanded trials or
   timing experiments ran on the benchmark machine.
 
-Durable evidence is `benchmarks/prefill-expanded-pairs.csv` (all paired costs,
-startup evidence and control hashes) and `benchmarks/prefill-expanded-summary.json`
+Durable evidence is `benchmarks/references/prefill-expanded-pairs.csv` (all paired costs,
+startup evidence and control hashes) and `benchmarks/references/prefill-expanded-summary.json`
 (72 family-specific groups, provenance, input SHA256 values and workflow URL).
 The six full trace artifacts remain on the workflow for 90 days. Compact evidence
 is retained in Git and suffices to recompute the quality summaries after expiry.

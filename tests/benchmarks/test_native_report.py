@@ -23,11 +23,11 @@ Inputs/Outputs:
 
 import numpy as np
 import pytest
-from benchmarks.native_report import EVIDENCE
-from benchmarks.native_report import FIGURES
-from benchmarks.native_report import README
-from benchmarks.native_report import ROUNDS
-from benchmarks.native_report import NativeReport
+from benchmarks.engines.native_report import EVIDENCE
+from benchmarks.engines.native_report import FIGURES
+from benchmarks.engines.native_report import README
+from benchmarks.engines.native_report import ROUNDS
+from benchmarks.engines.native_report import NativeReport
 
 
 def synthetic(
@@ -139,4 +139,4 @@ def test_committed_outputs_match_a_fresh_render_of_the_evidence() -> None:
         for path, text in outputs.items()
         if not path.exists() or path.read_text(encoding="utf-8") != text
     ]
-    assert not stale, f"run `python -m benchmarks.native_report render`: {stale}"
+    assert not stale, f"run `python -m benchmarks.engines.native_report render`: {stale}"
