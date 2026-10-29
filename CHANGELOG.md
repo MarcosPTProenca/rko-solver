@@ -14,6 +14,9 @@ versions must be verified against their tag, manifest and package-index metadata
   seven-day cooldown and `lockfile-only` for Cargo and uv, so exact pins and tested minimums are
   never rewritten. A pull request template and a [security policy](SECURITY.md) are added, and the
   Python coverage floor rises from 88 to 89 percent. The installed library is unchanged.
+  A local hook also regenerates the service image's hash-pinned `requirements.lock` from
+  `uv.lock`, matching the hosted service job's comparison, so a dependency refresh no longer
+  fails there first.
 - [Installation and version guidance](docs/installation.md) separates current source from
   published prereleases, optional extras, regular artifacts and free-threading limits.
 - Development-only Import Linter contracts, enforced in continuous integration and pre-commit,

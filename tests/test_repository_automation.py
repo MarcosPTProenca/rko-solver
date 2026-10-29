@@ -158,3 +158,21 @@ def test_documented_coverage_floor_equals_the_enforced_floor() -> None:
     assert documented is not None
     assert int(documented.group(1)) == enforced
     assert enforced >= 89
+
+
+def test_service_image_lock_is_regenerated_by_a_hook_matching_the_hosted_job() -> None:
+    """A dependency refresh must not first fail in CI because the image lock was not regenerated."""
+    workflow = load_yaml(".github/workflows/service.yml")
+    script = " ".join(step.get("run", "") for step in workflow["jobs"]["service"]["steps"])
+    lines = [line.split() for line in script.splitlines() if line.strip()]
+    export = next(words for words in lines if words[:2] == ["uv", "export"])
+    compared = next(words for words in lines if words[0] == "cmp")[1]
+    flags = export[: export.index("--output-file")]
+    hooks = [hook for hook in local_hooks() if hook["id"] == "service-lock"]
+    assert len(hooks) == 1
+    entry = hooks[0]["entry"].split()
+    assert entry[: len(flags)] == flags
+    assert entry[-2:] == ["--output-file", compared]
+    pattern = re.compile(hooks[0]["files"])
+    assert all(pattern.search(name) for name in ("uv.lock", "pyproject.toml", compared))
+    assert not pattern.search("README.md")
