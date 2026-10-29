@@ -364,7 +364,11 @@ def test_busy_health_cancel_and_descendant_cleanup(tmp_path: Path) -> None:
         assert poll(current, identifier)["state"] == "cancelled"
         for pid in (marker["pid"], marker["child"]):
             status = Path(f"/proc/{pid}/status")
-            assert not status.exists() or "State:\tZ" in status.read_text()
+            try:
+                status_text = status.read_text()
+            except FileNotFoundError, ProcessLookupError:
+                continue
+            assert "State:\tZ" in status_text
 
 
 @pytest.mark.parametrize("mode,expected", [("blocked", "timed_out"), ("post_blocked", "completed")])
@@ -491,9 +495,18 @@ def test_shutdown_stops_running_descendants(tmp_path: Path) -> None:
         while not (tmp_path / "marker.json").exists() and time.monotonic() < deadline:
             time.sleep(0.025)
         marker = json.loads((tmp_path / "marker.json").read_text())
+    deadline = time.monotonic() + 2
     for pid in (marker["pid"], marker["child"]):
         status = Path(f"/proc/{pid}/status")
-        assert not status.exists() or "State:\tZ" in status.read_text()
+        while True:
+            try:
+                status_text = status.read_text()
+            except FileNotFoundError, ProcessLookupError:
+                break
+            if "State:\tZ" in status_text:
+                break
+            assert time.monotonic() < deadline, f"Process {pid} survived shutdown"
+            time.sleep(0.025)
     state = json.loads((tmp_path / "jobs" / identifier / "state.json").read_text())
     assert state["state"] == "interrupted"
 
