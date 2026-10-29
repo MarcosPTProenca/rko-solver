@@ -2191,3 +2191,33 @@ and the chosen spread sits at the edge of its grid. The remaining headroom on th
 under 0.01 percent, so there is little left for a learned prior to gain here. The quantile decoder
 costs one cumulative sum per position, which did not cost it wins at these sizes, but it was not
 tested beyond 300 items.
+
+### Control: seeding instead of a decoder
+
+The priority decoder and the quantile decoder were compared only with the plain sort decoder, so the
+gain could come from the decoder or merely from starting near the greedy solution. The control gives
+the plain sort decoder the same prior through `initial_keys`: one key vector whose ascending order is
+the greedy value/weight order. It reruns the same 24 instances, seeds and budgets
+([reference](references/priority-seeding-control-reference.json)):
+
+```bash
+uv run --locked python -m benchmarks.engines.priority_decoder_study --candidates sort sort_seeded
+```
+
+| Variant (mean gap, percent) | 2 s | 10 s |
+|---|---:|---:|
+| sort, this run | 0.966 | 0.492 |
+| sort + `initial_keys` (greedy order) | 0.003 | 0.0005 |
+| priority decoder, earlier run | 0.009 | 0.005 |
+
+Seeded sort beats sort on 22 of 24 instances at 2 s (paired 95 percent interval -1.47 to -0.53) and on
+18 of 24 at 10 s (-0.75 to -0.27). Against the priority decoder the paired difference is not
+distinguishable from zero at either budget (2 s: +0.006, interval -0.004 to +0.020; 10 s: +0.004,
+interval -0.001 to +0.014). Rerunning plain sort moved its mean gap by -0.04 at 2 s and +0.11 at
+10 s against the earlier run, with intervals that include zero, so differences below about 0.1 are
+inside run-to-run noise.
+
+Reading: on this study the prior is worth the same whether it enters through the decoder or through
+one seed, so the decoders add nothing over `initial_keys`. What matters is a good starting solution,
+and the open question for a general solver is where one comes from when nothing is known about the
+problem.

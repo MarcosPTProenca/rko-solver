@@ -40,6 +40,7 @@ from benchmarks.problems.knapsack_utils import exact_profit
 from collections.abc import Callable
 from collections.abc import Sequence
 from dataclasses import dataclass
+from examples.priority_decoders import ItemScores
 from examples.priority_decoders import PriorityDecoder
 from examples.priority_decoders import QuantileDecoder
 from examples.priority_decoders import SortDecoder
@@ -127,13 +128,37 @@ class Candidate:
         """
         if self.name == "threshold":
             return decode_knapsack
-        if self.name == "sort":
+        if self.name in ("sort", "sort_seeded"):
             return SortDecoder(instance)
         if self.name == "priority" and self.parameter is not None:
             return PriorityDecoder.build(instance, self.parameter)
         if self.name == "quantile" and self.parameter is not None:
             return QuantileDecoder.build(instance, self.parameter)
         raise ValueError(f"Unknown candidate {self.name!r}.")
+
+
+class GreedySeed:
+    """Encode the value/weight greedy order as one random-key vector.
+
+    Responsibilities:
+    - Give the plain sort decoder the same prior the priority decoder has, through `initial_keys`.
+    """
+
+    @staticmethod
+    def keys(instance: KpInstance) -> list[float]:
+        """Return keys whose ascending order is the best-ratio-first order.
+
+        Args:
+            instance (KpInstance): Knapsack data.
+
+        Returns:
+            list[float]: One key in (0, 1) per item.
+        """
+        position = np.empty(instance.n_items)
+        position[np.argsort(-ItemScores.ratio(instance), kind="stable")] = np.arange(
+            instance.n_items
+        )
+        return ((position + 0.5) / instance.n_items).tolist()
 
 
 class TrialRunner:
@@ -161,9 +186,10 @@ class TrialRunner:
         """
         decoder = candidate.decoder(instance)
         started = time.perf_counter()
-        result = RKO(decoder, make_cost(instance), instance.n_items, random_state=seed).solve(
-            budget
-        )
+        seeds = [GreedySeed.keys(instance)] if candidate.name == "sort_seeded" else None
+        result = RKO(
+            decoder, make_cost(instance), instance.n_items, random_state=seed, initial_keys=seeds
+        ).solve(budget)
         elapsed = time.perf_counter() - started
         profit, _, feasible = evaluate_solution(decoder(np.asarray(result.keys)), instance)
         counted = profit if feasible else 0
@@ -216,6 +242,29 @@ class PairedStatistics:
             "wins": int((difference < -1e-9).sum()),
             "losses": int((difference > 1e-9).sum()),
             "ties": int((np.abs(difference) <= 1e-9).sum()),
+        }
+
+    @classmethod
+    def against_sort(
+        cls, rows: Sequence[dict[str, Any]], budget: float, resamples: int
+    ) -> dict[str, dict[str, float]]:
+        """Compare every decoder with `sort` at one budget.
+
+        Args:
+            rows (Sequence[dict[str, Any]]): Trial records with `decoder`, `budget` and `gap`.
+            budget (float): Budget in seconds to select.
+            resamples (int): Bootstrap resamples.
+
+        Returns:
+            dict[str, dict[str, float]]: Statistics keyed `decoder@budget`, including `sort`.
+        """
+        gaps: dict[str, list[float]] = {}
+        for row in rows:
+            if row["budget"] == budget:
+                gaps.setdefault(row["decoder"], []).append(row["gap"])
+        return {
+            f"{name}@{budget:g}s": cls.compare(values, gaps["sort"], resamples, 0)
+            for name, values in gaps.items()
         }
 
 
@@ -330,17 +379,11 @@ class PriorityDecoderStudy:
         """
         table: dict[str, Any] = {}
         for budget in self.budgets:
-            gaps: dict[str, list[float]] = {}
-            for row in rows:
-                if row["budget"] == budget:
-                    gaps.setdefault(row["decoder"], []).append(row["gap"])
-            for decoder, values in gaps.items():
-                table[f"{decoder}@{budget:g}s"] = PairedStatistics.compare(
-                    values, gaps["sort"], self.resamples, 0
-                )
+            table.update(PairedStatistics.against_sort(rows, budget, self.resamples))
+        informed = {row["decoder"] for row in rows} & {"priority", "quantile"}
         killed = {
-            decoder: all(table[f"{decoder}@{b:g}s"]["difference"] > 0 for b in self.budgets)
-            for decoder in ("priority", "quantile")
+            name: all(table[f"{name}@{b:g}s"]["difference"] > 0 for b in self.budgets)
+            for name in sorted(informed)
         }
         return {"paired_vs_sort": table, "killed": killed}
 
@@ -360,6 +403,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--validation-seeds", type=int, default=1)
     parser.add_argument("--test-seeds", type=int, default=4)
     parser.add_argument("--resamples", type=int, default=10000)
+    parser.add_argument(
+        "--candidates",
+        nargs="+",
+        choices=("threshold", "sort", "sort_seeded", "priority", "quantile"),
+        default=["threshold", "sort", "sort_seeded", "priority", "quantile"],
+        help="Decoders to run; sort is always included as the paired reference.",
+    )
     parser.add_argument("--output", type=Path, default=Path("results/priority-decoder-e1.json"))
     return parser.parse_args(argv)
 
@@ -381,19 +431,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         options.test_seeds,
         options.resamples,
     )
-    spread, spread_means = study.validate("priority", SPREADS)
-    temperature, temperature_means = study.validate("quantile", TEMPERATURES)
-    candidates = [
-        Candidate("threshold"),
-        Candidate("sort"),
-        Candidate("priority", spread),
-        Candidate("quantile", temperature),
-    ]
+    names = list(dict.fromkeys(["sort", *options.candidates]))
+    chosen: dict[str, float] = {}
+    validation: dict[str, dict[float, float]] = {}
+    for name, grid in (("priority", SPREADS), ("quantile", TEMPERATURES)):
+        if name in names:
+            chosen[name], validation[name] = study.validate(name, grid)
+    candidates = [Candidate(name, chosen.get(name)) for name in names]
     rows = study.evaluate(candidates)
     report = {
         "design": vars(options) | {"output": str(options.output)},
-        "validation": {"priority": spread_means, "quantile": temperature_means},
-        "chosen": {"spread": spread, "temperature": temperature},
+        "validation": validation,
+        "chosen": chosen,
         "summary": study.summarize(rows),
         "trials": rows,
     }
