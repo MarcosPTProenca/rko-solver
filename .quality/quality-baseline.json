@@ -7,7 +7,7 @@
     "engines/rust/rko-core/src/engine.rs": 654,
     "engines/rust/rko-core/src/local_search.rs": 605,
     "src/rko_solver/reporting.py": 674,
-    "src/rko_solver/solver.py": 745,
+    "src/rko_solver/solver.py": 639,
     "tools/release.py": 751
   },
   "functions": {
@@ -319,9 +319,6 @@
     "examples/instance_pipeline.py::read_data": {
       "cyclomatic_complexity": 15
     },
-    "examples/run_kp_cpp_instances.py::parse_args": {
-      "cyclomatic_complexity": 13
-    },
     "examples/run_kp_cpp_instances.py::run_single_instance": {
       "parameter_count": 9
     },
@@ -336,7 +333,7 @@
       "nloc": 102
     },
     "src/rko_solver/metaheuristics/_solvers.py::_SingleAlgorithmSolver.__init__": {
-      "parameter_count": 22
+      "parameter_count": 21
     },
     "src/rko_solver/metaheuristics/brkga.py::BRKGA.__init__": {
       "parameter_count": 13
@@ -458,7 +455,7 @@
       "cyclomatic_complexity": 17
     },
     "src/rko_solver/rko_main.py::run": {
-      "parameter_count": 12
+      "parameter_count": 11
     },
     "src/rko_solver/service/boundary.py::RequestBoundary.__call__": {
       "cyclomatic_complexity": 19
@@ -484,7 +481,7 @@
     },
     "src/rko_solver/solver.py::RKO.__init__": {
       "cyclomatic_complexity": 13,
-      "parameter_count": 23
+      "parameter_count": 22
     },
     "src/rko_solver/solver.py::RKO._execute": {
       "cyclomatic_complexity": 13,

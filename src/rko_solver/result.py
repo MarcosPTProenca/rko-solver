@@ -9,7 +9,7 @@ Technical approach:
 Flow (pseudocode):
 1. Own completed search-score and optional generated-model evidence.
 2. Aggregate successful evaluation counts and stop reasons.
-3. Expose legacy backend and readable adaptation metadata without replaying callbacks.
+3. Expose readable adaptation metadata without replaying callbacks.
 
 Important criteria:
 - Direct fixed models report one evaluation and no search workers.
@@ -21,12 +21,10 @@ Inputs/Outputs:
 
 from __future__ import annotations
 
-import warnings
 from .modeling.results import ModelResult
 from .orchestration.adaptation import Adaptation
 from .orchestration.adaptation import adaptation_name
 from .orchestration.auto import AutoSelection
-from .orchestration.engine import EngineSelection
 from .orchestration.types import PoolInitializationMetadata
 from .orchestration.types import SearchMetadata
 from .tracing import DecisionTrace
@@ -84,23 +82,6 @@ class RKOResult:
     execution: str | None = None
     max_evaluations: int | None = None
     model: ModelResult | None = None
-
-    @property
-    def backend(self) -> str:
-        """Return the deprecated combined name, or direct for a model with no search.
-
-        Returns:
-            str: Legacy combined name; new callers should inspect engine/execution/model.
-        """
-        warnings.warn(
-            "'RKOResult.backend' is deprecated and will be removed in 0.4; "
-            "use 'engine' and 'execution'.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if self.model is not None and self.model.no_search:
-            return "direct"
-        return EngineSelection.legacy_name(self.engine, self.execution)
 
     @property
     def n_evaluations(self) -> int | None:

@@ -1,31 +1,26 @@
-"""Contract tests for engine and execution selection and the deprecated backend names.
+"""Contract tests for canonical engine and execution selection.
 
 Objective:
-- Verify that `engine` and `execution` are validated as orthogonal choices, that problem
-  objects and the short constructor form are equivalent, and that every deprecated spelling
-  still works with a warning until 0.4.
+- Verify orthogonal engine/execution choices and equivalent canonical problem constructors.
 
 Technical approach:
-- Test the pure translation table, then run short real solves on a small Knapsack through
-  the Python and Rust engines and through each deprecated alias.
+- Validate names, then run short real solves through the Python and Rust engines.
 
 Flow (pseudocode):
-1. Check name validation and the legacy translation.
-2. Check constructor forms, problem objects and the errors they raise.
-3. Check each deprecated alias warns and reproduces the historical behavior.
+1. Check independent engine and execution validation.
+2. Check canonical constructor forms and invalid combinations.
+3. Check public results through real solves and the tuple-returning adapter.
 
 Important criteria:
 - Tests use sub-second budgets and never assert timing-dependent quality.
 
 Inputs/Outputs:
 - Input: small synthetic problems and short time limits.
-- Output: exact assertions on names, warnings and result metadata.
+- Output: exact assertions on names, errors and result metadata.
 """
 
-import importlib
 import numpy as np
 import pytest
-import sys
 from rko_solver import RKO
 from rko_solver import Blocks
 from rko_solver import Callbacks
@@ -80,31 +75,6 @@ def block_cost(keys: np.ndarray) -> np.ndarray:
     return np.array([cost(decode(row)) for row in keys])
 
 
-@pytest.mark.parametrize(
-    "backend,expected",
-    [
-        ("process", ("python", "process")),
-        ("thread", ("python", "thread")),
-        ("serial", ("python", "sequential")),
-        ("native", ("rust", None)),
-        ("cpp", ("cpp", None)),
-        ("auto", ("auto", None)),
-    ],
-)
-def test_legacy_backend_names_translate_to_engine_and_execution(
-    backend: str, expected: tuple[str, str | None]
-) -> None:
-    """Every deprecated backend maps to one pair and back to its old name.
-
-    Args:
-        backend (str): Deprecated name.
-        expected (tuple[str, str | None]): Engine and execution it stands for.
-    """
-    assert EngineSelection.from_legacy(backend) == expected
-    if backend != "auto":
-        assert EngineSelection.legacy_name(*expected) == backend
-
-
 def test_validation_resolves_the_default_execution_and_rejects_mixtures() -> None:
     """Only the Python engine has an execution and it defaults to process."""
     assert EngineSelection.validate("python", None) == "process"
@@ -117,8 +87,6 @@ def test_validation_resolves_the_default_execution_and_rejects_mixtures() -> Non
         EngineSelection.validate("native", None)
     with pytest.raises(ValueError, match="'execution'"):
         EngineSelection.validate("python", "serial")
-    with pytest.raises(ValueError, match="'backend' must be"):
-        EngineSelection.from_legacy("automatic")
 
 
 def test_solve_rejects_invalid_engine_settings_without_running() -> None:
@@ -201,78 +169,7 @@ def test_blocks_run_on_python_and_rust_engines() -> None:
     assert rust.engine == "rust" and cost(decode(np.asarray(rust.keys))) == rust.cost
 
 
-def test_backend_argument_is_deprecated_but_equivalent() -> None:
-    """`backend=` warns, translates and cannot be mixed with the new names."""
-    with pytest.warns(DeprecationWarning, match="engine='python', execution='sequential'"):
-        solver = RKO(decode, cost, 30, backend="serial")
-    assert (solver.engine, solver.execution) == ("python", "sequential")
-    with pytest.warns(DeprecationWarning, match="engine='rust'"):
-        assert RKO(decode, cost, 30, backend="native").engine == "rust"
-    with pytest.raises(ValueError, match="cannot be combined"):
-        RKO(decode, cost, 30, backend="serial", engine="python")
-    with pytest.raises(ValueError, match="cannot be combined"):
-        RKO(decode, cost, 30, backend="serial", execution="sequential")
-    with pytest.raises(ValueError, match="'backend' must be"):
-        RKO(decode, cost, 30, backend="automatic")
-    with pytest.warns(DeprecationWarning):
-        standalone = SA(decode, cost, 30, backend="thread")
-    assert (standalone.engine, standalone.execution) == ("python", "thread")
-
-
-def test_deprecated_backend_properties_report_the_historical_names() -> None:
-    """`RKO.backend` and `RKOResult.backend` keep their old values with a warning."""
-    solver = RKO(decode, cost, 30, algorithms=["SA"], execution="sequential", random_state=1)
-    with pytest.warns(DeprecationWarning, match="RKO.backend"):
-        assert solver.backend == "serial"
-    result = solver.solve(0.1)
-    with pytest.warns(DeprecationWarning, match="RKOResult.backend"):
-        assert result.backend == "serial"
-    rust = RKO(decode, cost, 30, algorithms=["SA"], engine="rust", random_state=1).solve(0.1)
-    with pytest.warns(DeprecationWarning):
-        assert rust.backend == "native"
-    with pytest.warns(DeprecationWarning):
-        assert RKO(decode, cost, 30, engine="auto").backend == "auto"
-
-
-def test_alternative_constructors_are_deprecated_and_default_to_rust() -> None:
-    """`RKO.native`, `RKO.compiled` and `RKO.batched` warn and still run on Rust."""
-    problem = problems.Knapsack(PROFITS, WEIGHTS, CAPACITY)
-    with pytest.warns(DeprecationWarning, match="RKO.native"):
-        native_solver = RKO.native(problem, algorithms=["SA"], random_state=1)
-    assert native_solver.solve(0.1).engine == "rust"
-    with pytest.warns(DeprecationWarning, match="RKO.batched"):
-        batched = RKO.batched(block_cost, 30, batch_size=16, algorithms=["SA"], random_state=1)
-    assert isinstance(batched.problem, Blocks) and batched.problem.objective.batch_size == 16
-    assert batched.solve(0.1).engine == "rust"
-    with pytest.warns(DeprecationWarning):
-        sequential = RKO.batched(
-            block_cost, 30, algorithms=["SA"], backend="serial", random_state=1
-        )
-    assert (sequential.engine, sequential.execution) == ("python", "sequential")
-    numba = pytest.importorskip("numba")
-    with pytest.warns(DeprecationWarning, match="RKO.compiled"):
-        compiled = RKO.compiled(
-            numba.njit(lambda keys: float(np.sum(keys))), 8, algorithms=["SA"], engine="cpp"
-        )
-    assert compiled.engine == "cpp"
-
-
-def test_native_module_is_a_deprecated_alias_of_problems() -> None:
-    """`rko_solver.native.Knapsack` is the same class as `rko_solver.problems.Knapsack`."""
-    sys.modules.pop("rko_solver.native", None)
-    with pytest.warns(DeprecationWarning, match="rko_solver.problems"):
-        module = importlib.import_module("rko_solver.native")
-    assert module.Knapsack is problems.Knapsack
-    with pytest.raises(AttributeError):
-        _ = module.Missing
-    with pytest.raises(AttributeError):
-        _ = problems.Missing
-
-
-def test_legacy_run_adapter_accepts_both_spellings() -> None:
-    """`rko_solver.run` forwards `execution` and still honors the deprecated `backend`."""
+def test_run_adapter_preserves_canonical_execution() -> None:
+    """Forward canonical execution and retain independently verified tuple results."""
     keys, value = run(decode, cost, 30, 0.1, execution="sequential", random_state=1)
     assert len(keys) == 30 and value == cost(decode(np.asarray(keys)))
-    with pytest.warns(DeprecationWarning, match="engine='python', execution='sequential'"):
-        keys, value = run(decode, cost, 30, 0.1, backend="serial", random_state=1)
-    assert value == cost(decode(np.asarray(keys)))

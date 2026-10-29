@@ -29,7 +29,6 @@ from __future__ import annotations
 import argparse
 import csv
 import numpy as np
-import sys
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -445,12 +444,6 @@ def parse_args() -> argparse.Namespace:
         help="Python-engine scheduling (default: process).",
     )
     parser.add_argument(
-        "--backend",
-        choices=tuple(EngineSelection.LEGACY),
-        default=None,
-        help="Deprecated: use --engine and --execution.",
-    )
-    parser.add_argument(
         "--n-jobs",
         type=int,
         default=None,
@@ -474,16 +467,6 @@ def parse_args() -> argparse.Namespace:
             parser.error("A single instance cannot be combined with --instances-dir or --pattern.")
         if not args.instance.is_file():
             parser.error(f"Instance is not a file: {args.instance}")
-    if args.backend is not None:
-        if args.engine is not None or args.execution is not None:
-            parser.error("--backend cannot be combined with --engine or --execution.")
-        args.engine, args.execution = EngineSelection.from_legacy(args.backend)
-        print(
-            f"warning: --backend is deprecated and will be removed in 0.4; use "
-            f"--engine {args.engine}"
-            + (f" --execution {args.execution}" if args.execution else ""),
-            file=sys.stderr,
-        )
     args.engine = args.engine or "python"
     try:
         EngineSelection.validate(args.engine, args.execution)

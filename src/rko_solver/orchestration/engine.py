@@ -1,4 +1,4 @@
-"""Engine and execution selection, including the deprecated `backend` spelling.
+"""Orthogonal engine and execution selection.
 
 Objective:
 - Give every entry point one validated vocabulary for which engine runs the search
@@ -7,113 +7,55 @@ Objective:
 Technical approach:
 - Treat the engine (`python`, `rust`, `cpp`, `auto`) and the execution (`process`,
   `thread`, `sequential`) as orthogonal choices; only the Python engine has an execution.
-- Translate the legacy single `backend` string into that pair and warn once per call.
-- Expose the reverse mapping so read-only legacy aliases keep their old values.
 
 Flow (pseudocode):
-1. Receive the requested engine, execution and optional legacy backend.
-2. If a backend is given, reject mixing it with the new names, warn and translate it.
-3. Validate the pair and resolve the default execution for the Python engine.
+1. Receive the requested engine and optional execution.
+2. Reject unknown names and execution settings for non-Python engines.
+3. Resolve the default execution for the Python engine.
 
 Important criteria:
 - `execution` is rejected for every engine except `python`.
 - Defaults reproduce the previous behavior: engine `python`, execution `process`.
-- The legacy spelling is removed in 0.4.
 
 Inputs/Outputs:
-- Input: engine and execution names and an optional deprecated backend name.
-- Output: validated `(engine, execution)` pairs and legacy backend names.
+- Input: engine and optional execution names.
+- Output: validated effective execution, or None for non-Python engines.
 """
 
 from __future__ import annotations
 
-import warnings
 from typing import Final
 
 
 class EngineSelection:
-    """Validate and translate engine and execution names.
+    """Validate independent engine and execution names.
 
     Responsibilities:
-    - Hold the accepted vocabulary and the legacy translation table.
-    - Resolve a constructor request into a pair without side effects beyond a warning.
+    - Hold the accepted engine and execution vocabulary.
+    - Resolve Python scheduling defaults without side effects.
 
     Attributes:
         ENGINES (tuple[str, ...]): Accepted engine names.
         EXECUTIONS (tuple[str, ...]): Accepted Python-engine execution names.
         DEFAULT_EXECUTION (str): Execution used by the Python engine when none is given.
-        LEGACY (dict[str, tuple[str, str | None]]): Deprecated backend to engine and execution.
     """
 
     ENGINES: Final = ("python", "rust", "cpp", "auto")
     EXECUTIONS: Final = ("process", "thread", "sequential")
     DEFAULT_EXECUTION: Final = "process"
-    LEGACY: Final = {
-        "process": ("python", "process"),
-        "thread": ("python", "thread"),
-        "serial": ("python", "sequential"),
-        "native": ("rust", None),
-        "cpp": ("cpp", None),
-        "auto": ("auto", None),
-    }
 
-    @classmethod
-    def from_legacy(cls, backend: str) -> tuple[str, str | None]:
-        """Translate a deprecated backend name.
+    @staticmethod
+    def request(engine: str | None, execution: str | None) -> tuple[str, str | None]:
+        """Resolve the constructor default without starting solve-time validation.
 
         Args:
-            backend (str): One of the keys of `LEGACY`.
+            engine (str | None): Requested engine, or None for Python.
+            execution (str | None): Requested Python scheduling, or None.
 
         Returns:
-            tuple[str, str | None]: Engine and execution (None outside the Python engine).
-
-        Raises:
-            ValueError: If the name is not a known legacy backend.
+            tuple[str, str | None]: Stored engine and requested execution.
         """
-        if backend not in cls.LEGACY:
-            raise ValueError(
-                "'backend' must be 'process', 'thread', 'serial', 'native', 'cpp', or 'auto'; "
-                "it is deprecated, use 'engine' and 'execution'."
-            )
-        return cls.LEGACY[backend]
-
-    @classmethod
-    def request(
-        cls,
-        engine: str | None,
-        execution: str | None,
-        backend: str | None,
-        stacklevel: int = 3,
-    ) -> tuple[str, str | None]:
-        """Resolve constructor arguments into the stored engine and execution.
-
-        Args:
-            engine (str | None): Requested engine, or None for the default.
-            execution (str | None): Requested Python-engine execution, or None.
-            backend (str | None): Deprecated combined name, or None.
-            stacklevel (int): Frames to skip so the warning points at the caller.
-
-        Returns:
-            tuple[str, str | None]: Engine and execution exactly as requested; validation of
-            the values is deferred to `validate`.
-
-        Raises:
-            ValueError: If `backend` is combined with `engine` or `execution`, or is unknown.
-        """
-        if backend is None:
-            return ("python" if engine is None else engine), execution
-        if engine is not None or execution is not None:
-            raise ValueError("'backend' cannot be combined with 'engine' or 'execution'.")
-        resolved = cls.from_legacy(backend)
-        warnings.warn(
-            f"'backend={backend!r}' is deprecated and will be removed in 0.4; use "
-            f"engine={resolved[0]!r}"
-            + (f", execution={resolved[1]!r}" if resolved[1] is not None else "")
-            + ".",
-            DeprecationWarning,
-            stacklevel=stacklevel,
-        )
-        return resolved
+        return ("python" if engine is None else engine), execution
 
     @classmethod
     def validate(cls, engine: str, execution: str | None) -> str | None:
@@ -140,18 +82,3 @@ class EngineSelection:
                 )
             return None
         return execution or cls.DEFAULT_EXECUTION
-
-    @classmethod
-    def legacy_name(cls, engine: str, execution: str | None) -> str:
-        """Return the deprecated backend name equivalent to a resolved pair.
-
-        Args:
-            engine (str): Executed engine.
-            execution (str | None): Python-engine execution, or None.
-
-        Returns:
-            str: `process`, `thread`, `serial`, `native` or `cpp`.
-        """
-        if engine == "python":
-            return {"thread": "thread", "sequential": "serial"}.get(execution or "", "process")
-        return "native" if engine == "rust" else engine

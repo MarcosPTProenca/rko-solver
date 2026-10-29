@@ -9,7 +9,6 @@
     "examples/instance_pipeline.py": 1,
     "examples/run_kp_cpp_instances.py": 1,
     "src/rko_solver/explain.py": 2,
-    "src/rko_solver/metaheuristics/_solvers.py": 2,
     "src/rko_solver/metaheuristics/brkga.py": 1,
     "src/rko_solver/metaheuristics/brkga_cs.py": 2,
     "src/rko_solver/metaheuristics/ga.py": 1,
@@ -28,7 +27,7 @@
     "src/rko_solver/service/manager.py": 6,
     "src/rko_solver/service/templates/adapter.py": 1,
     "src/rko_solver/service/worker.py": 2,
-    "src/rko_solver/solver.py": 22,
+    "src/rko_solver/solver.py": 7,
     "src/rko_solver/tracing.py": 6,
     "tools/release.py": 21,
     "tools/smoke_installed.py": 3

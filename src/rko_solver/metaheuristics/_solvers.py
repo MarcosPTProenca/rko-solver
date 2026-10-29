@@ -27,14 +27,12 @@ Inputs/Outputs:
 from __future__ import annotations
 
 from ..orchestration.adaptation import Adaptation
-from ..orchestration.engine import EngineSelection
 from ..orchestration.types import CostFn
 from ..orchestration.types import DecoderFn
 from ..orchestration.types import Hyperparameters
 from ..solver import RKO
 from ..solver import Engine
 from ..solver import Execution
-from ..solver import LegacyBackend
 from ..solver import Problem
 from ..tracing import TraceConfig
 from collections.abc import Sequence
@@ -71,7 +69,6 @@ class _SingleAlgorithmSolver(RKO):
         params_dir: Path | None = None,
         engine: Engine | None = None,
         execution: Execution | None = None,
-        backend: LegacyBackend | None = None,
         auto_time: float | None = None,
         auto_candidates: Sequence[str] | None = None,
         n_jobs: int | None = None,
@@ -96,7 +93,6 @@ class _SingleAlgorithmSolver(RKO):
             params_dir (Path | None): Optional custom TOML directory.
             engine (Engine | None): Python, rust, cpp or auto, exactly as for RKO.
             execution (Execution | None): Python-engine scheduling, exactly as for RKO.
-            backend (LegacyBackend | None): Deprecated combined name, removed in 0.4.
             auto_time (float | None): Selection budget for auto, as for RKO.
             auto_candidates (Sequence[str] | None): Candidates auto may choose from, as for RKO.
             n_jobs (int | None): Optional process or Rust worker cap; not supported by
@@ -109,7 +105,6 @@ class _SingleAlgorithmSolver(RKO):
             trace (TraceConfig | None): Opt-in bounded original-decoder decisions.
             max_evaluations (int | None): Per-algorithm evaluation limit, as for RKO.
         """
-        engine, execution = EngineSelection.request(engine, execution, backend, stacklevel=3)
         super().__init__(
             problem,
             cost,

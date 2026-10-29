@@ -21,8 +21,12 @@ ARM64, and macOS arm64 and x86_64. Core is NumPy-only; reports are optional. The
 compiled engine is part of every wheel, but `engine="rust"` and `engine="cpp"`
 stay opt-in and the default engine and execution do not change. Platforms without a
 wheel (musl Linux, 32-bit systems, other architectures) install from the sdist, which
-needs a Rust toolchain; free-threaded CPython is checked by installing the sdist, not
-by a wheel. Other interpreters are not certified, and metadata's >=3.14 is not evidence
+needs a Rust toolchain. Free-threaded CPython 3.14 is checked on Linux by installing the
+sdist, not by reusing the regular `abi3` wheel. The complete installed-package smoke runs
+canonical Python sequential/thread/process and Rust built-in/callback/block solves; it fails
+if the free-threaded interpreter enables its global interpreter lock. This is functional
+coverage, not a throughput claim or certification of free-threaded wheels on other platforms.
+Other interpreters are not certified, and metadata's >=3.14 is not evidence
 that every future Python release was tested. No older-Python support is added.
 
 The validator admits exactly that set: the wheel tags must be `cp314-abi3` for one
