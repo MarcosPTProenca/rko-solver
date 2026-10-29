@@ -30,6 +30,7 @@ import os
 import pickle
 import random
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -159,6 +160,16 @@ def objective(keys: np.ndarray) -> float:
         float: Squared Euclidean norm.
     """
     return float(np.dot(keys, keys))
+
+
+def _run_additional_smokes() -> None:
+    """Run installed-package smokes not included in the core check.
+
+    Raises:
+        subprocess.CalledProcessError: If either additional smoke fails.
+    """
+    for script in ("smoke_self_evolve_installed.py", "smoke_tracing_installed.py"):
+        subprocess.run([sys.executable, "-I", str(Path(__file__).with_name(script))], check=True)
 
 
 def main() -> None:
@@ -392,3 +403,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    _run_additional_smokes()

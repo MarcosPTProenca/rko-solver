@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   model-frontends:
     strategy:
@@ -73,9 +77,8 @@ jobs:
       - name: Ruff format check
         run: uv run --locked ruff format --check .
       - name: Full test suite, including the tuning harness
-        run: uv run --locked --group tuning pytest tests -q
-      - name: Optional interactive reports
-        run: uv run --locked --extra reports pytest tests/rko/test_reporting.py tests/rko/test_tracing.py tests/test_documentation_examples.py -q
+        if: runner.os != 'Linux'
+        run: uv run --locked --group tuning pytest tests -q -n 4
       - name: Source-identified profile diagnostic smoke
         run: uv run --locked python -m benchmarks.performance_profile --dimension 4 --evaluations 8 --profile
       - name: Bounded decision recording fixed-work smoke
@@ -106,17 +109,6 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: cmp pyproject.toml "$RUNNER_TEMP/rko-artifact-contract/pyproject.toml"
-      - name: Build distribution artifacts
-        run: uv build
-      - name: Test isolated wheel and sdist installs
-        shell: bash
-        run: |
-          for artifact in dist/*.whl dist/*.tar.gz; do
-            uv run --isolated --no-project --with "$artifact" python -I tools/smoke_installed.py
-            uv run --isolated --no-project --with "$artifact" python -I tools/smoke_self_evolve_installed.py
-            uv run --isolated --no-project --with "$artifact" python -I tools/smoke_tracing_installed.py
-          done
-
   minimum-numpy:
     runs-on: ubuntu-latest
     steps:
@@ -133,7 +125,7 @@ jobs:
       - name: Show the versions under test
         run: uv run --no-sync python -c "import numpy; print('numpy', numpy.__version__); assert numpy.__version__ == '2.3.2'"
       - name: Full test suite on the minimum NumPy
-        run: uv run --no-sync pytest tests -q --ignore=tests/test_documentation_site.py
+        run: uv run --no-sync pytest tests -q -n 4 --ignore=tests/test_documentation_site.py
 
   minimum-rust:
     runs-on: ubuntu-latest
@@ -169,7 +161,7 @@ jobs:
       - name: Point PyO3 at the project interpreter
         run: echo "PYO3_PYTHON=$(uv run --locked python -c 'import sys; print(sys.executable)')" >> "$GITHUB_ENV"
       - name: Python line and branch coverage with the modeling frontends (floor in pyproject.toml)
-        run: uv run --locked --extra service --extra reports --extra pyomo --extra pulp --extra mathopt --group service-test --group model-validation --group tuning pytest tests -q --cov
+        run: uv run --locked --extra service --extra reports --extra pyomo --extra pulp --extra mathopt --group service-test --group model-validation --group tuning pytest tests -q -n 4 --cov
       - name: Install the Rust coverage tool
         run: |
           rustup component add llvm-tools-preview
@@ -194,14 +186,23 @@ jobs:
     steps:
       - name: Checkout v7.0.1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
       - name: Set up uv v10.3.2
         uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
       - name: Sync locked dependencies
         run: uv sync --locked --group dev
+      - name: Document noise
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: uv run --locked python tools/document_noise_gate.py --require-base
       - name: Structure, comment and type-error ratchet
         run: uv run --locked python tools/quality_gate.py
       - name: Import boundary contracts
         run: uv run --locked lint-imports --no-cache
+      - name: Debt counter
+        run: uv run --locked python tools/debt_counter.py
       - name: Dead code
         run: uv run --locked vulture
       - name: Audit locked Python dependencies

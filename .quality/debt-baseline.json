@@ -1,0 +1,9 @@
+{
+  "counts": {
+    "complex_functions": 271,
+    "dead_code_candidates": 56,
+    "duplicate_clones": 80,
+    "duplicated_lines": 1109
+  },
+  "version": 1
+}
