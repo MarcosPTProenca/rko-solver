@@ -164,3 +164,12 @@ def test_normalization_puts_the_best_known_cost_at_zero() -> None:
     gaps = {row["arm"]: row["gap"] for row in done}
     assert min(gaps.values()) >= 0.0 and gaps["surrogate"] == pytest.approx(0.0)
     assert gaps["plain"] > gaps["best_random"] > gaps["surrogate"]
+
+
+def test_mlp_model_option_routes_through_the_network() -> None:
+    """The `mlp` option fits the network, records its correlation and returns valid keys."""
+    problem = Problem("sphere-40-1", IdentityDecoder(), SphereCost(np.linspace(0.1, 0.9, 40)), 40)
+    sampler = SurrogateSeeds(problem, 1, "mlp")
+    seeds = sampler.surrogate()
+    assert sampler.correlation > 0.2 and len(seeds) == 3
+    assert all(0.0 <= key < 1.0 for seed in seeds for key in seed)

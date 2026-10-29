@@ -13,6 +13,8 @@ Technical approach:
   regression of cost rank on key with the penalty chosen on a held-out fifth, and proposes keys
   that move against the fitted gradient at three amplitudes. A held-out correlation below
   `MIN_CORRELATION` means the model found no signal and no seed is offered.
+- `--model mlp` swaps the ridge model for the NumPy network in `mlp_surrogate`; arms, rule and
+  threshold are unchanged.
 - Four arms use the same instances, solver seeds and total wall time: plain, plain repeated (the
   noise floor), best-random (the three best sampled keys, to isolate the surrogate from sampling)
   and surrogate. Probe time is subtracted from the solve budget of the seeded arms.
@@ -31,6 +33,8 @@ Important criteria:
   does not lose significantly on any family, and it also beats best-random on the families it wins.
   Otherwise the problem-agnostic direction stops here.
 - Wall time is equal: sampling and fitting seconds are taken from the seeded arms' solve budget.
+- The network run is fixed before any result: `--model mlp --size 300 --instances 12 --budget 2`,
+  the same rule and the same 0.2 held-out threshold as the linear run.
 - No domain knowledge reaches the surrogate; only keys and costs do.
 - Losses, fallbacks and failures are reported.
 
@@ -46,6 +50,7 @@ import json
 import numpy as np
 import sys
 import time
+from benchmarks.engines.mlp_surrogate import MlpSurrogate
 from benchmarks.engines.priority_decoder_study import InstanceFactory
 from benchmarks.engines.priority_decoder_study import PairedStatistics
 from collections.abc import Callable
@@ -242,14 +247,17 @@ class SurrogateSeeds:
         correlation (float): Held-out correlation of the selected model.
     """
 
-    def __init__(self, problem: Problem, seed: int) -> None:
+    def __init__(self, problem: Problem, seed: int, model: str = "linear") -> None:
         """Sample and evaluate the probe keys.
 
         Args:
             problem (Problem): Problem to sample.
             seed (int): Sampling seed.
+            model (str): `linear` for the ridge surrogate or `mlp` for the NumPy network.
         """
         self.problem = problem
+        self.model = model
+        self.seed = seed
         self.rng = np.random.default_rng(seed)
         count = SAMPLES_PER_KEY * problem.n_variables
         self.keys = self.rng.random((count, problem.n_variables))
@@ -302,6 +310,11 @@ class SurrogateSeeds:
         Returns:
             list[list[float]]: Starting keys, empty when the surrogate found no signal.
         """
+        if self.model == "mlp":
+            network = MlpSurrogate(self.keys, self.costs, self.seed)
+            seeds = network.propose(MIN_CORRELATION)
+            self.correlation = network.correlation
+            return seeds
         weights = self.fit()
         if weights is None:
             return []
@@ -329,9 +342,12 @@ class SeedingStudy:
         budget (float): Total wall seconds per arm.
         instances (int): Instances per family.
         resamples (int): Bootstrap resamples.
+        model (str): Surrogate used by the `surrogate` arm, `linear` or `mlp`.
     """
 
-    def __init__(self, size: int, budget: float, instances: int, resamples: int) -> None:
+    def __init__(
+        self, size: int, budget: float, instances: int, resamples: int, model: str = "linear"
+    ) -> None:
         """Store the study design.
 
         Args:
@@ -339,7 +355,9 @@ class SeedingStudy:
             budget (float): Total wall seconds per arm.
             instances (int): Instances per family.
             resamples (int): Bootstrap resamples.
+            model (str): Surrogate of the `surrogate` arm, `linear` or `mlp`.
         """
+        self.model = model
         self.size = size
         self.budget = budget
         self.instances = instances
@@ -361,7 +379,7 @@ class SeedingStudy:
         seeds: list[list[float]] = []
         correlation = None
         if arm in ("best_random", "surrogate"):
-            sampler = SurrogateSeeds(problem, seed)
+            sampler = SurrogateSeeds(problem, seed, self.model)
             seeds = sampler.best_random() if arm == "best_random" else sampler.surrogate()
             correlation = sampler.correlation if arm == "surrogate" else None
         remaining = max(self.budget - (time.perf_counter() - started), 0.05)
@@ -508,6 +526,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--budget", type=float, default=2.0)
     parser.add_argument("--instances", type=int, default=12)
     parser.add_argument("--resamples", type=int, default=10000)
+    parser.add_argument("--model", choices=("linear", "mlp"), default="linear")
     parser.add_argument("--output", type=Path, default=Path("results/surrogate-seed-study.json"))
     return parser.parse_args(argv)
 
@@ -522,7 +541,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         int: Process exit status.
     """
     options = parse_args(argv)
-    study = SeedingStudy(options.size, options.budget, options.instances, options.resamples)
+    study = SeedingStudy(
+        options.size, options.budget, options.instances, options.resamples, options.model
+    )
     rows = study.run()
     report = {
         "design": vars(options) | {"output": str(options.output)},
