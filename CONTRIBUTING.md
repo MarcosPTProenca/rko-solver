@@ -43,6 +43,7 @@ uv run --locked vulture
 cargo deny check
 uv run --locked pytest tests -q
 uv run --locked pre-commit run --all-files
+uv run --locked pre-commit run --all-files --hook-stage pre-push
 uv build
 ```
 
@@ -84,8 +85,8 @@ configurations; if a behavior change is intended, regenerate with
 diff of `tests/golden/runs.json`.
 
 Coverage is a ratchet from measured values, not a target: the Python package must keep at least
-88 percent combined line and branch coverage (measured 90.9 with the service and reports extras and
-the C++ engine installed; the floor is `fail_under` in `pyproject.toml`) and the Rust engines at
+89 percent combined line and branch coverage (hosted runs measured 89.2 to 89.8 with the service and
+reports extras and the C++ engine installed; the floor is `fail_under` in `pyproject.toml`) and the Rust engines at
 least 93 percent line coverage from the Rust tests alone (measured 96.7, benchmark runners
 excluded). Raise a floor when a change durably improves the measurement; never lower one to make
 a change pass. Run `uv run --extra service --extra reports --group service-test pytest
@@ -140,6 +141,32 @@ consistent with verified index publication, not only the source version string. 
 when implementing an algorithm or replacing operators. Update the
 [parameter reference](docs/parameters.md) alongside defaults or validation changes.
 Link new user-facing pages from an existing guide.
+
+## Automation and policy
+
+`pre-commit install` registers two hook types. The commit hooks are fast: Ruff, import contracts,
+the structure and comment gate, the document-noise gate for new Markdown, and dead-code detection.
+The push hooks add the type-error ratchet and the debt counters. Run them without pushing with
+`uv run --locked pre-commit run --all-files --hook-stage pre-push`. The hosted `quality-gate` job
+runs the same checks plus the network-bound dependency audits (`pip-audit`, `cargo deny`).
+`tests/test_repository_automation.py` fails when a hosted check that can run locally has no hook.
+After pulling this change, run `uv run --locked pre-commit install` again to register the push hook.
+
+A new Markdown file outside `docs/` navigation and the short allowlist in
+`tools/document_noise_gate.py` fails that gate. Add the exact path only for maintained project
+documentation; keep session notes in the ignored `temp_docs/` directory.
+
+[Dependabot](.github/dependabot.yml) opens at most two grouped pull requests per ecosystem each
+week, waits seven days after a release, and uses `lockfile-only` for Cargo and uv. It therefore
+refreshes `Cargo.lock` and `uv.lock` within the existing constraints and never edits the exact
+pins, the tested minimum NumPy, the qualified model-frontend extras or the studies' pinned
+dependencies; change those by hand and say why. GitHub Actions are pinned to commit SHAs; the
+bot updates the SHA, so adjust the version in the step name when it merges a new release. Cargo
+updates change `Cargo.lock`, so regenerate `engines/THIRD_PARTY_LICENSES.txt` with
+`uv run python tools/third_party_licenses.py` when the license inventory check fails.
+
+The pull request description follows [the template](.github/pull_request_template.md). Report
+security issues as described in [SECURITY](SECURITY.md), not in a public issue.
 
 ## Documentation website
 

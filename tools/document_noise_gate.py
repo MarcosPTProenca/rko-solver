@@ -46,6 +46,7 @@ DOC_ALLOW = frozenset(
         "LICENSE",
         "LICENSE.md",
         "docs/installation.md",
+        ".github/pull_request_template.md",
     }
 )
 

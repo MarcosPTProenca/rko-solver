@@ -1,3 +1,4 @@
+default_install_hook_types: [pre-commit, pre-push]
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.7
@@ -19,3 +20,29 @@ repos:
         language: system
         pass_filenames: false
         types_or: [python, rust]
+      - id: document-noise
+        name: document noise (new Markdown outside the allowlist)
+        entry: uv run --locked python tools/document_noise_gate.py --staged
+        language: system
+        pass_filenames: false
+        types: [markdown]
+      - id: dead-code
+        name: dead code
+        entry: uv run --locked vulture
+        language: system
+        pass_filenames: false
+        types: [python]
+      - id: quality-gate-types
+        name: quality gate (type-error ratchet)
+        entry: uv run --locked python tools/quality_gate.py
+        language: system
+        pass_filenames: false
+        types_or: [python, rust]
+        stages: [pre-push]
+      - id: debt-counter
+        name: technical debt counters
+        entry: uv run --locked python tools/debt_counter.py
+        language: system
+        pass_filenames: false
+        types_or: [python, rust]
+        stages: [pre-push]

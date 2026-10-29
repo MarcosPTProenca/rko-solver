@@ -1,0 +1,51 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "[L2] chore(deps-ci)"
+
+  - package-ecosystem: cargo
+    directory: /
+    versioning-strategy: lockfile-only
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      rust-lockfile:
+        patterns: ["*"]
+    commit-message:
+      prefix: "[L2] chore(deps-rust)"
+
+  - package-ecosystem: uv
+    directory: /
+    versioning-strategy: lockfile-only
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      python-lockfile:
+        patterns: ["*"]
+    commit-message:
+      prefix: "[L2] chore(deps-python)"
