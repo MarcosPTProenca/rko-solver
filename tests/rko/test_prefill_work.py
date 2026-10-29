@@ -42,7 +42,7 @@ def study(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
         ModuleType: Bounded matched-work study.
     """
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "benchmarks"))
-    return importlib.import_module("prefill_work")
+    return importlib.import_module("benchmarks.algorithms.prefill_work")
 
 
 @pytest.mark.parametrize("dimension", [1, 4])
@@ -99,7 +99,7 @@ def test_reference_summaries_match_raw_paired_trials(study: ModuleType) -> None:
     Args:
         study (ModuleType): Runner location used to find the identified reference.
     """
-    path = Path(study.__file__).with_name("prefill-work-reference.jsonl")
+    path = Path(study.__file__).resolve().parents[1] / "references/prefill-work-reference.jsonl"
     rows = [json.loads(line) for line in path.read_text().splitlines()]
     trials = [row for row in rows if row["kind"] == "trial"]
     summaries = [row for row in rows if row["kind"] == "summary"]

@@ -17,7 +17,7 @@ Inputs/Outputs:
 
 import numpy as np
 import pytest
-from benchmarks.modeling_cases import PracticalModels
+from benchmarks.modeling.cases import PracticalModels
 from benchmarks.self_evolve.gap import GeneralizedAssignment
 from rko_solver import RKO
 from rko_solver.modeling.adapters import ModelAdapter

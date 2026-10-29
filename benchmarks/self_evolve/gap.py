@@ -19,9 +19,9 @@ Inputs/Outputs:
 
 import itertools
 import math
-from benchmarks.modeling_schema import CaseRow
-from benchmarks.modeling_schema import CaseVariable
-from benchmarks.modeling_schema import PracticalCase
+from benchmarks.modeling.schema import CaseRow
+from benchmarks.modeling.schema import CaseVariable
+from benchmarks.modeling.schema import PracticalCase
 from dataclasses import dataclass
 
 

@@ -21,7 +21,6 @@ htmlcov/
 results/
 /site/
 /release/
-benchmarks/cpp-python-knapsack-reference-summary.csv
 
 # Local working notes and generated analysis, not library documentation.
 /docs/audits/

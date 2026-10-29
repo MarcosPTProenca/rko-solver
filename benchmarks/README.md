@@ -9,25 +9,61 @@ See [the C++ acceptance target and native-backend gates](../docs/performance.md)
 for end-to-end quality/time/resource criteria; historical Python results must not
 be merged with corrected-revision observations as if they were one experiment.
 
+## Layout
+
+Run studies from the repository root with `uv run --locked python -m benchmarks.<group>.<study>`.
+The benchmark package is repository-only; it is not installed with the solver.
+
+| Directory | Purpose |
+| --- | --- |
+| `runtime/` | Fixed-work profiling, callback overhead, startup, scheduling and resource diagnostics. |
+| `algorithms/` | Operator, population, adaptation, elite-pool and prefill studies. |
+| `engines/` | Engine comparisons, native-study reports and the throughput-ratio gate. |
+| `modeling/` | Model validation, independent references, provenance and overhead measurements. |
+| `problems/` | Shared numerical problem definitions and exact Knapsack reference helpers. |
+| `tuning/` | Existing tuner comparisons, preset selection and held-out confirmation. |
+| `self_evolve/` | Existing bounded decoder-evolution studies and worker-image configuration. |
+| `references/` | Identified historical measurements, retained without rewriting their contents. |
+| `figures/` | Maintained visual summaries derived from the identified evidence. |
+| `modeling-data/` | Provenance and licenses for the model fixtures. |
+
+For example:
+
+```bash
+uv run --locked python -m benchmarks.runtime.performance_profile --dimension 4 --evaluations 8
+uv run --locked python -m benchmarks.algorithms.ipr_diagnosis --evaluations 64 --seeds 1 --dimension 20
+uv run --locked python -m benchmarks.engines.native_report --help
+```
+
+Use the grouped module paths in new commands; the old flat module paths are not retained as aliases.
+The Knapsack comparison's default output is now `results/cpp-python-knapsack-reference.csv`, not
+an additional file beside the benchmark source. Explicit `--output` paths remain supported.
+
+Reference files keep their original source hashes, paths, versions, cohorts and outcomes. Those
+fields describe the historical run, not the current layout. Moving study source changes the
+identity of new runs: use a fresh study directory when a source-pinned campaign rejects resume,
+rather than rewriting historical metadata to force compatibility. This reorganization is not a
+new measurement or a performance claim.
+
 ## Bounded model decoder development port
 
-`modeling_cases.py`, `modeling_validation.py` and `modeling_overhead.py` now use
+`modeling/cases.py`, `modeling/validation.py` and `modeling/overhead.py` now use
 `rko_solver`. Model execution is explicitly Python with sequential/thread/process
 scheduling; repair defaults to continuous with a common 1,024-sweep cap.
 
 ```bash
-uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt python -m benchmarks.modeling_validation --repair continuous --repair-max-sweeps 1024 --seeds 10 --time-limit 0.5 --output docs/audits/my-renamed-model-validation.jsonl
-uv run --locked python -m benchmarks.modeling_overhead --baseline 8917000 --repeats 51 --target-seconds 0.8 --output docs/audits/my-renamed-model-overhead.json
+uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt python -m benchmarks.modeling.validation --repair continuous --repair-max-sweeps 1024 --seeds 10 --time-limit 0.5 --output docs/audits/my-renamed-model-validation.jsonl
+uv run --locked python -m benchmarks.modeling.overhead --baseline 8917000 --repeats 51 --target-seconds 0.8 --output docs/audits/my-renamed-model-overhead.json
 ```
 
 Preserved **historical**, unmodified evidence from the qualified pre-rename source:
 
-- [Restored campaign](modeling-validation-reference-13b6934.jsonl): 480 runs,
+- [Restored campaign](references/modeling-validation-reference-13b6934.jsonl): 480 runs,
   420 feasible, zero semantic/execution errors; exact-demand transport60/60.
-- [Same-source box control](modeling-validation-box-reference-13b6934.jsonl):
+- [Same-source box control](references/modeling-validation-box-reference-13b6934.jsonl):
   480 runs,314 feasible, exact-demand0/60 at identical tolerances/models/budgets.
-- [Archive/IPC and feature costs](modeling-overhead-reference-13b6934.json) and
-  [platform qualification](modeling-platform-reference-13b6934.json) identify
+- [Archive/IPC and feature costs](references/modeling-overhead-reference-13b6934.json) and
+  [platform qualification](references/modeling-platform-reference-13b6934.json) identify
   their original13b6934 source, not the renamed port.
 
 No historical JSON source hashes or package paths were rewritten. Current feature
@@ -45,7 +81,7 @@ allocation sampling use separate equal-work passes. No search-quality, zero-over
 whole-process RSS or generic engine speedup claim follows from these observations.
 
 ```bash
-OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 uv run --locked python -m benchmarks.decision_traces --evaluations 1000 --dimension 64 --repeats 3
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 uv run --locked python -m benchmarks.runtime.decision_traces --evaluations 1000 --dimension 64 --repeats 3
 ```
 
 See [recording limits and interpretation](../docs/decision-traces.md). Keep raw JSON
@@ -55,8 +91,8 @@ separately for your workload.
 ## Source-identified fixed-work baseline
 
 ```bash
-uv run --locked python -m benchmarks.performance_profile --dimension 20 --evaluations 64
-uv run --locked python -m benchmarks.performance_profile --dimension 20 --evaluations 64 --profile
+uv run --locked python -m benchmarks.runtime.performance_profile --dimension 20 --evaluations 64
+uv run --locked python -m benchmarks.runtime.performance_profile --dimension 20 --evaluations 64 --profile
 ```
 
 This entry point reuses `fixed_work` and emits one JSON object with source/config/
@@ -80,7 +116,7 @@ synthetic screens, not speedup, quality, stage-completion or C++ evidence.
 To validate downloaded raw shards:
 
 ```bash
-uv run --locked python -m benchmarks.performance_report --input-dir raw --output report/summary.json
+uv run --locked python -m benchmarks.runtime.performance_report --input-dir raw --output report/summary.json
 ```
 
 The report rejects duplicates, missing pairs, changed replay, invalid times and
@@ -104,7 +140,7 @@ See [timing, memory and resource boundaries](../docs/invocation-profile.md).
 ## Spawn startup and installation layout
 
 ```bash
-uv run --locked python benchmarks/startup_stages.py
+uv run --locked python -m benchmarks.runtime.startup_stages
 ```
 
 This guarded benchmark instruments real parent validation, manager startup,
@@ -113,7 +149,7 @@ worker's first keys against its reported execution seed, validates final keys/
 objective and reports environment/source paths. `--repeats 1` supports alternating
 separate interpreter environments; the default runs three one/four-worker pairs.
 
-Explicit reference: [startup-layout-reference.jsonl](startup-layout-reference.jsonl),
+Explicit reference: [references/startup-layout-reference.jsonl](references/startup-layout-reference.jsonl),
 2026-10-19 WSL2, four available CPUs, CPython 3.14.8 / NumPy 2.4.3, baseline
 `efc40e3`. Eighteen solves alternated three installation layouts, using the same
 32 installed distribution name/version pairs and byte-identical 55 installed
@@ -183,7 +219,7 @@ optimization or default was chosen from Knapsack evidence alone.
   failed.**
 
 <!-- native-report:start -->
-<!-- Generated by `python -m benchmarks.native_report render`; do not edit. -->
+<!-- Generated by `python -m benchmarks.engines.native_report render`; do not edit. -->
 
 ### Results at a glance
 
@@ -626,17 +662,17 @@ evaluations. That round informed the change, so it is not evidence; the table us
 ### Reproduce
 
 ```bash
-uv run --locked python -m benchmarks.native_study --instance-seed 20261031 \
+uv run --locked python -m benchmarks.engines.native_study --instance-seed 20261031 \
   --output /tmp/native-kp.csv --budget-seconds 2 --repetitions 3 \
   --solvers BRKGA,BRKGA-CS,GA,GRASP,ILS,IPR,LNS,MultiStart,PSO,SA,VNS,RKO-default \
   --implementations cpp64,rust --rust-grid cpp
-uv run --locked python -m benchmarks.native_problem_study --problem tsp --per-size 6 \
+uv run --locked python -m benchmarks.engines.native_problem_study --problem tsp --per-size 6 \
   --instance-seed 20261031 --output /tmp/native-tsp.csv --budget-seconds 2 --repetitions 3 \
   --solvers BRKGA,BRKGA-CS,GA,GRASP,ILS,IPR,LNS,MultiStart,PSO,SA,VNS,RKO-default
-uv run --locked python -m benchmarks.native_problem_study --problem tsp --per-size 6 \
+uv run --locked python -m benchmarks.engines.native_problem_study --problem tsp --per-size 6 \
   --instance-seed 20261031 --output /tmp/native-tsp-py.csv --solvers RKO-default,SA,ILS \
   --implementations cpp64,rust-numba,rust-batch --subject rust-numba
-uv run --locked python -m benchmarks.native_study --instance-seed 20261031 --instances 5 \
+uv run --locked python -m benchmarks.engines.native_study --instance-seed 20261031 --instances 5 \
   --output /tmp/native-ladder.csv --implementations python,rust-callback,rust-batch,rust-numba \
   --subject rust-callback
 ```
@@ -647,7 +683,7 @@ check, which uses the seeds named in its section.
 
 ### Data and regenerating this section
 
-`data/native-evidence.csv.gz` (about 140 KB) holds one row per trial with only what the
+`references/native-evidence.csv.gz` (about 140 KB) holds one row per trial with only what the
 statistics need: round, family, instance, solver, implementation, replicate, budget,
 elapsed seconds, objective and score. The full per-trial CSVs the studies write (about 5 MB,
 40-odd metadata columns) are not kept in Git: nothing in the package reads them and a rerun
@@ -655,16 +691,16 @@ reproduces the tables to within timing noise. The "Results at a glance" block an
 `figures/*.svg` are generated, and a test fails if they drift from the evidence:
 
 ```bash
-uv run python -m benchmarks.native_report ingest --raw <directory with the study CSVs>
-uv run python -m benchmarks.native_report render          # rewrite the block and figures
-uv run python -m benchmarks.native_report render --check  # exit 1 when stale
+uv run python -m benchmarks.engines.native_report ingest --raw <directory with the study CSVs>
+uv run python -m benchmarks.engines.native_report render          # rewrite the block and figures
+uv run python -m benchmarks.engines.native_report render --check  # exit 1 when stale
 ```
 
 ## Automatic engine
 
 `engine="auto"` ([guide](../docs/native.md#automatic-engine)) runs short probes of every
 candidate on the user's own problem and then the full budget on the winner.
-`benchmarks/auto_engine_study.py` measures it against every fixed candidate at **equal total
+`benchmarks/engines/auto_engine_study.py` measures it against every fixed candidate at **equal total
 compute time**: auto runs first, then each fixed candidate gets the search seconds plus the
 selection seconds auto actually used. Five problem types, three instances each, three
 replicates, 10 s searches, default selection budget (1 s), WSL2 machine as above:
@@ -720,7 +756,7 @@ above is the final one and is not used for any decision.
 
 ```bash
 RKO_BUILD_CPP=1 uv sync
-uv run python -m benchmarks.auto_engine_study --output /tmp/auto.csv --seconds 10 \
+uv run python -m benchmarks.engines.auto_engine_study --output /tmp/auto.csv --seconds 10 \
   --instances 3 --repetitions 3 --instance-seed 20261122
 ```
 
@@ -757,7 +793,7 @@ temporary directory, then appends every trial to a raw CSV. No C++ source or
 instance data is committed or changed in the historical checkout.
 
 ```bash
-uv run --locked python -m benchmarks.cpp_python_knapsack \
+uv run --locked python -m benchmarks.engines.cpp_python_knapsack \
   --output /tmp/rko-cpp-python-new-run/trials.csv \
   --cache-dir /tmp/rko-cpp-python-new-cache
 ```
@@ -769,7 +805,7 @@ BRKGA, BRKGA-CS, and the full portfolio on one instance for one second; pilot ou
 excluded from analysis.
 
 ```bash
-uv run --locked python -m benchmarks.cpp_python_knapsack --pilot \
+uv run --locked python -m benchmarks.engines.cpp_python_knapsack --pilot \
   --output /tmp/rko-cpp-python-new-run/pilot.csv \
   --cache-dir /tmp/rko-cpp-python-new-cache
 ```
@@ -1005,12 +1041,12 @@ search-time target results are censored at 2 seconds, while process latency and
 this caveat should be considered when interpreting quality comparisons.
 
 The preliminary raw diagnostic is
-[`cpp-python-knapsack-2s-preliminary.csv`](cpp-python-knapsack-2s-preliminary.csv), with
+[`references/cpp-python-knapsack-2s-preliminary.csv`](references/cpp-python-knapsack-2s-preliminary.csv), with
 10,800 trial rows and full per-trial provenance. The measured Python baseline is commit
 `759309a0d8a74324806faba6b41f806eb3721dbc`; its exact source-state hash is
 `30ec92bcaaa681be0b7e2f841e997c44d39d263a141a0b667cff1c42b745c142`. After the
 run, the exact-profit DP helper was moved unchanged into portable
-`benchmarks/knapsack_utils.py` so Windows CI can import the runner; the raw hash
+`benchmarks/problems/knapsack_utils.py` so Windows CI can import the runner; the raw hash
 still records the measured pre-move source. Integration normalizes only CSV line
 endings from CRLF to LF for Git; all 10,800 parsed records are unchanged and their
 normalized file digest is regression-tested. Later changes on `main` are also not
@@ -1030,12 +1066,12 @@ Explicit positive limits override CPU discovery. One additional process hosts th
 BLAS/OpenMP threads are outside the search-worker limit.
 
 ```bash
-uv run --locked python benchmarks/process_budget.py > /tmp/rko-process-budget.jsonl
+uv run --locked python -m benchmarks.runtime.process_budget > /tmp/rko-process-budget.jsonl
 ```
 
 The updated script compares automatic defaults against an explicit full-portfolio
 worker limit and verifies every seeded initial candidate, worker count and result.
-An identified [automatic-default reference](process-auto-reference.jsonl),
+An identified [automatic-default reference](references/process-auto-reference.jsonl),
 2026-10-20, **predates remaining-time scheduling** and retains fixed longest-group
 slices. It uses the same Linux-local editable source/dependency environment for
 both variants: four available CPUs, CPython 3.14.8 / NumPy 2.4.3, ten algorithms,
@@ -1099,7 +1135,7 @@ no cache or additional retained worker snapshots were shipped.
 ## Remaining-time worker scheduling
 
 ```bash
-uv run --locked python benchmarks/scheduling.py --baseline-source /absolute/path/to/trusted-baseline/src
+uv run --locked python -m benchmarks.runtime.scheduling --baseline-source /absolute/path/to/trusted-baseline/src
 ```
 
 Use an archived **ff70a92** checkout as the baseline. This executes trusted local
@@ -1108,7 +1144,7 @@ Place both source trees on the same filesystem and use one interpreter/dependenc
 environment. The runner verifies the actual imported source paths and copies the
 same one-thread native launch settings into both policies without mutating itself.
 
-[Identified reference](worker-scheduling-reference.jsonl): four usable CPUs,
+[Identified reference](references/worker-scheduling-reference.jsonl): four usable CPUs,
 CPython 3.14.8 / NumPy 2.4.3, Linux-local sources/dependencies, offline parameters,
 64 keys, 1.2-second common budgets. Two balanced-order repeats over three seeds,
 sphere/ordering objectives and three portfolios produced **72 real spawned solves**.
@@ -1144,7 +1180,7 @@ See [allocation contract and migration limits](../docs/process-workers.md).
 ## Native-thread launch controls
 
 ```bash
-uv run --locked --with threadpoolctl==3.7.0 python benchmarks/native_threads.py
+uv run --locked --with threadpoolctl==3.7.0 python -m benchmarks.runtime.native_threads
 ```
 
 This diagnostic-only dependency is not added to RKO runtime or dev dependencies.
@@ -1156,7 +1192,7 @@ before full generations or asynchronous elite feedback. Assigned initial keys,
 complete candidate fingerprints, counts and independent costs are checked; native
 teams are inspected IN workers, not inferred from a parent-only controller.
 
-[Identified reference](native-threads-reference.jsonl): 2026-10-20, CPython 3.14.8,
+[Identified reference](references/native-threads-reference.jsonl): 2026-10-20, CPython 3.14.8,
 NumPy 2.4.3 / OpenBLAS 0.3.31.dev, four usable CPUs, 512 keys, same Linux-local
 source/dependency environment for both variants. The final dense four-worker prefix
 measured slowest-search medians **6.016 vs 3.491 s**, end-to-end **7.564 vs 4.860 s**
@@ -1174,7 +1210,7 @@ included in search/end-to-end timing. BLAS roundoff is checked tolerantly. The p
 benchmark stop signal is not a supported callback protocol. Windows CI runs only:
 
 ```bash
-uv run --locked --with threadpoolctl==3.7.0 python benchmarks/native_threads.py --repeats 1 --dimension 8 --evaluations 2 --workers 1
+uv run --locked --with threadpoolctl==3.7.0 python -m benchmarks.runtime.native_threads --repeats 1 --dimension 8 --evaluations 2 --workers 1
 ```
 
 No Windows performance comparison or automatic library-level native cap is claimed.
@@ -1193,8 +1229,8 @@ Dense/duplicate-heavy graphs still need all their output edges and can remain
 quadratic; indexing adds temporary memory, not a universal memory improvement.
 
 ```bash
-uv run --locked python benchmarks/q_learning.py > /tmp/rko-q-learning.jsonl
-uv run --locked python benchmarks/startup.py > /tmp/rko-startup.jsonl
+uv run --locked python -m benchmarks.algorithms.q_learning > /tmp/rko-q-learning.jsonl
+uv run --locked python -m benchmarks.runtime.startup > /tmp/rko-startup.jsonl
 ```
 
 Reference: 2026-10-19, four-CPU WSL2, GIL-enabled CPython 3.14.8 / NumPy 2.4.3.
@@ -1262,7 +1298,7 @@ than crediting the earlier pairwise-to-indexed change again:
 
 ```bash
 git show 65aa389:src/rko_solver/components/adaptive_control/q_learning.py > /tmp/rko-q-materialized.py
-uv run --locked python benchmarks/q_state_memory.py \
+uv run --locked python -m benchmarks.algorithms.q_state_memory \
   --reference /tmp/rko-q-materialized.py > /tmp/rko-q-state-memory.jsonl
 ```
 
@@ -1301,7 +1337,7 @@ entries. Both entries come from the same current snapshot, in selection order.
 No revision cache, stale local snapshot or server-side RNG was introduced.
 
 ```bash
-uv run --locked python benchmarks/elite_pair.py > /tmp/rko-elite-pair.jsonl
+uv run --locked python -m benchmarks.algorithms.elite_pair > /tmp/rko-elite-pair.jsonl
 ```
 
 Only built-in managed proxies expose the private sampling capability. Local and
@@ -1355,7 +1391,7 @@ callback isolation, path order, first-best tie handling and RNG sources remain
 unchanged; no dependency or default configuration was added.
 
 ```bash
-uv run --locked python benchmarks/ipr.py > /tmp/rko-ipr.jsonl
+uv run --locked python -m benchmarks.algorithms.ipr > /tmp/rko-ipr.jsonl
 ```
 
 The executable scalar reference retains the former `_relink` method body.
@@ -1431,7 +1467,7 @@ case in an earlier run. Local-search and objective costs limit total benefit.
 No general portfolio, process-backend, expensive-callback or quality gain follows.
 
 ```bash
-uv run --locked python benchmarks/pso.py > /tmp/rko-pso-paired.jsonl
+uv run --locked python -m benchmarks.algorithms.pso > /tmp/rko-pso-paired.jsonl
 ```
 
 The runner reports CPU time separately from elapsed time and traces movement
@@ -1460,12 +1496,12 @@ Windows too. From the repository root:
 uv sync --locked --group dev
 curl -fL https://raw.githubusercontent.com/likr/kplib/c5bea0df8169749caaba5ce7dfcf21437aa1ca5c/00Uncorrelated/n01000/R01000/s000.kp \
   -o /tmp/rko-s000.kp
-uv run --locked python -m benchmarks.knapsack \
+uv run --locked python -m benchmarks.engines.knapsack \
   /tmp/rko-s000.kp benchmarks/results/knapsack.csv
 ```
 
 Generated `results/` directories are ignored. Do not overwrite the checked-in
-[reference CSV](knapsack-reference.csv) without rerunning the experiment and
+[reference CSV](references/knapsack-reference.csv) without rerunning the experiment and
 updating its date, tested revision and interpretation here.
 
 Data: KPLIB, 1000 items, capacity 252480, pinned upstream revision
@@ -1529,7 +1565,7 @@ callback speedups.
 Reproduce from the repository root:
 
 ```bash
-uv run --locked python benchmarks/blending.py
+uv run --locked python -m benchmarks.algorithms.blending
 ```
 
 The script prints every seed and median throughput. It restores the production
@@ -1547,7 +1583,7 @@ allocations; the benchmark stubs Nelder-Mead and is not whole-solver RSS evidenc
 Run from the repository root:
 
 ```bash
-uv run --locked python benchmarks/ga_population_memory.py
+uv run --locked python -m benchmarks.algorithms.ga_population_memory
 ```
 
 To compare a baseline checkout, copy the runner into that checkout and run the
@@ -1575,10 +1611,10 @@ with 10,000 keys measured peak traced allocation **242,008 → 163,512 bytes**
 exclude preallocated source data and do not measure process RSS or IPC.
 
 ```bash
-uv run --locked python benchmarks/search_session.py
-uv run --locked python benchmarks/fixed_work.py > /tmp/rko-fixed-work.jsonl
+uv run --locked python -m benchmarks.runtime.search_session
+uv run --locked python -m benchmarks.runtime.fixed_work > /tmp/rko-fixed-work.jsonl
 git show 0f3b426:src/rko_solver/orchestration/search.py > /tmp/rko-baseline-search.py
-uv run --locked python benchmarks/fixed_work.py \
+uv run --locked python -m benchmarks.runtime.fixed_work \
   --baseline-search /tmp/rko-baseline-search.py > /tmp/rko-paired-search.jsonl
 ```
 
@@ -1620,7 +1656,7 @@ cooperation. The reference package executes Python code and must be trusted.
 
 ```bash
 git worktree add --detach /tmp/rko-rng-baseline-a281c6a a281c6a
-uv run --locked python benchmarks/random_streams.py \
+uv run --locked python -m benchmarks.algorithms.random_streams \
   --reference /tmp/rko-rng-baseline-a281c6a/src/rko_solver > /tmp/rko-rng-replay.jsonl
 ```
 
@@ -1641,10 +1677,10 @@ from these replay checks.
 ## Shared startup matched-work pilot (not timing)
 
 ```bash
-uv run --locked python benchmarks/prefill_work.py > /tmp/prefill-work.jsonl
+uv run --locked python -m benchmarks.algorithms.prefill_work > /tmp/prefill-work.jsonl
 ```
 
-`prefill-work-reference.jsonl` identifies 60 paired / 120 real serial Python trials:
+`references/prefill-work-reference.jsonl` identifies 60 paired / 120 real serial Python trials:
 IPR, GRASP and MultiStart; four pure objective families; 20 keys; capacity 10;
 five seeds; **256 total completed objectives including startup** per trial.
 Policy clocks are frozen offline, with a separate real emergency guard. Both
@@ -1663,7 +1699,7 @@ internal cooperative stop seam; it does not add a public fixed-evaluation API.
 
 The [hosted expansion](../docs/prefill-expanded-work.md) covers 20/100/500 keys,
 256/1024 total evaluations and 20 paired seeds: 1,440 pairs / 2,880 trials.
-`prefill-expanded-pairs.csv` and `prefill-expanded-summary.json` retain compact
+`references/prefill-expanded-pairs.csv` and `references/prefill-expanded-summary.json` retain compact
 paired evidence/provenance; `prefill_report.py` validates raw controls and recomputes
 family-specific summaries. Across non-flat pairs, IPR is 342 better/18 worse,
 GRASP 150/139/71 and MultiStart 7/342/11 (better/tied/worse). No default switch.
@@ -1675,10 +1711,10 @@ real-time, application and native-performance evidence remains separate.
 ## IPR work and population diagnosis (not timing)
 
 ```bash
-uv run --locked python benchmarks/ipr_diagnosis.py
+uv run --locked python -m benchmarks.algorithms.ipr_diagnosis
 ```
 
-`ipr-diagnosis-reference.jsonl` contains 36 cases: three seeds, three synthetic
+`references/ipr-diagnosis-reference.jsonl` contains 36 cases: three seeds, three synthetic
 objectives, two starting-population modes and a separately labeled exact-vector
 admission control, each charged exactly 1,024 completed objective evaluations.
 Production two-seed cases use 2 seed + 1,022 path evaluations; ten-elite cases use
@@ -1695,20 +1731,20 @@ See [diagnostic contracts and findings](../docs/ipr-diagnosis.md) for seed-prefi
 matching, source fingerprints, work accounting and reference-source limitations.
 The diagnosis itself changed no production policy or active Knapsack benchmark.
 The subsequent [chromosome-uniqueness correction](../docs/elite-diversity.md) is
-recorded separately in `ipr-unique-elites-reference.jsonl`: all 36 cases retain
+recorded separately in `references/ipr-unique-elites-reference.jsonl`: all 36 cases retain
 unique chromosomes and select zero identical-parent pairs. Equal-budget production
 traces now match the isolated control; initialization remains fully charged. Scores
 are unchanged in the two-seed cases and mixed versus old ten-seed production.
 The header also fingerprints the pool source so admission changes are identifiable.
 The subsequent [unchanged-block correction](../docs/ipr-block-pruning.md) has its
-own `ipr-pruned-blocks-reference.jsonl`: the direct one-differing-block case falls
+own `references/ipr-pruned-blocks-reference.jsonl`: the direct one-differing-block case falls
 from 55 to two callbacks, preserving the virtual path and deterministic minimum.
 All 36 cases still charge exactly 1,024 completed evaluations; full-search path/RNG
 counts can therefore differ from older work records. Stateful/stochastic callback
 results can change. This is not a throughput, feasibility, C++ parity or native
 backend result.
 
-The per-gene `ScalarIPR` control in `benchmarks/ipr.py` shares current pruning and
+The per-gene `ScalarIPR` control in `benchmarks/algorithms/ipr.py` shares current pruning and
 virtual-step rules, so new copy-kernel comparisons vary copying alone. Historical
 IPR speed data retains its original policy/version; no new speedup is measured.
 
@@ -1746,14 +1782,14 @@ millions.
 
 ### Results of the 2026-10 run
 
-Reference data: [`tuning-bakeoff-reference.jsonl`](tuning-bakeoff-reference.jsonl) holds all 459
+Reference data: [`references/tuning-bakeoff-reference.jsonl`](references/tuning-bakeoff-reference.jsonl) holds all 459
 sessions (3 algorithms, 3 families, 4 tuners and the baselines, 10 repetitions each) and
-[`tuning-confirm-reference.jsonl`](tuning-confirm-reference.jsonl) the longer-budget check. They were
+[`references/tuning-confirm-reference.jsonl`](references/tuning-confirm-reference.jsonl) the longer-budget check. They were
 produced on one 6-core machine with the Rust engine and 4 workers. The harness is the one merged as
 `38b29db`; four fixes to it that do not change any score (memory use of workers, plain floats from
 the search space, failing fast, start and end logs) landed during the run. Re-running four of the
 earliest sessions with the final code reproduced their configurations and held-out scores exactly.
-`uv run --group tuning python -m benchmarks.tuning report --results benchmarks/tuning-bakeoff-reference.jsonl`
+`uv run --group tuning python -m benchmarks.tuning report --results benchmarks/references/tuning-bakeoff-reference.jsonl`
 regenerates every per-cell table with its intervals.
 
 Mean held-out gap (0 is the calibration reference, 1 a barely started search; lower is better):
@@ -1855,10 +1891,10 @@ process-group memory peaked near 1.5 GB under a 5 GB cap.
 
 The reference files retain settings, source identity, chosen configurations and per-instance scores:
 
-- Original ranges: [`tuning-wide-original-reference.jsonl`](tuning-wide-original-reference.jsonl).
-- Expanded ranges: [`tuning-wide-expanded-reference.jsonl`](tuning-wide-expanded-reference.jsonl).
-- Longer-budget original: [`tuning-wide-original-confirm-reference.jsonl`](tuning-wide-original-confirm-reference.jsonl).
-- Longer-budget expanded: [`tuning-wide-expanded-confirm-reference.jsonl`](tuning-wide-expanded-confirm-reference.jsonl).
+- Original ranges: [`references/tuning-wide-original-reference.jsonl`](references/tuning-wide-original-reference.jsonl).
+- Expanded ranges: [`references/tuning-wide-expanded-reference.jsonl`](references/tuning-wide-expanded-reference.jsonl).
+- Longer-budget original: [`references/tuning-wide-original-confirm-reference.jsonl`](references/tuning-wide-original-confirm-reference.jsonl).
+- Longer-budget expanded: [`references/tuning-wide-expanded-confirm-reference.jsonl`](references/tuning-wide-expanded-confirm-reference.jsonl).
 
 At **50,000 evaluations**, mean normalized test gap, lower is better:
 
@@ -1900,8 +1936,8 @@ To regenerate the primary paired differences from the committed references:
 uv run --locked --group tuning python - <<'PY'
 from pathlib import Path
 from benchmarks.tuning.analysis import Analysis
-old = Analysis(Path("benchmarks/tuning-wide-original-reference.jsonl"))
-new = Analysis(Path("benchmarks/tuning-wide-expanded-reference.jsonl"))
+old = Analysis(Path("benchmarks/references/tuning-wide-original-reference.jsonl"))
+new = Analysis(Path("benchmarks/references/tuning-wide-expanded-reference.jsonl"))
 for family in ("kp", "tsp", "rastrigin"):
     first = old.matrices("SA", family)["racing"]
     second = new.matrices("SA", family)["racing"]
@@ -1916,7 +1952,7 @@ before generating a separate confirmation set. This evidence-only experiment doe
 packaged parameters and makes no claim about the library's configured adaptive mode.
 
 The candidate pool contains all 30 trained simulated-annealing configurations from
-`tuning-wide-expanded-reference.jsonl`, without filtering on their historical test scores,
+`references/tuning-wide-expanded-reference.jsonl`, without filtering on their historical test scores,
 plus the packaged fixed default. Exact configurations are deduplicated. The selection score
 averages sizes and budgets within each family, then gives all three families equal weight.
 Candidates losing more than 0.02 normalized-gap units in any training cell are ineligible;
@@ -1956,7 +1992,7 @@ scoring resumes completed cells, but changing the design, pool or source revisio
 
 #### Cross-family preset results
 
-Reference: [`general-sa-preset-reference.json`](general-sa-preset-reference.json). The full protocol
+Reference: [`references/general-sa-preset-reference.json`](references/general-sa-preset-reference.json). The full protocol
 was committed at `aa9f29e` before measurement. All 372 training cells completed; the candidate
 was locked while zero confirmation instance files existed. Only then were 72 confirmation
 instances generated, followed by 24 paired scoring cells. The reference contains all measurements,
@@ -2011,7 +2047,7 @@ uv run --locked --group tuning python - <<'PY'
 import json
 from pathlib import Path
 from benchmarks.tuning.preset_analysis import PresetAnalysis, PresetDesign
-data = json.loads(Path("benchmarks/general-sa-preset-reference.json").read_text())
+data = json.loads(Path("benchmarks/references/general-sa-preset-reference.json").read_text())
 analysis = PresetAnalysis(PresetDesign(**data["protocol"]["design"]))
 print(analysis.ranking(data["training"], set(data["protocol"]["candidates"]))[0])
 print(analysis.confirmation(data["confirmation"], data["selection"]["candidate"]))
@@ -2055,7 +2091,7 @@ reference hashes remain portable. No packaged solver parameter is changed by thi
 #### Cross-engine validation results
 
 The protocol and runner were committed at **`1a544ca` before either engine was scored**.
-Reference: [`general-sa-preset-engines-reference.json`](general-sa-preset-engines-reference.json).
+Reference: [`references/general-sa-preset-engines-reference.json`](references/general-sa-preset-engines-reference.json).
 All 24 scoring cells completed on Python, then all 24 on C++; the candidate, instance panel,
 calibration scales, solver seeds and regression limits stayed unchanged. Every individual search
 reached its declared evaluation limit; a truncated search would have failed the run.
@@ -2105,8 +2141,8 @@ import json
 from pathlib import Path
 from benchmarks.tuning.preset_analysis import PresetAnalysis, PresetDesign
 root = Path("benchmarks")
-original = json.loads((root / "general-sa-preset-reference.json").read_text())
-data = json.loads((root / "general-sa-preset-engines-reference.json").read_text())
+original = json.loads((root / "references/general-sa-preset-reference.json").read_text())
+data = json.loads((root / "references/general-sa-preset-engines-reference.json").read_text())
 analysis = PresetAnalysis(PresetDesign(**original["protocol"]["design"]))
 for engine, records in data["measurements"].items():
     print(engine, analysis.confirmation(records, data["selection"]["candidate"]))

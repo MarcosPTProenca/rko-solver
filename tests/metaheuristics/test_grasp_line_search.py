@@ -449,7 +449,7 @@ def test_rng_replay_detects_intentional_grid_change(monkeypatch: pytest.MonkeyPa
         _replay_contract: str = "grasp-construction-v3"
 
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "benchmarks"))
-    replay = importlib.import_module("random_streams")
+    replay = importlib.import_module("benchmarks.algorithms.random_streams")
     assert replay.replay_modes(GRASP, Historical) == ()
     assert replay.replay_modes(GRASP, LatticeOnly) == ()
     assert replay.replay_modes(GRASP, InPlace) == ()

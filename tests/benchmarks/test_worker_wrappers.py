@@ -16,7 +16,8 @@ Important criteria:
 - No process is spawned; the check is purely on the callable signatures.
 
 Inputs/Outputs:
-- Input: the wrapper callables of `benchmarks.startup` and `benchmarks.startup_stages`.
+- Input: the wrapper callables of `benchmarks.runtime.startup` and
+  `benchmarks.runtime.startup_stages`.
 - Output: assertions on signature compatibility.
 """
 
@@ -38,8 +39,8 @@ def wrappers(monkeypatch: pytest.MonkeyPatch) -> dict[str, Callable[..., None]]:
         dict[str, Callable[..., None]]: Wrapper callable by benchmark module name.
     """
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "benchmarks"))
-    startup = importlib.import_module("benchmarks.startup")
-    stages = importlib.import_module("benchmarks.startup_stages")
+    startup = importlib.import_module("benchmarks.runtime.startup")
+    stages = importlib.import_module("benchmarks.runtime.startup_stages")
     return {
         "startup": startup._timed_worker,
         "startup_stages": stages.StartupProbe.worker,

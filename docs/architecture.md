@@ -41,7 +41,7 @@ public API: rko_solver.RKO, rko_solver.Callbacks | Numba | Blocks, rko_solver.pr
 | `src/rko_solver/experimental/` | Opt-in research features, including self-evolve. |
 | `tests/` | Repository-only tests of library behavior and development tools. |
 | `examples/` | Runnable demonstrations and reference instances, not installed with the library. |
-| `benchmarks/` | Reproducible measurements and the studies that produce them. |
+| `benchmarks/` | [Purpose-grouped studies](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md#layout), with recorded measurements in `references/`. |
 | `tools/` | Release validation, license inventory and installed-artifact smoke checks. |
 
 ## How a solve flows

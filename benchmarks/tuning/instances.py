@@ -7,7 +7,7 @@ Objective:
 Technical approach:
 - Instances are generated from fixed seeds (disjoint ranges for training and held-out roles)
   in the formats the existing benchmark objectives read, so the objectives are the maintained
-  Numba ones from `benchmarks.python_problems`.
+  Numba ones from `benchmarks.problems.numeric`.
 - Calibration fixes, per instance, a reference best cost (the best of default-parameter runs of
   every tuned algorithm with a larger evaluation budget) and an anchor, the median cost of the same
   runs stopped after a few hundred evaluations. The score of a run is
@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import json
 import numpy as np
-from benchmarks.python_problems import OBJECTIVES
+from benchmarks.problems.numeric import OBJECTIVES
 from benchmarks.tuning.spaces import SPACES
 from collections.abc import Callable
 from dataclasses import dataclass

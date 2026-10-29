@@ -32,6 +32,14 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Changed
 
+- Repository-only benchmark scripts are grouped under `runtime`, `algorithms`, `engines`,
+  `modeling` and `problems`; use `python -m benchmarks.<group>.<study>` from the repository root.
+  The existing `tuning` and `self_evolve` groups stay in the project. Identified measurements move
+  to `benchmarks/references/` without changing their bytes or historical provenance. The Knapsack
+  comparison writes its default new output under `results/`; explicit output paths still work.
+  Old flat benchmark module paths are not retained as aliases. Installed library behavior is
+  unchanged; see [the benchmark layout](benchmarks/README.md#layout).
+
 - BRKGA rejects settings where `int(p * pm)` is zero, in every engine, and adaptive grids skip
   those states. Such a configuration used to run without any fresh uniform sample, which removes
   the exploration the algorithm relies on. The packaged defaults and grids are unaffected; an

@@ -47,7 +47,7 @@ def reporter(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
         ModuleType: Report compiler.
     """
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "benchmarks"))
-    return importlib.import_module("prefill_report")
+    return importlib.import_module("benchmarks.algorithms.prefill_report")
 
 
 def test_report_recomputes_pilot_groups(reporter: ModuleType) -> None:
@@ -56,7 +56,9 @@ def test_report_recomputes_pilot_groups(reporter: ModuleType) -> None:
     Args:
         reporter (ModuleType): Report compiler.
     """
-    source = Path(reporter.__file__).with_name("prefill-work-reference.jsonl")
+    source = (
+        Path(reporter.__file__).resolve().parents[1] / "references/prefill-work-reference.jsonl"
+    )
     report, pairs = reporter.compile_report([source])
     assert report["pairs"] == len(pairs) == 60 and len(report["groups"]) == 12
     for group in report["groups"]:
@@ -102,7 +104,9 @@ def test_report_rejects_corrupted_shards(
         tmp_path (Path): Isolated corrupted shard directory.
         damage (str): Control or schema field to corrupt.
     """
-    source = Path(reporter.__file__).with_name("prefill-work-reference.jsonl")
+    source = (
+        Path(reporter.__file__).resolve().parents[1] / "references/prefill-work-reference.jsonl"
+    )
     records = [json.loads(line) for line in source.read_text().splitlines()]
     index = next(
         i for i, row in enumerate(records) if row.get("kind") == "trial" and row["prefill"]
@@ -141,9 +145,9 @@ def test_expanded_reference_matches_compact_observations(reporter: ModuleType) -
     Args:
         reporter (ModuleType): Report compiler location.
     """
-    directory = Path(reporter.__file__).parent
-    report = json.loads((directory / "prefill-expanded-summary.json").read_text())
-    with (directory / "prefill-expanded-pairs.csv").open(newline="") as stream:
+    directory = Path(reporter.__file__).resolve().parents[1]
+    report = json.loads((directory / "references/prefill-expanded-summary.json").read_text())
+    with (directory / "references/prefill-expanded-pairs.csv").open(newline="") as stream:
         pairs = list(csv.DictReader(stream))
     assert report["pairs"] == len(pairs) == 1440 and len(report["groups"]) == 72
     keys = [
@@ -263,7 +267,9 @@ def test_report_cli_writes_compact_evidence(
         monkeypatch (pytest.MonkeyPatch): Supply validated report arguments.
         tmp_path (Path): Isolated input and output directories.
     """
-    source = Path(reporter.__file__).with_name("prefill-work-reference.jsonl")
+    source = (
+        Path(reporter.__file__).resolve().parents[1] / "references/prefill-work-reference.jsonl"
+    )
     directory = tmp_path / "raw"
     directory.mkdir()
     (directory / "pilot.jsonl").write_bytes(source.read_bytes())
@@ -297,7 +303,9 @@ def test_report_rejects_overlap_and_mixed_provenance(reporter: ModuleType, tmp_p
         reporter (ModuleType): Report compiler.
         tmp_path (Path): Isolated mixed-provenance shard directory.
     """
-    source = Path(reporter.__file__).with_name("prefill-work-reference.jsonl")
+    source = (
+        Path(reporter.__file__).resolve().parents[1] / "references/prefill-work-reference.jsonl"
+    )
     with pytest.raises(ValueError, match="duplicate"):
         reporter.compile_report([source, source])
     records = [json.loads(line) for line in source.read_text().splitlines()]

@@ -54,7 +54,7 @@ Linux-local environment. From the repository root in a WSL shell:
 ```bash
 RKO_ENV="$HOME/.cache/rko-python-venv"
 UV_PROJECT_ENVIRONMENT="$RKO_ENV" uv sync --locked
-UV_PROJECT_ENVIRONMENT="$RKO_ENV" uv run --locked python benchmarks/startup_stages.py
+UV_PROJECT_ENVIRONMENT="$RKO_ENV" uv run --locked python -m benchmarks.runtime.startup_stages
 ```
 
 This remains an **editable development installation**: dependencies are local to
@@ -69,7 +69,7 @@ For installed-package measurements, also place the installed RKO files on Linux:
 ```bash
 UV_PROJECT_ENVIRONMENT="$RKO_ENV" uv sync --locked --no-editable
 UV_PROJECT_ENVIRONMENT="$RKO_ENV" uv run --locked --no-editable \
-  python benchmarks/startup_stages.py
+  python -m benchmarks.runtime.startup_stages
 ```
 
 A non-editable installation is a built package, not a live source view. Do not

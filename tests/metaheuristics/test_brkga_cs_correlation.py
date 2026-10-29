@@ -23,7 +23,7 @@ import numpy as np
 import pytest
 import random
 import warnings
-from benchmarks.fixed_work import _run
+from benchmarks.runtime.fixed_work import _run
 from collections.abc import Iterator
 from rko_solver.components.solution_pool import SolutionPool
 from rko_solver.metaheuristics.brkga_cs import BRKGA_CS

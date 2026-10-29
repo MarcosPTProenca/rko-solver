@@ -48,7 +48,7 @@ checks cover signed zero, mixed dtypes, original callback failures, an expired
 session before the next changed candidate, owned parent snapshots and the scalar
 copy-kernel benchmark control.
 
-`benchmarks/ipr-pruned-blocks-reference.jsonl` repeats the bounded 36-case matrix at
+`benchmarks/references/ipr-pruned-blocks-reference.jsonl` repeats the bounded 36-case matrix at
 1,024 **completed objective evaluations** each, charging all initialization. Pools
 remain unique and identical-parent selections remain zero. Pruning lets a fixed
 callback budget cover different numbers of paths and consume different RNG draws;
@@ -72,7 +72,7 @@ The internal `ipr-unchanged-block-pruning-v1` replay token marks old IPR incompa
 with RNG-only replay, rather than mislabeling intentional work changes as isolation
 regressions.
 
-`benchmarks/ipr.py::ScalarIPR` now shares current pruning/virtual steps, varying only
+`benchmarks/algorithms/ipr.py::ScalarIPR` now shares current pruning/virtual steps, varying only
 per-gene versus slice assignment. Do not compare an unpruned scalar kernel with a
 pruned solver and call the difference a block-copy speedup. Historical speed data
 retains its original source/policy scope; it is not a new measurement of this code.

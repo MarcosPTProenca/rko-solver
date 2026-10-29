@@ -9,7 +9,7 @@ by itself. Results outside the evaluated workload/resource envelope remain unkno
 
 ## Outcome of the native-backend evaluation
 
-The fixed-work profile (`benchmarks/performance_profile.py`) attributed most of the
+The fixed-work profile (`benchmarks/runtime/performance_profile.py`) attributed most of the
 per-evaluation time of cheap objectives to library bookkeeping (blending and RNG draws,
 callback wrappers) spread over every algorithm, not to one kernel. A single optional
 kernel therefore could not remove the cost, and the implemented route is the one this
@@ -45,7 +45,7 @@ The historical long-running Knapsack comparison uses Python revision `7ee93ca`,
 which predates subsequent contract and startup corrections. Preserve that run as
 historical evidence; do not combine its rows with current-code results or infer the
 current library's performance from it. The historical runner is now available as
-`benchmarks/cpp_python_knapsack.py`, with the completed two-second reference clearly
+`benchmarks/engines/cpp_python_knapsack.py`, with the completed two-second reference clearly
 separated in [benchmark documentation](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/README.md#python-versus-c-knapsack-comparison).
 Fresh invocations execute the current checkout, not the archived implementation;
 use new source-identified output/cache locations after the protected run finishes.

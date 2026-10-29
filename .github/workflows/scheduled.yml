@@ -46,7 +46,7 @@ jobs:
       - name: Point PyO3 at the project interpreter
         run: echo "PYO3_PYTHON=$(uv run --locked python -c 'import sys; print(sys.executable)')" >> "$GITHUB_ENV"
       - name: Paired comparison with the pinned C++ reference
-        run: uv run --locked python -m benchmarks.native_problem_study --problem ${{ matrix.problem }} --sizes 100 --per-size 2 --repetitions 3 --budget-seconds 4 --solvers SA,ILS,BRKGA,GA,PSO --implementations cpp64,cpp-engine --output "$RUNNER_TEMP/${{ matrix.problem }}.csv" --subject cpp-engine --reference cpp64
+        run: uv run --locked python -m benchmarks.engines.native_problem_study --problem ${{ matrix.problem }} --sizes 100 --per-size 2 --repetitions 3 --budget-seconds 4 --solvers SA,ILS,BRKGA,GA,PSO --implementations cpp64,cpp-engine --output "$RUNNER_TEMP/${{ matrix.problem }}.csv" --subject cpp-engine --reference cpp64
       - name: Every trial completed and verified
         run: |
           uv run --locked python - "$RUNNER_TEMP/${{ matrix.problem }}.csv" <<'PY'

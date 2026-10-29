@@ -23,7 +23,7 @@ import pickle
 import pytest
 import random
 import rko_solver.components.local_search.nelder_mead_ls as nelder_mead
-from benchmarks.blending_work import BlendingStudy
+from benchmarks.algorithms.blending_work import BlendingStudy
 from rko_solver.components.blending.blending import blending
 
 

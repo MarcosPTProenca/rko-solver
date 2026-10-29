@@ -5,7 +5,7 @@ Objective:
 
 Technical approach:
 - Keep command-line experiments outside the installed runtime package.
-- Import reusable problem adapters from the public `rko_solver` package.
+- Group studies by purpose and keep identified measurements in `references/`.
 
 Flow (pseudocode):
 1. Select a documented workload and build its isolated runner.

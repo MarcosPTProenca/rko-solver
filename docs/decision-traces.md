@@ -172,7 +172,7 @@ Run equal-work cheap/heavier callback measurements with separate timing and Pyth
 allocation passes:
 
 ```bash
-OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 uv run --locked python -m benchmarks.decision_traces --evaluations 1000 --dimension 64 --repeats 3
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 uv run --locked python -m benchmarks.runtime.decision_traces --evaluations 1000 --dimension 64 --repeats 3
 ```
 
 The JSON reports raw disabled/enabled times, equal completed evaluation counts and

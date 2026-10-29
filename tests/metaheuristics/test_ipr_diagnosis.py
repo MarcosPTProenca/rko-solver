@@ -41,7 +41,7 @@ def diagnosis(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
         ModuleType: Fixed-work IPR diagnostic definitions.
     """
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "benchmarks"))
-    return importlib.import_module("ipr_diagnosis")
+    return importlib.import_module("benchmarks.algorithms.ipr_diagnosis")
 
 
 @pytest.mark.parametrize("workload", ["sphere", "threshold", "flat"])
@@ -167,7 +167,7 @@ def test_unpruned_ipr_is_not_an_rng_only_baseline(diagnosis: ModuleType) -> None
         - Supply historical diagnostic identity, not an executable solver.
         """
 
-    replay = importlib.import_module("random_streams")
+    replay = importlib.import_module("benchmarks.algorithms.random_streams")
     assert replay.replay_modes(diagnosis.IPR, Unpruned) == ()
     assert replay.replay_modes(diagnosis.IPR, diagnosis.IPR) == (0,)
 
@@ -178,7 +178,7 @@ def test_scalar_copy_control_uses_same_pruned_policy(diagnosis: ModuleType) -> N
     Args:
         diagnosis (ModuleType): Probe module with the production algorithm.
     """
-    scalar = importlib.import_module("ipr").ScalarIPR
+    scalar = importlib.import_module("benchmarks.algorithms.ipr").ScalarIPR
     traces: list[list[bytes]] = []
     results = []
     start = np.full(20, 0.8)

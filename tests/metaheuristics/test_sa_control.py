@@ -74,7 +74,7 @@ def test_rng_replay_rejects_offline_reference(monkeypatch: pytest.MonkeyPatch) -
         monkeypatch (pytest.MonkeyPatch): Expose the maintained benchmark's script directory.
     """
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "benchmarks"))
-    replay = importlib.import_module("random_streams")
+    replay = importlib.import_module("benchmarks.algorithms.random_streams")
     with pytest.raises(ValueError, match="adaptive control"):
         replay.replay_type(MultiStart, 1)
     offline = replay.replay_type(MultiStart, 0)(SolutionPool(), decode, cost, 2)

@@ -5,14 +5,14 @@
 Does shared startup help when its evaluations are paid from the **same total
 objective budget**, rather than added for free before a full search allowance?
 
-`benchmarks/prefill_work.py` exercises real public sequential RKO with prefill false
+`benchmarks/algorithms/prefill_work.py` exercises real public sequential RKO with prefill false
 and true, using the same search seed/parameters and 256 completed objective calls
 **including startup**. The pilot covers IPR, GRASP and MultiStart; sphere,
 Rastrigin-style rugged, stable-permutation ordering and flat objectives; dimension
 20; capacity 10; five paired seeds (200–204). These are 60 pairs / 120 trials,
 not application or statistical-superiority evidence.
 
-Identified reference: `benchmarks/prefill-work-reference.jsonl`, runtime source
+Identified reference: `benchmarks/references/prefill-work-reference.jsonl`, runtime source
 `41cda1b50f01bffe562a5040121444742b93000e`, Python 3.14.8 / NumPy 2.4.3.
 The header records production/config/operator and probe SHA256 values. No production
 algorithm, default, native backend or protected benchmark was changed for this study.
@@ -99,7 +99,7 @@ gh workflow run prefill-study.yml --ref main
 ```
 
 The final job validates provenance, complete/nonoverlapping pairs, exact work and
-seed controls using `benchmarks/prefill_report.py`. It recomputes per-family
+seed controls using `benchmarks/algorithms/prefill_report.py`. It recomputes per-family
 outcomes and medians from trial rows. The report artifact contains compact paired
 CSV and summary/provenance JSON; six separate raw-trace artifacts are retained for
 90 days. Persist the compact pairs/summary as an identified reference before
@@ -116,7 +116,7 @@ workflow or a passing pilot test.
 Reproduce the original pilot (bounded serial work, no timings):
 
 ```bash
-uv run --locked python benchmarks/prefill_work.py > /tmp/prefill-work.jsonl
+uv run --locked python -m benchmarks.algorithms.prefill_work > /tmp/prefill-work.jsonl
 uv run --locked pytest tests/rko/test_prefill_work.py -q
 ```
 

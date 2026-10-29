@@ -49,12 +49,12 @@ pair retrieval. IPR tests cover custom effective clones and repeated seed draws;
 its prefilled NumPy initialization order remains unchanged, while later pair-draw
 traces reflect the corrected population occupancy.
 
-`benchmarks/ipr-unique-elites-reference.jsonl` repeats the bounded 36-case diagnostic
+`benchmarks/references/ipr-unique-elites-reference.jsonl` repeats the bounded 36-case diagnostic
 from [the historical diagnosis](ipr-diagnosis.md), at 1,024 completed evaluations
 per case, with all initialization charged. **All 36 cases have unique retained
 vectors and zero identical-parent selections.** Production traces match the
 isolated exact-vector admission control in those deterministic workloads.
-The older `ipr-diagnosis-reference.jsonl` remains the identified pre-fix baseline.
+The older `references/ipr-diagnosis-reference.jsonl` remains the identified pre-fix baseline.
 
 The two-seed scores remain unchanged in that matrix; ten-seed scores change in
 mixed directions relative to old production admission. **No general quality,

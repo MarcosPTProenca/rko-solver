@@ -237,7 +237,7 @@ def main() -> None:
     parser.add_argument(
         "--reference",
         type=Path,
-        default=Path(__file__).resolve().parents[1] / "general-sa-preset-reference.json",
+        default=Path(__file__).resolve().parents[1] / "references/general-sa-preset-reference.json",
     )
     parser.add_argument("--engine", choices=("python", "cpp"), required=True)
     parser.add_argument("--workers", type=int, default=3)

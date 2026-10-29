@@ -79,7 +79,7 @@ scope/vendor contract; it is not implemented here.
 ## Reproduce and verify workers
 
 ```bash
-uv run --locked --with threadpoolctl==3.7.0 python benchmarks/native_threads.py
+uv run --locked --with threadpoolctl==3.7.0 python -m benchmarks.runtime.native_threads
 ```
 
 The default benchmark alternates inherited/one-thread launch environments over
@@ -96,7 +96,7 @@ generation or asynchronous elite feedback is measured. Dense objectives use
 but included in search/end-to-end timing. The private stopping signal in this
 benchmark is instrumentation, **not a supported user callback interface**.
 
-The [identified Linux reference](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/native-threads-reference.jsonl)
+The [identified Linux reference](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/references/native-threads-reference.jsonl)
 records OpenBLAS 0.3.31.dev, NumPy 2.4.3, Python 3.14.8 and four usable CPUs.
 In its four-worker dense-matrix prefix, inherited/one-thread medians were:
 

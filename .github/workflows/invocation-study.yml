@@ -5,9 +5,9 @@ on:
   pull_request:
     paths:
       - ".github/workflows/invocation-study.yml"
-      - "benchmarks/process_budget.py"
-      - "benchmarks/startup_stages.py"
-      - "benchmarks/native_threads.py"
+      - "benchmarks/runtime/process_budget.py"
+      - "benchmarks/runtime/startup_stages.py"
+      - "benchmarks/runtime/native_threads.py"
       - "src/rko_solver/metaheuristics/brkga_cs.py"
       - "tests/metaheuristics/test_brkga_cs_correlation.py"
 
@@ -53,12 +53,12 @@ jobs:
           import time
           from importlib.metadata import version
           from pathlib import Path
-          from benchmarks.performance_profile import PerformanceProbe
+          from benchmarks.runtime.performance_profile import PerformanceProbe
           assert sys.flags.optimize == 0
           cases = {
-              'startup': ('benchmarks/startup_stages.py', ['--repeats', '3']),
-              'portfolio': ('benchmarks/process_budget.py', []),
-              'callbacks': ('benchmarks/native_threads.py', ['--repeats', '3', '--dimension', '128', '--evaluations', '64', '--workers', '1', '4']),
+              'startup': ('benchmarks/runtime/startup_stages.py', ['--repeats', '3']),
+              'portfolio': ('benchmarks/runtime/process_budget.py', []),
+              'callbacks': ('benchmarks/runtime/native_threads.py', ['--repeats', '3', '--dimension', '128', '--evaluations', '64', '--workers', '1', '4']),
           }
           name = os.environ['PROBE']
           script, arguments = cases[name]
@@ -67,7 +67,7 @@ jobs:
           variables = ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'BLIS_NUM_THREADS')
           if name != 'callbacks':
               environment.update(dict.fromkeys(variables, '1'))
-          command = [sys.executable, script, *arguments]
+          command = [sys.executable, "-m", script.removesuffix(".py").replace("/", "."), *arguments]
           manifest = {
               'probe': name,
               'run_url': os.environ['RUN_URL'],
