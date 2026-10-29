@@ -200,6 +200,8 @@ jobs:
         run: uv sync --locked --group dev
       - name: Structure, comment and type-error ratchet
         run: uv run --locked python tools/quality_gate.py
+      - name: Import boundary contracts
+        run: uv run --locked lint-imports --no-cache
       - name: Dead code
         run: uv run --locked vulture
       - name: Audit locked Python dependencies

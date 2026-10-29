@@ -7,6 +7,12 @@ repos:
       - id: ruff-format
   - repo: local
     hooks:
+      - id: import-boundaries
+        name: import boundaries
+        entry: uv run --locked lint-imports --no-cache
+        language: system
+        pass_filenames: false
+        files: ^(src/rko_solver/.*\.py|pyproject\.toml)$
       - id: quality-gate
         name: quality gate (structure and comments)
         entry: uv run --locked python tools/quality_gate.py --skip-types

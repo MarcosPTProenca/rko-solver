@@ -36,6 +36,7 @@ cargo test --release
 uv run --locked ruff check .
 uv run --locked ruff format --check .
 uv run --locked python tools/quality_gate.py
+uv run --locked lint-imports --no-cache
 uv run --locked vulture
 cargo deny check
 uv run --locked pytest tests -q
@@ -50,6 +51,14 @@ stops `mypy` errors from growing per file. Code that predates these limits is re
 improving a recorded function, run `uv run python tools/quality_gate.py --tighten` and commit
 the smaller baseline. Do not regenerate the baselines with `--write-baseline` to make a failure
 pass; refactor instead. `--skip-types` runs the fast subset used by the pre-commit hook.
+
+Import Linter enforces the [import boundaries](docs/architecture.md#import-boundaries) configured
+in `pyproject.toml`. It runs in the continuous-integration quality job and a local pre-commit hook
+when library source files or the policy change. Run `uv run --locked lint-imports --no-cache` before
+adding dependencies between package areas. `tests/test_import_boundaries.py` checks the same policy
+against small isolated packages, including prohibited direct, indirect and type-only imports.
+The modeling boundary intentionally checks direct numerical imports only: the public solver and
+orchestration retain the supported model-conversion integration.
 
 Every Python block in the README and `docs/*.md` is executed by
 `tests/test_documentation_examples.py`: complete programs (with an

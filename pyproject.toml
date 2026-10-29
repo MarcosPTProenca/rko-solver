@@ -95,6 +95,7 @@ dev = [
     "vulture==2.14",
     "pip-audit==2.10.0",
     "pytest-cov>=7",
+    "import-linter==2.15",
 ]
 docs = [
     "mkdocs>=1.6,<2",
@@ -131,6 +132,51 @@ force-single-line = true
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]
 testpaths = ["tests"]
+
+[tool.importlinter]
+root_package = "rko_solver"
+include_external_packages = true
+exclude_type_checking_imports = false
+
+[[tool.importlinter.contracts]]
+id = "repository-isolation"
+name = "The installed library does not import repository support code"
+type = "forbidden"
+source_modules = ["rko_solver"]
+forbidden_modules = ["benchmarks", "examples", "tests", "tools"]
+
+[[tool.importlinter.contracts]]
+id = "runtime-isolation"
+name = "Runtime modules do not depend on deployment or experimental code"
+type = "forbidden"
+source_modules = ["rko_solver.*"]
+forbidden_modules = ["rko_solver.service", "rko_solver.experimental"]
+
+[[tool.importlinter.contracts]]
+id = "public-facade-isolation"
+name = "Public exports do not load deployment or experimental code"
+type = "forbidden"
+source_modules = ["rko_solver"]
+forbidden_modules = [
+    "rko_solver.service",
+    "rko_solver.service.**",
+    "rko_solver.experimental",
+    "rko_solver.experimental.**",
+]
+as_packages = false
+
+[[tool.importlinter.contracts]]
+id = "numerical-modeling-boundary"
+name = "Numerical implementations keep model-specific imports at integration boundaries"
+type = "forbidden"
+source_modules = [
+    "rko_solver.components",
+    "rko_solver.parameters",
+    "rko_solver.engines",
+    "rko_solver.metaheuristics",
+]
+forbidden_modules = ["rko_solver.modeling"]
+allow_indirect_imports = true
 
 [tool.mutmut]
 source_paths = ["src"]
