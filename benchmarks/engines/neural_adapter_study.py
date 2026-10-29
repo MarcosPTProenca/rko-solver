@@ -22,7 +22,9 @@ Flow (pseudocode):
 4. Normalize costs per instance and compare paired differences with all three controls.
 
 Important criteria:
-- Screening uses four instances per group, 300 keys, two seconds and seeds 3500 onward.
+- The bottleneck screen uses four instances per group, 300 keys, two seconds and seeds 3500–3503.
+- The subsequent coupling screen fixes the same workload and rule with seeds 3504–3507 before
+  measuring that architecture. It is a second development screen, not independent confirmation.
 - Freeze the architecture before screening. Reserve seeds 4000 onward for a later confirmation;
   screening cannot establish release readiness.
 - Advance only with three neural wins over plain, no significant loss over plain, better mean
@@ -43,6 +45,7 @@ import json
 import numpy as np
 import sys
 import time
+from benchmarks.engines.coupled_key_distribution import CoupledDistribution
 from benchmarks.engines.neural_key_adapter import KeyDistribution
 from benchmarks.engines.neural_key_adapter import NeuralKeyAdapter
 from benchmarks.engines.priority_decoder_study import PairedStatistics
@@ -76,6 +79,7 @@ class AdapterDesign:
         warm_fraction (float): Fraction of the allowance spent collecting keys.
         train_cap (float): Maximum neural training seconds, checked each epoch.
         archive_size (int): Maximum number of retained elite keys.
+        generator (str): Bottleneck reconstruction or full-dimensional coupling candidate.
     """
 
     size: int = 300
@@ -85,6 +89,7 @@ class AdapterDesign:
     warm_fraction: float = 0.15
     train_cap: float = 0.05
     archive_size: int = 32
+    generator: str = "bottleneck"
 
 
 class ArchiveCost:
@@ -228,10 +233,13 @@ class AdapterStudy:
         """
         if arm in ("plain", "seeded") or len(elite) < 4:
             return problem.decoder
+        generator = {"bottleneck": KeyDistribution, "coupling": CoupledDistribution}[
+            self.design.generator
+        ]
         distribution = (
-            KeyDistribution.fit(elite, seed, deadline=time.perf_counter() + self.design.train_cap)
+            generator.fit(elite, seed, deadline=time.perf_counter() + self.design.train_cap)
             if arm == "neural"
-            else KeyDistribution.marginal(elite)
+            else generator.marginal(elite)
         )
         return NeuralKeyAdapter(problem.decoder, distribution)
 
@@ -298,6 +306,8 @@ class AdapterStudy:
             "wall_seconds": elapsed,
             "charged_seconds": elapsed + charge,
             "epochs": decoder.distribution.epochs if isinstance(decoder, NeuralKeyAdapter) else 0,
+            "neural_active": getattr(getattr(decoder, "distribution", None), "weights", None)
+            is not None,
         }
 
     def run(self) -> list[dict[str, Any]]:
@@ -406,9 +416,16 @@ def main() -> int:
     parser.add_argument("--budget", type=float, default=2.0)
     parser.add_argument("--instances", type=int, default=4)
     parser.add_argument("--first-seed", type=int, default=3500)
+    parser.add_argument("--generator", choices=("bottleneck", "coupling"), default="bottleneck")
     parser.add_argument("--output", type=Path, default=Path("results/neural-adapter-screen.json"))
     options = parser.parse_args()
-    design = AdapterDesign(options.size, options.budget, options.instances, options.first_seed)
+    design = AdapterDesign(
+        options.size,
+        options.budget,
+        options.instances,
+        options.first_seed,
+        generator=options.generator,
+    )
     study = AdapterStudy(design)
     rows = study.run()
     report = {"design": asdict(design), "summary": study.summarize(rows), "trials": rows}

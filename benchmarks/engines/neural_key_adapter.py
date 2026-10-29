@@ -138,16 +138,7 @@ class KeyDistribution:
         """
         rng = np.random.default_rng(seed)
         width = min(8, centered.shape[1], len(centered) - 1)
-        weights = {
-            "w1": rng.normal(0.0, 1.0 / np.sqrt(centered.shape[1]), (centered.shape[1], width)),
-            "b1": np.zeros(width),
-            "w2": rng.normal(0.0, 0.1, (width, centered.shape[1])),
-            "b2": np.zeros(centered.shape[1]),
-        }
-        state = (
-            {name: np.zeros_like(value) for name, value in weights.items()},
-            {name: np.zeros_like(value) for name, value in weights.items()},
-        )
+        weights, state = self.initialize(centered.shape[1], width, centered.shape[1], rng)
         for epoch in range(1, epochs + 1):
             if deadline is not None and time.perf_counter() >= deadline:
                 break
@@ -157,6 +148,33 @@ class KeyDistribution:
             self.epochs = epoch
         if self.epochs:
             self.calibrate(weights, centered)
+
+    @staticmethod
+    def initialize(
+        inputs: int, hidden: int, outputs: int, rng: np.random.Generator
+    ) -> tuple[dict[str, np.ndarray], tuple[dict[str, np.ndarray], dict[str, np.ndarray]]]:
+        """Initialize shared reconstruction weights and empty Adam moments.
+
+        Args:
+            inputs (int): Input width.
+            hidden (int): Hidden-layer width.
+            outputs (int): Reconstruction-target width.
+            rng (np.random.Generator): Initialization generator.
+
+        Returns:
+            tuple: Parameters and their two zero-initialized optimizer-moment dictionaries.
+        """
+        weights = {
+            "w1": rng.normal(0.0, 1.0 / np.sqrt(inputs), (inputs, hidden)),
+            "b1": np.zeros(hidden),
+            "w2": rng.normal(0.0, 0.1, (hidden, outputs)),
+            "b2": np.zeros(outputs),
+        }
+        state = (
+            {name: np.zeros_like(value) for name, value in weights.items()},
+            {name: np.zeros_like(value) for name, value in weights.items()},
+        )
+        return weights, state
 
     @staticmethod
     def gradients(
