@@ -31,7 +31,6 @@ Inputs/Outputs:
 from __future__ import annotations
 
 import dataclasses
-import numpy as np
 import secrets
 from ...components.solution_pool import SolutionPool
 from ...orchestration.configuration import MH_SPECS
@@ -40,7 +39,7 @@ from ...orchestration.types import CostFn
 from ...orchestration.types import DecoderFn
 from ...orchestration.types import HistoryPoint
 from ...orchestration.types import Hyperparameters
-from ...orchestration.types import InitialKeysMetadata
+from ...orchestration.types import InitialKeys
 from ...orchestration.types import NativeProblem
 from ...orchestration.types import PoolInitializationMetadata
 from ...orchestration.types import RunConfig
@@ -91,6 +90,7 @@ class NativeRunner:
         self.n_variables = n_variables
         self.params_dir = params_dir
         self.hyperparameters = hyperparameters or {}
+        self.initial_keys = InitialKeys.from_values(None, n_variables)
 
     @staticmethod
     def module() -> ModuleType:
@@ -163,8 +163,6 @@ class NativeRunner:
         history_limit: int,
         search_metadata: list[SearchMetadata] | None,
         initialization_metadata: list[PoolInitializationMetadata] | None = None,
-        initial_keys: np.ndarray | None = None,
-        initial_keys_metadata: list[InitialKeysMetadata] | None = None,
         max_evaluations: int | None = None,
     ) -> tuple[list[float], float]:
         """Run the portfolio and publish metadata.
@@ -180,8 +178,6 @@ class NativeRunner:
             history_limit (int): Per-search history cap; zero disables recording.
             search_metadata (list[SearchMetadata] | None): Optional report collector.
             initialization_metadata (list | None): Optional random-prefill report collector.
-            initial_keys (np.ndarray | None): Validated caller vectors to offer before searches.
-            initial_keys_metadata (list[InitialKeysMetadata] | None): Seed-key report collector.
             max_evaluations (int | None): Completed evaluations after which each search stops.
 
         Returns:
@@ -214,7 +210,7 @@ class NativeRunner:
             self.config.prefill_pool,
             self.engine,
             max_evaluations=max_evaluations,
-            initial_keys=None if initial_keys is None else initial_keys.tolist(),
+            initial_keys=self.initial_keys.keys.tolist(),
         )
         self.workers = int(result["workers"])
         if search_metadata is not None:
@@ -247,8 +243,5 @@ class NativeRunner:
                     time_limit=float(time_limit),
                 )
             )
-        if initial_keys is not None and initial_keys_metadata is not None:
-            initial_keys_metadata.append(
-                InitialKeysMetadata(n_keys=len(initial_keys), n_evaluations=len(initial_keys))
-            )
+        self.initial_keys.record()
         return list(result["keys"]), float(result["cost"])

@@ -46,6 +46,7 @@ from .modeling.runtime import ModelRunState
 from .orchestration.adaptation import Adaptation
 from .orchestration.auto import AutoCandidate
 from .orchestration.auto import AutoEngine
+from .orchestration.auto import SelectableSolver
 from .orchestration.configuration import parse_run_config
 from .orchestration.engine import EngineSelection
 from .orchestration.execution import run_metaheuristics_parallel
@@ -63,7 +64,7 @@ from .orchestration.types import CostFn
 from .orchestration.types import DecoderFn
 from .orchestration.types import ExecutionMetadata
 from .orchestration.types import Hyperparameters
-from .orchestration.types import InitialKeysMetadata
+from .orchestration.types import InitialKeys
 from .orchestration.types import NativeProblem
 from .orchestration.types import PoolInitializationMetadata
 from .orchestration.types import RunConfig
@@ -83,6 +84,7 @@ from importlib.metadata import version
 from pathlib import Path
 from typing import Literal
 from typing import Unpack
+from typing import cast
 
 Engine = Literal["python", "rust", "cpp", "auto"]
 Execution = Literal["process", "thread", "sequential"]
@@ -241,7 +243,8 @@ class RKO:
         self.control = control
         self.pool_size = pool_size
         self.prefill_pool = prefill_pool
-        self.initial_keys = copy.deepcopy(initial_keys)
+        self._initial_keys_input = copy.deepcopy(initial_keys)
+        self.initial_keys = InitialKeys.from_values(None, self.n_variables)
         self.params_dir = params_dir
         self.engine, self.execution = EngineSelection.request(engine, execution)
         self.auto_time = auto_time
@@ -295,12 +298,12 @@ class RKO:
             OSError: If parameter files cannot be read.
         """
         self.result_ = None
+        self.initial_keys = InitialKeys.from_values(self._initial_keys_input, self.n_variables)
         started = time.perf_counter()
         model_state = ModelRunState(self)
         model_state.validate()
         preparation = SolverPreparation(self)
         execution = preparation.validate(time_limit)
-        initial_keys = self._validate_initial_keys()
         if self.engine == "auto":
             return self._solve_auto(time_limit, started)
         config = parse_run_config(preparation.overrides(load_config(self.params_dir)))
@@ -319,7 +322,6 @@ class RKO:
             )
         metadata: list[SearchMetadata] = []
         initialization: list[PoolInitializationMetadata] = []
-        initial_keys_metadata: list[InitialKeysMetadata] = []
         engine, n_jobs, random_state, n_variables = (
             self.engine,
             self.n_jobs,
@@ -328,8 +330,7 @@ class RKO:
         )
         available_cpus = max(1, os.process_cpu_count() or 1) if execution == "process" else None
         no_search = model_state.no_search
-        if no_search and initial_keys is not None:
-            raise ValueError("'initial_keys' cannot be used when a model is solved directly.")
+        self.initial_keys.require_search(no_search)
         if no_search:
             keys, value = model_state.direct()
         else:
@@ -340,8 +341,6 @@ class RKO:
                 hyperparameters=hyperparameters,
                 search_metadata=metadata,
                 initialization_metadata=initialization,
-                initial_keys=initial_keys,
-                initial_keys_metadata=initial_keys_metadata,
                 process_worker_limit=n_jobs if n_jobs is not None else available_cpus,
                 **model_state.arguments(),
             )
@@ -369,7 +368,7 @@ class RKO:
             ),
             available_cpus=None if no_search else available_cpus,
             initialization=initialization[0] if initialization else None,
-            initial_keys=initial_keys_metadata[0] if initial_keys_metadata else None,
+            initial_keys=self.initial_keys.metadata,
             trace=DecisionTrace.selected(value, keys) if self.trace is not None else None,
             model=model_result,
             max_evaluations=self.max_evaluations,
@@ -409,37 +408,12 @@ class RKO:
             return "native"
         return "batch" if self._batch is not None else "callbacks"
 
-    def _validate_initial_keys(self) -> np.ndarray | None:
-        """Convert the copied initial-key input to an owned validated matrix.
-
-        Returns:
-            np.ndarray | None: Validated key rows, or None when no rows were supplied.
-
-        Raises:
-            ValueError: If rows are ragged, have the wrong dimension, or contain keys outside
-                the finite interval [0, 1).
-        """
-        if self.initial_keys is None:
-            return None
-        try:
-            if len(self.initial_keys) == 0:
-                return None
-            keys = np.asarray(self.initial_keys, dtype=np.float64)
-        except (OverflowError, TypeError, ValueError) as exc:
-            raise ValueError("'initial_keys' must be a rectangular numeric matrix.") from exc
-        if keys.ndim != 2 or keys.shape[1] != self.n_variables:
-            raise ValueError("'initial_keys' rows must match 'n_variables'.")
-        if not np.isfinite(keys).all() or np.any(keys < 0.0) or np.any(keys >= 1.0):
-            raise ValueError("'initial_keys' values must be finite and in [0, 1).")
-        return np.array(keys, dtype=np.float64, copy=True)
-
-    def _variant(self, candidate: AutoCandidate, seed: int | None, probe: bool = True) -> RKO:
+    def _variant(self, candidate: AutoCandidate, seed: int | None) -> RKO:
         """Copy this solver with another engine, sharing the problem definition.
 
         Args:
             candidate (AutoCandidate): Engine, execution and worker limit to run.
             seed (int | None): Seed for the copy.
-            probe (bool): Disable history, tracing and progress output for short probes.
 
         Returns:
             RKO: Independent solver object that can be solved separately.
@@ -451,11 +425,6 @@ class RKO:
         variant.random_state = seed
         variant.result_ = None
         variant._native_workers = None
-        if probe:
-            variant.initial_keys = None
-            variant.verbose = False
-            variant.history_limit = 0
-            variant.trace = None
         return variant
 
     def _solve_auto(self, time_limit: float, started: float) -> RKOResult:
@@ -477,8 +446,19 @@ class RKO:
         from . import _native
 
         cpp_available = _native.cpp_available()
+        probe_solver = copy.copy(self)
+        probe_solver._initial_keys_input = None
+        probe_solver.initial_keys = InitialKeys.from_values(None, self.n_variables)
+        probe_solver.verbose = False
+        probe_solver.history_limit = 0
+        probe_solver.trace = None
         selection, probe_keys, probe_cost = AutoEngine.select(
-            self, time_limit, self.auto_time, self.auto_candidates, cpp_available, time.perf_counter
+            cast(SelectableSolver, probe_solver),
+            time_limit,
+            self.auto_time,
+            self.auto_candidates,
+            cpp_available,
+            time.perf_counter,
         )
         cpus = max(1, os.process_cpu_count() or 1)
         candidate = AutoEngine.build(selection.chosen, cpus)
@@ -488,7 +468,7 @@ class RKO:
                 f"scores={dict(selection.scores)}",
                 flush=True,
             )
-        final = self._variant(candidate, self.random_state, probe=False).solve(time_limit)
+        final = self._variant(candidate, self.random_state).solve(time_limit)
         improved = probe_keys is not None and probe_cost < final.cost
         selection = replace(selection, improved_by_probe=improved)
         result = replace(
@@ -511,8 +491,6 @@ class RKO:
         search_metadata: list[SearchMetadata] | None = None,
         process_worker_limit: int | None = None,
         initialization_metadata: list[PoolInitializationMetadata] | None = None,
-        initial_keys: np.ndarray | None = None,
-        initial_keys_metadata: list[InitialKeysMetadata] | None = None,
         **context: Unpack[ExecutionMetadata],
     ) -> tuple[list[float], float]:
         """Dispatch a validated portfolio without retaining worker state.
@@ -524,8 +502,6 @@ class RKO:
             search_metadata (list[SearchMetadata] | None): Optional immutable report collector.
             process_worker_limit (int | None): Resolved per-solve process cap.
             initialization_metadata (list | None): Optional shared random-startup report collector.
-            initial_keys (np.ndarray | None): Validated keys to evaluate before searches.
-            initial_keys_metadata (list[InitialKeysMetadata] | None): Seed-key report collector.
             context (ExecutionMetadata): Required solve origin and optional bounded model archive.
 
         Returns:
@@ -548,6 +524,7 @@ class RKO:
                 hyperparameters,
                 engine=self.engine,
             )
+            runner.initial_keys = self.initial_keys
             outcome = runner.run(
                 self._native_object()
                 if self._native_problem is not None
@@ -560,8 +537,6 @@ class RKO:
                 self.history_limit,
                 search_metadata,
                 initialization_metadata,
-                initial_keys,
-                initial_keys_metadata,
                 self.max_evaluations,
             )
             self._native_workers = runner.workers
@@ -599,8 +574,7 @@ class RKO:
                 hyperparameters=hyperparameters,
                 search_metadata=search_metadata,
                 initialization_metadata=initialization_metadata,
-                initial_keys=initial_keys,
-                initial_keys_metadata=initial_keys_metadata,
+                initial_keys=self.initial_keys,
                 history_limit=self.history_limit,
                 max_evaluations=self.max_evaluations,
                 **callback_options,
@@ -620,11 +594,7 @@ class RKO:
                 )
                 if initialization_metadata is not None:
                     initialization_metadata.append(report)
-            if initial_keys is not None:
-                assert initial_keys_metadata is not None
-                initial_keys_metadata.append(
-                    seed_pool(pool, self.decoder, self.cost, initial_keys, self.trace)
-                )
+            seed_pool(pool, self.decoder, self.cost, self.initial_keys, self.trace, model_evidence)
             if execution == "thread":
                 return select_best_result(
                     run_metaheuristics_parallel(

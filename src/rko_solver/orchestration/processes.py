@@ -48,9 +48,10 @@ from .search import SearchSession
 from .stopped import StoppedSearches
 from .types import CostFn
 from .types import DecoderFn
+from .types import ExecutionOptions
 from .types import Hyperparameters
+from .types import InitialKeys
 from .types import InitialKeysMetadata
-from .types import ModelCallbackOptions
 from .types import PoolInitializationMetadata
 from .types import RunConfig
 from .types import RunResult
@@ -187,7 +188,6 @@ def _worker(
     initialization_start: Event | None = None,
     initialization_duration: float | None = None,
     initialization_random_state: int | None = None,
-    initial_keys: np.ndarray | None = None,
     history_limit: int = 0,
     trace: TraceConfig | None = None,
     **capture_options: Unpack[WorkerCaptureOptions],
@@ -210,13 +210,16 @@ def _worker(
         initialization_start (Event | None): Gate supplied only to the designated initializer.
         initialization_duration (float | None): Separate cooperative startup allowance.
         initialization_random_state (int | None): Source for the reserved startup stream.
-        initial_keys (np.ndarray | None): Validated caller vectors for the designated initializer.
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decoder recording.
         max_evaluations (int | None): Completed evaluations after which each search stops.
         capture_options (WorkerCaptureOptions): Evaluation cap and bounded model transport policy.
     """
     max_evaluations = capture_options.get("max_evaluations")
+    initial_keys = cast(
+        InitialKeys,
+        capture_options.get("initial_keys", InitialKeys.from_values(None, dimension)),
+    )
     model_evidence: list[ModelEvidence] | None = (
         [] if capture_options.get("collect_model_evidence", False) else None
     )
@@ -255,10 +258,9 @@ def _worker(
                     initialization_random_state,
                     **callback_options,
                 )
-            if initial_keys is not None:
-                name = "initial_keys"
-                report = seed_pool(pool, decoder, cost, initial_keys, trace, model_evidence)
-                connection.send(("initial_keys", report))
+            name = "initial_keys"
+            report = seed_pool(pool, decoder, cost, initial_keys, trace, model_evidence)
+            connection.send(("initial_keys", report))
             if initialization_report is not None:
                 connection.send(("initialized", initialization_report))
         start.wait()
@@ -368,11 +370,9 @@ def run_processes(
     hyperparameters: Hyperparameters | None = None,
     search_metadata: list[SearchMetadata] | None = None,
     initialization_metadata: list[PoolInitializationMetadata] | None = None,
-    initial_keys: np.ndarray | None = None,
-    initial_keys_metadata: list[InitialKeysMetadata] | None = None,
     history_limit: int = 0,
     max_evaluations: int | None = None,
-    **callback_options: Unpack[ModelCallbackOptions],
+    **callback_options: Unpack[ExecutionOptions],
 ) -> tuple[list[float], float]:
     """Execute a selected portfolio with a common start and managed pool.
 
@@ -391,12 +391,10 @@ def run_processes(
         hyperparameters (Hyperparameters | None): Partial offline scalar mappings.
         search_metadata (list[SearchMetadata] | None): Optional collector for all algorithms.
         initialization_metadata (list | None): Separate opt-in random-startup report collector.
-        initial_keys (np.ndarray | None): Validated caller vectors evaluated before search release.
-        initial_keys_metadata (list[InitialKeysMetadata] | None): Seed-key report collector.
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decoder recording.
         max_evaluations (int | None): Completed evaluations after which each search stops.
-        callback_options (ModelCallbackOptions): Optional trace and bounded model-witness capture.
+        callback_options (ExecutionOptions): Optional trace, model witness and caller-key input.
 
     Returns:
         tuple[list[float], float]: Best keys and minimization objective.
@@ -426,7 +424,10 @@ def run_processes(
     with PoolManager(ctx=context) as manager:
         pool = manager.SolutionPool(config.pool_size, verbose=verbose, started_at=started_at)
         start = context.Event()
-        startup_required = config.prefill_pool or initial_keys is not None
+        initial_keys = callback_options.get(
+            "initial_keys", InitialKeys.from_values(None, dimension)
+        )
+        startup_required = config.prefill_pool or initial_keys.has_keys
         initialization_start = context.Event() if startup_required else None
         initialization_done = not startup_required
         initialization_released, phase = False, "startup"
@@ -463,13 +464,17 @@ def run_processes(
                         initialization_start if group_index == 0 else None,
                         limit_time,
                         random_state,
-                        initial_keys if group_index == 0 else None,
                         history_limit,
                         trace,
                     ),
                     kwargs={
                         "max_evaluations": max_evaluations,
                         "collect_model_evidence": model_evidence is not None,
+                        "initial_keys": (
+                            initial_keys
+                            if group_index == 0
+                            else InitialKeys.from_values(None, dimension)
+                        ),
                     },
                 )
                 processes.append(process)
@@ -498,8 +503,7 @@ def run_processes(
                     if status == "ready":
                         ready.add(connection)
                     elif status == "initial_keys":
-                        if initial_keys_metadata is not None:
-                            initial_keys_metadata.append(payload)
+                        initial_keys.set_metadata(cast(InitialKeysMetadata | None, payload))
                         if not config.prefill_pool:
                             initialization_done = True
                     elif status == "initialized":

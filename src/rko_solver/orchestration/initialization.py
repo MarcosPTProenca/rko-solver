@@ -35,6 +35,7 @@ from .search import SearchSession
 from .search import _BudgetExpired
 from .types import CostFn
 from .types import DecoderFn
+from .types import InitialKeys
 from .types import InitialKeysMetadata
 from .types import ModelCallbackOptions
 from .types import PoolInitializationMetadata
@@ -47,41 +48,39 @@ def seed_pool(
     pool: ElitePool,
     decoder: DecoderFn,
     cost: CostFn,
-    keys: np.ndarray,
+    keys: InitialKeys,
     trace: TraceConfig | None = None,
     model_evidence: list[ModelEvidence] | None = None,
-) -> InitialKeysMetadata:
+) -> InitialKeysMetadata | None:
     """Evaluate each validated caller key once and offer it to the shared pool.
 
     Args:
         pool (ElitePool): Shared pool that is not yet serving search workers.
         decoder (DecoderFn): Original random-key decoder.
         cost (CostFn): Finite minimization objective.
-        keys (np.ndarray): Validated matrix with one key vector per row.
+        keys (InitialKeys): Owned, validated caller matrix and metadata holder.
         trace (TraceConfig | None): Optional bounded decision trace configuration.
         model_evidence (list[ModelEvidence] | None): Optional generated-model witness collector.
 
     Returns:
-        InitialKeysMetadata: Completed evaluation count and elapsed time.
+        InitialKeysMetadata | None: Completed report, or None when no rows were supplied.
 
     Raises:
         Exception: If the decoder, objective or pool publication fails.
         ValueError: If an objective evaluation is non-finite.
     """
+    if not keys.has_keys:
+        return None
     session = (
         SearchSession(decoder, cost)
         if trace is None
         else SearchSession(decoder, cost, trace=trace, trace_source="initial_keys")
     )
-    for row in keys:
-        owned = np.array(row, dtype=np.float64, copy=True)
-        value = session.evaluate(session.decode(owned))
-        pool.insert((value, owned.tolist()), "initial_keys")
+    for row in keys.keys:
+        value = session.evaluate(session.decode(row))
+        pool.insert((value, row.tolist()), "initial_keys")
     SearchReporting.collect(session, model_evidence)
-    return InitialKeysMetadata(
-        n_keys=len(keys),
-        n_evaluations=session.n_evaluations,
-    )
+    return keys.record()
 
 
 def initialize_pool(
