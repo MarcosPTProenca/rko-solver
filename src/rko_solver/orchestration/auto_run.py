@@ -33,6 +33,7 @@ from .auto import AutoCandidate
 from .auto import AutoEngine
 from collections.abc import Sequence
 from dataclasses import replace
+from typing import Any
 from typing import Protocol
 
 
@@ -115,12 +116,14 @@ class AutoRun:
                 flush=True,
             )
         final = solver._variant(candidate, solver.random_state, probe=False).solve(time_limit)
-        better = probe_keys if probe_keys is not None and probe_cost < final.cost else None
-        selection = replace(selection, improved_by_probe=better is not None)
+        better = probe_keys is not None and probe_cost < final.cost
+        selection = replace(selection, improved_by_probe=better)
+        found: dict[str, Any] = (
+            {"keys": tuple(probe_keys or ()), "cost": float(probe_cost)} if better else {}
+        )
         result = replace(
             final,
-            keys=final.keys if better is None else tuple(better),
-            cost=final.cost if better is None else float(probe_cost),
+            **found,
             elapsed_seconds=time.perf_counter() - started,
             random_state=solver.random_state,
             auto=selection,

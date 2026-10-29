@@ -232,11 +232,25 @@ class InitialKeys:
             keys = np.asarray(values, dtype=np.float64)
         except (OverflowError, TypeError, ValueError) as exc:
             raise ValueError("'initial_keys' must be a rectangular numeric matrix.") from exc
+        cls.check(keys, dimension)
+        return cls(np.array(keys, dtype=np.float64, copy=True))
+
+    @staticmethod
+    def check(keys: np.ndarray, dimension: int) -> None:
+        """Validate the shape and the value domain of a candidate key matrix.
+
+        Args:
+            keys (np.ndarray): Candidate matrix of caller rows.
+            dimension (int): Required number of keys in every row.
+
+        Raises:
+            ValueError: If the matrix is not two-dimensional with `dimension` columns or holds a
+                value outside the finite interval [0, 1).
+        """
         if keys.ndim != 2 or keys.shape[1] != dimension:
             raise ValueError("'initial_keys' rows must match 'n_variables'.")
         if not np.isfinite(keys).all() or np.any(keys < 0.0) or np.any(keys >= 1.0):
             raise ValueError("'initial_keys' values must be finite and in [0, 1).")
-        return cls(np.array(keys, dtype=np.float64, copy=True))
 
     def __eq__(self, other: object) -> bool:
         """Compare the key matrices elementwise together with the startup reports.

@@ -87,6 +87,16 @@ class RKOResult:
     model: ModelResult | None = None
 
     @property
+    def _startup_evaluations(self) -> int:
+        """Return completed finite objectives spent before the searches started.
+
+        Returns:
+            int: Random-prefill plus caller-key evaluations.
+        """
+        reports = (self.initialization, self.initial_keys)
+        return sum(report.n_evaluations for report in reports if report is not None)
+
+    @property
     def n_evaluations(self) -> int | None:
         """Return completed finite objectives, or unknown for legacy manual results.
 
@@ -97,11 +107,7 @@ class RKOResult:
             return self.model.direct_evaluations
         if not self.searches and self.initialization is None and self.initial_keys is None:
             return None
-        return (
-            sum(report.n_evaluations for report in self.searches)
-            + (self.initialization.n_evaluations if self.initialization is not None else 0)
-            + (self.initial_keys.n_evaluations if self.initial_keys is not None else 0)
-        )
+        return sum(report.n_evaluations for report in self.searches) + self._startup_evaluations
 
     @property
     def stop_reason(self) -> str:

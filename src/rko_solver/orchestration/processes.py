@@ -344,12 +344,11 @@ class WorkerShutdown:
     """
 
     @staticmethod
-    def release(processes: list[BaseProcess], connections: list[Connection]) -> None:
-        """Escalate from join to terminate to kill, then close all resources.
+    def stop(processes: list[BaseProcess]) -> None:
+        """Wait briefly for started workers, then terminate the ones still alive.
 
         Args:
             processes (list[BaseProcess]): Spawned workers, started or not.
-            connections (list[Connection]): Parent ends of the worker pipes.
         """
         for process in processes:
             if process.pid is not None:
@@ -357,6 +356,16 @@ class WorkerShutdown:
         for process in processes:
             if process.is_alive():
                 process.terminate()
+
+    @staticmethod
+    def release(processes: list[BaseProcess], connections: list[Connection]) -> None:
+        """Stop the workers, kill stragglers, then close every process and pipe.
+
+        Args:
+            processes (list[BaseProcess]): Spawned workers, started or not.
+            connections (list[Connection]): Parent ends of the worker pipes.
+        """
+        WorkerShutdown.stop(processes)
         for process in processes:
             if process.pid is not None:
                 process.join(timeout=1.0)
