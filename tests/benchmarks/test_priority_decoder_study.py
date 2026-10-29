@@ -21,12 +21,16 @@ Inputs/Outputs:
 """
 
 import itertools
+import numpy as np
 import pytest
 from benchmarks.engines.priority_decoder_study import FAMILIES
 from benchmarks.engines.priority_decoder_study import Candidate
+from benchmarks.engines.priority_decoder_study import GreedySeed
 from benchmarks.engines.priority_decoder_study import InstanceFactory
 from benchmarks.engines.priority_decoder_study import PairedStatistics
 from benchmarks.problems.knapsack_utils import exact_profit
+from examples.priority_decoders import PriorityDecoder
+from examples.priority_decoders import SortDecoder
 
 
 def test_generator_is_reproducible_and_seed_sensitive() -> None:
@@ -77,3 +81,32 @@ def test_candidate_requires_a_known_name_and_parameter() -> None:
         Candidate("priority").decoder(instance)
     with pytest.raises(ValueError, match="Unknown"):
         Candidate("other").decoder(instance)
+
+
+@pytest.mark.parametrize("family", FAMILIES)
+def test_greedy_seed_makes_the_sort_decoder_return_the_priority_solution(family: str) -> None:
+    """The seed keys carry the same prior as the priority decoder at neutral keys.
+
+    Args:
+        family (str): Instance family.
+    """
+    instance = InstanceFactory.make(family, 60, 3)
+    keys = GreedySeed.keys(instance)
+    assert all(0.0 < key < 1.0 for key in keys)
+    neutral = PriorityDecoder.build(instance, 1.0)(np.full(60, 0.5))
+    assert SortDecoder(instance)(np.asarray(keys)) == neutral
+
+
+def test_against_sort_groups_by_budget_and_includes_the_reference() -> None:
+    """Each decoder is compared with sort at the selected budget only."""
+    rows = [
+        {"decoder": name, "budget": budget, "gap": gap}
+        for budget in (1.0, 2.0)
+        for name, gap in (("sort", 2.0), ("sort_seeded", 0.5))
+        for _ in range(3)
+    ]
+    table = PairedStatistics.against_sort(rows, 1.0, 100)
+    assert set(table) == {"sort@1s", "sort_seeded@1s"}
+    assert table["sort@1s"]["difference"] == 0.0
+    assert table["sort_seeded@1s"]["difference"] == pytest.approx(-1.5)
+    assert table["sort_seeded@1s"]["wins"] == 3
