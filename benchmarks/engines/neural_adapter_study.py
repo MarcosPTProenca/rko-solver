@@ -118,6 +118,7 @@ class ArchiveCost:
         problem (Problem): Original problem callbacks and dimension.
         capacity (int): Maximum retained rows.
         heap (list[tuple[float, int, np.ndarray]]): Negative-cost heap with unique tie breakers.
+        members (set[bytes]): Fingerprints of retained vectors; exact copies are not re-admitted.
         evaluations (int): Completed observations.
     """
 
@@ -131,6 +132,7 @@ class ArchiveCost:
         self.problem = problem
         self.capacity = capacity
         self.heap: list[tuple[float, int, np.ndarray]] = []
+        self.members: set[bytes] = set()
         self.evaluations = 0
 
     def __call__(self, keys: np.ndarray) -> float:
@@ -147,11 +149,14 @@ class ArchiveCost:
         """
         value = float(self.problem.cost(self.problem.decoder(np.array(keys, copy=True))))
         self.evaluations += 1
-        if len(self.heap) < self.capacity or value < -self.heap[0][0]:
-            entry = (-value, self.evaluations, np.array(keys, copy=True))
-            heapq.heappush(self.heap, entry)
+        fingerprint = np.asarray(keys, dtype=np.float64).tobytes()
+        qualifies = len(self.heap) < self.capacity or value < -self.heap[0][0]
+        if qualifies and fingerprint not in self.members:
+            heapq.heappush(self.heap, (-value, self.evaluations, np.array(keys, copy=True)))
+            self.members.add(fingerprint)
             if len(self.heap) > self.capacity:
-                heapq.heappop(self.heap)
+                evicted = heapq.heappop(self.heap)[2]
+                self.members.discard(evicted.tobytes())
         return value
 
     def rows(self) -> np.ndarray:

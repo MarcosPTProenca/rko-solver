@@ -206,3 +206,17 @@ def test_explicit_preparation_keeps_the_post_preparation_search_allowance(
     assert row["verified"] and row["search_evaluations"] > 0
     assert row["search_allowance"] > 0.05
     assert row["charged_seconds"] >= 0.9
+
+
+def test_archive_never_fills_with_copies_of_a_stalled_incumbent() -> None:
+    """Re-evaluating the same good vector must not evict distinct elite vectors."""
+    problem = ProblemFamily.make("sphere", 12, 1)
+    recorder = ArchiveCost(problem, 8)
+    keys = np.random.default_rng(4).random((8, 12))
+    for key in keys:
+        recorder(key)
+    best = keys[np.argmin([problem.cost(problem.decoder(key)) for key in keys])]
+    for _ in range(50):
+        recorder(best.copy())
+    assert len(recorder.heap) == 8
+    assert len(np.unique(recorder.rows(), axis=0)) == 8
