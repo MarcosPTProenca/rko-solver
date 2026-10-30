@@ -310,6 +310,33 @@ solver.
   priority study.
 - **No published reference.** The generator was written for this repository: weights uniform on 0 to
   1000, tightness 0.25, profits tied to the weights. It is not a published benchmark.
+- The same module adds a ten-constraint family (tightness 0.5, profits independent of the weights)
+  and a dual prior: the multipliers of the linear relaxation's Lagrangian dual, found by projected
+  subgradient steps, score each item by profit over multiplier-weighted weight and give an upper
+  bound. The prior is implemented from the definition of the relaxation. No published reference is
+  claimed for these generators or for the prior as used here.
+- **Journal article.** P. C. Chu, J. E. Beasley. "A Genetic Algorithm for the Multidimensional
+  Knapsack Problem." *Journal of Heuristics* 4(1), 63–86, 1998.
+  [DOI](https://doi.org/10.1023/a:1009642405419). The established benchmark for the multidimensional
+  knapsack problem, cited as context for the problem class; its text was not opened, and neither its
+  instance generator nor its algorithm is reproduced here.
+
+### Traveling-salesman instances, tours and bound
+
+- `benchmarks/engines/tsp_problems.py` generates uniform and clustered Euclidean instances, builds a
+  nearest-neighbour tour and a 2-opt improved tour, and computes a lower bound by projected
+  subgradient ascent on 1-tree penalties.
+- **No published reference.** The generators and the nearest-neighbour construction are written for
+  this repository; the clustered family is six Gaussian clusters and is not a published benchmark.
+- **Journal article.** G. A. Croes. "A Method for Solving Traveling-Salesman Problems." *Operations
+  Research* 6(6), 791–812, 1958. [DOI](https://doi.org/10.1287/opre.6.6.791). Cited for the edge
+  exchange that 2-opt repeats; its text was not opened, and the implementation uses a
+  best-improvement scan over a full delta matrix, not a description from that paper.
+- **Journal article.** M. Held, R. M. Karp. "The Traveling-Salesman Problem and Minimum Spanning
+  Trees." *Operations Research* 18(6), 1138–1162, 1970.
+  [DOI](https://doi.org/10.1287/opre.18.6.1138). Cited for the 1-tree lower bound with node
+  penalties; its text was not opened, and the step rule here is a simple halving schedule, not the
+  paper's.
 
 ## Convergence
 
@@ -376,10 +403,12 @@ literature.
 - **Unpublished proposal.** "Neural Decoders for Automatic Random-Key Optimization: a bidirectional
   quantile codec" (2026-10-27, 26 pages). This proposal is machine-generated and not peer reviewed.
 - Tested here by `examples/priority_decoders.py`, `benchmarks/engines/priority_decoder_study.py`,
-  `benchmarks/engines/packing_problems.py`, `benchmarks/engines/priority_scorer.py` and
-  `benchmarks/engines/learned_priority_study.py`, which implement its residual-priority decoder, a
-  quantile decoder and a per-family scorer trained with REINFORCE. The sequential per-decision policy
-  with a global key block was **not** tested.
+  `benchmarks/engines/packing_problems.py`, `benchmarks/engines/priority_scorer.py`,
+  `benchmarks/engines/learned_priority_study.py`, `benchmarks/engines/decoder_form_study.py` and
+  `benchmarks/engines/tsp_decoder_form_study.py`, which implement its residual-priority decoder, a
+  quantile decoder, a per-family scorer trained with REINFORCE and the comparison of the decoder
+  form against seeding on packing and on the traveling-salesman problem. The sequential per-decision
+  policy with a global key block was **not** tested.
 
 ### RKO-SR proposal
 
@@ -399,8 +428,11 @@ literature.
 | --- | --- | --- |
 | `benchmarks/engines/surrogate_seed_study.py`, `benchmarks/engines/mlp_surrogate.py` | Starting keys from a ridge or small neural cost surrogate fitted to sampled evaluations | No published reference; own design, motivated by the priority-decoder control |
 | `benchmarks/engines/neural_key_adapter.py`, `benchmarks/engines/coupled_key_distribution.py`, `benchmarks/engines/neural_adapter_study.py` | Learned key distributions composed with the caller's decoder | No published reference; own design. Related ideas under [neural combinatorial optimization](#neural-combinatorial-optimization) |
+| `benchmarks/engines/decoder_form_study.py`, `benchmarks/engines/tsp_decoder_form_study.py`, `benchmarks/engines/form_study.py`, `benchmarks/engines/form_decision.py`, `benchmarks/engines/solver_run.py` | A prior placed inside the residual decoder against the same prior seeded through `initial_keys`, on packing and on the traveling-salesman problem | No published reference; own design, built on the residual decoder of the Q-RKO proposal |
 
-Results are in `benchmarks/README.md`; all of these failed their pre-registered rules.
+Results are in `benchmarks/README.md`. The learned-component studies failed their pre-registered
+rules. The decoder-form study met its rule on packing and did not meet it on the traveling-salesman
+problem.
 
 ## Local copies
 

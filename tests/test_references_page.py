@@ -45,6 +45,12 @@ EXPERIMENTS = (
     "benchmarks/engines/packing_problems.py",
     "benchmarks/engines/priority_scorer.py",
     "benchmarks/engines/learned_priority_study.py",
+    "benchmarks/engines/decoder_form_study.py",
+    "benchmarks/engines/form_study.py",
+    "benchmarks/engines/form_decision.py",
+    "benchmarks/engines/solver_run.py",
+    "benchmarks/engines/tsp_problems.py",
+    "benchmarks/engines/tsp_decoder_form_study.py",
 )
 PROPOSALS = (
     "Neural Decoders for Automatic Random-Key Optimization",
