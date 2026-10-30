@@ -34,6 +34,7 @@ from benchmarks.engines.surrogate_seed_study import ProblemFamily
 from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
+from unittest.mock import Mock
 
 
 def archive(seed: int, width: int = 12) -> np.ndarray:
@@ -163,3 +164,24 @@ def test_exhausted_total_allowance_preserves_warmup_without_extra_search() -> No
         problem, (elite, incumbent, 1.0), "seeded", 1
     )
     assert row["cost"] == incumbent and row["search_allowance"] == 0.0
+
+
+def test_seed_deployment_returns_to_the_original_decoder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Generate proposals once but never run learned inference inside the final search.
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): Installs a forwarding spy on the real solver factory.
+    """
+    problem = ProblemFamily.make("sphere", 12, 1)
+    elite = archive(2)
+    costs = [problem.cost(problem.decoder(row)) for row in elite]
+    elite = elite[np.argsort(costs)]
+    design = AdapterDesign(size=12, budget=0.1, generator="coupling", deployment="seeds")
+    study = AdapterStudy(design)
+    factory = Mock(wraps=AdapterStudy.solver)
+    monkeypatch.setattr(study, "solver", factory)
+    row = study.trial(problem, (elite, float(min(costs)), 0.001), "neural", 2)
+    assert row["verified"] and row["cost"] <= min(costs)
+    assert factory.call_args.args[1] is problem.decoder

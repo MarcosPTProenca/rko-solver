@@ -25,6 +25,9 @@ Important criteria:
 - The bottleneck screen uses four instances per group, 300 keys, two seconds and seeds 3500–3503.
 - The subsequent coupling screen fixes the same workload and rule with seeds 3504–3507 before
   measuring that architecture. It is a second development screen, not independent confirmation.
+- A third development screen uses coupling only to propose 32 checked starting candidates, then
+  restores the original decoder for search: `--deployment seeds --first-seed 3508`. All checking
+  time is charged and the non-neural marginal control receives the same proposal count.
 - Freeze the architecture before screening. Reserve seeds 4000 onward for a later confirmation;
   screening cannot establish release readiness.
 - Advance only with three neural wins over plain, no significant loss over plain, better mean
@@ -80,6 +83,7 @@ class AdapterDesign:
         train_cap (float): Maximum neural training seconds, checked each epoch.
         archive_size (int): Maximum number of retained elite keys.
         generator (str): Bottleneck reconstruction or full-dimensional coupling candidate.
+        deployment (str): Decode every evaluation or generate starting keys once.
     """
 
     size: int = 300
@@ -90,6 +94,7 @@ class AdapterDesign:
     train_cap: float = 0.05
     archive_size: int = 32
     generator: str = "bottleneck"
+    deployment: str = "decoder"
 
 
 class ArchiveCost:
@@ -263,6 +268,61 @@ class AdapterStudy:
             return [decoder.protected(row).tolist() for row in elite[:3]]
         return elite[:3].tolist()
 
+    def proposals(
+        self, problem: Problem, decoder: Callable[..., Any], elite: np.ndarray, arm: str, seed: int
+    ) -> tuple[list[list[float]] | None, int]:
+        """Check generated original-space proposals with the real objective before warm-starting.
+
+        Args:
+            problem (Problem): Original problem callbacks.
+            decoder (Callable[..., Any]): Fitted composition or the original decoder.
+            elite (np.ndarray): Cost-ordered warm-up archive.
+            arm (str): Study arm.
+            seed (int): Common proposal-sampling seed.
+
+        Returns:
+            tuple[list[list[float]] | None, int]: Three best checked keys and evaluation count.
+
+        Raises:
+            ValueError: If a proposal has a non-finite objective value.
+            Exception: Original problem exceptions propagate.
+        """
+        if not isinstance(decoder, NeuralKeyAdapter):
+            return self.seed_keys(decoder, elite, arm), 0
+        latent = np.random.default_rng([seed, 904]).random((32, problem.n_variables))
+        generated = np.array([decoder.distribution.transform(key) for key in latent])
+        pool = np.vstack((elite[:3], generated))
+        scores = np.array([problem.cost(problem.decoder(np.array(key, copy=True))) for key in pool])
+        if not np.isfinite(scores).all():
+            raise ValueError("Generated proposals must have finite costs.")
+        return pool[np.argsort(scores)[:3]].tolist(), len(scores)
+
+    def prepare_search(
+        self, problem: Problem, decoder: Callable[..., Any], elite: np.ndarray, arm: str, seed: int
+    ) -> tuple[RKO, float, int]:
+        """Select deployment and charge proposal checking plus solver setup.
+
+        Args:
+            problem (Problem): Original problem callbacks.
+            decoder (Callable[..., Any]): Trained composition or original decoder.
+            elite (np.ndarray): Warm-up archive.
+            arm (str): Study arm.
+            seed (int): Search and proposal seed.
+
+        Returns:
+            tuple[RKO, float, int]: Prepared solver, setup seconds and proposal evaluations.
+        """
+        started = time.perf_counter()
+        evaluations = 0
+        runtime_decoder = decoder
+        if self.design.deployment == "seeds":
+            keys, evaluations = self.proposals(problem, decoder, elite, arm, seed)
+            runtime_decoder = problem.decoder
+        else:
+            keys = self.seed_keys(decoder, elite, arm)
+        search = self.solver(problem, runtime_decoder, seed, keys)
+        return search, time.perf_counter() - started, evaluations
+
     def trial(
         self, problem: Problem, warmup: tuple[np.ndarray, float, float], arm: str, seed: int
     ) -> dict[str, Any]:
@@ -283,14 +343,17 @@ class AdapterStudy:
         before_fit = time.perf_counter()
         decoder = self.decoder(problem, elite, arm, seed)
         fit_seconds = time.perf_counter() - before_fit
-        seeds = self.seed_keys(decoder, elite, arm)
-        search = self.solver(problem, decoder, seed, seeds)
+        search, proposal_seconds, proposal_evaluations = self.prepare_search(
+            problem, decoder, elite, arm, seed
+        )
         remaining = max(self.design.budget - charge - (time.perf_counter() - started), 0.0)
         cost = incumbent if arm != "plain" else float("inf")
         verified = True
+        search_evaluations = 0
         if remaining > 0.0:
             result = search.solve(remaining)
-            observed = float(problem.cost(decoder(np.asarray(result.keys))))
+            search_evaluations = result.n_evaluations
+            observed = float(problem.cost(search.decoder(np.asarray(result.keys))))
             verified = bool(np.isclose(observed, result.cost, rtol=1e-10, atol=1e-10))
             cost = min(cost, observed)
         elapsed = time.perf_counter() - started
@@ -302,6 +365,9 @@ class AdapterStudy:
             "verified": verified,
             "warmup_seconds": charge,
             "fit_seconds": fit_seconds,
+            "proposal_seconds": proposal_seconds,
+            "proposal_evaluations": proposal_evaluations,
+            "search_evaluations": search_evaluations,
             "search_allowance": remaining,
             "wall_seconds": elapsed,
             "charged_seconds": elapsed + charge,
@@ -417,6 +483,7 @@ def main() -> int:
     parser.add_argument("--instances", type=int, default=4)
     parser.add_argument("--first-seed", type=int, default=3500)
     parser.add_argument("--generator", choices=("bottleneck", "coupling"), default="bottleneck")
+    parser.add_argument("--deployment", choices=("decoder", "seeds"), default="decoder")
     parser.add_argument("--output", type=Path, default=Path("results/neural-adapter-screen.json"))
     options = parser.parse_args()
     design = AdapterDesign(
@@ -425,6 +492,7 @@ def main() -> int:
         options.instances,
         options.first_seed,
         generator=options.generator,
+        deployment=options.deployment,
     )
     study = AdapterStudy(design)
     rows = study.run()
