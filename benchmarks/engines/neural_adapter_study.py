@@ -32,6 +32,11 @@ Important criteria:
   `--generator coupling --deployment seeds --preparation 60 --budget 2 --epochs 400
   --train-cap 10 --archive-size 128 --first-seed 3512`. Every arm's total allowance is 62 seconds;
   unused preparation returns to search, and the plain arm receives all 62 seconds.
+- A sixth screen replaces the fifth, which was uninformative: its warm-up shared the final
+  search's seed and 1,000 keys left three groups saturated. The warm-up now uses an independent
+  seed, and a pilot on throwaway seeds 9000 showed 62 s runs still differing by 0.02-0.10 of the
+  random-to-best scale at 3,000 keys: `--size 3000 --first-seed 3520`, other flags as in the
+  fourth screen.
 - Freeze the architecture before screening. Reserve seeds 4000 onward for a later confirmation;
   screening cannot establish release readiness.
 - Advance only with three neural wins over plain, no significant loss over plain, better mean
@@ -69,6 +74,7 @@ from rko_solver import RKO
 from typing import Any
 
 ARMS = ("plain", "seeded", "marginal", "neural")
+WARMUP_SEED_OFFSET = 1_000_003
 
 
 @dataclass(slots=True)
@@ -232,7 +238,7 @@ class AdapterStudy:
         started = time.perf_counter()
         recorder = ArchiveCost(problem, self.design.archive_size)
         wrapped = Problem(problem.label, IdentityDecoder(), recorder, problem.n_variables)
-        search = self.solver(wrapped, wrapped.decoder, seed)
+        search = self.solver(wrapped, wrapped.decoder, seed + WARMUP_SEED_OFFSET)
         allowance = (
             self.design.preparation_seconds
             if self.design.preparation_seconds is not None

@@ -220,3 +220,17 @@ def test_archive_never_fills_with_copies_of_a_stalled_incumbent() -> None:
         recorder(best.copy())
     assert len(recorder.heap) == 8
     assert len(np.unique(recorder.rows(), axis=0)) == 8
+
+
+def test_warmup_search_uses_an_independent_seed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The warm-up must not replay the final search's own trajectory.
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): Installs a forwarding spy on solver construction.
+    """
+    problem = ProblemFamily.make("sphere", 12, 1)
+    study = AdapterStudy(AdapterDesign(size=12, budget=0.1, preparation_seconds=0.1))
+    factory = Mock(wraps=AdapterStudy.solver)
+    monkeypatch.setattr(study, "solver", factory)
+    study.warmup(problem, 5)
+    assert factory.call_args.args[2] != 5
