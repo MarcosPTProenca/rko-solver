@@ -27,6 +27,7 @@ from benchmarks.engines.packing_problems import PackingCost
 from benchmarks.engines.packing_problems import PackingDecoder
 from benchmarks.engines.packing_problems import PackingFamily
 from benchmarks.engines.packing_problems import PackingInstance
+from benchmarks.engines.packing_problems import PackingRun
 from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
@@ -182,3 +183,100 @@ def test_decoder_and_cost_survive_pickling() -> None:
     keys = np.random.default_rng(4).random(20)
     clone = pickle.loads(pickle.dumps((decoder, PackingCost(instance))))
     np.testing.assert_array_equal(clone[0](keys), decoder(keys))
+
+
+def test_ten_constraint_family_is_well_formed_and_reproducible() -> None:
+    """The harder family has ten constraints, tightness 0.5 and independent profits."""
+    first = PackingFamily.make("mkp10", 60, 4)
+    again = PackingFamily.make("mkp10", 60, 4)
+    np.testing.assert_array_equal(first.profits, again.profits)
+    np.testing.assert_array_equal(first.weights, again.weights)
+    assert first.weights.shape == (10, 60) and np.all(first.profits > 0)
+    np.testing.assert_allclose(first.capacities, 0.5 * first.weights.sum(axis=1))
+    correlation = np.corrcoef(first.profits, first.weights.mean(axis=0))[0, 1]
+    assert abs(correlation) < 0.5
+    assert "mkp10" not in PackingFamily.KINDS
+
+
+@settings(max_examples=30, derandomize=True, deadline=None)
+@given(st.integers(min_value=0, max_value=5000), st.sampled_from(("mkp", "mkp10", "knapsack")))
+def test_dual_bound_is_valid_and_multipliers_are_nonnegative(seed: int, kind: str) -> None:
+    """Weak duality: the bound is at least the profit of any feasible selection.
+
+    Args:
+        seed (int): Generation seed.
+        kind (str): Instance kind.
+    """
+    instance = PackingFamily.make(kind, 40, seed)
+    multipliers, bound = PackingFamily.dual(instance)
+    assert multipliers.shape == (len(instance.capacities),) and np.all(multipliers >= 0.0)
+    rng = np.random.default_rng(seed)
+    for _ in range(5):
+        _, profit = PackingFamily.fill(rng.permutation(40), instance)
+        assert bound >= profit - 1e-6
+
+
+def test_dual_search_improves_on_its_starting_multipliers() -> None:
+    """The returned bound is no worse than the bound at uniform unit multipliers."""
+    instance = PackingFamily.make("mkp", 80, 3)
+    scaled = instance.weights / instance.capacities[:, None]
+    start = np.ones(len(instance.capacities))
+    reduced = np.maximum(0.0, instance.profits - start @ scaled)
+    assert PackingFamily.dual(instance)[1] <= float(start.sum() + reduced.sum()) + 1e-9
+
+
+@pytest.mark.parametrize("kind", [*PackingFamily.KINDS, *PackingFamily.HARD_KINDS])
+def test_dual_scores_are_positive_finite_and_deterministic(kind: str) -> None:
+    """Dual scores never produce a zero, infinite or run-dependent priority.
+
+    Args:
+        kind (str): Instance kind.
+    """
+    instance = PackingFamily.make(kind, 50, 6)
+    first = PackingFamily.dual_scores(instance)
+    assert first.shape == (50,) and np.all(first > 0) and np.isfinite(first).all()
+    np.testing.assert_array_equal(first, PackingFamily.dual_scores(instance))
+
+
+def test_dual_prior_matches_or_beats_the_ratio_prior_on_the_correlated_family() -> None:
+    """On average the stronger prior's greedy fill is at least as good as the ratio rule's."""
+    gains = []
+    for seed in range(20):
+        instance = PackingFamily.make("mkp", 120, seed)
+        ratio = PackingFamily.fill(np.argsort(-PackingFamily.hand_scores(instance)), instance)[1]
+        dual = PackingFamily.fill(np.argsort(-PackingFamily.dual_scores(instance)), instance)[1]
+        gains.append(dual / ratio)
+    assert np.mean(gains) >= 1.0
+
+
+def test_perturbed_keys_start_with_the_exact_order_and_are_reproducible() -> None:
+    """The first vector encodes the exact order; noise makes the others distinct."""
+    instance = PackingFamily.make("mkp", 40, 2)
+    scores = PackingFamily.dual_scores(instance)
+    keys = PackingFamily.perturbed_keys(scores, 8, 0.3, 5)
+    assert keys[0] == PackingFamily.order_keys(scores)
+    assert len(keys) == 8 and keys == PackingFamily.perturbed_keys(scores, 8, 0.3, 5)
+    assert len({tuple(row) for row in keys}) == 8
+    assert all(0.0 < key < 1.0 for row in keys for key in row)
+    assert len({tuple(row) for row in PackingFamily.perturbed_keys(scores, 5, 0.0, 5)}) == 1
+
+
+def test_perturbed_keys_reject_invalid_arguments() -> None:
+    """A nonpositive count or negative noise is an error."""
+    scores = np.arange(1.0, 6.0)
+    with pytest.raises(ValueError, match="count"):
+        PackingFamily.perturbed_keys(scores, 0, 0.1, 1)
+    with pytest.raises(ValueError, match="noise"):
+        PackingFamily.perturbed_keys(scores, 2, -0.1, 1)
+
+
+def test_shared_solver_call_returns_a_verified_profit_and_honours_seed_keys() -> None:
+    """One short real solve through the shared runner decodes and verifies its own result."""
+    instance = PackingFamily.make("mkp", 24, 5)
+    scores = PackingFamily.dual_scores(instance)
+    keys = [PackingFamily.order_keys(scores)]
+    decoder = PackingDecoder(instance)
+    start = PackingFamily.fill(np.argsort(-scores, kind="stable"), instance)[1]
+    profit, verified = PackingRun.solve(instance, decoder, keys, (3, 0.2), ("sequential", ("SA",)))
+    assert verified and profit >= start - 1e-9
+    assert PackingRun.solve(instance, decoder, None, (3, 0.2), ("sequential", ("SA",)))[1]

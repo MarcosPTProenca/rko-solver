@@ -2481,7 +2481,8 @@ decoder beats seeding with the same prior in all 12 instances at both budgets (h
 1.16 at 2 s and 0.04 against 0.63 at 10 s; learned prior 0.18 against 1.11 and 0.08 against 0.71, paired
 intervals below zero). On Knapsack residual and seeded are tied. This corrects the scope of the earlier
 control: decoders add nothing over `initial_keys` only where the greedy solution is already close to
-optimal.
+optimal. A follow-up with a stronger prior, a stronger seeding control and a rule fixed beforehand is in
+[decoder form against fair seeding controls](#decoder-form-against-fair-seeding-controls).
 
 Limits: 12 test instances per family; two packing families with a greedy-fill decoder, so this says
 nothing about routing or scheduling; the hand prior for the five-constraint family is one standard rule
@@ -2496,3 +2497,83 @@ replace a hand-written prior with no loss on these families, which is useful whe
 rule, but it needs per-item features, an instance generator and about a minute of training per family, and
 it did not exceed the hand rule. The finding to act on is the decoder form: a prior inside the decoder
 beat seeding by a wide margin on the harder family.
+
+### Decoder form against fair seeding controls
+
+The learned-priority study found, after its verdict, that a prior inside the residual decoder beat the
+same prior used as one `initial_keys` seed in 12 of 12 instances. That comparison was weak in three ways:
+the seed was a single key vector, the best spread sat at the lower edge of its grid, and it covered one
+family with one hand rule. This study strengthens each and fixes its rule before running.
+
+Sources: no source paper for the design. The residual-priority decoder is the Q-RKO proposal's
+(unpublished and machine-generated). The benchmark problem is the multidimensional knapsack, studied by
+Chu and Beasley, "A Genetic Algorithm for the Multidimensional Knapsack Problem", *Journal of Heuristics*
+4(1), 63-86, 1998 ([DOI](https://doi.org/10.1023/a:1009642405419)); the instance generators here are this
+repository's own and the dual pseudo-utility below is implemented from its definition, not taken from that
+paper's text.
+
+`packing_problems.py` gains a ten-constraint family (tightness 0.5, profits independent of the weights)
+next to the five-constraint one, and a dual prior: the multipliers of the linear relaxation's Lagrangian
+dual, found by 300 projected subgradient steps (about 8 ms at 250 items), give each item the score profit
+over the multiplier-weighted scaled weight. The same multipliers give a valid upper bound, so every result
+is also reported as a gap to that bound. `decoder_form_study.py` runs eight arms per instance at one
+charged allowance: plain RKO; the ratio prior and the dual prior each seeded with one key vector (`seed1`),
+seeded with 32 perturbed orders (`seed32`, noise 0.25 on the log scores) and placed in a residual decoder
+(`resid`); and a rerun of the dual residual arm with another solver seed, which measures run-to-run noise.
+Each residual spread is chosen on validation seeds 6500 to 6505 from {0.05, 0.1, 0.25, 0.5, 1, 2} at the 2 s
+budget. Test seeds are 8000 to 8011 per family, not the seeds of the earlier study.
+
+```bash
+uv run --locked python -m benchmarks.engines.decoder_form_study --output results/decoder-form-study.json
+```
+
+Rule, committed in `4829290` before the run: advance only if, for the dual prior on both families at both
+budgets, the residual decoder beats 32-order seeding and beats plain RKO, each with a paired 95 percent
+bootstrap interval entirely below zero. The ratio prior and the noise floor are reported, not decisive.
+
+[Reference measurement](references/decoder-form-study-reference.json), 12 test instances per family, 250
+items, default portfolio, one machine, one run, 384 trials with every decoded profit re-verified. Mean
+percentage gap below the best profit any arm found (lower is better):
+
+| Family, budget | plain | ratio seed1 | ratio seed32 | ratio resid | dual seed1 | dual seed32 | dual resid | dual resid rerun |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Five constraints, 2 s | 11.85 | 1.56 | 1.32 | 0.34 | 0.65 | 0.55 | 0.11 | 0.10 |
+| Five constraints, 10 s | 6.26 | 0.74 | 0.91 | 0.19 | 0.41 | 0.27 | 0.06 | 0.02 |
+| Ten constraints, 2 s | 14.74 | 0.66 | 0.41 | 0.22 | 0.62 | 0.41 | 0.15 | 0.11 |
+| Ten constraints, 10 s | 5.22 | 0.22 | 0.20 | 0.11 | 0.28 | 0.23 | 0.10 | 0.07 |
+
+The rule is met. Dual residual minus dual 32-order seeding, paired difference in percentage points with its
+95 percent interval and wins/losses/ties of the residual arm:
+
+| Family, budget | Difference | Interval | W/L/T |
+|---|---:|---|---|
+| Five constraints, 2 s | -0.44 | -0.65 to -0.24 | 11/0/1 |
+| Five constraints, 10 s | -0.22 | -0.29 to -0.15 | 12/0/0 |
+| Ten constraints, 2 s | -0.26 | -0.41 to -0.15 | 11/1/0 |
+| Ten constraints, 10 s | -0.13 | -0.20 to -0.07 | 11/1/0 |
+
+Against plain RKO the dual residual arm is 5.1 to 14.6 points better in every cell, in 12 of 12 instances.
+In profit terms the residual decoder is 0.13 to 0.44 percent above 32-order seeding and 5 to 17 percent
+above plain RKO. The ratio prior shows the same ordering; its smallest margin over 32-order seeding is
+-0.09 points on the ten-constraint family at 10 s (interval -0.17 to -0.006, 8 wins and 4 losses). Chosen
+spreads are 0.1 for the dual prior on both families and 0.25 and 0.1 for the ratio prior, so none sits at
+the grid's lower edge. The rerun differs from the residual arm by 0.03 points on average, with intervals
+that include zero in three of four cells, so differences below about 0.05 points are inside run-to-run
+noise.
+
+Limits: 12 test instances per family; two packing families whose decoder fills items greedily in priority
+order, so this says nothing about problems where the order is not the solution, such as routing or
+scheduling; both priors are hand-built, and the dual prior needs the relaxation's multipliers; the seeding
+control was strengthened but not tuned (32 orders at one noise level), so a better seeding variant could
+close part of the gap; the dual bound is an upper bound and not the optimum, and on the ten-constraint
+family every informed arm sits 2.1 to 2.6 percent below it, so the bound cannot separate them there and the
+remaining distance may be the relaxation's own integrality gap, which was not measured; wall time per solve
+includes about one second of process startup, equal for every arm; one machine, one run; seeds 8000 to
+8011 were fresh for this study but its design followed the earlier one, so it is not a confirmation.
+
+Decision: under fair controls a prior inside the residual decoder beats the same prior seeded through
+`initial_keys`, by a small but consistent margin, and both beat plain RKO by a wide one. This supports
+building an opt-in helper that turns a user-supplied per-item priority into the residual decoder: its form
+does not depend on the problem, because the user supplies the scores. It does not yet justify one, because
+only greedy-fill packing was tested. The next test should use a different decoder class, for example a
+sort decoder for the traveling salesman problem with a tour-position prior.
