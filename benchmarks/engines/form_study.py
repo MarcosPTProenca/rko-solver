@@ -157,14 +157,14 @@ class FormStudy[InstanceT: StudyInstance](ABC):
     @staticmethod
     @abstractmethod
     def scores(prior: str, instance: InstanceT) -> np.ndarray:
-        """Compute one prior's item scores.
+        """Compute one prior's data for an instance, such as item scores or a tour.
 
         Args:
-            prior (str): `ratio` or `dual`.
+            prior (str): Prior name from `priors`.
             instance (InstanceT): Instance.
 
         Returns:
-            np.ndarray: Positive score per item.
+            np.ndarray: Prior data that the subclass decodes.
 
         Raises:
             ValueError: If the prior is unknown.
@@ -182,7 +182,7 @@ class FormStudy[InstanceT: StudyInstance](ABC):
             instance (InstanceT): Instance.
             scores (np.ndarray | None): Prior, or None for the plain decoder.
             spread (float): Residual scale.
-            seed (int): Unused by the packing decoder.
+            seed (int): Unused by the study's decoders.
 
         Returns:
             Callable[[np.ndarray], Any]: Decoder.
@@ -225,7 +225,7 @@ class FormStudy[InstanceT: StudyInstance](ABC):
             timing (tuple[int, float]): Solver seed and search seconds.
 
         Returns:
-            dict[str, Any]: `profit`, `bound` and `verified`.
+            dict[str, Any]: The objective under its problem's key, `bound` and `verified`.
         """
         raise NotImplementedError
 
@@ -238,17 +238,17 @@ class FormStudy[InstanceT: StudyInstance](ABC):
             row (dict[str, Any]): Trial record.
 
         Returns:
-            float: Negative profit over the dual bound.
+            float: Lower-is-better score relative to the problem's bound.
         """
         raise NotImplementedError
 
     @staticmethod
     @abstractmethod
     def normalize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """Add the gap to the best profit any arm found and the gap to the dual bound.
+        """Add the gap to the best objective any arm found and the gap to the bound.
 
         Args:
-            rows (list[dict[str, Any]]): Trial records with `profit` and `bound`.
+            rows (list[dict[str, Any]]): Trial records with the objective and `bound`.
 
         Returns:
             list[dict[str, Any]]: Records with `gap` and `bound_gap` in percent.
