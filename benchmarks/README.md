@@ -2221,6 +2221,9 @@ Reading: on this study the prior is worth the same whether it enters through the
 one seed, so the decoders add nothing over `initial_keys`. What matters is a good starting solution,
 and the open question for a general solver is where one comes from when nothing is known about the
 problem.
+This holds for Knapsack, where the greedy solution is nearly optimal. On a five-constraint packing family
+the prior inside a residual decoder beats the same prior used as a seed; see
+[learned item priorities](#learned-item-priorities-the-learned-priority-design-of-the-q-rko-proposal).
 
 ## Surrogate seeds across unrelated problems (negative result)
 
@@ -2424,3 +2427,72 @@ Decision: the screening rule was not met in any of six screens and the last scre
 and independent seeds, showed no gain over the non-neural controls. Do not promote either generator to a
 solver feature on this evidence. This result concerns learned key distributions fitted to one search
 trajectory; it does not show that a differently built neural decoder cannot help.
+
+### Learned item priorities (the learned-priority design of the Q-RKO proposal)
+
+The earlier pilots tested mechanisms of my own. This one tests the design the Q-RKO proposal gives for a
+learned decoder prior: a small per-family network scores each item from instance features, a
+residual-priority decoder adds the scores to the keys, and the network is trained offline with REINFORCE
+and a leave-one-out baseline. The proposal is a machine-generated method proposal that reports no trained
+model, not a peer-reviewed result; a full citation is pending the reference index.
+
+`packing_problems.py` holds two families that share one decoder: Knapsack with one strongly correlated
+constraint, where the hand-written ratio rule is nearly optimal, and a five-constraint packing family
+(weights uniform on 0 to 1000, tightness 0.25, profits tied to the weights) where no single ratio rule is
+obvious. `priority_scorer.py` holds the scorer (one hidden layer of 16 tanh units over relative profit,
+profit rank and relative weights), the Plackett-Luce sampler, its exact gradient and the trainer; the
+gradient is checked against finite differences and the sampler against exact order probabilities.
+`learned_priority_study.py` trains one scorer per family on 1,000 generated instances (seeds 100000 to
+100999), chooses each residual spread on validation seeds 6000 to 6005, and runs five arms on test seeds
+7000 to 7011 at 250 items with the default portfolio and one wall allowance per instance, with each
+arm's score computation charged to it: plain sort decoder, hand prior as a seed, learned prior as a seed,
+hand prior in a residual decoder and learned prior in a residual decoder.
+
+```bash
+uv run --locked python -m benchmarks.engines.learned_priority_study --seed 0 --output results/learned-priority-study.json
+```
+
+Decision rule, committed in `f412135` before the run: advance only if, on the five-constraint family at
+both budgets, the learned prior beats the hand prior with the same mechanism (seeded and residual) and
+beats plain, each with a paired 95 percent bootstrap interval below zero, and on plain Knapsack no
+learned-minus-hand interval lies above zero.
+
+[Reference measurement](references/learned-priority-study-reference.json), 12 test instances per family,
+one machine, one run. Mean percentage gap below the best profit any arm found (lower is better):
+
+| Family and budget | plain | hand seed | learned seed | hand residual | learned residual |
+|---|---:|---:|---:|---:|---:|
+| Five constraints, 2 s | 11.76 | 1.16 | 1.11 | 0.24 | 0.18 |
+| Five constraints, 10 s | 5.13 | 0.63 | 0.71 | 0.04 | 0.08 |
+| Knapsack, 2 s | 2.01 | 0.03 | 0.05 | 0.01 | 0.01 |
+| Knapsack, 10 s | 0.90 | 0.00 | 0.00 | 0.01 | 0.01 |
+
+The rule was not met. Learned minus hand has a paired difference of -0.06 to +0.07 percentage points on
+the five-constraint family and every interval includes zero; on Knapsack the differences are 0.00 to
+0.02 with intervals around zero. Training took 47 s (Knapsack) and 39 s (five constraints) of CPU, and a
+scorer's own greedy order reached 0.997 of the hand rule's profit on the five-constraint validation
+seeds, so the learned prior matches the hand-written one and does not beat it. Scoring an instance costs about 0.2 ms.
+
+Both priors are far better than plain RKO (11.76 percent to 0.18 percent at 2 s on the five-constraint
+family), and the learned scorer got there without any hand-written rule.
+
+A comparison made after the verdict, so not part of the rule: on the five-constraint family the residual
+decoder beats seeding with the same prior in all 12 instances at both budgets (hand prior 0.24 against
+1.16 at 2 s and 0.04 against 0.63 at 10 s; learned prior 0.18 against 1.11 and 0.08 against 0.71, paired
+intervals below zero). On Knapsack residual and seeded are tied. This corrects the scope of the earlier
+control: decoders add nothing over `initial_keys` only where the greedy solution is already close to
+optimal.
+
+Limits: 12 test instances per family; two packing families with a greedy-fill decoder, so this says
+nothing about routing or scheduling; the hand prior for the five-constraint family is one standard rule
+and no stronger hand-written rule was tried; all four residual spreads sit at the lowest grid value
+(0.25), so tuning is not settled; the training reward divides profit by the hand-prior fill profit, a
+per-instance scale that does not enter the gradient direction within an instance; the best-known profit
+is the best any arm found, not a proven optimum; one machine, one run; training on a laptop processor, no
+hosted accelerator, no PyTorch comparison.
+
+Decision: do not build a library API for learned priorities from this evidence. A learned scorer can
+replace a hand-written prior with no loss on these families, which is useful where nobody knows a good
+rule, but it needs per-item features, an instance generator and about a minute of training per family, and
+it did not exceed the hand rule. The finding to act on is the decoder form: a prior inside the decoder
+beat seeding by a wide margin on the harder family.
