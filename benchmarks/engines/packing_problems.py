@@ -30,6 +30,9 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 from dataclasses import field
+from rko_solver import RKO
+
+DUAL_STEPS = 300
 
 
 @dataclass(slots=True, eq=False)
@@ -70,14 +73,16 @@ class PackingFamily:
     """
 
     KINDS = ("knapsack", "mkp")
+    HARD_KINDS = ("mkp10",)
 
     @classmethod
     def make(cls, kind: str, n_items: int, seed: int) -> PackingInstance:
         """Create one reproducible instance.
 
         Args:
-            kind (str): `knapsack` (one strongly correlated constraint) or `mkp` (five
-                constraints, tightness 0.25, profits correlated with the weights).
+            kind (str): `knapsack` (one strongly correlated constraint), `mkp` (five
+                constraints, tightness 0.25, profits correlated with the weights) or `mkp10`
+                (ten constraints, tightness 0.5, profits independent of the weights).
             n_items (int): Positive number of items.
             seed (int): Instance seed.
 
@@ -87,11 +92,20 @@ class PackingFamily:
         Raises:
             ValueError: If the kind is unknown or the item count is not positive.
         """
-        if kind not in cls.KINDS:
-            raise ValueError(f"'kind' must be one of {cls.KINDS}.")
+        if kind not in (*cls.KINDS, *cls.HARD_KINDS):
+            raise ValueError(f"'kind' must be one of {(*cls.KINDS, *cls.HARD_KINDS)}.")
         if n_items < 1:
             raise ValueError("'n_items' must be positive.")
-        rng = np.random.default_rng([seed, n_items, cls.KINDS.index(kind)])
+        rng = np.random.default_rng([seed, n_items, (*cls.KINDS, *cls.HARD_KINDS).index(kind)])
+        if kind == "mkp10":
+            weights = rng.integers(0, 1001, (10, n_items)).astype(np.float64)
+            profits = 1.0 + 999.0 * rng.random(n_items)
+            return PackingInstance(
+                profits,
+                weights,
+                np.maximum(0.5 * weights.sum(axis=1), 1.0),
+                f"mkp10-{n_items}-{seed}",
+            )
         if kind == "knapsack":
             weights = rng.integers(1, 101, (1, n_items)).astype(np.float64)
             capacity = max(float(weights.max()), float(weights.sum()) // 2)
@@ -134,6 +148,82 @@ class PackingFamily:
         """
         burden = (instance.weights / instance.capacities[:, None]).sum(axis=0)
         return np.asarray(instance.profits / np.maximum(burden, 1e-12))
+
+    @staticmethod
+    def dual(instance: PackingInstance) -> tuple[np.ndarray, float]:
+        """Minimize the Lagrangian dual of the linear relaxation by projected subgradient steps.
+
+        Constraints are scaled by their capacities so every multiplier has the same units. The
+        returned bound is valid for any nonnegative multipliers, so it never lies below the
+        profit of a feasible selection.
+
+        Args:
+            instance (PackingInstance): Packing instance.
+
+        Returns:
+            tuple[np.ndarray, float]: Best nonnegative multipliers found and their dual bound.
+        """
+        scaled = instance.weights / instance.capacities[:, None]
+        multipliers = np.ones(len(instance.capacities))
+        best, best_bound = multipliers.copy(), np.inf
+        scale = float(instance.profits.mean())
+        for step in range(1, DUAL_STEPS + 1):
+            reduced = instance.profits - multipliers @ scaled
+            bound = float(multipliers.sum() + np.maximum(reduced, 0.0).sum())
+            if bound < best_bound:
+                best, best_bound = multipliers.copy(), bound
+            gradient = 1.0 - scaled[:, reduced > 0.0].sum(axis=1)
+            multipliers = np.maximum(
+                0.0,
+                multipliers
+                - scale / np.sqrt(step) * gradient / max(np.linalg.norm(gradient), 1e-12),
+            )
+        return best, best_bound
+
+    @classmethod
+    def dual_scores(cls, instance: PackingInstance) -> np.ndarray:
+        """Return the dual pseudo-utility: profit over the multiplier-weighted scaled weight.
+
+        Args:
+            instance (PackingInstance): Packing instance.
+
+        Returns:
+            np.ndarray: Positive score per item; larger means more attractive.
+        """
+        multipliers, _ = cls.dual(instance)
+        burden = multipliers @ (instance.weights / instance.capacities[:, None])
+        return np.asarray(instance.profits / np.maximum(burden, 1e-12))
+
+    @staticmethod
+    def perturbed_keys(
+        scores: np.ndarray, count: int, noise: float, seed: int
+    ) -> list[list[float]]:
+        """Encode the score order and noisy variants of it as key vectors.
+
+        Args:
+            scores (np.ndarray): Positive score per item.
+            count (int): Number of key vectors, at least one.
+            noise (float): Standard deviation of Gaussian noise added to the log scores.
+            seed (int): Perturbation seed.
+
+        Returns:
+            list[list[float]]: The exact score order first, then `count - 1` perturbed orders.
+
+        Raises:
+            ValueError: If the count is not positive or the noise is negative.
+        """
+        if count < 1:
+            raise ValueError("'count' must be at least one.")
+        if noise < 0.0:
+            raise ValueError("'noise' must not be negative.")
+        rng = np.random.default_rng(seed)
+        logs = np.log(np.asarray(scores, dtype=np.float64))
+        rows = [PackingFamily.order_keys(scores)]
+        rows += [
+            PackingFamily.order_keys(np.exp(logs + noise * rng.standard_normal(len(logs))))
+            for _ in range(count - 1)
+        ]
+        return rows
 
     @staticmethod
     def fill(order: np.ndarray, instance: PackingInstance) -> tuple[np.ndarray, float]:
@@ -239,3 +329,45 @@ class PackingCost:
         if np.any(self.instance.weights @ selection > self.instance.capacities + 1e-9):
             raise ValueError("Selection violates a constraint.")
         return -float(self.instance.profits @ selection)
+
+
+class PackingRun:
+    """Run the public solver on a packing decoder and verify its answer independently.
+
+    Responsibilities:
+    - Hold the one solver call shared by the packing studies.
+    """
+
+    @staticmethod
+    def solve(
+        instance: PackingInstance,
+        decoder: PackingDecoder,
+        keys: list[list[float]] | None,
+        timing: tuple[int, float],
+        engine: tuple[str, tuple[str, ...] | None],
+    ) -> tuple[float, bool]:
+        """Solve once and re-decode the returned keys outside the solver.
+
+        Args:
+            instance (PackingInstance): Packing instance.
+            decoder (PackingDecoder): Decoder handed to the solver.
+            keys (list[list[float]] | None): Optional `initial_keys` rows.
+            timing (tuple[int, float]): Solver seed and search seconds.
+            engine (tuple[str, tuple[str, ...] | None]): Python-engine execution mode and an
+                optional portfolio override.
+
+        Returns:
+            tuple[float, bool]: Independently decoded profit and whether it matches the solver's
+            reported cost.
+        """
+        result = RKO(
+            decoder,
+            PackingCost(instance),
+            instance.n_items,
+            random_state=timing[0],
+            initial_keys=keys,
+            execution=engine[0],
+            algorithms=engine[1],
+        ).solve(timing[1])
+        observed = -PackingCost(instance)(decoder(np.asarray(result.keys)))
+        return observed, bool(np.isclose(observed, -result.cost, rtol=1e-10, atol=1e-8))

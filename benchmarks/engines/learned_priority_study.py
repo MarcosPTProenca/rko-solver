@@ -39,10 +39,10 @@ import json
 import numpy as np
 import sys
 import time
-from benchmarks.engines.packing_problems import PackingCost
 from benchmarks.engines.packing_problems import PackingDecoder
 from benchmarks.engines.packing_problems import PackingFamily
 from benchmarks.engines.packing_problems import PackingInstance
+from benchmarks.engines.packing_problems import PackingRun
 from benchmarks.engines.priority_decoder_study import PairedStatistics
 from benchmarks.engines.priority_scorer import PriorityScorer
 from benchmarks.engines.priority_scorer import ReinforceTrainer
@@ -50,7 +50,6 @@ from collections.abc import Sequence
 from dataclasses import asdict
 from dataclasses import dataclass
 from pathlib import Path
-from rko_solver import RKO
 from typing import Any
 
 ARMS = ("plain", "hand_seed", "learned_seed", "hand_resid", "learned_resid")
@@ -288,23 +287,20 @@ class PriorityStudy:
         keys = [PackingFamily.order_keys(scores)] if seeded and scores is not None else None
         allowance = self.search_allowance(budget, prep)
         started = time.perf_counter()
-        result = RKO(
+        observed, verified = PackingRun.solve(
+            instance,
             decoder,
-            PackingCost(instance),
-            instance.n_items,
-            random_state=seed,
-            initial_keys=keys,
-            execution=self.design.execution,
-            algorithms=self.design.algorithms,
-        ).solve(allowance)
-        observed = -PackingCost(instance)(decoder(np.asarray(result.keys)))
+            keys,
+            (seed, allowance),
+            (self.design.execution, self.design.algorithms),
+        )
         return {
             "instance": instance.name,
             "family": instance.name.split("-")[0],
             "arm": arm,
             "budget": budget,
             "profit": observed,
-            "verified": bool(np.isclose(observed, -result.cost, rtol=1e-10, atol=1e-8)),
+            "verified": verified,
             "prep_seconds": prep,
             "allowance": allowance,
             "wall_seconds": time.perf_counter() - started + prep,
