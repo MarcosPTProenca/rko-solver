@@ -23,6 +23,7 @@ Flow (pseudocode):
 Important criteria:
 - Acceptance criterion is improvement-only (no Metropolis).
 - RVND cycles randomly through swap, mirror, Nelder-Mead, and Farey LS.
+- Reference: docs/references.md, section iterated-local-search-ils
 
 Inputs/Outputs:
 - Input: solution pool, decoder, cost, solution size, perturbation bounds,

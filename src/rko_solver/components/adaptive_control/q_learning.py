@@ -20,6 +20,7 @@ Important criteria:
 - Recompute the current best action after every Q update.
 - Preserve ascending neighbor labels and the exact initialization RNG draw order.
 - Signature indexes add temporary memory; dense graphs still require quadratic output.
+- Reference: docs/references.md, section q-learning-parameter-control
 
 Inputs/Outputs:
 - Input: parameter grid, rewards, and current time.

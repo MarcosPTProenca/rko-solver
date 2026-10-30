@@ -26,6 +26,7 @@ Important criteria:
 - Constructor validation requires elite plus mutant counts below population size,
   leaving at least one crossover offspring slot, and at least one mutant.
 - Pool update happens only when the global best improves.
+- Reference: docs/references.md, section biased-random-key-genetic-algorithm-brkga
 
 Inputs/Outputs:
 - Input: pool, decoder, cost, solution size, population params, control mode.

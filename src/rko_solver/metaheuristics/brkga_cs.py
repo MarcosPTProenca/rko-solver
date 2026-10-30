@@ -32,6 +32,7 @@ Important criteria:
 - Community search is triggered every generation or after 10 stagnant ones.
 - sigma defaults to 0.6 (Pearson correlation threshold).
 - RVND and Nelder-Mead are the two operators applied during community search.
+- Reference: docs/references.md, section brkga-with-community-structure-brkga-cs
 
 Inputs/Outputs:
 - Input: pool, decoder, cost function, solution size, population and community

@@ -7,6 +7,14 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- A [scientific reference index](docs/references.md) links every algorithm, shared component and
+  benchmark to its source paper and to the files that implement or test it, with provenance labels
+  (journal article, preprint, unpublished machine-generated proposal, no published reference). Records
+  were checked against the Crossref registry and arXiv on 2026-10-30. Four RKO-family papers whose
+  arXiv license is CC BY 4.0 are kept in `docs/references/papers/` with their SHA-256; other papers are
+  linked only. Algorithm and local-search module headers now point at their section. The installed
+  library's behavior is unchanged.
+
 - Development-only quality automation. Local hooks now mirror the hosted quality job: commit hooks
   add the document-noise gate and dead-code detection, push hooks add the type-error ratchet and the
   debt counters, and a test fails when a hosted check that can run locally has no hook. Dependabot

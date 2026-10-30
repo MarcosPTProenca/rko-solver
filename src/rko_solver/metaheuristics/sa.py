@@ -18,6 +18,7 @@ Important criteria:
 - A selected t0 governs the next cooling schedule, never resets an active temperature.
 - Completed schedules reanneal at 0.3 times the latest selected t0.
 - Empty interrupted levels receive no Q update; callbacks retain shared stopping guards.
+- Reference: docs/references.md, section simulated-annealing-sa
 
 Inputs/Outputs:
 - Input: elite pool, decoder/objective, fixed settings and an optional feasible Q grid.

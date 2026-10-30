@@ -14,6 +14,7 @@ Flow (pseudocode):
 
 Important criteria:
 - Handle minimum threshold to avoid near-zero values.
+- Reference: docs/references.md, section mirror-local-search
 
 Inputs/Outputs:
 - Input: key vector, decoder/cost callbacks, and strategy.

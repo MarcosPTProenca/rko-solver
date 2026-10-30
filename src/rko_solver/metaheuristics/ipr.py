@@ -39,6 +39,7 @@ Important criteria:
 - Pools unable to retain a pair still use bounded waiting rather than repeated seed retries.
 - The routine repeats continuously until the time budget is exhausted,
   drawing a fresh pair from the pool at each IPR call.
+- Reference: docs/references.md, section implicit-path-relinking-ipr
 
 Inputs/Outputs:
 - Input: pool, decoder, cost function, solution size.

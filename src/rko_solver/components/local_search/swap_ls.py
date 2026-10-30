@@ -13,6 +13,7 @@ Flow (pseudocode):
 
 Important criteria:
 - Return the original solution when no improvement exists.
+- Reference: docs/references.md, section swap-local-search
 
 Inputs/Outputs:
 - Input: key vector, decoder/cost callbacks, and strategy.

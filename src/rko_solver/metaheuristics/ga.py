@@ -23,6 +23,7 @@ Flow (pseudocode):
 Important criteria:
 - Only evaluates fitness after crossover is applied (gate by prob_cros).
 - Local search is applied exactly once per generation on a random individual.
+- Reference: docs/references.md, section genetic-algorithm-ga
 
 Inputs/Outputs:
 - Input: pool, decoder, cost, solution size, GA params, control mode.

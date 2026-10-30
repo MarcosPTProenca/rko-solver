@@ -32,6 +32,7 @@ Important criteria:
 - Farey-sequence candidates come from the FAREY_INTERVALS constant in
   ``components.local_search.farey_ls``.
 - Reannealing limits wasteful cooling beyond the search horizon.
+- Reference: docs/references.md, section large-neighborhood-search-lns
 
 Inputs/Outputs:
 - Input: pool, decoder, cost function, solution size, LNS parameters,

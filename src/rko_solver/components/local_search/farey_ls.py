@@ -14,6 +14,7 @@ Flow (pseudocode):
 
 Important criteria:
 - Preserve the base vector when no improvement is found.
+- Reference: docs/references.md, section farey-local-search
 
 Inputs/Outputs:
 - Input: key vector, decoder/cost callbacks, and strategy.

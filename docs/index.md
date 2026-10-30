@@ -34,6 +34,7 @@ boundaries and scientific claims that have not been established.
 | Retain authored decisions from original evaluations | [Observed decisions](decision-traces.md) |
 | Bind trusted callbacks to a private HTTP service | [Service and scaffold](service.md) |
 | Explore bounded decoder generation and held-out studies | [Experimental evolution](self-evolve.md), [locked studies](confirmation-study.md) |
+| Find the papers behind an algorithm, a component or an experiment | [Scientific references](references.md) |
 
 ## Understand the limits
 
