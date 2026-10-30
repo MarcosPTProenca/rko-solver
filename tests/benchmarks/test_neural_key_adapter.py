@@ -185,3 +185,24 @@ def test_seed_deployment_returns_to_the_original_decoder(
     row = study.trial(problem, (elite, float(min(costs)), 0.001), "neural", 2)
     assert row["verified"] and row["cost"] <= min(costs)
     assert factory.call_args.args[1] is problem.decoder
+
+
+def test_explicit_preparation_keeps_the_post_preparation_search_allowance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Explicit preparation adds to the total charge rather than erasing the final allowance.
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): Installs a forwarding spy on real solver construction.
+    """
+    problem = ProblemFamily.make("sphere", 12, 1)
+    elite = archive(1)
+    incumbent = float(problem.cost(problem.decoder(elite[0])))
+    design = AdapterDesign(size=12, budget=0.05, preparation_seconds=1.0)
+    study = AdapterStudy(design)
+    factory = Mock(wraps=AdapterStudy.solver)
+    monkeypatch.setattr(study, "solver", factory)
+    row = study.trial(problem, (elite, incumbent, 0.9), "seeded", 1)
+    assert row["verified"] and row["search_evaluations"] > 0
+    assert row["search_allowance"] > 0.05
+    assert row["charged_seconds"] >= 0.9

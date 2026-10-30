@@ -28,6 +28,10 @@ Important criteria:
 - A third development screen uses coupling only to propose 32 checked starting candidates, then
   restores the original decoder for search: `--deployment seeds --first-seed 3508`. All checking
   time is charged and the non-neural marginal control receives the same proposal count.
+- A fourth screen follows the user's decision to allow 60 seconds of one-time preparation:
+  `--generator coupling --deployment seeds --preparation 60 --budget 2 --epochs 400
+  --train-cap 10 --archive-size 128 --first-seed 3512`. Every arm's total allowance is 62 seconds;
+  unused preparation returns to search, and the plain arm receives all 62 seconds.
 - Freeze the architecture before screening. Reserve seeds 4000 onward for a later confirmation;
   screening cannot establish release readiness.
 - Advance only with three neural wins over plain, no significant loss over plain, better mean
@@ -84,6 +88,10 @@ class AdapterDesign:
         archive_size (int): Maximum number of retained elite keys.
         generator (str): Bottleneck reconstruction or full-dimensional coupling candidate.
         deployment (str): Decode every evaluation or generate starting keys once.
+        preparation_seconds (float | None): One-time preparation allowance. When set, warm-up uses
+            it, every arm's total allowance is `preparation_seconds + budget`, and unused
+            preparation time returns to search.
+        epochs (int): Maximum neural training steps.
     """
 
     size: int = 300
@@ -95,6 +103,8 @@ class AdapterDesign:
     archive_size: int = 32
     generator: str = "bottleneck"
     deployment: str = "decoder"
+    preparation_seconds: float | None = None
+    epochs: int = 40
 
 
 class ArchiveCost:
@@ -218,7 +228,11 @@ class AdapterStudy:
         recorder = ArchiveCost(problem, self.design.archive_size)
         wrapped = Problem(problem.label, IdentityDecoder(), recorder, problem.n_variables)
         search = self.solver(wrapped, wrapped.decoder, seed)
-        allowance = self.design.budget * self.design.warm_fraction
+        allowance = (
+            self.design.preparation_seconds
+            if self.design.preparation_seconds is not None
+            else self.design.budget * self.design.warm_fraction
+        )
         result = search.solve(max(allowance - (time.perf_counter() - started), 1e-6))
         return recorder.rows(), float(result.cost), time.perf_counter() - started
 
@@ -242,7 +256,12 @@ class AdapterStudy:
             self.design.generator
         ]
         distribution = (
-            generator.fit(elite, seed, deadline=time.perf_counter() + self.design.train_cap)
+            generator.fit(
+                elite,
+                seed,
+                self.design.epochs,
+                time.perf_counter() + self.design.train_cap,
+            )
             if arm == "neural"
             else generator.marginal(elite)
         )
@@ -346,7 +365,8 @@ class AdapterStudy:
         search, proposal_seconds, proposal_evaluations = self.prepare_search(
             problem, decoder, elite, arm, seed
         )
-        remaining = max(self.design.budget - charge - (time.perf_counter() - started), 0.0)
+        total = self.design.budget + (self.design.preparation_seconds or 0.0)
+        remaining = max(total - charge - (time.perf_counter() - started), 0.0)
         cost = incumbent if arm != "plain" else float("inf")
         verified = True
         search_evaluations = 0
@@ -484,6 +504,10 @@ def main() -> int:
     parser.add_argument("--first-seed", type=int, default=3500)
     parser.add_argument("--generator", choices=("bottleneck", "coupling"), default="bottleneck")
     parser.add_argument("--deployment", choices=("decoder", "seeds"), default="decoder")
+    parser.add_argument("--preparation", type=float, default=None)
+    parser.add_argument("--epochs", type=int, default=40)
+    parser.add_argument("--train-cap", type=float, default=0.05)
+    parser.add_argument("--archive-size", type=int, default=32)
     parser.add_argument("--output", type=Path, default=Path("results/neural-adapter-screen.json"))
     options = parser.parse_args()
     design = AdapterDesign(
@@ -493,6 +517,10 @@ def main() -> int:
         options.first_seed,
         generator=options.generator,
         deployment=options.deployment,
+        preparation_seconds=options.preparation,
+        epochs=options.epochs,
+        train_cap=options.train_cap,
+        archive_size=options.archive_size,
     )
     study = AdapterStudy(design)
     rows = study.run()
