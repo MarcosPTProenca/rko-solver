@@ -4,6 +4,7 @@ Objective:
 - Independently verify all completed objective calls and immutable search settings.
 
 Technical approach:
+- Delay process release and bound objective work independently of scheduler timing.
 - Persist one byte per finite objective in separate process/thread observation files.
 - Compare public totals with actual callback work across every execution mode.
 
@@ -17,7 +18,7 @@ Important criteria:
 - Metadata includes all algorithms, not only the worker or portfolio winner.
 
 Inputs/Outputs:
-- Input: temporary observations and short domain-neutral searches.
+- Input: temporary observations and evaluation-bounded domain-neutral searches.
 - Output: accounting, configuration, seed and ownership assertions.
 """
 
@@ -26,7 +27,9 @@ import numpy as np
 import os
 import pytest
 import threading
+import time
 from dataclasses import dataclass
+from multiprocessing.synchronize import Event
 from pathlib import Path
 from rko_solver import RKO
 from rko_solver.parameters.loader import load_offline
@@ -106,7 +109,11 @@ class FirstKeysCost(ObservedCost):
 )
 @pytest.mark.parametrize("control", [0, 1])
 def test_metadata_counts_all_searches(
-    execution: str, n_jobs: int | None, control: int, tmp_path: Path
+    execution: str,
+    n_jobs: int | None,
+    control: int,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Match successful callback work, actual seeds and initial settings.
 
@@ -115,7 +122,21 @@ def test_metadata_counts_all_searches(
         n_jobs (int | None): Dedicated or grouped process budget.
         control (int): Offline or supported adaptive control.
         tmp_path (Path): Independent trial observations.
+        monkeypatch (pytest.MonkeyPatch): Inject delayed process release to exercise scheduling lag.
     """
+    release = Event.set
+
+    def delayed_release(event: Event) -> None:
+        """Delay the parent's event release to simulate a descheduled search worker.
+
+        Args:
+            event (Event): Process synchronization event awaiting release.
+        """
+        time.sleep(0.05)
+        release(event)
+
+    if execution == "process":
+        monkeypatch.setattr(Event, "set", delayed_release)
     result = RKO(
         decode,
         ObservedCost(tmp_path),
@@ -125,8 +146,9 @@ def test_metadata_counts_all_searches(
         execution=execution,
         n_jobs=n_jobs,
         random_state=42,
+        max_evaluations=40,
         hyperparameters={"PSO": {"p_size": 4}} if control == 0 else None,
-    ).solve(0.03)
+    ).solve(60.0)
     observed = sum(path.stat().st_size for path in tmp_path.iterdir())
     assert result.n_evaluations == observed
     assert result.n_evaluations == sum(item.n_evaluations for item in result.searches)
@@ -135,9 +157,10 @@ def test_metadata_counts_all_searches(
     assert [item.random_state for item in result.searches] == [
         int(seed.generate_state(1)[0]) for seed in seeds
     ]
-    assert result.stop_reason == "time_limit"
+    assert result.stop_reason == "max_evaluations"
+    assert result.max_evaluations == 40
     assert result.n_variables == 8
-    assert result.time_limit == 0.03
+    assert result.time_limit == 60.0
     assert result.control == control
     assert result.pool_size > 0
     assert result.n_jobs == n_jobs
@@ -150,14 +173,9 @@ def test_metadata_counts_all_searches(
     for report in result.searches:
         assert report.elapsed_seconds >= 0
         assert 0 <= report.time_limit <= result.time_limit
-        if report.stop_reason == "not_started":
-            assert report.time_limit == 0
-            assert report.n_evaluations == 0
-            assert report.elapsed_seconds == 0
-        else:
-            assert report.time_limit > 0
-            assert report.n_evaluations >= 1
-            assert report.stop_reason in ("completed", "time_limit")
+        assert report.time_limit > 0
+        assert report.n_evaluations == 40
+        assert report.stop_reason == "max_evaluations"
 
 
 @pytest.mark.parametrize("execution", ["sequential", "thread", "process"])
@@ -175,7 +193,8 @@ def test_unseeded_result_records_actual_execution_seed(execution: str, tmp_path:
         algorithms=["MultiStart"],
         control=0,
         execution=execution,
-    ).solve(0.01)
+        max_evaluations=1,
+    ).solve(60.0)
     report = result.searches[0]
     assert result.random_state is None
     assert type(report.random_state) is int

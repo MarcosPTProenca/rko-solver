@@ -4,6 +4,7 @@ Objective:
 - Verify authentication, admission, numeric/validation separation and owned-process cleanup.
 
 Technical approach:
+- Poll asynchronous process exit with one bounded allowance for cancellation and shutdown.
 - Use small importable probe callbacks with intentional blocking/failure behaviors.
 - Exercise Linux spawn/session supervision through the authenticated public API.
 
@@ -34,6 +35,7 @@ from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Literal
+from unittest.mock import Mock
 
 try:
     pytest.importorskip("httpx2")
@@ -245,6 +247,42 @@ def poll(client: TestClient, identifier: str, timeout: float = 15) -> dict[str, 
     raise AssertionError("Owned job did not become terminal within the test deadline.")
 
 
+def assert_processes_stopped(pids: tuple[int, ...]) -> None:
+    """Await absent or zombie states after signalling fixture-owned processes.
+
+    Args:
+        pids (tuple[int, ...]): Process identifiers created by the current test fixture.
+
+    Raises:
+        AssertionError: If any owned process remains live after the bounded exit allowance.
+        OSError: If a process status cannot be read for a reason other than process exit.
+    """
+    deadline = time.monotonic() + 2
+    for pid in pids:
+        status = Path(f"/proc/{pid}/status")
+        while True:
+            try:
+                status_text = status.read_text()
+            except FileNotFoundError, ProcessLookupError:
+                break
+            if "State:\tZ" in status_text:
+                break
+            assert time.monotonic() < deadline, f"Owned process {pid} survived termination"
+            time.sleep(0.025)
+
+
+def test_process_cleanup_wait_rejects_a_surviving_process(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep the asynchronous-exit allowance bounded when an owned process never stops.
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): Supply a live status and an exhausted deadline.
+    """
+    monkeypatch.setattr(Path, "read_text", Mock(return_value="State:\tR (running)\n"))
+    monkeypatch.setattr(time, "monotonic", Mock(side_effect=(0.0, 2.0)))
+    with pytest.raises(AssertionError, match="Owned process 123456 survived termination"):
+        assert_processes_stopped((123456,))
+
+
 @pytest.fixture
 def pace(tmp_path: Path) -> float:
     """Measure how long this host currently needs to start and finish one real job.
@@ -366,11 +404,14 @@ def test_authentication_and_redacted_json_boundary(client: TestClient) -> None:
     assert "sensitive-instance" not in rejected.text and "/private" not in rejected.text
 
 
-def test_busy_health_cancel_and_descendant_cleanup(tmp_path: Path) -> None:
-    """Keep health responsive while cancelling a real group containing a blocked descendant.
+def test_busy_health_cancel_and_descendant_cleanup(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Serve health during blocked work and await asynchronous descendant termination.
 
     Args:
         tmp_path (Path): Fixture-owned marker and service storage.
+        monkeypatch (pytest.MonkeyPatch): Inject one pending process-state observation after cancel.
     """
     with TestClient(make_app(tmp_path)) as current:
         current.headers["Authorization"] = f"Bearer {TOKEN}"
@@ -380,19 +421,44 @@ def test_busy_health_cancel_and_descendant_cleanup(tmp_path: Path) -> None:
         while not (tmp_path / "marker.json").exists() and time.monotonic() < deadline:
             time.sleep(0.025)
         marker = json.loads((tmp_path / "marker.json").read_text())
-        started = time.monotonic()
         assert current.get("/health").status_code == 200
-        assert time.monotonic() - started < 1
+        assert current.get(f"/jobs/{identifier}").json()["state"] not in TERMINAL
         assert current.post("/jobs", json={"instance": {}}).status_code == 429
         assert current.delete(f"/jobs/{identifier}").status_code == 202
         assert poll(current, identifier)["state"] == "cancelled"
-        for pid in (marker["pid"], marker["child"]):
-            status = Path(f"/proc/{pid}/status")
-            try:
-                status_text = status.read_text()
-            except FileNotFoundError, ProcessLookupError:
-                continue
-            assert "State:\tZ" in status_text
+        read_status = Path.read_text
+        pending = True
+
+        def pending_exit(
+            path: Path,
+            encoding: str | None = None,
+            errors: str | None = None,
+            *,
+            newline: str | None = None,
+        ) -> str:
+            """Expose one pending child exit before reading its actual kernel state.
+
+            Args:
+                path (Path): Requested filesystem path.
+                encoding (str | None): Optional text encoding.
+                errors (str | None): Optional decoding error policy.
+                newline (str | None): Optional newline translation policy.
+
+            Returns:
+                str: One running observation or the actual file contents.
+
+            Raises:
+                OSError: If the actual path cannot be read.
+            """
+            nonlocal pending
+            if pending and path == Path(f"/proc/{marker['child']}/status"):
+                pending = False
+                return "State:\tR (running)\n"
+            return read_status(path, encoding=encoding, errors=errors, newline=newline)
+
+        monkeypatch.setattr(Path, "read_text", pending_exit)
+        assert_processes_stopped((marker["pid"], marker["child"]))
+        assert not pending
 
 
 @pytest.mark.parametrize("mode,expected", [("blocked", "timed_out"), ("post_blocked", "completed")])
@@ -523,18 +589,7 @@ def test_shutdown_stops_running_descendants(tmp_path: Path) -> None:
         while not (tmp_path / "marker.json").exists() and time.monotonic() < deadline:
             time.sleep(0.025)
         marker = json.loads((tmp_path / "marker.json").read_text())
-    deadline = time.monotonic() + 2
-    for pid in (marker["pid"], marker["child"]):
-        status = Path(f"/proc/{pid}/status")
-        while True:
-            try:
-                status_text = status.read_text()
-            except FileNotFoundError, ProcessLookupError:
-                break
-            if "State:\tZ" in status_text:
-                break
-            assert time.monotonic() < deadline, f"Process {pid} survived shutdown"
-            time.sleep(0.025)
+    assert_processes_stopped((marker["pid"], marker["child"]))
     state = json.loads((tmp_path / "jobs" / identifier / "state.json").read_text())
     assert state["state"] == "interrupted"
 
