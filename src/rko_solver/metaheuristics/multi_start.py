@@ -18,6 +18,7 @@ Flow (pseudocode):
 Important criteria:
 - No local search or perturbation operators are applied.
 - Serves as a baseline and warm-up mechanism for the shared solution pool.
+- Reference: docs/references.md, section multi-start
 
 Inputs/Outputs:
 - Input: solution pool, decoder, cost, solution size, and time limit.

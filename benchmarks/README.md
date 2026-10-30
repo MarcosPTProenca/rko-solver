@@ -2151,6 +2151,10 @@ PY
 
 ## Priority decoder pilot (training-free, Knapsack only)
 
+Sources: the [Q-RKO proposal](../docs/references.md#q-rko-proposal) (unpublished, machine-generated) for the
+residual-priority and quantile decoders, and [Pisinger 2005](../docs/references.md#knapsack-instance-families)
+for the instance families.
+
 `benchmarks/engines/priority_decoder_study.py` asks whether an analytic item prior inside the
 decoder helps the default portfolio, before any network is trained. The decoders live in
 `examples/priority_decoders.py`: the plain sort decoder, a residual-priority decoder
@@ -2226,6 +2230,8 @@ the prior inside a residual decoder beats the same prior used as a seed; see
 [learned item priorities](#learned-item-priorities-the-learned-priority-design-of-the-q-rko-proposal).
 
 ## Surrogate seeds across unrelated problems (negative result)
+
+Sources: none; this is an [experiment without a source paper](../docs/references.md#experiments-without-a-source-paper).
 
 `benchmarks/engines/surrogate_seed_study.py` asks whether starting keys built from a model fitted only
 to `(keys, cost)` pairs, with no domain features, improve the default portfolio after charging probing
@@ -2303,6 +2309,8 @@ them.
 
 ### Nonlinear seed pilot: a small NumPy network
 
+Sources: none; see [experiments without a source paper](../docs/references.md#experiments-without-a-source-paper).
+
 The follow-up trains a one-hidden-layer neural network on sampled `(keys, cost)` pairs for each
 instance. It is a neural cost predictor that proposes starting keys, not a learned replacement for
 the user's decoder. No problem-specific features or pretrained weights enter the model. No public
@@ -2362,6 +2370,10 @@ decoders are impossible. The experiment still requires an existing decoder and t
 solve automatic decoder construction.
 
 ### Learned key distributions composed with the user's decoder
+
+Sources: no source paper for the design; the [denoising autoencoder](../docs/references.md#denoising-autoencoder)
+is the one published component, and
+[related neural combinatorial optimization](../docs/references.md#neural-combinatorial-optimization) is listed.
 
 The previous pilot used a network to predict costs. This one tests a different mechanism, closer to a
 neural decoder: learn a distribution of good keys from an archive of evaluated solutions and compose it
@@ -2430,11 +2442,16 @@ trajectory; it does not show that a differently built neural decoder cannot help
 
 ### Learned item priorities (the learned-priority design of the Q-RKO proposal)
 
+Sources: the [Q-RKO proposal](../docs/references.md#q-rko-proposal);
+[REINFORCE and the leave-one-out baseline](../docs/references.md#reinforce-and-the-leave-one-out-baseline);
+[ranking model and order sampling](../docs/references.md#ranking-model-and-order-sampling);
+[Adam](../docs/references.md#adam-optimizer).
+
 The earlier pilots tested mechanisms of my own. This one tests the design the Q-RKO proposal gives for a
 learned decoder prior: a small per-family network scores each item from instance features, a
 residual-priority decoder adds the scores to the keys, and the network is trained offline with REINFORCE
 and a leave-one-out baseline. The proposal is a machine-generated method proposal that reports no trained
-model, not a peer-reviewed result; a full citation is pending the reference index.
+model, not a peer-reviewed result; see the [reference index](../docs/references.md#unpublished-proposals).
 
 `packing_problems.py` holds two families that share one decoder: Knapsack with one strongly correlated
 constraint, where the hand-written ratio rule is nearly optimal, and a five-constraint packing family

@@ -25,6 +25,7 @@ Important criteria:
   used as simplex vertices (matching C++ behaviour).
 - Swap, mirror and Farey build their own shuffled exploration orders; this
   function has no rk_order parameter.
+- Reference: docs/references.md, section random-variable-neighborhood-descent-rvnd
 
 Inputs/Outputs:
 - Input: key vector, decoder, cost, optional strategy, optional pool.

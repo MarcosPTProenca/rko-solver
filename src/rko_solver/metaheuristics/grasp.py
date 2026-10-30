@@ -37,6 +37,7 @@ Important criteria:
 - Exact-ratio bounds avoid reciprocal overflow; tiny steps need only O(log(1/h)) slots.
 - Selected shifted values stay in [0,1); an existing endpoint-one incumbent is retained.
 - Temperature for Metropolis decreases linearly from 100 to 0 over limit_time.
+- Reference: docs/references.md, section grasp
 
 Inputs/Outputs:
 - Input: pool, decoder, cost function, solution size, GRASP parameters,

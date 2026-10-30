@@ -69,6 +69,7 @@ nav:
   - Reference:
       - Development status and limitations: status.md
       - Convergence guarantees: guarantees.md
+      - Scientific references: references.md
       - C++ compatibility: cpp-compatibility.md
   - Scientific diagnostics:
       - Performance baseline: performance-baseline.md

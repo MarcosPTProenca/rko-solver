@@ -1,6 +1,6 @@
 # What RKO guarantees about convergence
 
-[Documentation index](index.md) · [Limitations](status.md) · [Parameter reference](parameters.md)
+[Documentation index](index.md) · [Limitations](status.md) · [Parameter reference](parameters.md) · [Scientific references](references.md#convergence)
 
 This page states the one convergence property the library can defend with a proof and a test,
 and what it does **not** tell you. It is a safety property, not a speed or quality claim.

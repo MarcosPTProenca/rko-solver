@@ -25,6 +25,7 @@ Flow (pseudocode):
 Important criteria:
 - Out-of-bounds positions are reverted individually per gene.
 - Pool update only when Gbest strictly improves.
+- Reference: docs/references.md, section particle-swarm-optimization-pso
 
 Inputs/Outputs:
 - Input: pool, decoder, cost, solution size, swarm params, control mode.

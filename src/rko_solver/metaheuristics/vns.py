@@ -25,6 +25,7 @@ Flow (pseudocode):
 Important criteria:
 - Perturbation intensity grows with neighborhood depth.
 - Acceptance criterion for moving s is improvement over s (not sBest).
+- Reference: docs/references.md, section variable-neighborhood-search-vns
 
 Inputs/Outputs:
 - Input: solution pool, decoder, cost, solution size, kMax, beta_min, control.

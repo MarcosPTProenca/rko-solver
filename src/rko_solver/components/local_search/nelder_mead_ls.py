@@ -20,6 +20,7 @@ Important criteria:
 - Reset the stagnation counter when improvement occurs.
 - Use a minimum iteration limit based on problem dimension.
 - Pool is optional; behaviour degrades gracefully to random simplex when absent.
+- Reference: docs/references.md, section nelder-mead-simplex
 
 Inputs/Outputs:
 - Input: key vector, decoder, objective function, and optional elite pool.
