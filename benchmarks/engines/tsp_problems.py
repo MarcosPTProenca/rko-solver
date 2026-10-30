@@ -160,7 +160,7 @@ class TspFamily:
         allowed = np.triu(np.ones((count, count), dtype=bool), 1)
         allowed[0, count - 1] = False
         tour = np.asarray(tour).copy()
-        for _ in range(10 * count):
+        while True:
             local = distance[np.ix_(tour, tour)]
             edge = np.diagonal(np.roll(local, -1, axis=1))
             delta = np.where(
