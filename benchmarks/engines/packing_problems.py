@@ -28,9 +28,9 @@ Inputs/Outputs:
 from __future__ import annotations
 
 import numpy as np
+from benchmarks.engines.solver_run import SolverRun
 from dataclasses import dataclass
 from dataclasses import field
-from rko_solver import RKO
 
 DUAL_STEPS = 300
 
@@ -346,28 +346,18 @@ class PackingRun:
         timing: tuple[int, float],
         engine: tuple[str, tuple[str, ...] | None],
     ) -> tuple[float, bool]:
-        """Solve once and re-decode the returned keys outside the solver.
+        """Delegate to the shared verified solve and report profit, not cost.
 
         Args:
             instance (PackingInstance): Packing instance.
-            decoder (PackingDecoder): Decoder handed to the solver.
-            keys (list[list[float]] | None): Optional `initial_keys` rows.
-            timing (tuple[int, float]): Solver seed and search seconds.
-            engine (tuple[str, tuple[str, ...] | None]): Python-engine execution mode and an
-                optional portfolio override.
+            decoder (PackingDecoder): Decoder for the instance.
+            keys (list[list[float]] | None): Optional seed key vectors.
+            timing (tuple[int, float]): Seed and search seconds.
+            engine (tuple[str, tuple[str, ...] | None]): Execution mode and portfolio override.
 
         Returns:
-            tuple[float, bool]: Independently decoded profit and whether it matches the solver's
-            reported cost.
+            tuple[float, bool]: Profit decoded outside the solver and the verification flag.
         """
-        result = RKO(
-            decoder,
-            PackingCost(instance),
-            instance.n_items,
-            random_state=timing[0],
-            initial_keys=keys,
-            execution=engine[0],
-            algorithms=engine[1],
-        ).solve(timing[1])
-        observed = -PackingCost(instance)(decoder(np.asarray(result.keys)))
-        return observed, bool(np.isclose(observed, -result.cost, rtol=1e-10, atol=1e-8))
+        cost = PackingCost(instance)
+        observed, verified = SolverRun.solve(decoder, cost, instance.n_items, engine, timing, keys)
+        return -observed, verified

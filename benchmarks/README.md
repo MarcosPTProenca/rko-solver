@@ -2592,5 +2592,95 @@ Decision: under fair controls a prior inside the residual decoder beats the same
 `initial_keys`, by a small but consistent margin, and both beat plain RKO by a wide one. This supports
 building an opt-in helper that turns a user-supplied per-item priority into the residual decoder: its form
 does not depend on the problem, because the user supplies the scores. It does not yet justify one, because
-only greedy-fill packing was tested. The next test should use a different decoder class, for example a
-sort decoder for the traveling salesman problem with a tour-position prior.
+only greedy-fill packing was tested. The test on a different decoder class, a sort decoder for the
+traveling salesman problem, is in [decoder form on the traveling-salesman problem](#decoder-form-on-the-traveling-salesman-problem); it did not confirm the result.
+
+### Decoder form on the traveling-salesman problem
+
+The packing result held for a decoder that fills items greedily in priority order. This study asks
+whether it holds for a permutation sort decoder, where the prior is a whole tour. It reuses the arms,
+the paired statistics and the decision rule of the packing study, through the shared `FormStudy` base.
+
+Sources: no source paper for the design; the residual-priority decoder is the Q-RKO proposal's
+(unpublished and machine-generated). The 1-tree lower bound follows the idea of Held and Karp, "The
+Traveling-Salesman Problem and Minimum Spanning Trees", *Operations Research* 18(6), 1138-1162, 1970
+([DOI](https://doi.org/10.1287/opre.18.6.1138)), and the 2-opt move is the edge exchange of Croes, "A
+Method for Solving Traveling-Salesman Problems", *Operations Research* 6(6), 791-812, 1958
+([DOI](https://doi.org/10.1287/opre.6.6.791)); the text of neither was opened, and the implementations
+here are this repository's own (see [the reference index](../docs/references.md)).
+
+`tsp_problems.py` generates uniform and clustered Euclidean instances (six Gaussian clusters), builds a
+nearest-neighbour tour and a 2-opt tour from it, and computes the 1-tree bound (300 projected subgradient
+steps). `TspDecoder` sorts cities by the rank-normalized position in the prior tour plus a spread times
+the centered key. `tsp_decoder_form_study.py` runs the eight arms of the packing study with the tours as
+priors: plain RKO; each tour seeded as one key vector (`seed1`) and as 32 perturbed orders (`seed32`);
+each tour inside the residual decoder (`resid`); and a rerun of the 2-opt residual arm. Unlike the packing
+study, the seeding noise is tuned as well as the residual spread, each on validation seeds 6500 to 6503
+at the 2 s budget by tour length over the bound, so the seeding control is tuned as much as the decoder.
+Test seeds are 8000 to 8011 per family, 100 cities, budgets 2 s and 10 s.
+
+```bash
+uv run --locked python -m benchmarks.engines.tsp_decoder_form_study --output results/tsp-decoder-form-study.json
+```
+
+Design choices made before the study, after two throwaway smoke runs on seeds from 9000 that are not in
+the results: at 250 cities the key-space search could not improve a 2-opt tour in the allowance, and the
+packing spread grid (0.05 and up) decoded random keys to near-random tours. The study therefore uses 100
+cities and positional grids of 0.01 to 0.5 for the spread and 0.005 to 0.3 for the seeding noise.
+
+Rule, committed in `2d10f8b` before the run (the commit was `60c1e58` before the branch was rebased onto
+the merged reference index; the content is the same): advance only if, for both priors, both families and both
+budgets, the residual decoder beats 32-order seeding and beats plain RKO, each with a paired 95 percent
+bootstrap interval entirely below zero; the 2-opt prior alone is a partial result and does not advance.
+
+[Reference measurement](references/tsp-decoder-form-study-reference.json), 12 test instances per family,
+384 trials with every decoded tour length re-verified. Mean percentage gap above the shortest tour any
+arm found (lower is better):
+
+| Family, budget | plain | NN seed1 | NN seed32 | NN resid | 2-opt seed1 | 2-opt seed32 | 2-opt resid | 2-opt resid rerun |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Uniform, 2 s | 76.25 | 8.78 | 9.44 | 14.70 | 0.19 | 0.15 | 0.46 | 0.44 |
+| Uniform, 10 s | 41.34 | 6.14 | 6.62 | 12.88 | 0.05 | 0.09 | 0.43 | 0.43 |
+| Clustered, 2 s | 95.28 | 10.03 | 10.33 | 14.48 | 0.35 | 0.25 | 0.89 | 0.89 |
+| Clustered, 10 s | 58.21 | 5.85 | 5.73 | 14.15 | 0.00 | 0.06 | 0.89 | 0.89 |
+
+The rule is not met, and the direction is the opposite of the packing result. 2-opt residual minus 2-opt
+32-order seeding, paired difference in percentage points with its 95 percent interval and wins/losses/ties
+of the residual arm (positive means the residual arm is worse):
+
+| Family, budget | Difference | Interval | W/L/T |
+|---|---:|---|---|
+| Uniform, 2 s | +0.32 | +0.07 to +0.67 | 1/7/4 |
+| Uniform, 10 s | +0.34 | +0.09 to +0.69 | 0/7/5 |
+| Clustered, 2 s | +0.65 | +0.39 to +0.93 | 0/11/1 |
+| Clustered, 10 s | +0.84 | +0.52 to +1.19 | 0/12/0 |
+
+With the nearest-neighbour prior seeding wins by 4.2 to 8.4 points, and the residual arm beats 32-order seeding
+in 2 of 48 instance and budget pairs. Against plain RKO both residual arms are far better (28 to 94 points,
+12 of 12 instances in every cell), and so is seeding. The residual arm with the 2-opt prior returns
+almost exactly the prior tour: on the clustered family at 10 s it is 0.89 percent above the best tour
+found, which is the same amount by which the unchanged 2-opt tour trails the one-vector seeded result
+on average, so the search added almost nothing to the prior. The
+rerun gives the identical length on all 12 instances in three of the four cells and on 6 of 12 in the
+fourth, so the decoder is nearly deterministic at the chosen spreads, and the noise floor is 0.005
+points. Every 2-opt arm ends 4.7 to 7.5 percent above the lower bound, so the bound does not separate
+them.
+
+Limits: 12 test instances per family and 100 cities; two Euclidean families; two hand-built priors; one
+decoder class, a plain sort of positions, with no local search inside the decoder; three tuned values sit
+at the edge of their grid (the clustered 2-opt spread, 0.01, is the smallest, and the 2-opt seeding noise,
+0.3, is the largest for both families). A smaller spread can only approach the prior tour itself, which
+is already worse than the seeded result, so that edge does not threaten the verdict; a larger seeding
+noise may favor seeding further. The 2-opt prior leaves little headroom (0.3 to 0.9 percent), so a
+weaker, cheaper prior is the better test of the form and there the residual lost by more. Why the
+residual form loses here is not tested: a plausible reading is that a small spread only lets neighboring
+cities swap positions, a much smaller neighborhood than the one seeded search reaches through the
+portfolio's operators, but this is an inference. Wall time per solve includes about one second of process
+startup, equal for every arm; one machine, one run; the design followed the packing study and two smoke
+runs, so this is a development study and not a confirmation.
+
+Decision: the decoder-form advantage does not carry over from greedy-fill packing to a permutation sort
+decoder; there, seeding the same prior through `initial_keys` is better, by 0.3 to 0.8 points for a good
+tour and 4 to 8 points for a rough one. This does not support an opt-in residual-decoder helper in the
+library. `initial_keys` remains the general way to use a prior, and the residual form is supported only
+for greedy-fill packing, a single decoder class.

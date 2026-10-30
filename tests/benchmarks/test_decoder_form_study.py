@@ -29,11 +29,11 @@ import pytest
 from benchmarks.engines.decoder_form_study import ARMS
 from benchmarks.engines.decoder_form_study import KINDS
 from benchmarks.engines.decoder_form_study import PAIRS
-from benchmarks.engines.decoder_form_study import SEED_COUNT
-from benchmarks.engines.decoder_form_study import SPREADS
-from benchmarks.engines.decoder_form_study import DecoderFormDecision
-from benchmarks.engines.decoder_form_study import DecoderFormDesign
 from benchmarks.engines.decoder_form_study import DecoderFormStudy
+from benchmarks.engines.form_decision import DecoderFormDecision
+from benchmarks.engines.form_study import SEED_COUNT
+from benchmarks.engines.form_study import SPREADS
+from benchmarks.engines.form_study import DecoderFormDesign
 from benchmarks.engines.packing_problems import PackingFamily
 from typing import Any
 
