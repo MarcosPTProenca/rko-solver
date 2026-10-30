@@ -2357,3 +2357,70 @@ Decision: do not promote this implementation to a general solver feature on the 
 That is a result about this short-budget neural seeding procedure, not proof that deep-learning
 decoders are impossible. The experiment still requires an existing decoder and therefore does not
 solve automatic decoder construction.
+
+### Learned key distributions composed with the user's decoder
+
+The previous pilot used a network to predict costs. This one tests a different mechanism, closer to a
+neural decoder: learn a distribution of good keys from an archive of evaluated solutions and compose it
+with the caller's unchanged decoder, with no problem features. `neural_key_adapter.py` fits a denoising
+autoencoder whose small hidden layer is a bottleneck; `coupled_key_distribution.py` fits a
+full-dimensional conditional shift that keeps every search direction and has an inverse. Both retain a
+protected uniform route, so any original key vector stays reachable, and both fall back to an
+independent-coordinate distribution when training is skipped or fails its validation. They are benchmark
+prototypes, not part of the installed package.
+
+`neural_adapter_study.py` collects a bounded archive with a warm-up search and compares four arms at an
+equal charged total: plain RKO, the same warm start without a model (`seeded`), a non-neural
+independent-coordinate logit distribution (`marginal`) and the network (`neural`). Warm-up time is
+charged to every adapted arm. Screening rule, fixed before the first run: the network must beat plain on
+at least three of five groups with an unadjusted paired 95 percent bootstrap interval below zero, lose
+significantly on none, beat the seeded arm on those groups, and beat the marginal control significantly on
+at least one. Six development screens, four instances per group, were run; each had its protocol committed
+before it ran, and confirmation seeds 4000 and above were never used.
+
+| Screen | Setup | Wins | Significant losses | Valid? |
+|---|---|---|---|---|
+| [1](references/neural-adapter-screen-1-reference.json) | bottleneck network, served per evaluation, 2 s, 300 keys | 0 | 4 | archive and seed defects below |
+| [2](references/neural-adapter-screen-2-reference.json) | full-dimensional coupling, same setup | 0 | 4 | same defects |
+| [3](references/neural-adapter-screen-3-reference.json) | coupling proposes keys checked once, original decoder serves | 0 | 2 | same defects |
+| [4](references/neural-adapter-screen-4-reference.json) | as 3 with 60 s preparation (your allowance), 300 keys | 0 | 1 | archive defect collapsed the archives; no headroom |
+| [5](references/neural-adapter-screen-5-reference.json) | as 4 at 1,000 keys, archive fixed | 0 | 0 | uninformative: warm-up shared the plain arm's seed |
+| [6](references/neural-adapter-screen-6-reference.json) | as 5 at 3,000 keys, independent warm-up seed | 0 | 1 | has headroom; see below |
+
+Two harness defects were found along the way and fixed with tests that failed first. The archive recorder
+re-admitted a stalled incumbent on every evaluation, so a long warm-up left copies of one vector (one
+distinct row on the sphere); screens 1 to 4 ran before that fix, and it mattered most in screen 4. The
+warm-up search used the same algorithm and seed as the plain arm, so at 60 s every adapted arm replayed
+plain's own trajectory; screens 1 to 5 ran before that fix and screen 5 tied by construction. A pilot on
+throwaway seeds showed plain RKO still varied between seeds at 3,000 keys (62 s runs differed by 0.02 to
+0.10 of the random-to-best scale) but was saturated on three groups at 1,000 keys, hence screen 6.
+
+Screen 6 mean normalized gaps (lower is better), 62 s charged to every arm:
+
+| Group | plain | seeded | marginal | neural |
+|---|---:|---:|---:|---:|
+| Knapsack, sort decoder | 0.0000 | 0.0762 | 0.0762 | 0.0784 |
+| Knapsack, threshold decoder | 0.0060 | 0.0112 | 0.0112 | 0.0112 |
+| Traveling salesman, sort decoder | 0.0227 | 0.0038 | 0.0038 | 0.0038 |
+| Shifted sphere | 0.0035 | 0.0160 | 0.0160 | 0.0160 |
+| Shifted Rastrigin | 0.0031 | 0.0041 | 0.0041 | 0.0041 |
+
+The network never beat the warm start or the non-neural control. On four groups its final cost equalled
+both on every instance (paired differences exactly zero), and on Knapsack with the sort decoder it was
+slightly worse (+0.0022, one loss of four). Its proposals did not improve on the incumbent of a 60 s
+warm-up. The seeded arm also lost to plain on Knapsack with the sort decoder (0.0762 against 0.0000, zero
+wins in four), which the warm-up running through a recording wrapper may partly explain; this was not
+isolated. At 3,000 keys the network's own preparation (training plus checking 32 proposals) took about
+1.9 s, so its final search received about 0.09 s against 1.98 s for the seeded arm. That cost is charged,
+as the rule requires, but it means the final search could not act on the proposals.
+
+Limits: four instances per group, one machine and one run per trial; six screens were adapted in
+sequence on development seeds, so none is a confirmation; one warm-up algorithm and one archive source (a
+single simulated-annealing trajectory, which is narrow); two small architectures, fixed hyperparameters,
+no hosted accelerator and no pretrained weights; the two Knapsack groups are decoder variants of one
+problem. This does not test a model that builds solutions step by step or learns from several searches.
+
+Decision: the screening rule was not met in any of six screens and the last screen, which had headroom
+and independent seeds, showed no gain over the non-neural controls. Do not promote either generator to a
+solver feature on this evidence. This result concerns learned key distributions fitted to one search
+trajectory; it does not show that a differently built neural decoder cannot help.
