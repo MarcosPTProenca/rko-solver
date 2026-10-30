@@ -2628,7 +2628,8 @@ the results: at 250 cities the key-space search could not improve a 2-opt tour i
 packing spread grid (0.05 and up) decoded random keys to near-random tours. The study therefore uses 100
 cities and positional grids of 0.01 to 0.5 for the spread and 0.005 to 0.3 for the seeding noise.
 
-Rule, committed in `60c1e58` before the run: advance only if, for both priors, both families and both
+Rule, committed in `2d10f8b` before the run (the commit was `60c1e58` before the branch was rebased onto
+the merged reference index; the content is the same): advance only if, for both priors, both families and both
 budgets, the residual decoder beats 32-order seeding and beats plain RKO, each with a paired 95 percent
 bootstrap interval entirely below zero; the 2-opt prior alone is a partial result and does not advance.
 
