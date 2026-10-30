@@ -149,6 +149,12 @@ def test_document_noise_gate_admits_the_policy_documents() -> None:
     assert document_noise_gate._noise_paths(listing) == ["docs/scratch-notes.md"]
 
 
+def test_document_noise_gate_admits_the_scientific_reference_index() -> None:
+    """The reference index is a maintained page, and a lookalike stays flagged."""
+    listing = "docs/references.md\ndocs/references-notes.md"
+    assert document_noise_gate._noise_paths(listing) == ["docs/references-notes.md"]
+
+
 def test_documented_coverage_floor_equals_the_enforced_floor() -> None:
     """The contributor guide must state the floor that the coverage job enforces."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
