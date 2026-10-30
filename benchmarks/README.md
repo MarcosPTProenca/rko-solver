@@ -2659,7 +2659,8 @@ With the nearest-neighbour prior seeding wins by 4.2 to 8.4 points, and the resi
 in 2 of 48 instance and budget pairs. Against plain RKO both residual arms are far better (28 to 94 points,
 12 of 12 instances in every cell), and so is seeding. The residual arm with the 2-opt prior returns
 almost exactly the prior tour: on the clustered family at 10 s it is 0.89 percent above the best tour
-found, and the 2-opt tour itself is 0.89 percent above the one-vector seeded result on average. The
+found, which is the same amount by which the unchanged 2-opt tour trails the one-vector seeded result
+on average, so the search added almost nothing to the prior. The
 rerun gives the identical length on all 12 instances in three of the four cells and on 6 of 12 in the
 fourth, so the decoder is nearly deterministic at the chosen spreads, and the noise floor is 0.005
 points. Every 2-opt arm ends 4.7 to 7.5 percent above the lower bound, so the bound does not separate

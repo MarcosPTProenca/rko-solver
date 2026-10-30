@@ -94,6 +94,19 @@ def test_two_opt_never_lengthens_and_stays_a_permutation(kind: str) -> None:
     assert TspFamily.length(instance, tour) < TspFamily.length(instance, start)
 
 
+@pytest.mark.parametrize("kind", KINDS)
+def test_two_opt_result_has_no_improving_exchange(kind: str) -> None:
+    """The returned tour is a genuine 2-opt local optimum, not a truncated search."""
+    instance = TspFamily.make(kind, 60, 4)
+    tour = TspFamily.two_opt(instance, np.random.default_rng(0).permutation(60))
+    best = TspFamily.length(instance, tour)
+    for first in range(59):
+        for second in range(first + 1, 60):
+            candidate = tour.copy()
+            candidate[first : second + 1] = candidate[first : second + 1][::-1]
+            assert TspFamily.length(instance, candidate) >= best - 1e-9
+
+
 def test_two_opt_solves_points_in_convex_position() -> None:
     """With no crossing possible at the optimum, 2-opt reaches the perimeter from a shuffle."""
     angles = np.sort(np.random.default_rng(0).uniform(0, 2 * np.pi, 30))

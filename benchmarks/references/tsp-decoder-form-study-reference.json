@@ -6175,6 +6175,6 @@
     "role": "development study with a pre-registered rule; not a confirmation",
     "raw_measurement_sha256": "4ff917874dc3e05980b9acbcc4fc461ab52c195ade27ce0fda37ed5a0ab41c38",
     "note": "wall time per solve includes about one second of process startup, equal for every arm",
-    "code_commit_note": "run at 60c1e58; the same commit after rebasing onto c9dbb9f"
+    "code_commit_note": "run at 60c1e58, the same commit as 2d10f8b after rebasing onto c9dbb9f; the 2-opt pass cap of 10 * n was removed afterwards in af7fae9, and the capped and uncapped versions return identical tours on all 32 validation and test instances"
   }
 }
