@@ -46,6 +46,7 @@ from benchmarks.engines.packing_problems import PackingRun
 from benchmarks.engines.priority_decoder_study import PairedStatistics
 from benchmarks.engines.priority_scorer import PriorityScorer
 from benchmarks.engines.priority_scorer import ReinforceTrainer
+from benchmarks.engines.priority_scorer import RewardCache
 from collections.abc import Sequence
 from dataclasses import asdict
 from dataclasses import dataclass
@@ -199,7 +200,11 @@ class PriorityStudy:
         """
         design = self.design
         scorer = PriorityScorer.init(2 + (1 if kind == "knapsack" else 5), design.hidden, seed)
-        trainer = ReinforceTrainer(scorer, design.samples, seed)
+        reward = RewardCache(
+            lambda instance, order: PackingFamily.fill(order, instance)[1],
+            lambda instance: np.argsort(-PackingFamily.hand_scores(instance), kind="stable"),
+        )
+        trainer = ReinforceTrainer(scorer, PackingFamily.features, reward, design.samples, seed)
 
         def make(instance_seed: int) -> PackingInstance:
             """Generate one training instance of the family.
