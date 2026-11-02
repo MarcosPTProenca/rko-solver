@@ -21,13 +21,22 @@ Technical approach:
   set for packing, the visited order for TSP.
 - Repeat with independent key draws and shake seeds (`RandomStreams`) to report a mean and a 95
   percent bootstrap interval per intensity, not a single noisy point.
+- A single-call operator breakdown (`OPERATORS`) isolates which of `shake`'s four named moves
+  drives the aggregate curve: `mirror` reflects one key across `0.5`, which can jump that item from
+  one end of a full-vector sort order to the other; `swap` and `neighbor_swap` exchange two
+  positions and move at most those two items. A greedy-fill decoder (packing) only changes the
+  selected set when a moved item crosses the capacity margin; a full permutation-sort decoder
+  (TSP) changes the relative order of every item strictly between the old and new position of the
+  reflected key.
 
 Flow (pseudocode):
 1. For each decoder (plain and residual, each problem), for each test instance:
 2. draw one key vector, decode it;
 3. for each intensity in the grid, for each repeat: shake the same keys at that intensity with a
    fresh seed, decode the result, and record the changed-position fraction;
-4. aggregate mean and bootstrap interval per decoder and intensity.
+4. aggregate mean and bootstrap interval per decoder and intensity;
+5. separately, for each of the four shaking operators in isolation, apply one call and record the
+   same changed fraction, to attribute the aggregate curve to a mechanism.
 
 Important criteria:
 - Decision fraction is 0.0 at intensity 0 and at most 1.0; the grid brackets every shipped
@@ -59,13 +68,21 @@ from dataclasses import asdict
 from dataclasses import dataclass
 from pathlib import Path
 from rko_solver.components.random_streams import RandomStreams
+from rko_solver.components.shaking.mirror import mirror_shake
+from rko_solver.components.shaking.neighbor_swap import neighbor_swap_shake
 from rko_solver.components.shaking.random import shake
+from rko_solver.components.shaking.swap import swap_shake
 from typing import Any
 
 PACKING_KIND = "mkp"
 TSP_KIND = "uniform"
 INTENSITY_GRID: tuple[float, ...] = (0.01, 0.025, 0.05, 0.1, 0.15, 0.25, 0.4, 0.6, 1.0)
 DECODERS = ("packing_plain", "packing_resid", "tsp_plain", "tsp_resid")
+OPERATORS: tuple[tuple[str, Callable[[np.ndarray], np.ndarray]], ...] = (
+    ("mirror", mirror_shake),
+    ("swap", swap_shake),
+    ("neighbor_swap", neighbor_swap_shake),
+)
 
 
 @dataclass(slots=True)
@@ -88,6 +105,7 @@ class SensitivityDesign:
     test_instances: int = 20
     test_base: int = 9000
     repeats: int = 8
+    operator_repeats: int = 20
     resamples: int = 2000
     resid_spread: float = 0.1
 
@@ -181,46 +199,98 @@ class ShakeSensitivityStudy:
                 )
         return rows
 
-    def run(self) -> dict[str, Any]:
-        """Measure every decoder on every test instance and summarize per intensity.
+    def operator_trial(
+        self, name: str, decoder: Callable[[np.ndarray], Any], n_keys: int, seed: int
+    ) -> list[dict[str, Any]]:
+        """Apply each shaking operator once in isolation, repeated, for one instance.
+
+        Args:
+            name (str): Decoder name, recorded in each row.
+            decoder (Callable[[np.ndarray], Any]): Decoder under test.
+            n_keys (int): Key-vector length.
+            seed (int): Instance seed, recorded in each row.
 
         Returns:
-            dict[str, Any]: Intensity grid, raw trial rows and the summary table.
+            list[dict[str, Any]]: One row per operator and repeat.
         """
         rows: list[dict[str, Any]] = []
+        keys = np.random.default_rng(seed).random(n_keys)
+        before = decoder(keys)
+        for op_index, (op_name, operator) in enumerate(OPERATORS):
+            for repeat in range(self.design.operator_repeats):
+                op_seed = int(
+                    np.random.SeedSequence([seed, op_index, repeat, 1]).generate_state(1)[0]
+                )
+                with RandomStreams(op_seed).activate():
+                    after_keys = operator(keys.copy())
+                after = decoder(after_keys)
+                rows.append(
+                    {
+                        "decoder": name,
+                        "instance": seed,
+                        "operator": op_name,
+                        "repeat": repeat,
+                        "changed_fraction": self.changed_fraction(before, after),
+                    }
+                )
+        return rows
+
+    def run(self) -> dict[str, Any]:
+        """Measure every decoder on every test instance and summarize per intensity and operator.
+
+        Returns:
+            dict[str, Any]: Intensity grid, raw trial rows, operator-breakdown rows and summaries.
+        """
+        rows: list[dict[str, Any]] = []
+        operator_rows: list[dict[str, Any]] = []
         for offset in range(self.design.test_instances):
             seed = self.design.test_base + offset
             built = self.decoders(seed)
             for name in DECODERS:
                 decoder, n_keys = built[name]
                 rows.extend(self.trial(name, decoder, n_keys, seed))
-        return {"intensities": INTENSITY_GRID, "trials": rows, "summary": self.summarize(rows)}
+                operator_rows.extend(self.operator_trial(name, decoder, n_keys, seed))
+        return {
+            "intensities": INTENSITY_GRID,
+            "operators": [name for name, _ in OPERATORS],
+            "trials": rows,
+            "operator_trials": operator_rows,
+            "summary": self.summarize(rows, "intensity", INTENSITY_GRID),
+            "operator_summary": self.summarize(
+                operator_rows, "operator", tuple(name for name, _ in OPERATORS)
+            ),
+        }
 
-    def summarize(self, rows: list[dict[str, Any]]) -> dict[str, dict[str, dict[str, float]]]:
-        """Compute the mean and a bootstrap interval of the changed fraction per decoder/intensity.
+    def summarize(
+        self, rows: list[dict[str, Any]], level_field: str, levels: tuple[Any, ...]
+    ) -> dict[str, dict[str, dict[str, float]]]:
+        """Compute the mean and a bootstrap interval of the changed fraction per decoder/level.
 
         Args:
-            rows (list[dict[str, Any]]): Raw trial rows from `run`.
+            rows (list[dict[str, Any]]): Raw trial rows, each tagged by `decoder` and
+                `level_field`.
+            level_field (str): Row key that selects one level, e.g. `intensity` or `operator`.
+            levels (tuple[Any, ...]): Every level to summarize, in the table's column order.
 
         Returns:
-            dict[str, dict[str, dict[str, float]]]: `summary[decoder][intensity]` with `mean`,
+            dict[str, dict[str, dict[str, float]]]: `summary[decoder][str(level)]` with `mean`,
             `ci_low` and `ci_high` of the changed fraction.
         """
         summary: dict[str, dict[str, dict[str, float]]] = {}
         rng = np.random.default_rng(0)
         for name in DECODERS:
             summary[name] = {}
-            for intensity in INTENSITY_GRID:
+            for level in levels:
                 values = np.array(
                     [
                         row["changed_fraction"]
                         for row in rows
-                        if row["decoder"] == name and row["intensity"] == intensity
+                        if row["decoder"] == name and row[level_field] == level
                     ]
                 )
                 picks = rng.integers(0, len(values), (self.design.resamples, len(values)))
                 means = values[picks].mean(axis=1)
-                summary[name][str(intensity)] = {
+                summary[name][str(level)] = {
                     "mean": float(values.mean()),
                     "ci_low": float(np.percentile(means, 2.5)),
                     "ci_high": float(np.percentile(means, 97.5)),

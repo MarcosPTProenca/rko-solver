@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 from benchmarks.engines.shake_sensitivity_study import DECODERS
 from benchmarks.engines.shake_sensitivity_study import INTENSITY_GRID
+from benchmarks.engines.shake_sensitivity_study import OPERATORS
 from benchmarks.engines.shake_sensitivity_study import SensitivityDesign
 from benchmarks.engines.shake_sensitivity_study import ShakeSensitivityStudy
 
@@ -75,4 +76,42 @@ def test_run_produces_one_summary_entry_per_decoder_and_intensity() -> None:
     assert (
         len(report["trials"])
         == len(DECODERS) * design.test_instances * len(INTENSITY_GRID) * design.repeats
+    )
+
+
+def test_operator_trial_isolates_each_shaking_move_and_is_reproducible() -> None:
+    """Each shaking operator runs alone, once per repeat, and reproduces with the same seed."""
+    design = SensitivityDesign(n_items=16, test_instances=1, operator_repeats=4)
+    study = ShakeSensitivityStudy(design)
+    decoder, n_keys = study.decoders(seed=5)["tsp_plain"]
+    first = study.operator_trial("tsp_plain", decoder, n_keys, seed=5)
+    second = study.operator_trial("tsp_plain", decoder, n_keys, seed=5)
+    assert first == second
+    assert len(first) == len(OPERATORS) * design.operator_repeats
+    assert {row["operator"] for row in first} == {name for name, _ in OPERATORS}
+
+
+def test_mirror_shake_changes_a_full_sort_order_more_than_a_single_swap() -> None:
+    """On a full permutation-sort decoder, a lone mirror move changes far more than a lone swap."""
+    design = SensitivityDesign(n_items=120, test_instances=6, operator_repeats=10)
+    study = ShakeSensitivityStudy(design)
+    report = study.run()
+    mirror = report["operator_summary"]["tsp_plain"]["mirror"]["mean"]
+    swap = report["operator_summary"]["tsp_plain"]["swap"]["mean"]
+    neighbor = report["operator_summary"]["tsp_plain"]["neighbor_swap"]["mean"]
+    assert mirror > swap
+    assert mirror > neighbor
+
+
+def test_operator_summary_covers_every_decoder_and_operator() -> None:
+    """The operator-breakdown table covers every decoder and every named operator."""
+    design = SensitivityDesign(n_items=20, test_instances=3, operator_repeats=3)
+    study = ShakeSensitivityStudy(design)
+    report = study.run()
+    assert set(report["operator_summary"]) == set(DECODERS)
+    for name in DECODERS:
+        assert set(report["operator_summary"][name]) == {op for op, _ in OPERATORS}
+    assert (
+        len(report["operator_trials"])
+        == len(DECODERS) * design.test_instances * len(OPERATORS) * design.operator_repeats
     )
