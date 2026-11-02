@@ -2872,9 +2872,10 @@ default), decoding the shaken keys each time and recording the fraction of decod
 changed: the selected item set for packing (`PackingDecoder`), the visited order for the
 traveling-salesman problem (`TspDecoder`). Four decoders are measured: the plain sort/greedy-fill
 form and the residual-decoder form (hand-written 2-opt prior, packing's dual prior) from the
-decoder-form study (PR 59/60). Separately, each of `shake`'s four named moves (`mirror`, `swap`,
-`neighbor_swap`, plus one random single-index set not isolated here) is applied once in isolation,
-repeated, to attribute the aggregate curve to a mechanism rather than only describe it.
+decoder-form study (PR 59/60). Separately, each of `shake`'s three named-function moves (`mirror`,
+`swap`, `neighbor_swap`) is applied once in isolation, repeated, to attribute the aggregate curve
+to a mechanism rather than only describe it; `shake`'s fourth move, an inline single-index
+reassignment with no named function, is not isolated here.
 
 ```bash
 uv run --locked python -m benchmarks.engines.shake_sensitivity_study --output results/shake-sensitivity-study.json
@@ -2911,7 +2912,7 @@ from one single call of one operator, no intensity parameter involved:
 
 | Decoder | mirror | swap | neighbor_swap |
 |---|---:|---:|---:|
-| packing plain | 0.012 | 0.011 | 0.011 |
+| packing plain | 0.013 | 0.009 | 0.011 |
 | packing resid | 0.001 | 0.002 | 0.001 |
 | TSP plain | 0.522 | 0.010 | 0.010 |
 | TSP resid | 0.052 | 0.068 | 0.065 |
@@ -2929,8 +2930,8 @@ the decoded priority regardless of the key's own jump; this is an incidental sec
 the one the study set out to measure.
 
 Limits: two Euclidean/packing families already used by earlier studies, not a survey of decoder
-shapes; `shake`'s own four named moves, not every possible shaking design; one residual spread
-(0.1), not a spread sweep; one machine, one run.
+shapes; `shake`'s three named-function moves, not every possible shaking design; one residual
+spread (0.1), not a spread sweep; one machine, one run.
 
 Decision: none required, by design. The plateau-then-chaos risk the proposal raises is real for a
 decoder that sorts by key over the whole vector (TSP here), driven by a specific operator

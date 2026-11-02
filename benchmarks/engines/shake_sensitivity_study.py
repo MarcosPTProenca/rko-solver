@@ -21,13 +21,14 @@ Technical approach:
   set for packing, the visited order for TSP.
 - Repeat with independent key draws and shake seeds (`RandomStreams`) to report a mean and a 95
   percent bootstrap interval per intensity, not a single noisy point.
-- A single-call operator breakdown (`OPERATORS`) isolates which of `shake`'s four named moves
-  drives the aggregate curve: `mirror` reflects one key across `0.5`, which can jump that item from
-  one end of a full-vector sort order to the other; `swap` and `neighbor_swap` exchange two
-  positions and move at most those two items. A greedy-fill decoder (packing) only changes the
-  selected set when a moved item crosses the capacity margin; a full permutation-sort decoder
-  (TSP) changes the relative order of every item strictly between the old and new position of the
-  reflected key.
+- A single-call operator breakdown (`OPERATORS`) isolates which of `shake`'s three named-function
+  moves drives the aggregate curve: `mirror` reflects one key across `0.5`, which can jump that
+  item from one end of a full-vector sort order to the other; `swap` and `neighbor_swap` exchange
+  two positions and move at most those two items. `shake`'s fourth move, an inline single-index
+  reassignment with no named function, is not isolated here. A greedy-fill decoder (packing) only
+  changes the selected set when a moved item crosses the capacity margin; a full permutation-sort
+  decoder (TSP) changes the relative order of every item strictly between the old and new position
+  of the reflected key.
 
 Flow (pseudocode):
 1. For each decoder (plain and residual, each problem), for each test instance:
@@ -35,8 +36,8 @@ Flow (pseudocode):
 3. for each intensity in the grid, for each repeat: shake the same keys at that intensity with a
    fresh seed, decode the result, and record the changed-position fraction;
 4. aggregate mean and bootstrap interval per decoder and intensity;
-5. separately, for each of the four shaking operators in isolation, apply one call and record the
-   same changed fraction, to attribute the aggregate curve to a mechanism.
+5. separately, for each of the three named-function shaking operators in isolation, apply one call
+   and record the same changed fraction, to attribute the aggregate curve to a mechanism.
 
 Important criteria:
 - Decision fraction is 0.0 at intensity 0 and at most 1.0; the grid brackets every shipped
