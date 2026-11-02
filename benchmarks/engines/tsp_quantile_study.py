@@ -13,7 +13,7 @@ Technical approach:
   about 0.0013 every weight but the maximum underflows to zero in float64, which degenerates the
   draw into a non-permutation. A smoke check before the study confirmed this boundary and that the
   chosen temperature sits at 0.003, the grid's floor, on every family and prior.
-- Four arms per instance at one charged allowance: plain RKO; each prior seeded with 32 perturbed
+- Six arms per instance at each charged allowance: plain RKO; each prior seeded with 32 perturbed
   orders (`seed32`, as in the decoder-form study); each prior through `TspQuantileDecoder`
   (`quantile`); and a rerun of the 2-opt quantile arm, which measures run-to-run noise.
 - `TspQuantileDecoder` charges one softmax and one cumulative sum per decoded candidate, not one
