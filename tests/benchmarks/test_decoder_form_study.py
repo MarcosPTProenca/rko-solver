@@ -121,7 +121,7 @@ def test_arm_names_parse_into_prior_and_mechanism() -> None:
         DecoderFormStudy.parse("learned_resid")
 
 
-def test_scores_dispatch_to_the_named_prior_and_reject_unknown() -> None:
+def test_prior_dispatches_to_the_named_prior_and_rejects_unknown() -> None:
     """Each prior returns its own score vector."""
     instance = PackingFamily.make("mkp", 40, 2)
     np.testing.assert_array_equal(
