@@ -2684,3 +2684,80 @@ decoder; there, seeding the same prior through `initial_keys` is better, by 0.3 
 tour and 4 to 8 points for a rough one. This does not support an opt-in residual-decoder helper in the
 library. `initial_keys` remains the general way to use a prior, and the residual form is supported only
 for greedy-fill packing, a single decoder class.
+
+### Sequential quantile-codec decoder on the traveling-salesman problem
+
+The residual decoder is one forward pass of the prior per instance, then a classical sort. The
+Q-RKO proposal also describes a fully sequential codec: one inverse-CDF draw per city per
+candidate, the mechanism `examples/priority_decoders.py` already implements for Knapsack as
+`QuantileDecoder`. This asks whether that sequential form beats 32-order seeding and plain RKO for
+the same prior tours on TSP, reusing the instances, priors and lower bound of the decoder-form
+study above rather than its residual decoder, since the quantile decoder has no spread to tune.
+
+Sources: no source paper for the design; the sequential quantile codec is the Q-RKO proposal's
+(unpublished and machine-generated); see [the reference index](../docs/references.md).
+
+`TspQuantileDecoder` (`tsp_problems.py`) scores cities by their rank-normalized position in the
+prior tour and draws the visiting order through `QuantileCodec.order`, the same inverse-CDF draw
+the Knapsack decoder uses. Six arms per instance: plain RKO; each prior seeded with 32 perturbed
+orders (`seed32`, as in the decoder-form study); each prior through the quantile decoder
+(`quantile`); and a rerun of the 2-opt quantile arm for noise. The temperature is chosen on
+validation instances at the shorter budget by tour length over the lower bound.
+
+```bash
+uv run --locked python -m benchmarks.engines.tsp_quantile_study --output results/tsp-quantile-study.json
+```
+
+Design fixed before the study, after a smoke check on validation seeds: `QuantileCodec`'s softmax,
+`exp((scores - scores.max()) / temperature)`, underflows every weight but the maximum below about
+temperature 0.0013 in float64, which degenerates the draw into a non-permutation. The grid starts
+at 0.003, and the chosen temperature sits at that floor on every family and prior; this is
+disclosed rather than hidden by choosing a grid that avoids the floor.
+
+Rule, committed in `944f78d` before the run: advance only if, for both priors, both families and
+both budgets, the quantile decoder beats 32-order seeding and beats plain RKO, each with a paired
+95 percent bootstrap interval entirely below zero; the 2-opt prior alone is a partial result and
+does not advance.
+
+[Reference measurement](references/tsp-quantile-study-reference.json), 12 test instances per
+family, 288 trials with every decoded tour length re-verified. Mean percentage gap above the
+shortest tour any arm found (lower is better):
+
+| Family, budget | plain | NN seed32 | NN quantile | 2-opt seed32 | 2-opt quantile | 2-opt quantile rerun |
+|---|---:|---:|---:|---:|---:|---:|
+| Uniform, 2 s | 85.66 | 10.64 | 17.33 | 0.21 | 0.46 | 0.47 |
+| Uniform, 10 s | 49.21 | 6.52 | 15.35 | 0.00 | 0.43 | 0.47 |
+| Clustered, 2 s | 103.29 | 10.46 | 17.23 | 0.22 | 0.84 | 0.82 |
+| Clustered, 10 s | 62.73 | 6.23 | 16.73 | 0.00 | 0.81 | 0.81 |
+
+The rule is not met. 2-opt quantile minus 2-opt 32-order seeding, paired difference in percentage
+points with its 95 percent interval and wins/losses/ties of the quantile arm (positive means the
+quantile arm is worse):
+
+| Family, budget | Difference | Interval | W/L/T |
+|---|---:|---|---|
+| Uniform, 2 s | +0.25 | +0.08 to +0.47 | 0/9/3 |
+| Uniform, 10 s | +0.44 | +0.15 to +0.80 | 0/8/4 |
+| Clustered, 2 s | +0.63 | +0.41 to +0.86 | 0/12/0 |
+| Clustered, 10 s | +0.81 | +0.51 to +1.11 | 0/12/0 |
+
+With the nearest-neighbour prior seeding wins by 6.7 to 10.5 points. Against plain RKO both arms
+are far better than no prior (34 to 102 points, 12 of 12 instances in every cell), and so is
+seeding. The rerun agrees with the quantile arm in 11 of 12 comparisons in three cells and in all
+12 in the fourth, so the noise floor is small (0.016 points), and the differences above are not
+noise. The 2-opt quantile arm sits 5.1 to 7.5 percent above the lower bound, close to where the
+decoder-form study's 2-opt residual arm sat (4.7 to 7.5), so the sequential codec reaches about the
+same absolute quality as the residual decoder while losing to seeding by a similar margin.
+
+Limits: 12 test instances per family and 100 cities, the decoder-form study's sizes; two Euclidean
+families; two hand-built priors; the softmax temperature sits at the smallest value the codec can
+represent without underflowing, so a continuous mechanism without that floor might do better, but
+this was not tested; one machine, one run; the design reused the decoder-form study's instances and
+bound rather than being chosen independently, so this is a development study and not a
+confirmation.
+
+Decision: the sequential quantile-codec form does not beat seeding either, matching the residual
+decoder's result on TSP. Between the two decoder forms tested here, seeding through `initial_keys`
+is the better mechanism for a prior tour on this problem; neither decoder form is justified as a
+library helper from TSP evidence. The quantile codec itself remains supported as a
+Knapsack-specific example, unchanged by this study.
