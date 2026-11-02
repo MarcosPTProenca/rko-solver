@@ -31,7 +31,6 @@ Inputs/Outputs:
 from __future__ import annotations
 
 import argparse
-import json
 import numpy as np
 import sys
 import time
@@ -39,7 +38,7 @@ from abc import ABC
 from abc import abstractmethod
 from benchmarks.engines.form_decision import DecoderFormDecision
 from benchmarks.engines.learned_priority_study import PriorityStudy
-from benchmarks.engines.priority_decoder_study import PairedStatistics
+from benchmarks.engines.report_sink import ReportSink
 from collections.abc import Callable
 from collections.abc import Sequence
 from dataclasses import asdict
@@ -373,11 +372,7 @@ class FormStudy[InstanceT: StudyInstance](ABC):
             report (dict[str, Any]): Design, spreads, trials and summary.
             output (Path): Destination file; parent directories are created.
         """
-        output.parent.mkdir(parents=True, exist_ok=True)
-        with output.open("w", encoding="utf-8") as handle:
-            json.dump(report, handle, indent=2)
-            handle.write("\n")
-        sys.stdout.write(json.dumps(report["summary"]["verdict"], indent=2) + "\n")
+        ReportSink.write(report, output)
 
     @classmethod
     def execute(
@@ -475,27 +470,6 @@ class FormStudy[InstanceT: StudyInstance](ABC):
                 self.progress(rows[-1])
         return rows
 
-    @classmethod
-    def column(
-        cls, rows: list[dict[str, Any]], kind: str, budget: float, field: str
-    ) -> dict[str, list[float]]:
-        """Collect one field of every arm on one family and budget in instance order.
-
-        Args:
-            rows (list[dict[str, Any]]): Normalized trial records.
-            kind (str): Instance family.
-            budget (float): Per-instance allowance in seconds.
-            field (str): `gap` or `bound_gap`.
-
-        Returns:
-            dict[str, list[float]]: Values per arm.
-        """
-        columns: dict[str, list[float]] = {arm: [] for arm in cls.arms}
-        for row in rows:
-            if row["family"] == kind and row["budget"] == budget:
-                columns[row["arm"]].append(row[field])
-        return columns
-
     def summarize(self, rows: list[dict[str, Any]]) -> dict[str, Any]:
         """Compare arm pairs per family and budget and apply the decision rule.
 
@@ -505,20 +479,9 @@ class FormStudy[InstanceT: StudyInstance](ABC):
         Returns:
             dict[str, Any]: Mean gaps, paired statistics and the verdict.
         """
-        tables: dict[str, dict[str, dict[str, dict[str, float]]]] = {}
-        means: dict[str, dict[str, float]] = {}
-        for kind in self.kinds:
-            tables[kind] = {}
-            for budget in self.design.budgets:
-                gaps = self.column(rows, kind, budget, "gap")
-                bound = self.column(rows, kind, budget, "bound_gap")
-                means[f"{kind}@{budget:g}s"] = {
-                    arm: float(np.mean(gaps[arm])) for arm in self.arms
-                } | {f"{arm}|bound": float(np.mean(bound[arm])) for arm in self.arms}
-                tables[kind][f"{budget:g}s"] = {
-                    f"{a}-vs-{b}": PairedStatistics.compare(gaps[a], gaps[b], 10000, 0)
-                    for a, b in self.pairs
-                }
+        means, tables = ReportSink.tables(
+            self.kinds, self.arms, self.pairs, self.design.budgets, rows
+        )
         return {
             "mean_gap": means,
             "paired": tables,
