@@ -106,10 +106,24 @@ class QuantileCodec:
 
         Returns:
             int: Index of the drawn category; zero-weight categories are never drawn.
+
+        Raises:
+            ValueError: If the key or finite nonnegative weights are invalid.
         """
-        cumulative = np.cumsum(weights)
-        index = int(np.searchsorted(cumulative, uniform * cumulative[-1], side="right"))
-        return min(index, len(weights) - 1)
+        if not np.isfinite(uniform) or not 0.0 <= uniform < 1.0:
+            raise ValueError("The key must be finite and in [0, 1).")
+        weights = np.asarray(weights, dtype=np.float64)
+        if (
+            weights.ndim != 1
+            or not np.isfinite(weights).all()
+            or np.any(weights < 0.0)
+            or not np.any(weights > 0.0)
+        ):
+            raise ValueError("The weights must be a nonempty finite nonnegative vector with mass.")
+        cumulative = np.cumsum(weights / weights.max())
+        cumulative /= cumulative[-1]
+        cumulative[-1] = 1.0
+        return int(np.searchsorted(cumulative, uniform, side="right"))
 
     @classmethod
     def order(cls, keys: np.ndarray, scores: np.ndarray, temperature: float) -> np.ndarray:
@@ -122,13 +136,24 @@ class QuantileCodec:
 
         Returns:
             np.ndarray: Item indices in drawn order.
+
+        Raises:
+            ValueError: If temperature, keys or scores violate their numerical domain.
         """
-        weights = np.exp((scores - scores.max()) / temperature)
+        if not np.isfinite(temperature) or temperature <= 0.0:
+            raise ValueError("'temperature' must be positive and finite.")
+        keys, scores = np.asarray(keys), np.asarray(scores)
+        if keys.ndim != 1 or scores.shape != keys.shape or not np.isfinite(scores).all():
+            raise ValueError("Keys and finite scores must be matching one-dimensional vectors.")
+        available = np.arange(len(keys))
         order = np.empty(len(keys), dtype=np.int64)
         for position, key in enumerate(keys.tolist()):
+            active_scores = scores[available]
+            with np.errstate(over="ignore", under="ignore"):
+                weights = np.exp((active_scores - active_scores.max()) / temperature)
             index = cls.draw(key, weights)
-            order[position] = index
-            weights[index] = 0.0
+            order[position] = available[index]
+            available = np.delete(available, index)
         return order
 
 
@@ -237,8 +262,8 @@ class QuantileDecoder:
         Raises:
             ValueError: If the temperature is not positive.
         """
-        if temperature <= 0.0:
-            raise ValueError("'temperature' must be positive.")
+        if not np.isfinite(temperature) or temperature <= 0.0:
+            raise ValueError("'temperature' must be positive and finite.")
         return cls(instance, temperature, ItemScores.ratio(instance))
 
     def __call__(self, keys: np.ndarray) -> list[int]:
