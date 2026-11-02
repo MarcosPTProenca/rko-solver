@@ -219,7 +219,7 @@ class TspQuantileStudy:
         if prior is None:
             return TspQuantileStudy.plain_decoder(instance), None, 0.0
         started = time.perf_counter()
-        tour = TspDecoderFormStudy.scores(prior, instance)
+        tour = TspDecoderFormStudy.prior(prior, instance)
         if mechanism.startswith("quantile"):
             decoder, keys = TspQuantileDecoder.build(instance, tour, temperatures[prior]), None
         else:
