@@ -2852,3 +2852,90 @@ classical local-search heuristic for a problem where one already exists and is c
 the sequential per-decision Q-RKO direction for TSP: the residual decoder, the quantile codec and a
 trained scorer were all tested and none beat the simplest tested mechanism, a hand-built 2-opt prior
 seeded through `initial_keys`.
+
+## Shaking-intensity sensitivity, plateau-then-chaos
+
+The Q-RKO proposal's only executed evidence for its own untrained neural quantile codec, never
+implemented as a library feature, is a sensitivity test: small key perturbations (epsilon=0.001)
+change about 3 percent of decoded trajectories, larger ones (epsilon=0.05) change 80-88 percent.
+It flags the transition as abrupt rather than gradual, a real risk for RKO's own shaking operators
+if the same holds for the sort decoders this repository actually ships.
+
+Source: no source paper for this measurement; it tests the proposal's risk claim against code that
+exists. `rko_solver.components.shaking.random.shake` is RKO's own perturbation operator, called by
+every offline and Q-learning-controlled `SA`, `ILS`, `VNS` and `LNS` run, with `beta_min`/`beta_max`
+defaults between 0.05 and 0.40 hardcoded across those four modules.
+
+`benchmarks/engines/shake_sensitivity_study.py` draws one random key vector per test instance,
+decodes it, then calls `shake` at nine intensities from 0.01 to 1.0 (bracketing every shipped
+default), decoding the shaken keys each time and recording the fraction of decoded positions that
+changed: the selected item set for packing (`PackingDecoder`), the visited order for the
+traveling-salesman problem (`TspDecoder`). Four decoders are measured: the plain sort/greedy-fill
+form and the residual-decoder form (hand-written 2-opt prior, packing's dual prior) from the
+decoder-form study (PR 59/60). Separately, each of `shake`'s four named moves (`mirror`, `swap`,
+`neighbor_swap`, plus one random single-index set not isolated here) is applied once in isolation,
+repeated, to attribute the aggregate curve to a mechanism rather than only describe it.
+
+```bash
+uv run --locked python -m benchmarks.engines.shake_sensitivity_study --output results/shake-sensitivity-study.json
+```
+
+This is a measurement, not a kill-or-continue comparison: no design decision follows mechanically
+from either a gradual or an abrupt profile, so there is no pre-registered rule and no `advance`
+verdict.
+
+[Reference measurement](references/shake-sensitivity-study-reference.json), 200 items/cities, 10
+test instances, 5 repeats per intensity and 1800 decoded trials for the aggregate curve, plus 20
+repeats per operator and 2400 trials for the isolated-operator breakdown, every changed fraction
+with a bootstrap interval. Mean changed fraction against `shake`'s own intensity parameter (both
+`beta_min` and `beta_max` set equal, since the library already samples a point intensity from that
+range before shaking):
+
+| Intensity | packing plain | packing resid | TSP plain | TSP resid |
+|---:|---:|---:|---:|---:|
+| 0.01 | 0.028 | 0.003 | 0.435 | 0.143 |
+| 0.025 | 0.037 | 0.007 | 0.561 | 0.265 |
+| 0.05 | 0.053 | 0.011 | 0.667 | 0.424 |
+| 0.10 | 0.077 | 0.020 | 0.787 | 0.603 |
+| 0.15 | 0.102 | 0.021 | 0.806 | 0.678 |
+| 0.25 | 0.144 | 0.024 | 0.884 | 0.788 |
+| 0.40 | 0.186 | 0.029 | 0.922 | 0.834 |
+| 0.60 | 0.237 | 0.036 | 0.947 | 0.873 |
+| 1.00 | 0.292 | 0.039 | 0.969 | 0.915 |
+
+Packing rises gradually and stays well under half-changed even at the top of the grid: the
+proposal's plateau-then-chaos pattern is not visible here. TSP is qualitatively different: both
+TSP decoders already sit far from zero at the smallest intensity tested (0.01), well before any
+`beta_min`/`beta_max` default. The isolated-operator breakdown explains why. Mean changed fraction
+from one single call of one operator, no intensity parameter involved:
+
+| Decoder | mirror | swap | neighbor_swap |
+|---|---:|---:|---:|
+| packing plain | 0.012 | 0.011 | 0.011 |
+| packing resid | 0.001 | 0.002 | 0.001 |
+| TSP plain | 0.522 | 0.010 | 0.010 |
+| TSP resid | 0.052 | 0.068 | 0.065 |
+
+`mirror_shake` reflects one key across 0.5 (`1 - key`), moving that key from near one end of the
+unit interval to near the other. On the plain TSP sort decoder, that is a full-vector reorder: the
+reflected city jumps from one end of the visiting order to the other, changing the relative order
+of every city strictly between its old and new position, about half the tour on average, in one
+call, independent of intensity, which is exactly the flat ~0.52 in the table. `swap` and
+`neighbor_swap` only exchange two positions and barely touch the rest of the order. Packing's
+greedy fill only changes the selected set when a moved item crosses the capacity margin, so the
+same mirror jump has little effect there. The residual decoder (`tsp_resid`) also damps the mirror
+effect, from 0.52 down to 0.05, because `spread * (key - 0.5)` bounds how far any one key can move
+the decoded priority regardless of the key's own jump; this is an incidental second finding, not
+the one the study set out to measure.
+
+Limits: two Euclidean/packing families already used by earlier studies, not a survey of decoder
+shapes; `shake`'s own four named moves, not every possible shaking design; one residual spread
+(0.1), not a spread sweep; one machine, one run.
+
+Decision: none required, by design. The plateau-then-chaos risk the proposal raises is real for a
+decoder that sorts by key over the whole vector (TSP here), driven by a specific operator
+(`mirror_shake`) rather than being a function of perturbation size; it is largely absent for a
+decoder whose outcome depends only on items near a capacity margin (packing). The residual-decoder
+form, independently rejected as a search mechanism in PR 60, happens to also reduce this
+sensitivity, which is worth keeping in mind if `mirror_shake`'s all-or-nothing jump is ever revisited
+for a full-sort decoder, but that is future work this measurement does not scope.
