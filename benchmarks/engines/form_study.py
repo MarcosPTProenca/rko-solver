@@ -477,14 +477,11 @@ class FormStudy[InstanceT: StudyInstance](ABC):
         Returns:
             dict[str, Any]: Mean gaps, paired statistics and the verdict.
         """
-        means, tables = ReportSink.tables(
-            self.kinds, self.arms, self.pairs, self.design.budgets, rows
+        return ReportSink.summarize_tables(
+            (self.kinds, self.arms, self.pairs, self.design.budgets),
+            rows,
+            lambda tables: DecoderFormDecision.verdict(tables, *self.decision),
         )
-        return {
-            "mean_gap": means,
-            "paired": tables,
-            "verdict": DecoderFormDecision.verdict(tables, *self.decision),
-        }
 
     def run(self) -> dict[str, Any]:
         """Choose spreads, evaluate every test instance and summarize.
