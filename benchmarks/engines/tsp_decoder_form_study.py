@@ -50,6 +50,7 @@ from benchmarks.engines.tsp_problems import TspCost
 from benchmarks.engines.tsp_problems import TspDecoder
 from benchmarks.engines.tsp_problems import TspFamily
 from benchmarks.engines.tsp_problems import TspInstance
+from benchmarks.engines.tsp_problems import TspReport
 from collections.abc import Callable
 from collections.abc import Sequence
 from pathlib import Path
@@ -227,13 +228,7 @@ class TspDecoderFormStudy(FormStudy[TspInstance]):
         Returns:
             list[dict[str, Any]]: Records with `gap` and `bound_gap` in percent.
         """
-        best: dict[str, float] = {}
-        for row in rows:
-            best[row["instance"]] = min(best.get(row["instance"], np.inf), row["length"])
-        for row in rows:
-            row["gap"] = 100.0 * (row["length"] - best[row["instance"]]) / best[row["instance"]]
-            row["bound_gap"] = 100.0 * (row["length"] - row["bound"]) / row["bound"]
-        return rows
+        return TspReport.normalize(rows)
 
 
 def main(argv: Sequence[str] | None = None) -> int:

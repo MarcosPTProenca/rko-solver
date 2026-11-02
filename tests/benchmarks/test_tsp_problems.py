@@ -11,6 +11,7 @@ from benchmarks.engines.tsp_problems import TspCost
 from benchmarks.engines.tsp_problems import TspDecoder
 from benchmarks.engines.tsp_problems import TspFamily
 from benchmarks.engines.tsp_problems import TspInstance
+from benchmarks.engines.tsp_problems import TspQuantileDecoder
 
 
 def optimum(instance: TspInstance) -> float:
@@ -195,3 +196,43 @@ def test_solver_run_reports_a_verified_length_and_honours_seed_keys() -> None:
     assert SolverRun.solve(
         TspDecoder(instance), TspCost(instance), 30, ("sequential", ("SA",)), (3, 0.3), None
     )[1]
+
+
+def test_quantile_decoder_is_near_deterministic_at_small_temperature_and_a_permutation() -> None:
+    """A small temperature closely follows the prior tour; any temperature stays valid.
+
+    Weights are fixed at construction and only zeroed as cities are drawn, not renormalized
+    after each draw, so a temperature small enough to underflow every remaining weight to zero
+    after the first draw (around 1e-4 or below here) gives a degenerate order. 0.01 is small
+    enough to track the tour closely without underflowing.
+    """
+    instance = TspFamily.make("uniform", 30, 8)
+    tour = TspFamily.two_opt(instance, TspFamily.nearest_neighbour(instance))
+    keys = np.random.default_rng(9).random(30)
+    sharp = TspQuantileDecoder.build(instance, tour, 0.01)(keys)
+    assert sorted(sharp.tolist()) == list(range(30))
+    assert int(sharp[0]) == int(tour[0])
+    assert (sharp == tour).mean() >= 0.5
+    for temperature in (0.01, 0.1, 1.0, 5.0):
+        order = TspQuantileDecoder.build(instance, tour, temperature)(keys)
+        assert sorted(order.tolist()) == list(range(30))
+
+
+def test_quantile_decoder_rejects_nonpositive_temperature() -> None:
+    """A zero or negative temperature is invalid."""
+    instance = TspFamily.make("uniform", 10, 1)
+    tour = TspFamily.nearest_neighbour(instance)
+    with pytest.raises(ValueError, match="temperature"):
+        TspQuantileDecoder.build(instance, tour, 0.0)
+    with pytest.raises(ValueError, match="temperature"):
+        TspQuantileDecoder.build(instance, tour, -1.0)
+
+
+def test_quantile_decoder_scores_rank_the_tour_with_the_first_city_highest() -> None:
+    """The city visited first in the prior tour gets the highest score."""
+    instance = TspFamily.make("clustered", 12, 2)
+    tour = TspFamily.nearest_neighbour(instance)
+    decoder = TspQuantileDecoder.build(instance, tour, 0.3)
+    assert decoder.scores[tour[0]] == pytest.approx(1.0)
+    assert decoder.scores[tour[-1]] == pytest.approx(0.0)
+    assert np.all(np.diff(decoder.scores[tour]) <= 0.0)

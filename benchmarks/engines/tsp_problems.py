@@ -34,6 +34,8 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 from dataclasses import field
+from examples.priority_decoders import QuantileCodec
+from typing import Any
 
 KINDS = ("uniform", "clustered")
 CLUSTERS = 6
@@ -343,3 +345,84 @@ class TspCost:
             float: Closed tour length.
         """
         return TspFamily.length(self.instance, order)
+
+
+@dataclass(slots=True, eq=False)
+class TspQuantileDecoder:
+    """Draw the visiting order sequentially with prior-driven probabilities.
+
+    Responsibilities:
+    - Use each key as the uniform variate of one inverse-CDF draw over the remaining cities,
+      sharing the sequential codec with the Knapsack quantile decoder.
+
+    Attributes:
+        instance (TspInstance): Instance.
+        temperature (float): Softmax temperature; small values follow the prior tour closely.
+        scores (np.ndarray): Rank-normalized prior position, one city visited first scoring 1.
+    """
+
+    instance: TspInstance
+    temperature: float
+    scores: np.ndarray
+
+    @classmethod
+    def build(
+        cls, instance: TspInstance, tour: np.ndarray, temperature: float
+    ) -> TspQuantileDecoder:
+        """Create the decoder and precompute scores from the prior tour.
+
+        Args:
+            instance (TspInstance): Instance.
+            tour (np.ndarray): Prior tour; its first city scores highest.
+            temperature (float): Positive softmax temperature.
+
+        Returns:
+            TspQuantileDecoder: Decoder ready to be called.
+
+        Raises:
+            ValueError: If the temperature is not positive.
+        """
+        if temperature <= 0.0:
+            raise ValueError("'temperature' must be positive.")
+        count = instance.n_cities
+        scores = np.empty(count)
+        scores[np.asarray(tour)] = (np.arange(count - 1, -1, -1)) / max(count - 1, 1)
+        return cls(instance, temperature, scores)
+
+    def __call__(self, keys: np.ndarray) -> np.ndarray:
+        """Decode one key vector.
+
+        Args:
+            keys (np.ndarray): One key per city, in [0, 1).
+
+        Returns:
+            np.ndarray: Permutation of the cities.
+        """
+        return QuantileCodec.order(np.asarray(keys), self.scores, self.temperature)
+
+
+class TspReport:
+    """Normalize traveling-salesman trial records to percentage gaps.
+
+    Responsibilities:
+    - Add the gap to the shortest tour any arm found and the gap to the lower bound, shared by
+      every traveling-salesman decoder-form study.
+    """
+
+    @staticmethod
+    def normalize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Add the gap to the shortest tour any arm found and the gap to the lower bound.
+
+        Args:
+            rows (list[dict[str, Any]]): Trial records with `length` and `bound`.
+
+        Returns:
+            list[dict[str, Any]]: Records with `gap` and `bound_gap` in percent.
+        """
+        best: dict[str, float] = {}
+        for row in rows:
+            best[row["instance"]] = min(best.get(row["instance"], np.inf), row["length"])
+        for row in rows:
+            row["gap"] = 100.0 * (row["length"] - best[row["instance"]]) / best[row["instance"]]
+            row["bound_gap"] = 100.0 * (row["length"] - row["bound"]) / row["bound"]
+        return rows

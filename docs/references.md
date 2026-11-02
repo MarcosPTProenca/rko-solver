@@ -404,11 +404,13 @@ literature.
   quantile codec" (2026-10-27, 26 pages). This proposal is machine-generated and not peer reviewed.
 - Tested here by `examples/priority_decoders.py`, `benchmarks/engines/priority_decoder_study.py`,
   `benchmarks/engines/packing_problems.py`, `benchmarks/engines/priority_scorer.py`,
-  `benchmarks/engines/learned_priority_study.py`, `benchmarks/engines/decoder_form_study.py` and
-  `benchmarks/engines/tsp_decoder_form_study.py`, which implement its residual-priority decoder, a
-  quantile decoder, a per-family scorer trained with REINFORCE and the comparison of the decoder
-  form against seeding on packing and on the traveling-salesman problem. The sequential per-decision
-  policy with a global key block was **not** tested.
+  `benchmarks/engines/learned_priority_study.py`, `benchmarks/engines/decoder_form_study.py`,
+  `benchmarks/engines/tsp_decoder_form_study.py` and `benchmarks/engines/tsp_quantile_study.py`,
+  which implement its residual-priority decoder, a quantile decoder, a per-family scorer trained
+  with REINFORCE, the comparison of the decoder form against seeding on packing and on the
+  traveling-salesman problem, and the sequential quantile codec's own comparison against seeding on
+  the traveling-salesman problem. The sequential per-decision policy with a global key block (the
+  codec with learned, not hand-written, scores) was **not** tested.
 
 ### RKO-SR proposal
 
@@ -429,10 +431,11 @@ literature.
 | `benchmarks/engines/surrogate_seed_study.py`, `benchmarks/engines/mlp_surrogate.py` | Starting keys from a ridge or small neural cost surrogate fitted to sampled evaluations | No published reference; own design, motivated by the priority-decoder control |
 | `benchmarks/engines/neural_key_adapter.py`, `benchmarks/engines/coupled_key_distribution.py`, `benchmarks/engines/neural_adapter_study.py` | Learned key distributions composed with the caller's decoder | No published reference; own design. Related ideas under [neural combinatorial optimization](#neural-combinatorial-optimization) |
 | `benchmarks/engines/decoder_form_study.py`, `benchmarks/engines/tsp_decoder_form_study.py`, `benchmarks/engines/form_study.py`, `benchmarks/engines/form_decision.py`, `benchmarks/engines/solver_run.py` | A prior placed inside the residual decoder against the same prior seeded through `initial_keys`, on packing and on the traveling-salesman problem | No published reference; own design, built on the residual decoder of the Q-RKO proposal |
+| `benchmarks/engines/tsp_quantile_study.py`, `benchmarks/engines/report_sink.py` | The Q-RKO proposal's sequential quantile codec against the same mechanisms, on the traveling-salesman problem | No published reference; own design, built on the sequential codec of the Q-RKO proposal |
 
 Results are in `benchmarks/README.md`. The learned-component studies failed their pre-registered
 rules. The decoder-form study met its rule on packing and did not meet it on the traveling-salesman
-problem.
+problem. The sequential quantile-codec study did not meet its rule either.
 
 ## Local copies
 
