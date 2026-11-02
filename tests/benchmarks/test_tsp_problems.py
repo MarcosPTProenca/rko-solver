@@ -236,3 +236,33 @@ def test_quantile_decoder_scores_rank_the_tour_with_the_first_city_highest() -> 
     assert decoder.scores[tour[0]] == pytest.approx(1.0)
     assert decoder.scores[tour[-1]] == pytest.approx(0.0)
     assert np.all(np.diff(decoder.scores[tour]) <= 0.0)
+
+
+def test_features_are_instance_only_and_shaped_five_columns_per_city() -> None:
+    """Features depend only on coordinates, rank-normalized and angle columns stay bounded."""
+    instance = TspFamily.make("clustered", 40, 5)
+    again = TspFamily.make("clustered", 40, 5)
+    rows = TspFamily.features(instance)
+    assert rows.shape == (40, 5)
+    np.testing.assert_array_equal(rows, TspFamily.features(again))
+    assert rows[:, 2].min() == pytest.approx(0.0) and rows[:, 2].max() == pytest.approx(1.0)
+    assert rows[:, 3].min() == pytest.approx(0.0) and rows[:, 3].max() == pytest.approx(1.0)
+    assert rows[:, 4].min() >= -1.0 and rows[:, 4].max() <= 1.0
+    centered = instance.coordinates - instance.coordinates.mean(axis=0)
+    np.testing.assert_allclose(rows[:, :2], centered)
+
+
+def test_features_distinguish_a_corner_city_from_a_central_one() -> None:
+    """A far, isolated city ranks high on both centroid distance and nearest-neighbour gap."""
+    points = np.array([[0.0, 0.0], [0.1, 0.0], [0.0, 0.1], [0.1, 0.1], [10.0, 10.0]])
+    instance = TspInstance("corner", points)
+    rows = TspFamily.features(instance)
+    assert rows[4, 2] == pytest.approx(1.0)
+    assert rows[4, 3] == pytest.approx(1.0)
+
+
+def test_features_angle_wraps_from_negative_to_positive_one() -> None:
+    """A city straight behind the centroid on the x-axis gets angle magnitude one."""
+    points = np.array([[1.0, 0.0], [-1.0, 0.0], [0.0, 1.0], [0.0, -1.0]])
+    rows = TspFamily.features(TspInstance("axis", points))
+    assert abs(rows[1, 4]) == pytest.approx(1.0)

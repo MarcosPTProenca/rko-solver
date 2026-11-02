@@ -45,6 +45,7 @@ from benchmarks.engines.packing_problems import PackingInstance
 from benchmarks.engines.packing_problems import PackingRun
 from benchmarks.engines.priority_decoder_study import PairedStatistics
 from benchmarks.engines.priority_scorer import PriorityScorer
+from benchmarks.engines.priority_scorer import ReinforceStudyDesign
 from benchmarks.engines.priority_scorer import ReinforceTrainer
 from benchmarks.engines.priority_scorer import RewardCache
 from collections.abc import Sequence
@@ -65,57 +66,12 @@ MINIMUM_SEARCH = 0.05
 
 
 @dataclass(slots=True)
-class StudyDesign:
+class StudyDesign(ReinforceStudyDesign):
     """Fixed numerical design of the study.
 
     Responsibilities:
     - Keep instance size, budgets and the disjoint seed ranges in one validated place.
-
-    Attributes:
-        n_items (int): Items per instance.
-        budgets (tuple[float, ...]): Per-instance wall allowances in seconds.
-        test_instances (int): Held-out instances per family.
-        validation_instances (int): Instances used to choose spreads.
-        train_seeds (tuple[int, int]): Half-open range of training instance seeds.
-        validation_base (int): First validation seed.
-        test_base (int): First test seed.
-        steps (int): REINFORCE updates.
-        batch (int): Instances per update.
-        samples (int): Sampled orders per instance.
-        hidden (int): Scorer hidden width.
-        execution (str): Python-engine execution mode passed to the solver.
-        algorithms (tuple[str, ...] | None): Portfolio override; None keeps the default portfolio.
     """
-
-    n_items: int = 250
-    budgets: tuple[float, ...] = (2.0, 10.0)
-    test_instances: int = 12
-    validation_instances: int = 6
-    train_seeds: tuple[int, int] = (100_000, 101_000)
-    validation_base: int = 6000
-    test_base: int = 7000
-    steps: int = 500
-    batch: int = 8
-    samples: int = 16
-    hidden: int = 16
-    execution: str = "process"
-    algorithms: tuple[str, ...] | None = None
-
-    def __post_init__(self) -> None:
-        """Require pairwise disjoint training, validation and test seeds.
-
-        Raises:
-            ValueError: If any two seed ranges overlap.
-        """
-        spans = (
-            range(*self.train_seeds),
-            range(self.validation_base, self.validation_base + self.validation_instances),
-            range(self.test_base, self.test_base + self.test_instances),
-        )
-        for index, first in enumerate(spans):
-            for second in spans[index + 1 :]:
-                if first.start < second.stop and second.start < first.stop:
-                    raise ValueError("Training, validation and test seeds must be disjoint.")
 
 
 class PriorityDecision:
@@ -218,18 +174,9 @@ class PriorityStudy:
             return PackingFamily.make(kind, design.n_items, instance_seed)
 
         held = [self.instance(kind, design.validation_base + k) for k in range(8)]
-        before = trainer.evaluate(held)
-        started = time.perf_counter()
-        history = trainer.train(make, range(*design.train_seeds), design.steps, design.batch)
-        report = {
-            "kind": kind,
-            "seconds": time.perf_counter() - started,
-            "validation_reward_before": before,
-            "validation_reward_after": trainer.evaluate(held),
-            "reward_first_10": float(np.mean(history[:10])),
-            "reward_last_10": float(np.mean(history[-10:])),
-            "steps": design.steps,
-        }
+        report = trainer.fit(
+            kind, make, held, range(*design.train_seeds), (design.steps, design.batch)
+        )
         return scorer, report
 
     def instance(self, kind: str, seed: int) -> PackingInstance:

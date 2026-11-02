@@ -35,10 +35,13 @@ Inputs/Outputs:
 from __future__ import annotations
 
 import numpy as np
+import time
 from benchmarks.engines.mlp_surrogate import MlpSurrogate
+from benchmarks.engines.report_sink import require_disjoint
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from typing import Protocol
 from typing import TypeVar
 
@@ -205,6 +208,60 @@ class PolicyGradient:
         if len(rewards) < 2:
             raise ValueError("At least two rewards are required for a leave-one-out baseline.")
         return np.asarray(rewards - (rewards.sum() - rewards) / (len(rewards) - 1))
+
+
+@dataclass(slots=True)
+class ReinforceStudyDesign:
+    """Fixed numerical design shared by every REINFORCE-scorer study.
+
+    Responsibilities:
+    - Keep instance size, budgets and the disjoint training, validation and test seed ranges in
+      one validated place; a subclass redeclares the defaults that suit its problem and size.
+
+    Attributes:
+        n_items (int): Items or cities per instance.
+        budgets (tuple[float, ...]): Per-instance wall allowances in seconds.
+        test_instances (int): Held-out instances per family.
+        validation_instances (int): Instances used to choose spreads.
+        train_seeds (tuple[int, int]): Half-open range of training instance seeds.
+        validation_base (int): First validation seed.
+        test_base (int): First test seed.
+        steps (int): REINFORCE updates.
+        batch (int): Instances per update.
+        samples (int): Sampled orders per instance.
+        hidden (int): Scorer hidden width.
+        execution (str): Python-engine execution mode passed to the solver.
+        algorithms (tuple[str, ...] | None): Portfolio override; None keeps the default portfolio.
+    """
+
+    n_items: int = 250
+    budgets: tuple[float, ...] = (2.0, 10.0)
+    test_instances: int = 12
+    validation_instances: int = 6
+    train_seeds: tuple[int, int] = (100_000, 101_000)
+    validation_base: int = 6000
+    test_base: int = 7000
+    steps: int = 500
+    batch: int = 8
+    samples: int = 16
+    hidden: int = 16
+    execution: str = "process"
+    algorithms: tuple[str, ...] | None = None
+
+    def __post_init__(self) -> None:
+        """Require pairwise disjoint training, validation and test seeds.
+
+        Raises:
+            ValueError: If any two seed ranges overlap.
+        """
+        require_disjoint(
+            (
+                range(*self.train_seeds),
+                range(self.validation_base, self.validation_base + self.validation_instances),
+                range(self.test_base, self.test_base + self.test_instances),
+            ),
+            "Training, validation and test seeds must be disjoint.",
+        )
 
 
 class NamedInstance(Protocol):
@@ -379,3 +436,38 @@ class ReinforceTrainer:
             scores = self.scorer.scores(self.features(instance))
             rewards.append(self.reward(instance, np.argsort(-scores, kind="stable")))
         return float(np.mean(rewards))
+
+    def fit(
+        self,
+        kind: str,
+        make: Callable[[int], InstanceT],
+        held: list[InstanceT],
+        seeds: range,
+        schedule: tuple[int, int],
+    ) -> dict[str, Any]:
+        """Evaluate, train for the given step count and report the learning curve.
+
+        Args:
+            kind (str): Instance family, recorded in the report only.
+            make (Callable[[int], InstanceT]): Instance factory taking a seed.
+            held (list[InstanceT]): Held-out instances for the before/after evaluation.
+            seeds (range): Training seeds, disjoint from validation and test seeds.
+            schedule (tuple[int, int]): Number of updates and instances per update.
+
+        Returns:
+            dict[str, Any]: `kind`, training seconds, reward before and after training, the
+            mean reward of the first and last ten steps, and the step count.
+        """
+        steps, batch = schedule
+        before = self.evaluate(held)
+        started = time.perf_counter()
+        history = self.train(make, seeds, steps, batch)
+        return {
+            "kind": kind,
+            "seconds": time.perf_counter() - started,
+            "validation_reward_before": before,
+            "validation_reward_after": self.evaluate(held),
+            "reward_first_10": float(np.mean(history[:10])),
+            "reward_last_10": float(np.mean(history[-10:])),
+            "steps": steps,
+        }
