@@ -122,50 +122,50 @@ class TspDecoderFormStudy(FormStudy[TspInstance]):
         return TspFamily.make(kind, self.design.n_items, seed)
 
     @staticmethod
-    def scores(prior: str, instance: TspInstance) -> np.ndarray:
-        """Build one prior tour.
+    def prior(name: str, instance: TspInstance) -> np.ndarray:
+        """Build one named prior tour.
 
         Args:
-            prior (str): `nn` or `twoopt`.
+            name (str): `nn` or `twoopt`.
             instance (TspInstance): Traveling-salesman instance.
 
         Returns:
             np.ndarray: Tour as a permutation of the cities.
 
         Raises:
-            ValueError: If the prior is unknown.
+            ValueError: If the prior name is unknown.
         """
-        if prior not in PRIORS:
-            raise ValueError(f"Unknown prior {prior!r}; expected one of {PRIORS}.")
+        if name not in PRIORS:
+            raise ValueError(f"Unknown prior {name!r}; expected one of {PRIORS}.")
         tour = TspFamily.nearest_neighbour(instance)
-        return TspFamily.two_opt(instance, tour) if prior == "twoopt" else tour
+        return TspFamily.two_opt(instance, tour) if name == "twoopt" else tour
 
     @staticmethod
     def assemble(
-        instance: TspInstance, scores: np.ndarray | None, spread: float, seed: int
+        instance: TspInstance, prior: np.ndarray | None, spread: float, seed: int
     ) -> Callable[[np.ndarray], Any]:
         """Build the sort decoder, plain when there is no prior tour.
 
         Args:
             instance (TspInstance): Traveling-salesman instance.
-            scores (np.ndarray | None): Prior tour, or None for the plain decoder.
+            prior (np.ndarray | None): Prior tour, or None for the plain decoder.
             spread (float): Residual scale.
             seed (int): Unused by the decoder.
 
         Returns:
             Callable[[np.ndarray], Any]: Decoder returning a visiting order.
         """
-        return TspDecoder(instance, scores, spread)
+        return TspDecoder(instance, prior, spread)
 
     @staticmethod
     def seeds(
-        instance: TspInstance, scores: np.ndarray, count: int, noise: float, seed: int
+        instance: TspInstance, prior: np.ndarray, count: int, noise: float, seed: int
     ) -> list[list[float]]:
         """Encode the prior tour as one key vector and noisy variants of it.
 
         Args:
             instance (TspInstance): Traveling-salesman instance.
-            scores (np.ndarray): Prior tour.
+            prior (np.ndarray): Prior tour.
             count (int): Number of key vectors.
             noise (float): Position noise as a fraction of the tour.
             seed (int): Perturbation seed.
@@ -173,7 +173,7 @@ class TspDecoderFormStudy(FormStudy[TspInstance]):
         Returns:
             list[list[float]]: Key vectors, the exact tour first.
         """
-        return TspFamily.perturbed_keys(scores, count, noise, seed)
+        return TspFamily.perturbed_keys(prior, count, noise, seed)
 
     def measure(
         self,

@@ -156,31 +156,31 @@ class FormStudy[InstanceT: StudyInstance](ABC):
 
     @staticmethod
     @abstractmethod
-    def scores(prior: str, instance: InstanceT) -> np.ndarray:
-        """Compute one prior's data for an instance, such as item scores or a tour.
+    def prior(name: str, instance: InstanceT) -> np.ndarray:
+        """Compute one named prior's data for an instance, such as item scores or a tour.
 
         Args:
-            prior (str): Prior name from `priors`.
+            name (str): Prior name from `priors`.
             instance (InstanceT): Instance.
 
         Returns:
             np.ndarray: Prior data that the subclass decodes.
 
         Raises:
-            ValueError: If the prior is unknown.
+            ValueError: If the prior name is unknown.
         """
         raise NotImplementedError
 
     @staticmethod
     @abstractmethod
     def assemble(
-        instance: InstanceT, scores: np.ndarray | None, spread: float, seed: int
+        instance: InstanceT, prior: np.ndarray | None, spread: float, seed: int
     ) -> Callable[[np.ndarray], Any]:
         """Build the decoder, plain when there is no prior.
 
         Args:
             instance (InstanceT): Instance.
-            scores (np.ndarray | None): Prior, or None for the plain decoder.
+            prior (np.ndarray | None): Prior data, or None for the plain decoder.
             spread (float): Residual scale.
             seed (int): Unused by the study's decoders.
 
@@ -192,13 +192,13 @@ class FormStudy[InstanceT: StudyInstance](ABC):
     @staticmethod
     @abstractmethod
     def seeds(
-        instance: InstanceT, scores: np.ndarray, count: int, noise: float, seed: int
+        instance: InstanceT, prior: np.ndarray, count: int, noise: float, seed: int
     ) -> list[list[float]]:
         """Encode the prior as one key vector and noisy variants of it.
 
         Args:
             instance (InstanceT): Instance.
-            scores (np.ndarray): Prior.
+            prior (np.ndarray): Prior data.
             count (int): Number of key vectors.
             noise (float): Perturbation scale.
             seed (int): Perturbation seed.
@@ -292,18 +292,16 @@ class FormStudy[InstanceT: StudyInstance](ABC):
             tuple[Callable[[np.ndarray], Any], list[list[float]] | None, float]: Decoder,
             initial keys or None, and preparation seconds.
         """
-        prior, mechanism = self.parse(arm)
-        if prior is None:
+        name, mechanism = self.parse(arm)
+        if name is None:
             return self.assemble(instance, None, 0.0, 0), None, 0.0
         started = time.perf_counter()
-        scores = self.scores(prior, instance)
+        data = self.prior(name, instance)
         if mechanism.startswith("resid"):
-            decoder, keys = self.assemble(instance, scores, tuned[prior], 0), None
+            decoder, keys = self.assemble(instance, data, tuned[name], 0), None
         else:
             count = 1 if mechanism == "seed1" else SEED_COUNT
-            keys = self.seeds(
-                instance, scores, count, tuned.get(f"{prior}_noise", SEED_NOISE), seed
-            )
+            keys = self.seeds(instance, data, count, tuned.get(f"{name}_noise", SEED_NOISE), seed)
             decoder = self.assemble(instance, None, 0.0, 0)
         return decoder, keys, time.perf_counter() - started
 

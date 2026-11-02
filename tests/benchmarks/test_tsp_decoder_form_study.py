@@ -75,12 +75,12 @@ def test_arm_names_parse_and_unknown_names_are_rejected() -> None:
 def test_priors_are_tours_and_the_strong_one_is_shorter() -> None:
     """Nearest neighbour gives a permutation; 2-opt shortens it; unknown priors raise."""
     instance = TspFamily.make("clustered", 80, 2)
-    rough = TspDecoderFormStudy.scores("nn", instance)
-    strong = TspDecoderFormStudy.scores("twoopt", instance)
+    rough = TspDecoderFormStudy.prior("nn", instance)
+    strong = TspDecoderFormStudy.prior("twoopt", instance)
     assert sorted(rough.tolist()) == list(range(80)) == sorted(strong.tolist())
     assert TspFamily.length(instance, strong) < TspFamily.length(instance, rough)
     with pytest.raises(ValueError, match="Unknown prior"):
-        TspDecoderFormStudy.scores("learned", instance)
+        TspDecoderFormStudy.prior("learned", instance)
 
 
 def test_seeded_arms_use_the_plain_decoder_and_residual_arms_carry_the_tour() -> None:
@@ -94,7 +94,7 @@ def test_seeded_arms_use_the_plain_decoder_and_residual_arms_carry_the_tour() ->
     assert one.tour is None and many.tour is None
     assert keys_one is not None and len(keys_one) == 1 and keys_many is not None
     assert len(keys_many) == SEED_COUNT and keys_many[0] == keys_one[0]
-    tour = TspDecoderFormStudy.scores("twoopt", instance)
+    tour = TspDecoderFormStudy.prior("twoopt", instance)
     assert keys_one[0] == TspFamily.position_keys(tour)
     resid, keys_resid, _ = study.setup("twoopt_resid", instance, TUNED, 1)
     assert keys_resid is None and resid.tour is not None and resid.spread == 0.25

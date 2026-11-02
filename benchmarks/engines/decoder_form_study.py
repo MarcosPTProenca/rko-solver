@@ -100,51 +100,51 @@ class DecoderFormStudy(FormStudy[PackingInstance]):
         return PackingFamily.make(kind, self.design.n_items, seed)
 
     @staticmethod
-    def scores(prior: str, instance: PackingInstance) -> np.ndarray:
-        """Compute one prior's item scores.
+    def prior(name: str, instance: PackingInstance) -> np.ndarray:
+        """Compute one named prior's item scores.
 
         Args:
-            prior (str): `ratio` or `dual`.
+            name (str): `ratio` or `dual`.
             instance (PackingInstance): Packing instance.
 
         Returns:
             np.ndarray: Positive score per item.
 
         Raises:
-            ValueError: If the prior is unknown.
+            ValueError: If the prior name is unknown.
         """
-        if prior == "ratio":
+        if name == "ratio":
             return PackingFamily.hand_scores(instance)
-        if prior == "dual":
+        if name == "dual":
             return PackingFamily.dual_scores(instance)
-        raise ValueError(f"Unknown prior {prior!r}; expected one of {PRIORS}.")
+        raise ValueError(f"Unknown prior {name!r}; expected one of {PRIORS}.")
 
     @staticmethod
     def assemble(
-        instance: PackingInstance, scores: np.ndarray | None, spread: float, seed: int
+        instance: PackingInstance, prior: np.ndarray | None, spread: float, seed: int
     ) -> Callable[[np.ndarray], Any]:
         """Build the decoder, plain when there is no prior.
 
         Args:
             instance (PackingInstance): Packing instance.
-            scores (np.ndarray | None): Prior, or None for the plain decoder.
+            prior (np.ndarray | None): Prior data, or None for the plain decoder.
             spread (float): Residual scale.
             seed (int): Unused by the packing decoder.
 
         Returns:
             Callable[[np.ndarray], Any]: Decoder.
         """
-        return PackingDecoder(instance, scores, spread)
+        return PackingDecoder(instance, prior, spread)
 
     @staticmethod
     def seeds(
-        instance: PackingInstance, scores: np.ndarray, count: int, noise: float, seed: int
+        instance: PackingInstance, prior: np.ndarray, count: int, noise: float, seed: int
     ) -> list[list[float]]:
         """Encode the prior as one key vector and noisy variants of it.
 
         Args:
             instance (PackingInstance): Packing instance.
-            scores (np.ndarray): Prior.
+            prior (np.ndarray): Prior data.
             count (int): Number of key vectors.
             noise (float): Perturbation scale.
             seed (int): Perturbation seed.
@@ -152,7 +152,7 @@ class DecoderFormStudy(FormStudy[PackingInstance]):
         Returns:
             list[list[float]]: Key vectors, the exact prior first.
         """
-        return PackingFamily.perturbed_keys(scores, count, noise, seed)
+        return PackingFamily.perturbed_keys(prior, count, noise, seed)
 
     def measure(
         self,

@@ -125,13 +125,13 @@ def test_scores_dispatch_to_the_named_prior_and_reject_unknown() -> None:
     """Each prior returns its own score vector."""
     instance = PackingFamily.make("mkp", 40, 2)
     np.testing.assert_array_equal(
-        DecoderFormStudy.scores("ratio", instance), PackingFamily.hand_scores(instance)
+        DecoderFormStudy.prior("ratio", instance), PackingFamily.hand_scores(instance)
     )
     np.testing.assert_array_equal(
-        DecoderFormStudy.scores("dual", instance), PackingFamily.dual_scores(instance)
+        DecoderFormStudy.prior("dual", instance), PackingFamily.dual_scores(instance)
     )
     with pytest.raises(ValueError, match="prior"):
-        DecoderFormStudy.scores("learned", instance)
+        DecoderFormStudy.prior("learned", instance)
 
 
 def test_seeded_arms_use_the_plain_decoder_and_residual_arms_carry_the_prior() -> None:
