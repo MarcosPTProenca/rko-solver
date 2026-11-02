@@ -19,6 +19,7 @@ mutants/
 .coverage
 htmlcov/
 results/
+/temp_docs/
 /site/
 /release/
 
