@@ -10,8 +10,11 @@ Technical approach:
 - `PolicyGradient` treats the scores as a Plackett-Luce distribution over item orders. Orders are
   sampled with Gumbel perturbations; the exact log-probability gradient with respect to the
   scores uses suffix normalizers in O(n log n) per order.
+- `RewardCache` normalizes an order's raw objective by a cached per-instance reference value, so
+  one scorer-independent reward definition serves every problem family.
 - `ReinforceTrainer` ascends the leave-one-out-baselined score-function estimate of the expected
-  normalized profit of the greedy fill, with Adam.
+  reward returned by a caller-supplied features function and reward function, with Adam. Neither
+  function is specific to Knapsack; a caller plugs in its own problem.
 
 Flow (pseudocode):
 1. Draw a batch of generated instances from training seeds.
@@ -25,19 +28,22 @@ Important criteria:
 - Training is offline and its cost is reported separately from per-instance inference.
 
 Inputs/Outputs:
-- Input: item features, instances and training settings.
+- Input: a features function, a reward function, instances and training settings.
 - Output: a fitted scorer, a reward history and an `.npz` artifact.
 """
 
 from __future__ import annotations
 
 import numpy as np
+import time
 from benchmarks.engines.mlp_surrogate import MlpSurrogate
-from benchmarks.engines.packing_problems import PackingFamily
-from benchmarks.engines.packing_problems import PackingInstance
+from benchmarks.engines.report_sink import require_disjoint
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
+from typing import Protocol
+from typing import TypeVar
 
 
 @dataclass(slots=True, eq=False)
@@ -204,8 +210,123 @@ class PolicyGradient:
         return np.asarray(rewards - (rewards.sum() - rewards) / (len(rewards) - 1))
 
 
+@dataclass(slots=True)
+class ReinforceStudyDesign:
+    """Fixed numerical design shared by every REINFORCE-scorer study.
+
+    Responsibilities:
+    - Keep instance size, budgets and the disjoint training, validation and test seed ranges in
+      one validated place; a subclass redeclares the defaults that suit its problem and size.
+
+    Attributes:
+        n_items (int): Items or cities per instance.
+        budgets (tuple[float, ...]): Per-instance wall allowances in seconds.
+        test_instances (int): Held-out instances per family.
+        validation_instances (int): Instances used to choose spreads.
+        train_seeds (tuple[int, int]): Half-open range of training instance seeds.
+        validation_base (int): First validation seed.
+        test_base (int): First test seed.
+        steps (int): REINFORCE updates.
+        batch (int): Instances per update.
+        samples (int): Sampled orders per instance.
+        hidden (int): Scorer hidden width.
+        execution (str): Python-engine execution mode passed to the solver.
+        algorithms (tuple[str, ...] | None): Portfolio override; None keeps the default portfolio.
+    """
+
+    n_items: int = 250
+    budgets: tuple[float, ...] = (2.0, 10.0)
+    test_instances: int = 12
+    validation_instances: int = 6
+    train_seeds: tuple[int, int] = (100_000, 101_000)
+    validation_base: int = 6000
+    test_base: int = 7000
+    steps: int = 500
+    batch: int = 8
+    samples: int = 16
+    hidden: int = 16
+    execution: str = "process"
+    algorithms: tuple[str, ...] | None = None
+
+    def __post_init__(self) -> None:
+        """Require pairwise disjoint training, validation and test seeds.
+
+        Raises:
+            ValueError: If any two seed ranges overlap.
+        """
+        require_disjoint(
+            (
+                range(*self.train_seeds),
+                range(self.validation_base, self.validation_base + self.validation_instances),
+                range(self.test_base, self.test_base + self.test_instances),
+            ),
+            "Training, validation and test seeds must be disjoint.",
+        )
+
+
+class NamedInstance(Protocol):
+    """An instance that carries a `<family>-<size>-<seed>` name, for reward caching."""
+
+    @property
+    def name(self) -> str:
+        """Return the instance name.
+
+        Returns:
+            str: `<family>-<size>-<seed>`.
+        """
+        ...
+
+
+InstanceT = TypeVar("InstanceT", bound=NamedInstance)
+
+
+class RewardCache:
+    """Normalize an order's objective by a cached per-instance reference order's objective.
+
+    Responsibilities:
+    - Evaluate a caller-supplied reward function once per instance for a fixed reference order,
+      so every sampled order of that instance is compared on the same scale.
+
+    Attributes:
+        reward (Callable[[InstanceT, np.ndarray], float]): Raw, unnormalized objective of one order
+            on one instance; larger is better.
+        reference (Callable[[InstanceT], np.ndarray]): Reference order for one instance, for
+            example a hand-written prior's order.
+        cache (dict[str, float]): Reference objective per instance name, filled lazily.
+    """
+
+    def __init__(
+        self,
+        reward: Callable[[InstanceT, np.ndarray], float],
+        reference: Callable[[InstanceT], np.ndarray],
+    ) -> None:
+        """Store the raw reward and reference-order functions.
+
+        Args:
+            reward (Callable[[InstanceT, np.ndarray], float]): Raw objective of one order.
+            reference (Callable[[InstanceT], np.ndarray]): Reference order for one instance.
+        """
+        self.reward = reward
+        self.reference = reference
+        self.cache: dict[str, float] = {}
+
+    def __call__(self, instance: InstanceT, order: np.ndarray) -> float:
+        """Return the order's objective normalized by the instance's reference objective.
+
+        Args:
+            instance (InstanceT): Instance.
+            order (np.ndarray): Item order, best-first.
+
+        Returns:
+            float: Normalized objective.
+        """
+        if instance.name not in self.cache:
+            self.cache[instance.name] = self.reward(instance, self.reference(instance))
+        return self.reward(instance, order) / self.cache[instance.name]
+
+
 class ReinforceTrainer:
-    """Train a scorer with REINFORCE and a leave-one-out baseline.
+    """Train a scorer with REINFORCE and a leave-one-out baseline, on any problem family.
 
     Responsibilities:
     - Estimate the policy gradient over a batch of instances and apply Adam updates.
@@ -213,21 +334,37 @@ class ReinforceTrainer:
 
     Attributes:
         scorer (PriorityScorer): Scorer being trained.
+        features (Callable[[InstanceT], np.ndarray]): Per-item feature rows for one instance.
+        reward (Callable[[InstanceT, np.ndarray], float]): Normalized reward of one order.
         samples (int): Orders sampled per instance.
         rng (np.random.Generator): Sampling and batching generator.
     """
 
-    def __init__(self, scorer: PriorityScorer, samples: int, seed: int) -> None:
-        """Store the scorer and initialize optimizer state.
+    def __init__(
+        self,
+        scorer: PriorityScorer,
+        features: Callable[[InstanceT], np.ndarray],
+        reward: Callable[[InstanceT, np.ndarray], float],
+        samples: int,
+        seed: int,
+    ) -> None:
+        """Store the scorer, the problem-specific functions and initialize optimizer state.
 
         Args:
             scorer (PriorityScorer): Scorer to train.
+            features (Callable[[InstanceT], np.ndarray]): Per-item feature rows for one instance.
+            reward (Callable[[InstanceT, np.ndarray], float]): Normalized reward of one order.
             samples (int): Orders sampled per instance, at least two.
             seed (int): Generator seed.
+
+        Raises:
+            ValueError: If `samples` is below two.
         """
         if samples < 2:
             raise ValueError("'samples' must be at least two.")
         self.scorer = scorer
+        self.features = features
+        self.reward = reward
         self.samples = samples
         self.rng = np.random.default_rng(seed)
         self.moments = (
@@ -235,28 +372,12 @@ class ReinforceTrainer:
             {name: np.zeros_like(value) for name, value in scorer.weights.items()},
         )
         self.updates = 0
-        self.reference: dict[str, float] = {}
 
-    def reward(self, instance: PackingInstance, order: np.ndarray) -> float:
-        """Return the greedy-fill profit normalized by the hand-prior fill profit.
-
-        Args:
-            instance (PackingInstance): Packing instance.
-            order (np.ndarray): Item order, best-first.
-
-        Returns:
-            float: Normalized profit.
-        """
-        if instance.name not in self.reference:
-            hand = np.argsort(-PackingFamily.hand_scores(instance), kind="stable")
-            self.reference[instance.name] = PackingFamily.fill(hand, instance)[1]
-        return PackingFamily.fill(order, instance)[1] / self.reference[instance.name]
-
-    def step(self, batch: list[PackingInstance]) -> float:
+    def step(self, batch: list[InstanceT]) -> float:
         """Apply one policy-gradient update.
 
         Args:
-            batch (list[PackingInstance]): Training instances.
+            batch (list[InstanceT]): Training instances.
 
         Returns:
             float: Mean sampled reward before the update.
@@ -264,7 +385,7 @@ class ReinforceTrainer:
         total = {name: np.zeros_like(value) for name, value in self.scorer.weights.items()}
         rewards = []
         for instance in batch:
-            features = PackingFamily.features(instance)
+            features = self.features(instance)
             scores = self.scorer.scores(features)
             orders = PolicyGradient.sample_orders(scores, self.samples, self.rng)
             sampled = np.array([self.reward(instance, order) for order in orders])
@@ -282,12 +403,12 @@ class ReinforceTrainer:
         return float(np.mean(rewards))
 
     def train(
-        self, make: Callable[[int], PackingInstance], seeds: range, steps: int, batch: int
+        self, make: Callable[[int], InstanceT], seeds: range, steps: int, batch: int
     ) -> list[float]:
         """Train for a number of steps on instances drawn from a seed range.
 
         Args:
-            make (Callable[[int], PackingInstance]): Instance factory taking a seed.
+            make (Callable[[int], InstanceT]): Instance factory taking a seed.
             seeds (range): Training seeds, disjoint from validation and test seeds.
             steps (int): Number of updates.
             batch (int): Instances per update.
@@ -301,17 +422,52 @@ class ReinforceTrainer:
             history.append(self.step([make(int(seed)) for seed in chosen]))
         return history
 
-    def evaluate(self, instances: list[PackingInstance]) -> float:
-        """Return the mean normalized profit of the scorer's deterministic order.
+    def evaluate(self, instances: list[InstanceT]) -> float:
+        """Return the mean normalized reward of the scorer's deterministic order.
 
         Args:
-            instances (list[PackingInstance]): Held-out instances.
+            instances (list[InstanceT]): Held-out instances.
 
         Returns:
-            float: Mean normalized profit of the descending-score fill.
+            float: Mean normalized reward of the descending-score order.
         """
         rewards = []
         for instance in instances:
-            scores = self.scorer.scores(PackingFamily.features(instance))
+            scores = self.scorer.scores(self.features(instance))
             rewards.append(self.reward(instance, np.argsort(-scores, kind="stable")))
         return float(np.mean(rewards))
+
+    def fit(
+        self,
+        kind: str,
+        make: Callable[[int], InstanceT],
+        held: list[InstanceT],
+        seeds: range,
+        schedule: tuple[int, int],
+    ) -> dict[str, Any]:
+        """Evaluate, train for the given step count and report the learning curve.
+
+        Args:
+            kind (str): Instance family, recorded in the report only.
+            make (Callable[[int], InstanceT]): Instance factory taking a seed.
+            held (list[InstanceT]): Held-out instances for the before/after evaluation.
+            seeds (range): Training seeds, disjoint from validation and test seeds.
+            schedule (tuple[int, int]): Number of updates and instances per update.
+
+        Returns:
+            dict[str, Any]: `kind`, training seconds, reward before and after training, the
+            mean reward of the first and last ten steps, and the step count.
+        """
+        steps, batch = schedule
+        before = self.evaluate(held)
+        started = time.perf_counter()
+        history = self.train(make, seeds, steps, batch)
+        return {
+            "kind": kind,
+            "seconds": time.perf_counter() - started,
+            "validation_reward_before": before,
+            "validation_reward_after": self.evaluate(held),
+            "reward_first_10": float(np.mean(history[:10])),
+            "reward_last_10": float(np.mean(history[-10:])),
+            "steps": steps,
+        }

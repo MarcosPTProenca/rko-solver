@@ -32,6 +32,7 @@ Inputs/Outputs:
 from __future__ import annotations
 
 import numpy as np
+import sys
 from dataclasses import dataclass
 from dataclasses import field
 from examples.priority_decoders import QuantileCodec
@@ -258,6 +259,33 @@ class TspFamily:
         return keys.tolist()
 
     @staticmethod
+    def features(instance: TspInstance) -> np.ndarray:
+        """Return instance-only per-city features, independent of any prior tour.
+
+        Args:
+            instance (TspInstance): Instance.
+
+        Returns:
+            np.ndarray: Matrix with one row per city and 5 columns: coordinates centered on the
+            centroid, distance to the centroid, distance to the nearest other city (rank-
+            normalized to `[0, 1]`), and the polar angle around the centroid scaled to `[-1, 1]`.
+        """
+        points = instance.coordinates
+        centered = points - points.mean(axis=0)
+        distance = np.linalg.norm(points[:, None] - points[None], axis=2)
+        np.fill_diagonal(distance, np.inf)
+        nearest = distance.min(axis=1)
+        radius = np.linalg.norm(centered, axis=1)
+        angle = np.arctan2(centered[:, 1], centered[:, 0]) / np.pi
+
+        def ranked(values: np.ndarray) -> np.ndarray:
+            ranks = np.empty(len(values))
+            ranks[np.argsort(values, kind="stable")] = np.arange(len(values))
+            return ranks / max(len(values) - 1, 1)
+
+        return np.column_stack([centered, ranked(radius), ranked(nearest), angle])
+
+    @staticmethod
     def perturbed_keys(tour: np.ndarray, count: int, noise: float, seed: int) -> list[list[float]]:
         """Encode a tour and noisy variants of it as key vectors.
 
@@ -399,6 +427,99 @@ class TspQuantileDecoder:
             np.ndarray: Permutation of the cities.
         """
         return QuantileCodec.order(np.asarray(keys), self.scores, self.temperature)
+
+
+class TspStudyBase:
+    """Shared instance generation and lower-bound caching for traveling-salesman studies.
+
+    Responsibilities:
+    - Generate an instance at a design-fixed city count.
+    - Compute and cache the Held-Karp 1-tree lower bound once per instance name.
+
+    Attributes:
+        n_items (int): Cities per instance.
+        bounds (dict[str, float]): Cached lower bound per instance name.
+    """
+
+    def __init__(self, n_items: int) -> None:
+        """Store the design size and start an empty bound cache.
+
+        Args:
+            n_items (int): Cities per instance.
+        """
+        self.n_items = n_items
+        self.bounds: dict[str, float] = {}
+
+    def instance(self, kind: str, seed: int) -> TspInstance:
+        """Generate an instance at the stored city count.
+
+        Args:
+            kind (str): Instance family.
+            seed (int): Instance seed.
+
+        Returns:
+            TspInstance: Generated instance.
+        """
+        return TspFamily.make(kind, self.n_items, seed)
+
+    def bound_of(self, instance: TspInstance) -> float:
+        """Return the cached lower bound, computing it on the first call for this instance.
+
+        Args:
+            instance (TspInstance): Instance.
+
+        Returns:
+            float: Held-Karp 1-tree lower bound.
+        """
+        if instance.name not in self.bounds:
+            self.bounds[instance.name] = TspFamily.lower_bound(instance, BOUND_STEPS)
+        return self.bounds[instance.name]
+
+    def record(
+        self,
+        instance: TspInstance,
+        identity: tuple[str, float],
+        length: float,
+        verified: bool,
+        timing: tuple[float, float, float],
+    ) -> dict[str, Any]:
+        """Assemble one trial record with the cached bound and the measured timings.
+
+        Args:
+            instance (TspInstance): Instance.
+            identity (tuple[str, float]): Arm name and per-instance allowance in seconds.
+            length (float): Independently decoded tour length.
+            verified (bool): Whether the length matches the solver's reported cost.
+            timing (tuple[float, float, float]): Preparation seconds, allowance passed to the
+                solver, and total wall seconds including preparation.
+
+        Returns:
+            dict[str, Any]: Identifying fields, `length`, `bound`, `verified` and timings.
+        """
+        arm, budget = identity
+        prep, allowance, wall = timing
+        return {
+            "instance": instance.name,
+            "family": instance.name.split("-")[0],
+            "arm": arm,
+            "budget": budget,
+            "length": length,
+            "bound": self.bound_of(instance),
+            "verified": verified,
+            "prep_seconds": prep,
+            "allowance": allowance,
+            "wall_seconds": wall,
+        }
+
+    @staticmethod
+    def progress(row: dict[str, Any]) -> None:
+        """Print one line per finished trial to standard error.
+
+        Args:
+            row (dict[str, Any]): Trial record with `instance`, `budget` and `arm`.
+        """
+        sys.stderr.write(f"trial {row['instance']} {row['budget']:g}s {row['arm']}\n")
+        sys.stderr.flush()
 
 
 class TspReport:

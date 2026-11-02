@@ -2761,3 +2761,94 @@ decoder's result on TSP. Between the two decoder forms tested here, seeding thro
 is the better mechanism for a prior tour on this problem; neither decoder form is justified as a
 library helper from TSP evidence. The quantile codec itself remains supported as a
 Knapsack-specific example, unchanged by this study.
+
+### A trained scorer against the 2-opt prior, CPU only
+
+The two decoder-form studies above compared mechanisms with the prior tour fixed. This asks a
+different question: does training a per-city scorer with REINFORCE, the same architecture already
+used for packing, do better than the hand-written 2-opt heuristic it is trained against? Training
+runs entirely on CPU, no GPU, as capacity probes below show diminishing returns well inside what a
+few minutes of CPU time can reach.
+
+Sources: no source paper for the design. REINFORCE and the leave-one-out baseline follow
+[REINFORCE and the leave-one-out baseline](../docs/references.md#reinforce-and-the-leave-one-out-baseline);
+the scorer architecture is the same one already used for packing. 2-opt is the heuristic of
+[Croes 1958](../docs/references.md#traveling-salesman-instances-tours-and-bound).
+
+`TspFamily.features` (`tsp_problems.py`) returns five instance-only per-city columns: coordinates
+centered on the centroid, rank-normalized distance to the centroid and to the nearest other city,
+and the polar angle around the centroid. A one-hidden-layer tanh scorer (`PriorityScorer`, 32
+hidden units) is trained per family with `ReinforceTrainer`, 3000 updates, batch 16, 32 sampled
+orders per instance, all on training seeds disjoint from validation and test. The training reward
+is the 2-opt tour's length divided by the sampled order's length, so the 2-opt prior scores exactly
+1 as its own reference.
+
+Five arms per instance reuse the decoder-form study's strongest mechanisms for the 2-opt prior:
+plain RKO; the learned score as a sort order seeded with 32 perturbed orders (`learned_seed32`);
+the learned score inside the residual decoder (`learned_resid`); and the 2-opt prior through the
+same two mechanisms (`twoopt_seed32`, `twoopt_resid`), both already shown in the decoder-form study
+to beat plain RKO by a wide margin. The residual spread for both `_resid` arms is chosen on
+validation instances the same way as in the decoder-form study.
+
+```bash
+uv run --locked python -m benchmarks.engines.tsp_learned_study --output results/tsp-learned-study.json
+```
+
+Design fixed before the study, from capacity probes run on training seeds before any test or
+validation instance was touched (not committed as code, but disclosed here): without the polar
+angle feature the trained mean validation reward plateaued near 0.39-0.47 after up to 8000 steps;
+adding it raised the plateau to about 0.60-0.64, so the angle feature is kept. Doubling the hidden
+width from 16 to 64 at fixed steps changed the reward by at most 0.004, so width was fixed at 32.
+Training reward kept rising from 500 to 4000 steps but with falling marginal gain per additional
+100 steps past about 2000; the study uses 3000 as a middle point, not a search for the best
+possible scorer. None of these probes used a validation or test seed.
+
+Rule, committed in `698432b` before the run: advance only if, on both families and both budgets,
+the learned score beats the 2-opt prior with the same mechanism (seeded and residual), each with a
+paired 95 percent bootstrap interval entirely below zero.
+
+[Reference measurement](references/tsp-learned-study-reference.json), 12 test instances per
+family, 240 trials with every decoded tour length re-verified. Training took 117 and 124 seconds
+per family (CPU only); mean validation reward after training was 0.573 (uniform) and 0.576
+(clustered), against 0.21 and 0.18 before training. Mean percentage gap above the shortest tour any
+arm found (lower is better):
+
+| Family, budget | plain | learned seed32 | learned resid | 2-opt seed32 | 2-opt resid |
+|---|---:|---:|---:|---:|---:|
+| Uniform, 2 s | 78.73 | 17.12 | 12.21 | 0.28 | 0.67 |
+| Uniform, 10 s | 44.27 | 7.10 | 9.01 | 0.12 | 0.67 |
+| Clustered, 2 s | 95.87 | 27.24 | 18.27 | 0.56 | 0.98 |
+| Clustered, 10 s | 60.47 | 10.14 | 9.36 | 0.00 | 0.87 |
+
+The rule is not met, by a wide margin in both directions. Learned minus 2-opt, paired difference in
+percentage points with its 95 percent interval and wins/losses/ties of the learned arm:
+
+| Family, budget | Seeded (learned vs 2-opt) | Residual (learned vs 2-opt) |
+|---|---|---|
+| Uniform, 2 s | +16.84 [+13.00, +20.42], 0/12/0 | +11.54 [+8.10, +15.12], 0/12/0 |
+| Uniform, 10 s | +6.98 [+4.10, +9.91], 1/11/0 | +8.34 [+5.37, +11.34], 0/12/0 |
+| Clustered, 2 s | +26.69 [+22.19, +31.59], 0/12/0 | +17.29 [+13.36, +21.40], 0/12/0 |
+| Clustered, 10 s | +10.14 [+7.43, +13.34], 0/12/0 | +8.49 [+6.53, +10.57], 0/12/0 |
+
+The learned arm never beats the 2-opt baseline: 0 wins in 47 of 48 instance-and-budget comparisons,
+1 in the remaining one. Both learned arms do beat plain RKO by a wide margin (35 to 92 points, 12 of
+12 instances in every cell), so the scorer learned something real, just not something close to
+2-opt. The chosen residual spreads (0.1 and 0.2 for the learned prior, 0.01 and 0.05 for 2-opt) are
+interior to the grid used by the decoder-form study.
+
+Limits: 12 test instances per family and 100 cities, reused from the earlier TSP studies; two
+Euclidean families; one scorer architecture (a one-hidden-layer network over five geometric
+features), not a search over architectures; training ran on CPU only, with no GPU available in this
+session, so a larger network or more training steps on a GPU were not tested, though the capacity
+probes above suggest the CPU-reachable plateau was not far from the ceiling of this architecture and
+feature set; the training reward (2-opt-relative tour length) differs from the test metric (gap to
+the best arm, and to the lower bound), so the two are not on identical scales; one machine, one run;
+this is a development study, not a confirmation.
+
+Decision: a REINFORCE-trained per-city scorer, with the capacity this session could train on CPU,
+does not come close to the hand-written 2-opt heuristic on this problem. It beats having no prior at
+all, so the training is not broken, but the test gives no reason to prefer a trained scorer over a
+classical local-search heuristic for a problem where one already exists and is cheap. This closes
+the sequential per-decision Q-RKO direction for TSP: the residual decoder, the quantile codec and a
+trained scorer were all tested and none beat the simplest tested mechanism, a hand-built 2-opt prior
+seeded through `initial_keys`.

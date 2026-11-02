@@ -29,6 +29,7 @@ from benchmarks.engines.packing_problems import PackingInstance
 from benchmarks.engines.priority_scorer import PolicyGradient
 from benchmarks.engines.priority_scorer import PriorityScorer
 from benchmarks.engines.priority_scorer import ReinforceTrainer
+from benchmarks.engines.priority_scorer import RewardCache
 from collections.abc import Callable
 from pathlib import Path
 
@@ -150,12 +151,30 @@ def uncorrelated(seed: int) -> PackingInstance:
     return PackingInstance(profits, weights, np.array([weights.sum() // 2]), f"unc-{seed}")
 
 
+def packing_trainer(scorer: PriorityScorer, samples: int, seed: int) -> ReinforceTrainer:
+    """Build a trainer wired to the packing family's features and hand-prior reward.
+
+    Args:
+        scorer (PriorityScorer): Scorer to train.
+        samples (int): Orders sampled per instance.
+        seed (int): Generator seed.
+
+    Returns:
+        ReinforceTrainer: Trainer ready to run on `PackingInstance` objects.
+    """
+    reward = RewardCache(
+        lambda instance, order: PackingFamily.fill(order, instance)[1],
+        lambda instance: np.argsort(-PackingFamily.hand_scores(instance), kind="stable"),
+    )
+    return ReinforceTrainer(scorer, PackingFamily.features, reward, samples, seed)
+
+
 def test_training_improves_held_out_reward_and_is_reproducible() -> None:
     """On uncorrelated instances an untrained scorer is poor and 150 steps fix most of it."""
     held_out = [uncorrelated(900 + k) for k in range(8)]
     results = []
     for _ in range(2):
-        trainer = ReinforceTrainer(PriorityScorer.init(3, 8, 0), 8, 0)
+        trainer = packing_trainer(PriorityScorer.init(3, 8, 0), 8, 0)
         before = trainer.evaluate(held_out)
         history = trainer.train(uncorrelated, range(100, 164), 150, 8)
         results.append((before, trainer.evaluate(held_out), history))
@@ -168,6 +187,23 @@ def test_training_improves_held_out_reward_and_is_reproducible() -> None:
 def test_reward_is_normalized_by_the_hand_prior_fill() -> None:
     """The hand-prior order itself earns reward one."""
     instance = PackingFamily.make("mkp", 30, 3)
-    trainer = ReinforceTrainer(PriorityScorer.init(7, 4, 1), 4, 1)
+    trainer = packing_trainer(PriorityScorer.init(7, 4, 1), 4, 1)
     hand_order = np.argsort(-PackingFamily.hand_scores(instance), kind="stable")
     assert trainer.reward(instance, hand_order) == pytest.approx(1.0)
+
+
+def test_reward_cache_evaluates_the_reference_once_per_instance() -> None:
+    """The reference objective is cached per instance name, not recomputed per call."""
+    calls = []
+
+    def reward(instance: PackingInstance, order: np.ndarray) -> float:
+        calls.append(instance.name)
+        return float(order.sum())
+
+    cache = RewardCache(reward, lambda instance: np.array([1, 2, 3]))
+    instance = PackingFamily.make("mkp", 5, 0)
+    first = cache(instance, np.array([2, 2, 2]))
+    second = cache(instance, np.array([3, 3, 3]))
+    assert first == pytest.approx(6.0 / 6.0)
+    assert second == pytest.approx(9.0 / 6.0)
+    assert calls.count(instance.name) == 3

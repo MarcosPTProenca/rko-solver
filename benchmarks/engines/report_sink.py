@@ -28,8 +28,11 @@ import json
 import numpy as np
 import sys
 from benchmarks.engines.priority_decoder_study import PairedStatistics
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+
+StudyShape = tuple[tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...], tuple[float, ...]]
 
 
 class ReportSink:
@@ -82,19 +85,13 @@ class ReportSink:
 
     @staticmethod
     def tables(
-        kinds: tuple[str, ...],
-        arms: tuple[str, ...],
-        pairs: tuple[tuple[str, str], ...],
-        budgets: tuple[float, ...],
-        rows: list[dict[str, Any]],
+        shape: StudyShape, rows: list[dict[str, Any]]
     ) -> tuple[dict[str, dict[str, float]], dict[str, dict[str, dict[str, dict[str, float]]]]]:
         """Build the mean-gap and paired-statistics tables shared by every decoder-form study.
 
         Args:
-            kinds (tuple[str, ...]): Instance families.
-            arms (tuple[str, ...]): Arm names, in a fixed order.
-            pairs (tuple[tuple[str, str], ...]): Arm pairs to compare.
-            budgets (tuple[float, ...]): Per-instance allowances in seconds.
+            shape (tuple[...]): Instance families, arm names (fixed order), arm pairs to
+                compare, and per-instance allowances in seconds.
             rows (list[dict[str, Any]]): Normalized trial records.
 
         Returns:
@@ -102,6 +99,7 @@ class ReportSink:
             Mean gap per family/budget/arm (plus `<arm>|bound`), and paired statistics per
             family, budget label and `arm-vs-arm` pair.
         """
+        kinds, arms, pairs, budgets = shape
         means: dict[str, dict[str, float]] = {}
         paired: dict[str, dict[str, dict[str, dict[str, float]]]] = {}
         for kind in kinds:
@@ -117,3 +115,39 @@ class ReportSink:
                     for a, b in pairs
                 }
         return means, paired
+
+    @staticmethod
+    def summarize_tables(
+        shape: StudyShape,
+        rows: list[dict[str, Any]],
+        decide: Callable[[dict[str, dict[str, dict[str, dict[str, float]]]]], dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Build the mean-gap and paired tables and apply the decision rule to them.
+
+        Args:
+            shape (tuple[...]): Instance families, arm names (fixed order), arm pairs to
+                compare, and per-instance allowances in seconds.
+            rows (list[dict[str, Any]]): Normalized trial records.
+            decide (Callable[[...], dict[str, Any]]): Decision rule, called on the paired tables.
+
+        Returns:
+            dict[str, Any]: `mean_gap`, `paired` and the `verdict` returned by `decide`.
+        """
+        means, paired = ReportSink.tables(shape, rows)
+        return {"mean_gap": means, "paired": paired, "verdict": decide(paired)}
+
+
+def require_disjoint(spans: tuple[range, ...], message: str) -> None:
+    """Raise if any two of the given ranges overlap.
+
+    Args:
+        spans (tuple[range, ...]): Ranges to check pairwise.
+        message (str): Error message when two ranges overlap.
+
+    Raises:
+        ValueError: If any two ranges overlap.
+    """
+    for index, first in enumerate(spans):
+        for second in spans[index + 1 :]:
+            if first.start < second.stop and second.start < first.stop:
+                raise ValueError(message)

@@ -43,7 +43,6 @@ from __future__ import annotations
 
 import argparse
 import numpy as np
-import sys
 import time
 from benchmarks.engines.form_study import SEED_COUNT
 from benchmarks.engines.form_study import SEED_NOISE
@@ -52,13 +51,13 @@ from benchmarks.engines.learned_priority_study import PriorityStudy
 from benchmarks.engines.report_sink import ReportSink
 from benchmarks.engines.solver_run import SolverRun
 from benchmarks.engines.tsp_decoder_form_study import TspDecoderFormStudy
-from benchmarks.engines.tsp_problems import BOUND_STEPS
 from benchmarks.engines.tsp_problems import KINDS
 from benchmarks.engines.tsp_problems import TspCost
 from benchmarks.engines.tsp_problems import TspFamily
 from benchmarks.engines.tsp_problems import TspInstance
 from benchmarks.engines.tsp_problems import TspQuantileDecoder
 from benchmarks.engines.tsp_problems import TspReport
+from benchmarks.engines.tsp_problems import TspStudyBase
 from collections.abc import Callable
 from collections.abc import Sequence
 from dataclasses import asdict
@@ -146,7 +145,7 @@ class TsqDecision:
         }
 
 
-class TspQuantileStudy:
+class TspQuantileStudy(TspStudyBase):
     """Run the plain, seeded and quantile arms, tune the temperature and summarize.
 
     Responsibilities:
@@ -155,7 +154,6 @@ class TspQuantileStudy:
 
     Attributes:
         design (DecoderFormDesign): Fixed design.
-        bounds (dict[str, float]): Cached lower bound per instance name.
     """
 
     def __init__(self, design: DecoderFormDesign) -> None:
@@ -164,20 +162,8 @@ class TspQuantileStudy:
         Args:
             design (DecoderFormDesign): Study design; `n_items` is the number of cities.
         """
+        super().__init__(design.n_items)
         self.design = design
-        self.bounds: dict[str, float] = {}
-
-    def instance(self, kind: str, seed: int) -> TspInstance:
-        """Generate an instance at the design size.
-
-        Args:
-            kind (str): Instance family.
-            seed (int): Instance seed.
-
-        Returns:
-            TspInstance: Generated instance.
-        """
-        return TspFamily.make(kind, self.design.n_items, seed)
 
     @staticmethod
     def parse(arm: str) -> tuple[str | None, str]:
@@ -270,31 +256,8 @@ class TspQuantileStudy:
             (solver_seed, allowance),
             keys,
         )
-        if instance.name not in self.bounds:
-            self.bounds[instance.name] = TspFamily.lower_bound(instance, BOUND_STEPS)
-        family = instance.name.split("-")[0]
-        return {
-            "instance": instance.name,
-            "family": family,
-            "arm": arm,
-            "budget": budget,
-            "length": length,
-            "bound": self.bounds[instance.name],
-            "verified": verified,
-            "prep_seconds": prep,
-            "allowance": allowance,
-            "wall_seconds": time.perf_counter() - started + prep,
-        }
-
-    @staticmethod
-    def progress(row: dict[str, Any]) -> None:
-        """Print one line per finished trial to standard error.
-
-        Args:
-            row (dict[str, Any]): Trial record with `instance`, `budget` and `arm`.
-        """
-        sys.stderr.write(f"trial {row['instance']} {row['budget']:g}s {row['arm']}\n")
-        sys.stderr.flush()
+        timing = (prep, allowance, time.perf_counter() - started + prep)
+        return self.record(instance, (arm, budget), length, verified, timing)
 
     def choose(self, kind: str, prior: str) -> float:
         """Pick the temperature with the lowest mean tour length over the bound on validation.
@@ -364,8 +327,9 @@ class TspQuantileStudy:
         Returns:
             dict[str, Any]: Mean gaps, paired statistics and the verdict.
         """
-        means, tables = ReportSink.tables(KINDS, ARMS, PAIRS, self.design.budgets, rows)
-        return {"mean_gap": means, "paired": tables, "verdict": TsqDecision.verdict(tables)}
+        return ReportSink.summarize_tables(
+            (KINDS, ARMS, PAIRS, self.design.budgets), rows, TsqDecision.verdict
+        )
 
     def run(self) -> dict[str, Any]:
         """Choose temperatures, evaluate every test instance and summarize.

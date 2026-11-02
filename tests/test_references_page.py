@@ -53,6 +53,7 @@ EXPERIMENTS = (
     "benchmarks/engines/tsp_decoder_form_study.py",
     "benchmarks/engines/report_sink.py",
     "benchmarks/engines/tsp_quantile_study.py",
+    "benchmarks/engines/tsp_learned_study.py",
 )
 PROPOSALS = (
     "Neural Decoders for Automatic Random-Key Optimization",
