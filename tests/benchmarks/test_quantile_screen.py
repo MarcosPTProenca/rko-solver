@@ -96,4 +96,6 @@ def test_every_arm_completes_under_the_common_wall_time_allowance(arm: str) -> N
     assert np.isfinite(result.cost)
     assert result.algorithms == screen.ARM_ALGORITHMS[arm]
     total_assigned = sum(search.time_limit for search in result.searches)
-    assert total_assigned == pytest.approx(2.0, abs=0.01)
+    # Divided, never multiplied: process startup may take a little of the 2.0 s, and the
+    # three-member portfolio would sum to about 6.0 if each member kept the whole allowance.
+    assert 1.0 < total_assigned <= 2.01

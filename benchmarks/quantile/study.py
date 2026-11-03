@@ -35,7 +35,6 @@ from __future__ import annotations
 
 import json
 import numpy as np
-import resource
 import subprocess
 import time
 from benchmarks.quantile.bootstrap import paired_interval
@@ -407,7 +406,6 @@ class Screen:
                 "sampling with a negative interval and not be beaten by classical "
                 "construction, in every family/budget cell"
             ),
-            "peak_rss_kib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
         }
 
     @staticmethod
