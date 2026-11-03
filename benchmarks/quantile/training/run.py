@@ -31,6 +31,7 @@ import resource
 import subprocess
 import time
 import torch
+from benchmarks.quantile.bootstrap import paired_interval
 from benchmarks.quantile.codec import TrajectoryCodec
 from benchmarks.quantile.instances import Instances
 from benchmarks.quantile.model import FrozenScorer
@@ -448,12 +449,8 @@ class TrainingRun:
         differences = np.asarray(
             [row.normalized_cost - indexed[row.instance_hash].normalized_cost for row in candidate]
         )
-        picks = np.random.default_rng(0).integers(0, len(differences), (10000, len(differences)))
-        means = differences[picks].mean(axis=1)
         return {
-            "difference": float(differences.mean()),
-            "ci_low": float(np.percentile(means, 2.5)),
-            "ci_high": float(np.percentile(means, 97.5)),
+            **paired_interval(differences),
             "interpretation": "exploratory validation interval, not confirmation",
         }
 
