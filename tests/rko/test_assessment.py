@@ -31,7 +31,6 @@ from dataclasses import FrozenInstanceError
 from dataclasses import replace
 from examples.instance_pipeline import SchedulingInstance
 from examples.instance_pipeline import SchedulingProblem
-from functools import partial
 from pathlib import Path
 from rko_solver import RKO
 from rko_solver import SolutionAssessment
@@ -377,22 +376,20 @@ def test_documented_assessment_script_runs(tmp_path: Path) -> None:
     assert "Declared feasibility: True" in process.stdout
 
 
-def test_readme_first_solve_includes_all_user_function_templates(tmp_path: Path) -> None:
-    """Run the README's file-backed Python API example, including optional validation.
+def test_readme_quickstart_runs(tmp_path: Path) -> None:
+    """Run the README's complete first-solve example as a standalone script.
 
     Args:
-        tmp_path (Path): Isolated application directory for the copied tutorial.
+        tmp_path (Path): Isolated application directory for the copied script.
     """
     page = Path(__file__).resolve().parents[2] / "README.md"
     text = page.read_text(encoding="utf-8")
-    data = text.split("```json\n", 1)[1].split("```", 1)[0]
     code = text.split("```python\n", 1)[1].split("```", 1)[0]
-    for name in ("read_data", "decoder", "objective", "validate"):
+    for name in ("decode", "objective"):
         assert f"def {name}(" in code
     assert "solver = RKO(" in code
     assert "result = solver.solve(" in code
-    (tmp_path / "instance.json").write_text(data, encoding="utf-8")
-    script = tmp_path / "quickstart.py"
+    script = tmp_path / "first_solve.py"
     script.write_text(code, encoding="utf-8")
     process = subprocess.run(
         [sys.executable, str(script)],
@@ -404,44 +401,20 @@ def test_readme_first_solve_includes_all_user_function_templates(tmp_path: Path)
     )
     assert "Solution:" in process.stdout
     assert "Objective:" in process.stdout
-    assert "Validation: passed" in process.stdout
-    assert "Evaluations:" in process.stdout
 
 
-def test_readme_individual_algorithm_examples_run(tmp_path: Path) -> None:
-    """Execute both secondary single-algorithm examples with the same loaded callbacks.
-
-    Args:
-        tmp_path (Path): Isolated directory for the README input file.
-    """
+def test_readme_quickstart_uses_documented_hyperparameters() -> None:
+    """Exec the README example in-process and check its declared algorithm settings."""
     page = Path(__file__).resolve().parents[2] / "README.md"
     text = page.read_text(encoding="utf-8")
     code = text.split("```python\n", 1)[1].split("```", 1)[0]
-    data_text = text.split("```json\n", 1)[1].split("```", 1)[0]
-    path = tmp_path / "instance.json"
-    path.write_text(data_text, encoding="utf-8")
-    namespace = {"__name__": "readme_example"}
+    namespace = {"__name__": "__main__"}
     exec(compile(code, "README.md", "exec"), namespace)
-    data = namespace["read_data"](path)
-    namespace.update(
-        {
-            "data": data,
-            "decode": partial(namespace["decoder"], data=data),
-            "cost": partial(namespace["objective"], data=data),
-            "SA": SA,
-        }
+    result = namespace["result"]
+    assert result.algorithms == ("SA",)
+    assert result.execution == "sequential"
+    assert dict(result.searches[0].parameters)["sa_max"] == 100
+    assert dict(result.searches[0].parameters)["t0"] == 1000.0
+    assert result.cost == pytest.approx(
+        namespace["objective"](namespace["decode"](np.asarray(result.keys)))
     )
-    section = text.split("## Run one metaheuristic instead", 1)[1]
-    section = section.split("## Use your own instance data", 1)[0]
-    snippets = section.split("```python\n")[1:]
-    assert len(snippets) == 2
-    for snippet in snippets:
-        exec(compile(snippet.split("```", 1)[0], "README.md", "exec"), namespace)
-        result = namespace["result"]
-        assert result.algorithms == ("SA",)
-        assert result.execution == "sequential"
-        assert dict(result.searches[0].parameters)["sa_max"] == 100
-        assert dict(result.searches[0].parameters)["t0"] == 1000.0
-        assert result.cost == pytest.approx(
-            namespace["cost"](namespace["decode"](np.asarray(result.keys)))
-        )
