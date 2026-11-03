@@ -54,6 +54,7 @@ EXPERIMENTS = (
     "benchmarks/engines/report_sink.py",
     "benchmarks/engines/tsp_quantile_study.py",
     "benchmarks/engines/tsp_learned_study.py",
+    "benchmarks/engines/shake_sensitivity_study.py",
 )
 PROPOSALS = (
     "Neural Decoders for Automatic Random-Key Optimization",
