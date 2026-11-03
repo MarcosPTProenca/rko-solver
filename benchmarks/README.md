@@ -2853,6 +2853,117 @@ the sequential per-decision Q-RKO direction for TSP: the residual decoder, the q
 trained scorer were all tested and none beat the simplest tested mechanism, a hand-built 2-opt prior
 seeded through `initial_keys`.
 
+## State-dependent quantile construction with a trained scorer (Tour and Cover)
+
+Sources: the [Q-RKO proposal](../docs/references.md#q-rko-proposal) (unpublished, machine-generated)
+for the sequential per-decision policy. The studies above tested scorers that rank items once from
+instance features, and the quantile codec with hand-written scores. This one tests the remaining
+direction: a small scorer that sees the **partial construction** (distance from the current city,
+distance home, remaining mean distance, progress) and chooses each next city through exact
+inverse-CDF intervals, so every admissible trace can be re-encoded into keys and handed to RKO as
+`initial_keys`. It lives in `benchmarks/quantile/`; nothing in `src/rko_solver` changes.
+
+Code: `tasks.py` (exact Tour and positive-cost Cover semantics with an independent checker),
+`codec.py` (`TrajectoryCodec`: keys to checked solution, trace to keys), `solver.py`,
+`model.py` (data-only frozen scorer, NumPy only), `instances.py`, and `training/`, an isolated uv
+project (Python 3.13, PyTorch CPU) that exports weights as JSON, so the solver environment never
+imports a neural framework. Three phases, each with its rule fixed before it ran:
+
+1. **Training (F4).** REINFORCE with a detached leave-one-out baseline, 400 updates after 100
+   teacher steps, 100 nodes, about 450 processor-seconds per family.
+2. **Search screen (F5).** The frozen scorer against classical search, Tour and Cover.
+3. **Confirmation (F5b).** The frozen Tour scorer against the 2-opt seeded baseline.
+
+```bash
+uv run --project benchmarks/quantile/training --locked python -m benchmarks.quantile.training.cli \
+  --family tour --output results/quantile/tour
+uv run --locked python -m benchmarks.quantile.study_cli \
+  --tour-model results/quantile/tour/best-model.json \
+  --cover-model results/quantile/cover/best-model.json --output results/quantile/screen
+uv run --locked python -m benchmarks.quantile.confirm_cli \
+  --tour-model results/quantile/tour/best-model.json --output results/quantile/confirm
+```
+
+### Training: the scorer beats the cheap controls at construction
+
+[Reference measurement](references/quantile-contextual-training-reference.json), validation seeds
+600000 and up, mean sampled-construction cost divided by the analytic greedy cost (lower is better),
+export parity 72 and 73 states with no decision mismatch:
+
+| Family | analytic scorer | linear control | trained scorer | trained minus linear |
+|---|---:|---:|---:|---|
+| Tour | 2.52 | 1.77 | 1.20 | -0.57 [-0.62, -0.51] |
+| Cover | 2.33 | 1.48 | 1.43 | -0.06 [-0.14, +0.02] |
+
+Tour clears both controls. Cover clears the analytic scorer but its interval against the linear
+control includes zero, which F5 below shows was a warning. These intervals are exploratory, not a
+confirmation. They measure construction only, not search.
+
+### Search screen: Tour wins, Cover is inconclusive
+
+Four arms on one process worker and one wall allowance, all started from the same checked trace:
+`classical` (BRKGA, analytic codec), `independent` (MultiStart, frozen scorer), `genetic` (BRKGA,
+frozen scorer), `portfolio` (BRKGA, SA, ILS, frozen scorer). Cell rule, fixed before the run: a
+cell wins if `genetic` or `portfolio` beats `independent` with a paired 95 percent bootstrap
+interval below zero and neither is beaten by `classical` with an interval above zero; the screen
+advances only if all four family-and-budget cells win. [Reference
+measurement](references/quantile-contextual-search-screen-reference.json): 10 test instances per
+family (seeds 710000 and up), 3 randomizations, 480 trials, every solution re-verified. Paired
+differences in raw cost (negative favors the left arm):
+
+| Cell | genetic - independent | portfolio - independent | genetic - classical | portfolio - classical | Won |
+|---|---|---|---|---|---|
+| Tour, 10 s | -0.42 [-0.49, -0.36] | -0.21 [-0.30, -0.13] | -0.47 [-0.60, -0.36] | -0.26 [-0.41, -0.14] | yes |
+| Tour, 60 s | -0.62 [-0.69, -0.55] | -0.56 [-0.62, -0.49] | -0.67 [-0.81, -0.55] | -0.61 [-0.74, -0.49] | yes |
+| Cover, 10 s | -1.57 [-3.30, 0.00] | -0.10 [-0.33, +0.07] | -1.13 [-2.63, 0.00] | +0.33 [-0.33, +1.33] | no |
+| Cover, 60 s | -2.07 [-4.43, +0.03] | +0.30 [-0.23, +1.00] | +1.50 [-3.10, +7.67] | +3.87 [-0.40, +9.43] | no |
+
+The screen does not advance. Cover's intervals are wide and cross zero on 10 instances, so it is
+inconclusive rather than negative. Cover was not retrained after seeing this.
+
+### Confirmation against the 2-opt seeded baseline: the scorer loses
+
+The screen's baseline was weak: the earlier studies had already shown that seeding the nearest-
+neighbour plus 2-opt tour through `initial_keys` beats every decoder form tried on TSP. The
+confirmation adds that baseline. Four arms: the frozen scorer under BRKGA (`genetic`) and under the
+BRKGA, SA and ILS portfolio (`portfolio`), and the 2-opt tour with 31 perturbed variants under the
+same two algorithm sets (`twoopt_genetic`, `twoopt_portfolio`). Each arm is charged its own setup
+time. The seed noise was tuned on four validation instances (grid 0.005 to 0.3, chose 0.1).
+
+Rule, committed in `1f85a41` before any measurement: advance only if `genetic` beats
+`twoopt_genetic` or `portfolio` beats `twoopt_portfolio` with a paired 95 percent bootstrap
+interval entirely below zero. [Reference measurement](references/quantile-tour-confirmation-reference.json):
+20 fresh instances (seeds 720000 and up, none used by training or the screen), 100 cities, 60 s,
+one randomization, 80 trials, every tour re-verified.
+
+| Comparison | Difference (tour length) | Interval | Neural wins |
+|---|---:|---|---:|
+| `genetic` - `twoopt_genetic` | +0.234 (+2.99 percent) | [+0.142, +0.317] | 3 of 20 |
+| `portfolio` - `twoopt_portfolio` | +0.284 (+3.60 percent) | [+0.200, +0.364] | 3 of 20 |
+
+Mean tour length: `genetic` 8.19, `portfolio` 8.24, both 2-opt arms 7.95. **The rule is not met, and
+the intervals lie entirely above zero: the frozen scorer is significantly worse.** Median
+evaluations in 60 s were about 4.6 thousand for the neural arms against 1.9 million (BRKGA) and 2.9
+million (portfolio) for the 2-opt arms: one neural decode runs the network at every construction
+step, and the 2-opt arms also start from a far shorter tour. Both 2-opt arms reached the same
+length on all 20 instances (16 improved on the seed tour, 4 did not); whether that length is optimal
+was not checked.
+
+Limits: Tour at 100 cities and one family of random Euclidean instances; one small network and one
+training run (a single seed, 400 updates); Cover not retrained and left inconclusive; one machine,
+one randomization in the confirmation; two comparisons examined, so a narrow win would have been
+weak evidence (not an issue for this result). These are development seeds, not a release
+confirmation. The earlier quantile study's underflow finding no longer applies to the codec: the
+`QuantileCodec.order` repeated-index defect at near-zero temperature is fixed in this change, with
+a regression test.
+
+Decision: a trained, state-dependent scorer through the sequential quantile codec beats classical
+BRKGA with the analytic codec on Tour, but loses to the simplest strong baseline, a 2-opt tour
+seeded through `initial_keys`, by about 3 percent in tour length at equal wall time. Together with
+the three studies above this closes the sequential per-decision Q-RKO direction on TSP: nothing
+here is promoted to a library helper, and `src/rko_solver/experimental/quantile/` is not created.
+Cover would need a stronger checkpoint and more instances before it can be judged either way.
+
 ## Shaking-intensity sensitivity, plateau-then-chaos
 
 The Q-RKO proposal's only executed evidence for its own untrained neural quantile codec, never

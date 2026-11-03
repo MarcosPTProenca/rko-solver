@@ -1,0 +1,5020 @@
+{
+ "manifest": {
+  "source_revision": "ff1ae7a5d93a183a1a89a2e02bcb6c511389d616",
+  "checkpoint_fingerprints": {
+   "tour": "6b28d6aa62995512709e3b095769d71a36f2b177ab21924914c1dfd07b8cde8a",
+   "cover": "4c709e92aa0848826e464e9a1e7e8642eba98d4e27691875ffd281f297b51682"
+  },
+  "arms": [
+   "classical",
+   "independent",
+   "genetic",
+   "portfolio"
+  ],
+  "budgets": [
+   10.0,
+   60.0
+  ],
+  "randomizations": 3,
+  "test_panel": {
+   "tour": [
+    {
+     "seed": 710000,
+     "instance_hash": "fb608e611611088ccf9d15edde8d7eef4ca38e42758b75ff0ca6f5a87ac8ecc7"
+    },
+    {
+     "seed": 710001,
+     "instance_hash": "78fcd463b6795805c297bb2375ba4a48d6512d1ab35dfb944f9e919b746ccf91"
+    },
+    {
+     "seed": 710002,
+     "instance_hash": "725d9b5fff63c8be1805a2eddd36aeb74e38390f88f97a874cfaa81b0c5c2321"
+    },
+    {
+     "seed": 710003,
+     "instance_hash": "43b58eae9b7fdbec6b622d6c818feea6852e82f56b17ecab5af425b5ed111bc2"
+    },
+    {
+     "seed": 710004,
+     "instance_hash": "1f9d95fb6063351d7ba4447eb91957a3c0ce22968e0ad68887fd3a01141d4125"
+    },
+    {
+     "seed": 710005,
+     "instance_hash": "e95cdd48843f661825cdeb64d9f74566e02efc02061818557480f39a03495348"
+    },
+    {
+     "seed": 710006,
+     "instance_hash": "fa1ada48a65968305c413b93fa1761f611c6522c6b47aa63be5ae13f341c1603"
+    },
+    {
+     "seed": 710007,
+     "instance_hash": "471a4d285fec1c8340baa4770c481a49b623fc68f902b061d5c4532c17ec8a54"
+    },
+    {
+     "seed": 710008,
+     "instance_hash": "a7a3fe2fe253dd985f6e78f412e9f6c82b2eb5733c767ef48f18a3cd5e5788a7"
+    },
+    {
+     "seed": 710009,
+     "instance_hash": "b8851e84e2bd8cff1ff64fe03e6eb673e250c062f45b81237f1389b9d151c826"
+    }
+   ],
+   "cover": [
+    {
+     "seed": 710000,
+     "instance_hash": "7351b52f3ea9199d5b5bc97f9fbe6ca43b4d369f53e99b5b97cddf6aba64da51"
+    },
+    {
+     "seed": 710001,
+     "instance_hash": "0db5e17b73716e28dc2d2ca309d3ecbd45bd324af1a7c27cb1022e645c400d12"
+    },
+    {
+     "seed": 710002,
+     "instance_hash": "1aa4d6c659e6b3c2e0479d8c5beffad134be52765c2832a0ea8903f4a6464d18"
+    },
+    {
+     "seed": 710003,
+     "instance_hash": "506389f7e84ae0d9356e214c65d5dfb3f93b556a12e423bc33a8c625a30518d3"
+    },
+    {
+     "seed": 710004,
+     "instance_hash": "80beaed887d187e042cb71dc312d54369123949ad432109a4d98b5597237f834"
+    },
+    {
+     "seed": 710005,
+     "instance_hash": "ddd2aca2ffa753264bba7d270ac12a573a0993a1999d080ecadb01eb8add3ad7"
+    },
+    {
+     "seed": 710006,
+     "instance_hash": "e48c7ebcbc06212a501a8b530b1adbfe456bd5b66edb1bb0f41f314fccb04203"
+    },
+    {
+     "seed": 710007,
+     "instance_hash": "21966e15ae4e2d7bff0fff7d6ab19729ece39064f5c170b997f0f2ba58d69192"
+    },
+    {
+     "seed": 710008,
+     "instance_hash": "3e072ad0c60cbbcd70552b990e602ad20a3dfd68642819bf244ef13e583ee2ee"
+    },
+    {
+     "seed": 710009,
+     "instance_hash": "7a0acd6306285265a2bc95103b5dd807e6ddbb5ec22e25ad3ff77630cd1d8722"
+    }
+   ]
+  },
+  "claim": "development screen, not release or confirmation evidence"
+ },
+ "summary": {
+  "cells": {
+   "tour@10s": {
+    "comparisons": {
+     "genetic_vs_independent": {
+      "difference": -0.4213481561928093,
+      "ci_low": -0.48748824952567404,
+      "ci_high": -0.3551005427625693
+     },
+     "portfolio_vs_independent": {
+      "difference": -0.212185500236194,
+      "ci_low": -0.29481909986473637,
+      "ci_high": -0.12869245894471748
+     },
+     "genetic_vs_classical": {
+      "difference": -0.4709216253534853,
+      "ci_low": -0.6034557532127031,
+      "ci_high": -0.3629647602112145
+     },
+     "portfolio_vs_classical": {
+      "difference": -0.26175896939687,
+      "ci_low": -0.4074801814977387,
+      "ci_high": -0.14061838787276504
+     }
+    },
+    "won": true
+   },
+   "tour@60s": {
+    "comparisons": {
+     "genetic_vs_independent": {
+      "difference": -0.6243427650025172,
+      "ci_low": -0.6929767052214986,
+      "ci_high": -0.5516507328381282
+     },
+     "portfolio_vs_independent": {
+      "difference": -0.5566481945827654,
+      "ci_low": -0.619650113059366,
+      "ci_high": -0.4887933236576094
+     },
+     "genetic_vs_classical": {
+      "difference": -0.6737820975980785,
+      "ci_low": -0.8066811938080882,
+      "ci_high": -0.5471178395025778
+     },
+     "portfolio_vs_classical": {
+      "difference": -0.6060875271783267,
+      "ci_low": -0.7368317188640845,
+      "ci_high": -0.4848625399713399
+     }
+    },
+    "won": true
+   },
+   "cover@10s": {
+    "comparisons": {
+     "genetic_vs_independent": {
+      "difference": -1.5666666666666629,
+      "ci_low": -3.299999999999983,
+      "ci_high": 0.0
+     },
+     "portfolio_vs_independent": {
+      "difference": -0.09999999999999432,
+      "ci_low": -0.33333333333332577,
+      "ci_high": 0.06666666666667438
+     },
+     "genetic_vs_classical": {
+      "difference": -1.1333333333333315,
+      "ci_low": -2.63333333333332,
+      "ci_high": 0.0
+     },
+     "portfolio_vs_classical": {
+      "difference": 0.33333333333333715,
+      "ci_low": -0.3333333333333314,
+      "ci_high": 1.3333333333333428
+     }
+    },
+    "won": false
+   },
+   "cover@60s": {
+    "comparisons": {
+     "genetic_vs_independent": {
+      "difference": -2.066666666666657,
+      "ci_low": -4.433333333333326,
+      "ci_high": 0.03333333333333712
+     },
+     "portfolio_vs_independent": {
+      "difference": 0.30000000000001137,
+      "ci_low": -0.23333333333332007,
+      "ci_high": 1.0000000000000058
+     },
+     "genetic_vs_classical": {
+      "difference": 1.5,
+      "ci_low": -3.1,
+      "ci_high": 7.6666666666666625
+     },
+     "portfolio_vs_classical": {
+      "difference": 3.8666666666666685,
+      "ci_low": -0.4000000000000057,
+      "ci_high": 9.433333333333348
+     }
+    },
+    "won": false
+   }
+  },
+  "wins": [
+   "tour@10s",
+   "tour@60s"
+  ],
+  "advance": false,
+  "rule": "development screen: a structured-search arm must beat independent sampling with a negative interval and not be beaten by classical construction, in every family/budget cell",
+  "peak_rss_kib": 50740
+ },
+ "trials": [
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100000,
+   "budget": 10.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 740,
+   "wall_seconds": 10.608455152017996
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100001,
+   "budget": 10.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 744,
+   "wall_seconds": 10.527560023998376
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100002,
+   "budget": 10.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 784,
+   "wall_seconds": 10.622892931016395
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100000,
+   "budget": 60.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 3788,
+   "wall_seconds": 60.53240013701725
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100001,
+   "budget": 60.0,
+   "cost": 8.474774515406947,
+   "n_evaluations": 3847,
+   "wall_seconds": 60.77770967100514
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100002,
+   "budget": 60.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 1874,
+   "wall_seconds": 60.94152276197565
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100000,
+   "budget": 10.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 236,
+   "wall_seconds": 10.972278414003085
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100001,
+   "budget": 10.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 297,
+   "wall_seconds": 10.927015475986991
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100002,
+   "budget": 10.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 291,
+   "wall_seconds": 10.783544370002346
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100000,
+   "budget": 60.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 1547,
+   "wall_seconds": 60.7860990689951
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100001,
+   "budget": 60.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 3116,
+   "wall_seconds": 60.834845039003994
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100002,
+   "budget": 60.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 3793,
+   "wall_seconds": 60.55915823599207
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100000,
+   "budget": 10.0,
+   "cost": 8.162590534912418,
+   "n_evaluations": 613,
+   "wall_seconds": 10.606673241010867
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100001,
+   "budget": 10.0,
+   "cost": 8.27489978232272,
+   "n_evaluations": 615,
+   "wall_seconds": 10.549321189988405
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100002,
+   "budget": 10.0,
+   "cost": 8.308479225041282,
+   "n_evaluations": 666,
+   "wall_seconds": 10.55197686998872
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100000,
+   "budget": 60.0,
+   "cost": 8.100708406210863,
+   "n_evaluations": 3497,
+   "wall_seconds": 60.565909894998185
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100001,
+   "budget": 60.0,
+   "cost": 8.121170914584226,
+   "n_evaluations": 3543,
+   "wall_seconds": 60.548008817015216
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100002,
+   "budget": 60.0,
+   "cost": 8.074785810135864,
+   "n_evaluations": 2968,
+   "wall_seconds": 60.64354990600259
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100000,
+   "budget": 10.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 300,
+   "wall_seconds": 10.948606327001471
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100001,
+   "budget": 10.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 286,
+   "wall_seconds": 10.803157757007284
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100002,
+   "budget": 10.0,
+   "cost": 8.511294738041126,
+   "n_evaluations": 257,
+   "wall_seconds": 10.818451352010015
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100000,
+   "budget": 60.0,
+   "cost": 8.162590534912418,
+   "n_evaluations": 1728,
+   "wall_seconds": 60.93788048400893
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100001,
+   "budget": 60.0,
+   "cost": 8.163050653007755,
+   "n_evaluations": 2974,
+   "wall_seconds": 60.92422298100428
+  },
+  {
+   "family": "tour",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100002,
+   "budget": 60.0,
+   "cost": 8.177687390552519,
+   "n_evaluations": 3714,
+   "wall_seconds": 60.6871741549985
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100010,
+   "budget": 10.0,
+   "cost": 8.96184919271013,
+   "n_evaluations": 726,
+   "wall_seconds": 10.537765779998153
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100011,
+   "budget": 10.0,
+   "cost": 8.96184919271013,
+   "n_evaluations": 755,
+   "wall_seconds": 10.557033613004023
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100012,
+   "budget": 10.0,
+   "cost": 8.880031288058076,
+   "n_evaluations": 791,
+   "wall_seconds": 10.510530806001043
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100010,
+   "budget": 60.0,
+   "cost": 8.884231624767697,
+   "n_evaluations": 4598,
+   "wall_seconds": 60.513451931998134
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100011,
+   "budget": 60.0,
+   "cost": 8.799083621224888,
+   "n_evaluations": 4447,
+   "wall_seconds": 60.59217247899505
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100012,
+   "budget": 60.0,
+   "cost": 8.787792117181686,
+   "n_evaluations": 4556,
+   "wall_seconds": 60.54981529500219
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100010,
+   "budget": 10.0,
+   "cost": 8.96184919271013,
+   "n_evaluations": 648,
+   "wall_seconds": 10.602718517999165
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100011,
+   "budget": 10.0,
+   "cost": 8.96184919271013,
+   "n_evaluations": 642,
+   "wall_seconds": 10.530720987007953
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100012,
+   "budget": 10.0,
+   "cost": 8.96184919271013,
+   "n_evaluations": 670,
+   "wall_seconds": 10.569417178019648
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100010,
+   "budget": 60.0,
+   "cost": 8.96184919271013,
+   "n_evaluations": 3924,
+   "wall_seconds": 60.46333716501249
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100011,
+   "budget": 60.0,
+   "cost": 8.96184919271013,
+   "n_evaluations": 3931,
+   "wall_seconds": 60.520749015006004
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100012,
+   "budget": 60.0,
+   "cost": 8.96184919271013,
+   "n_evaluations": 3903,
+   "wall_seconds": 60.507602457975736
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100010,
+   "budget": 10.0,
+   "cost": 8.471461168218042,
+   "n_evaluations": 622,
+   "wall_seconds": 10.638673713983735
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100011,
+   "budget": 10.0,
+   "cost": 8.635505620501755,
+   "n_evaluations": 661,
+   "wall_seconds": 10.550744233973091
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100012,
+   "budget": 10.0,
+   "cost": 8.57436198928339,
+   "n_evaluations": 662,
+   "wall_seconds": 10.590560102980817
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100010,
+   "budget": 60.0,
+   "cost": 8.404770894358641,
+   "n_evaluations": 3775,
+   "wall_seconds": 60.542110031004995
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100011,
+   "budget": 60.0,
+   "cost": 8.509108068029981,
+   "n_evaluations": 3742,
+   "wall_seconds": 60.50454857200384
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100012,
+   "budget": 60.0,
+   "cost": 8.3964548797194,
+   "n_evaluations": 3825,
+   "wall_seconds": 60.5452535309887
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100010,
+   "budget": 10.0,
+   "cost": 8.85571337456822,
+   "n_evaluations": 622,
+   "wall_seconds": 10.55952932802029
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100011,
+   "budget": 10.0,
+   "cost": 8.670362075355582,
+   "n_evaluations": 665,
+   "wall_seconds": 10.551074007002171
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100012,
+   "budget": 10.0,
+   "cost": 8.678825424789668,
+   "n_evaluations": 623,
+   "wall_seconds": 10.489253317995463
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100010,
+   "budget": 60.0,
+   "cost": 8.405832423383574,
+   "n_evaluations": 3749,
+   "wall_seconds": 60.57732761700754
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100011,
+   "budget": 60.0,
+   "cost": 8.51330612955876,
+   "n_evaluations": 3883,
+   "wall_seconds": 60.5666645290039
+  },
+  {
+   "family": "tour",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100012,
+   "budget": 60.0,
+   "cost": 8.410426973182988,
+   "n_evaluations": 3976,
+   "wall_seconds": 60.50437760000932
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100020,
+   "budget": 10.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 782,
+   "wall_seconds": 10.490015785006108
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100021,
+   "budget": 10.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 736,
+   "wall_seconds": 10.511075808986789
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100022,
+   "budget": 10.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 789,
+   "wall_seconds": 10.586402080021799
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100020,
+   "budget": 60.0,
+   "cost": 8.690420186017782,
+   "n_evaluations": 4556,
+   "wall_seconds": 60.56532903300831
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100021,
+   "budget": 60.0,
+   "cost": 8.69996660237277,
+   "n_evaluations": 4595,
+   "wall_seconds": 60.522545010986505
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100022,
+   "budget": 60.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 4590,
+   "wall_seconds": 60.554950917023234
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100020,
+   "budget": 10.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 621,
+   "wall_seconds": 10.560117298009573
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100021,
+   "budget": 10.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 617,
+   "wall_seconds": 10.523552637983812
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100022,
+   "budget": 10.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 624,
+   "wall_seconds": 10.569385440991027
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100020,
+   "budget": 60.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 3813,
+   "wall_seconds": 60.53489683999214
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100021,
+   "budget": 60.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 3865,
+   "wall_seconds": 60.533060221001506
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100022,
+   "budget": 60.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 3586,
+   "wall_seconds": 60.52678956699674
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100020,
+   "budget": 10.0,
+   "cost": 8.501804549121115,
+   "n_evaluations": 613,
+   "wall_seconds": 10.561129125999287
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100021,
+   "budget": 10.0,
+   "cost": 8.433143776676499,
+   "n_evaluations": 642,
+   "wall_seconds": 10.480523653997807
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100022,
+   "budget": 10.0,
+   "cost": 8.565452039871515,
+   "n_evaluations": 519,
+   "wall_seconds": 10.621834902005503
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100020,
+   "budget": 60.0,
+   "cost": 8.299534919370439,
+   "n_evaluations": 3842,
+   "wall_seconds": 60.834678896004334
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100021,
+   "budget": 60.0,
+   "cost": 8.36712042294132,
+   "n_evaluations": 3655,
+   "wall_seconds": 60.52664910900057
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100022,
+   "budget": 60.0,
+   "cost": 8.259643674097052,
+   "n_evaluations": 3707,
+   "wall_seconds": 60.6065554980014
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100020,
+   "budget": 10.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 209,
+   "wall_seconds": 10.748590319009963
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100021,
+   "budget": 10.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 506,
+   "wall_seconds": 10.696270859014476
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100022,
+   "budget": 10.0,
+   "cost": 8.796915449874762,
+   "n_evaluations": 615,
+   "wall_seconds": 10.638950871973066
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100020,
+   "budget": 60.0,
+   "cost": 8.32275552483444,
+   "n_evaluations": 3870,
+   "wall_seconds": 60.51745238498552
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100021,
+   "budget": 60.0,
+   "cost": 8.368329560363055,
+   "n_evaluations": 3827,
+   "wall_seconds": 60.49016264101374
+  },
+  {
+   "family": "tour",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100022,
+   "budget": 60.0,
+   "cost": 8.425912292398229,
+   "n_evaluations": 3376,
+   "wall_seconds": 60.57261553101125
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100030,
+   "budget": 10.0,
+   "cost": 8.95716151437388,
+   "n_evaluations": 735,
+   "wall_seconds": 10.579817933990853
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100031,
+   "budget": 10.0,
+   "cost": 8.963601529976078,
+   "n_evaluations": 723,
+   "wall_seconds": 10.488482795015443
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100032,
+   "budget": 10.0,
+   "cost": 8.963601529976078,
+   "n_evaluations": 742,
+   "wall_seconds": 10.572912714007543
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100030,
+   "budget": 60.0,
+   "cost": 8.95716151437388,
+   "n_evaluations": 4620,
+   "wall_seconds": 60.678311453026254
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100031,
+   "budget": 60.0,
+   "cost": 8.963601529976078,
+   "n_evaluations": 4590,
+   "wall_seconds": 60.49841608598945
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100032,
+   "budget": 60.0,
+   "cost": 8.963601529976078,
+   "n_evaluations": 4433,
+   "wall_seconds": 60.531773705006344
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100030,
+   "budget": 10.0,
+   "cost": 8.963601529976078,
+   "n_evaluations": 541,
+   "wall_seconds": 10.708781330002239
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100031,
+   "budget": 10.0,
+   "cost": 8.963601529976078,
+   "n_evaluations": 351,
+   "wall_seconds": 10.799695533001795
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100032,
+   "budget": 10.0,
+   "cost": 8.963601529976078,
+   "n_evaluations": 625,
+   "wall_seconds": 10.49230110499775
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100030,
+   "budget": 60.0,
+   "cost": 8.942706925471382,
+   "n_evaluations": 3957,
+   "wall_seconds": 60.50317327000084
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100031,
+   "budget": 60.0,
+   "cost": 8.963601529976078,
+   "n_evaluations": 3713,
+   "wall_seconds": 60.60543227798189
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100032,
+   "budget": 60.0,
+   "cost": 8.963601529976078,
+   "n_evaluations": 3770,
+   "wall_seconds": 60.64602684698184
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100030,
+   "budget": 10.0,
+   "cost": 8.700567654435028,
+   "n_evaluations": 599,
+   "wall_seconds": 10.526844948995858
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100031,
+   "budget": 10.0,
+   "cost": 8.619997880951157,
+   "n_evaluations": 603,
+   "wall_seconds": 10.6520553889859
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100032,
+   "budget": 10.0,
+   "cost": 8.685245682765627,
+   "n_evaluations": 502,
+   "wall_seconds": 10.78144403200713
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100030,
+   "budget": 60.0,
+   "cost": 8.015419777201572,
+   "n_evaluations": 3613,
+   "wall_seconds": 60.56614646798698
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100031,
+   "budget": 60.0,
+   "cost": 8.32517899412207,
+   "n_evaluations": 3205,
+   "wall_seconds": 60.48618159501348
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100032,
+   "budget": 60.0,
+   "cost": 8.4490106642812,
+   "n_evaluations": 2705,
+   "wall_seconds": 60.61717688300996
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100030,
+   "budget": 10.0,
+   "cost": 8.704989954666049,
+   "n_evaluations": 557,
+   "wall_seconds": 10.688054097990971
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100031,
+   "budget": 10.0,
+   "cost": 8.663380731654074,
+   "n_evaluations": 408,
+   "wall_seconds": 10.569510986999376
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100032,
+   "budget": 10.0,
+   "cost": 8.72587488019734,
+   "n_evaluations": 558,
+   "wall_seconds": 10.665780139010167
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100030,
+   "budget": 60.0,
+   "cost": 8.157276896289492,
+   "n_evaluations": 3211,
+   "wall_seconds": 60.5813550449966
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100031,
+   "budget": 60.0,
+   "cost": 8.35551752054781,
+   "n_evaluations": 3508,
+   "wall_seconds": 60.58297679797397
+  },
+  {
+   "family": "tour",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100032,
+   "budget": 60.0,
+   "cost": 8.508310149138277,
+   "n_evaluations": 3660,
+   "wall_seconds": 60.52698585699545
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100040,
+   "budget": 10.0,
+   "cost": 9.034489991049565,
+   "n_evaluations": 779,
+   "wall_seconds": 10.621391213004244
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100041,
+   "budget": 10.0,
+   "cost": 9.034489991049565,
+   "n_evaluations": 751,
+   "wall_seconds": 10.540012273006141
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100042,
+   "budget": 10.0,
+   "cost": 9.034489991049565,
+   "n_evaluations": 743,
+   "wall_seconds": 10.514714040007675
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100040,
+   "budget": 60.0,
+   "cost": 9.020896683213046,
+   "n_evaluations": 4465,
+   "wall_seconds": 60.52484506301698
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100041,
+   "budget": 60.0,
+   "cost": 9.034489991049565,
+   "n_evaluations": 4401,
+   "wall_seconds": 60.67860053098411
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100042,
+   "budget": 60.0,
+   "cost": 9.020896683213046,
+   "n_evaluations": 4400,
+   "wall_seconds": 60.54094242400606
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100040,
+   "budget": 10.0,
+   "cost": 9.034489991049565,
+   "n_evaluations": 655,
+   "wall_seconds": 10.568046034983126
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100041,
+   "budget": 10.0,
+   "cost": 9.034489991049565,
+   "n_evaluations": 658,
+   "wall_seconds": 10.600227228016593
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100042,
+   "budget": 10.0,
+   "cost": 9.034489991049565,
+   "n_evaluations": 662,
+   "wall_seconds": 10.466132873989409
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100040,
+   "budget": 60.0,
+   "cost": 9.034489991049565,
+   "n_evaluations": 3829,
+   "wall_seconds": 60.53727137600072
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100041,
+   "budget": 60.0,
+   "cost": 9.034489991049565,
+   "n_evaluations": 3876,
+   "wall_seconds": 60.5852278219827
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100042,
+   "budget": 60.0,
+   "cost": 9.034489991049565,
+   "n_evaluations": 3761,
+   "wall_seconds": 60.542314325022744
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100040,
+   "budget": 10.0,
+   "cost": 8.645599951435772,
+   "n_evaluations": 661,
+   "wall_seconds": 10.462412371998653
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100041,
+   "budget": 10.0,
+   "cost": 8.696053703937103,
+   "n_evaluations": 628,
+   "wall_seconds": 10.503924596996512
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100042,
+   "budget": 10.0,
+   "cost": 8.509608718484323,
+   "n_evaluations": 619,
+   "wall_seconds": 10.60558972498984
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100040,
+   "budget": 60.0,
+   "cost": 8.15526383327275,
+   "n_evaluations": 3835,
+   "wall_seconds": 60.50613107398385
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100041,
+   "budget": 60.0,
+   "cost": 8.544953724738662,
+   "n_evaluations": 3812,
+   "wall_seconds": 60.54300730599789
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100042,
+   "budget": 60.0,
+   "cost": 8.318527353081627,
+   "n_evaluations": 3846,
+   "wall_seconds": 60.546077917009825
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100040,
+   "budget": 10.0,
+   "cost": 8.80370978813679,
+   "n_evaluations": 670,
+   "wall_seconds": 10.501221178012202
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100041,
+   "budget": 10.0,
+   "cost": 8.723635016720005,
+   "n_evaluations": 648,
+   "wall_seconds": 10.58950943101081
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100042,
+   "budget": 10.0,
+   "cost": 8.789974507159075,
+   "n_evaluations": 609,
+   "wall_seconds": 10.510181242978433
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100040,
+   "budget": 60.0,
+   "cost": 8.29140999273647,
+   "n_evaluations": 3975,
+   "wall_seconds": 60.503538138000295
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100041,
+   "budget": 60.0,
+   "cost": 8.633956788354086,
+   "n_evaluations": 3736,
+   "wall_seconds": 60.56130317598581
+  },
+  {
+   "family": "tour",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100042,
+   "budget": 60.0,
+   "cost": 8.375031418204857,
+   "n_evaluations": 3733,
+   "wall_seconds": 60.58102819501073
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100050,
+   "budget": 10.0,
+   "cost": 9.01910854714684,
+   "n_evaluations": 761,
+   "wall_seconds": 10.539309762010816
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100051,
+   "budget": 10.0,
+   "cost": 9.01910854714684,
+   "n_evaluations": 766,
+   "wall_seconds": 10.5240575770149
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100052,
+   "budget": 10.0,
+   "cost": 9.01910854714684,
+   "n_evaluations": 756,
+   "wall_seconds": 10.513591507013189
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100050,
+   "budget": 60.0,
+   "cost": 9.01910854714684,
+   "n_evaluations": 4560,
+   "wall_seconds": 60.515464067982975
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100051,
+   "budget": 60.0,
+   "cost": 8.99962109284978,
+   "n_evaluations": 4409,
+   "wall_seconds": 60.580894997983705
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100052,
+   "budget": 60.0,
+   "cost": 9.012969291235047,
+   "n_evaluations": 4691,
+   "wall_seconds": 60.62371319299564
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100050,
+   "budget": 10.0,
+   "cost": 9.01910854714684,
+   "n_evaluations": 630,
+   "wall_seconds": 10.54144270400866
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100051,
+   "budget": 10.0,
+   "cost": 9.01910854714684,
+   "n_evaluations": 631,
+   "wall_seconds": 10.537310791987693
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100052,
+   "budget": 10.0,
+   "cost": 9.01910854714684,
+   "n_evaluations": 640,
+   "wall_seconds": 10.609384716983186
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100050,
+   "budget": 60.0,
+   "cost": 9.009147401778497,
+   "n_evaluations": 3734,
+   "wall_seconds": 60.502871893986594
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100051,
+   "budget": 60.0,
+   "cost": 9.01910854714684,
+   "n_evaluations": 3752,
+   "wall_seconds": 60.52650055498816
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100052,
+   "budget": 60.0,
+   "cost": 9.01910854714684,
+   "n_evaluations": 3869,
+   "wall_seconds": 60.50083423501928
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100050,
+   "budget": 10.0,
+   "cost": 8.724338276699042,
+   "n_evaluations": 654,
+   "wall_seconds": 10.535110780998366
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100051,
+   "budget": 10.0,
+   "cost": 8.776879960004601,
+   "n_evaluations": 674,
+   "wall_seconds": 10.50972037698375
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100052,
+   "budget": 10.0,
+   "cost": 8.253230424220149,
+   "n_evaluations": 640,
+   "wall_seconds": 10.573266707011499
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100050,
+   "budget": 60.0,
+   "cost": 8.415229859632001,
+   "n_evaluations": 3910,
+   "wall_seconds": 60.57150204401114
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100051,
+   "budget": 60.0,
+   "cost": 8.273067146463434,
+   "n_evaluations": 3911,
+   "wall_seconds": 60.55228498799261
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100052,
+   "budget": 60.0,
+   "cost": 8.121785456144378,
+   "n_evaluations": 3894,
+   "wall_seconds": 60.556891724001616
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100050,
+   "budget": 10.0,
+   "cost": 8.785523180839405,
+   "n_evaluations": 665,
+   "wall_seconds": 10.576738178991945
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100051,
+   "budget": 10.0,
+   "cost": 9.01910854714684,
+   "n_evaluations": 635,
+   "wall_seconds": 10.534801717993105
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100052,
+   "budget": 10.0,
+   "cost": 8.74960689687106,
+   "n_evaluations": 624,
+   "wall_seconds": 10.545403585012536
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100050,
+   "budget": 60.0,
+   "cost": 8.525372395360112,
+   "n_evaluations": 3786,
+   "wall_seconds": 60.491462288977345
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100051,
+   "budget": 60.0,
+   "cost": 8.323544994959628,
+   "n_evaluations": 3983,
+   "wall_seconds": 60.527785671001766
+  },
+  {
+   "family": "tour",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100052,
+   "budget": 60.0,
+   "cost": 8.121785456144378,
+   "n_evaluations": 3673,
+   "wall_seconds": 60.579583554004785
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100060,
+   "budget": 10.0,
+   "cost": 9.757236959711925,
+   "n_evaluations": 778,
+   "wall_seconds": 10.561461039993446
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100061,
+   "budget": 10.0,
+   "cost": 9.540346198700824,
+   "n_evaluations": 722,
+   "wall_seconds": 10.486774357006652
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100062,
+   "budget": 10.0,
+   "cost": 9.755091155998917,
+   "n_evaluations": 772,
+   "wall_seconds": 10.474907069001347
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100060,
+   "budget": 60.0,
+   "cost": 9.539714778638674,
+   "n_evaluations": 4445,
+   "wall_seconds": 60.514289699000074
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100061,
+   "budget": 60.0,
+   "cost": 9.462557174492657,
+   "n_evaluations": 4549,
+   "wall_seconds": 60.50813049997669
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100062,
+   "budget": 60.0,
+   "cost": 9.52316702340691,
+   "n_evaluations": 4278,
+   "wall_seconds": 60.57126296099159
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100060,
+   "budget": 10.0,
+   "cost": 9.495454170349754,
+   "n_evaluations": 631,
+   "wall_seconds": 10.561758901982103
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100061,
+   "budget": 10.0,
+   "cost": 9.757236959711925,
+   "n_evaluations": 656,
+   "wall_seconds": 10.489687799999956
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100062,
+   "budget": 10.0,
+   "cost": 9.382788754459362,
+   "n_evaluations": 661,
+   "wall_seconds": 10.493902328016702
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100060,
+   "budget": 60.0,
+   "cost": 9.421131623546037,
+   "n_evaluations": 3659,
+   "wall_seconds": 60.5898374709941
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100061,
+   "budget": 60.0,
+   "cost": 9.573044662214773,
+   "n_evaluations": 3935,
+   "wall_seconds": 60.52881406198139
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100062,
+   "budget": 60.0,
+   "cost": 9.314218881737101,
+   "n_evaluations": 3894,
+   "wall_seconds": 60.502375180018134
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100060,
+   "budget": 10.0,
+   "cost": 9.160611189692734,
+   "n_evaluations": 646,
+   "wall_seconds": 10.522104666015366
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100061,
+   "budget": 10.0,
+   "cost": 8.942072277615736,
+   "n_evaluations": 595,
+   "wall_seconds": 10.513108153012581
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100062,
+   "budget": 10.0,
+   "cost": 9.000431809151284,
+   "n_evaluations": 713,
+   "wall_seconds": 10.546938668994699
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100060,
+   "budget": 60.0,
+   "cost": 8.582374586116739,
+   "n_evaluations": 3840,
+   "wall_seconds": 60.498448243015446
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100061,
+   "budget": 60.0,
+   "cost": 8.556536062905504,
+   "n_evaluations": 3822,
+   "wall_seconds": 60.54741160600679
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100062,
+   "budget": 60.0,
+   "cost": 8.85020429703613,
+   "n_evaluations": 3787,
+   "wall_seconds": 60.58967296901392
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100060,
+   "budget": 10.0,
+   "cost": 9.281701209378967,
+   "n_evaluations": 633,
+   "wall_seconds": 10.557457410992356
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100061,
+   "budget": 10.0,
+   "cost": 9.198550666612594,
+   "n_evaluations": 605,
+   "wall_seconds": 10.609431141987443
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100062,
+   "budget": 10.0,
+   "cost": 9.132896698223798,
+   "n_evaluations": 673,
+   "wall_seconds": 10.553315514000133
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100060,
+   "budget": 60.0,
+   "cost": 8.682864668037428,
+   "n_evaluations": 3784,
+   "wall_seconds": 60.5107887799968
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100061,
+   "budget": 60.0,
+   "cost": 8.699744237049439,
+   "n_evaluations": 3681,
+   "wall_seconds": 60.50965093000559
+  },
+  {
+   "family": "tour",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100062,
+   "budget": 60.0,
+   "cost": 8.969074214450087,
+   "n_evaluations": 3830,
+   "wall_seconds": 60.54377199700684
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100070,
+   "budget": 10.0,
+   "cost": 8.915924739703478,
+   "n_evaluations": 751,
+   "wall_seconds": 10.631842939998023
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100071,
+   "budget": 10.0,
+   "cost": 8.915924739703478,
+   "n_evaluations": 733,
+   "wall_seconds": 10.543803473003209
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100072,
+   "budget": 10.0,
+   "cost": 8.915924739703478,
+   "n_evaluations": 750,
+   "wall_seconds": 10.568553738004994
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100070,
+   "budget": 60.0,
+   "cost": 8.904769541670257,
+   "n_evaluations": 4469,
+   "wall_seconds": 60.53661624100641
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100071,
+   "budget": 60.0,
+   "cost": 8.911975677060774,
+   "n_evaluations": 4502,
+   "wall_seconds": 60.56653174801613
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100072,
+   "budget": 60.0,
+   "cost": 8.915924739703478,
+   "n_evaluations": 4530,
+   "wall_seconds": 60.5606155449932
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100070,
+   "budget": 10.0,
+   "cost": 8.915924739703478,
+   "n_evaluations": 591,
+   "wall_seconds": 10.732932979997713
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100071,
+   "budget": 10.0,
+   "cost": 8.915924739703478,
+   "n_evaluations": 646,
+   "wall_seconds": 10.543702581024263
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100072,
+   "budget": 10.0,
+   "cost": 8.730884220366788,
+   "n_evaluations": 644,
+   "wall_seconds": 10.503559484001016
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100070,
+   "budget": 60.0,
+   "cost": 8.915924739703478,
+   "n_evaluations": 3941,
+   "wall_seconds": 60.578245305019664
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100071,
+   "budget": 60.0,
+   "cost": 8.915924739703478,
+   "n_evaluations": 3705,
+   "wall_seconds": 60.56750236201333
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100072,
+   "budget": 60.0,
+   "cost": 8.623126621881037,
+   "n_evaluations": 3871,
+   "wall_seconds": 60.54421238199575
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100070,
+   "budget": 10.0,
+   "cost": 8.224662049184293,
+   "n_evaluations": 636,
+   "wall_seconds": 10.522400171001209
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100071,
+   "budget": 10.0,
+   "cost": 8.25504695684743,
+   "n_evaluations": 657,
+   "wall_seconds": 10.528058897994924
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100072,
+   "budget": 10.0,
+   "cost": 8.613581745275237,
+   "n_evaluations": 615,
+   "wall_seconds": 10.571268472995143
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100070,
+   "budget": 60.0,
+   "cost": 8.098977894737526,
+   "n_evaluations": 3808,
+   "wall_seconds": 60.51655724699958
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100071,
+   "budget": 60.0,
+   "cost": 8.120486204412478,
+   "n_evaluations": 3832,
+   "wall_seconds": 60.52276220699423
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100072,
+   "budget": 60.0,
+   "cost": 8.288266555133816,
+   "n_evaluations": 3814,
+   "wall_seconds": 60.5727301260049
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100070,
+   "budget": 10.0,
+   "cost": 8.674888172486158,
+   "n_evaluations": 687,
+   "wall_seconds": 10.574222124007065
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100071,
+   "budget": 10.0,
+   "cost": 8.558233151450239,
+   "n_evaluations": 647,
+   "wall_seconds": 10.517318698985036
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100072,
+   "budget": 10.0,
+   "cost": 8.915924739703478,
+   "n_evaluations": 632,
+   "wall_seconds": 10.528234778001206
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100070,
+   "budget": 60.0,
+   "cost": 8.133249135420382,
+   "n_evaluations": 3739,
+   "wall_seconds": 60.508066946000326
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100071,
+   "budget": 60.0,
+   "cost": 8.186679012613567,
+   "n_evaluations": 3720,
+   "wall_seconds": 60.538407246989664
+  },
+  {
+   "family": "tour",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100072,
+   "budget": 60.0,
+   "cost": 8.51145634933817,
+   "n_evaluations": 3793,
+   "wall_seconds": 60.54661788698286
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100080,
+   "budget": 10.0,
+   "cost": 9.071294500791765,
+   "n_evaluations": 778,
+   "wall_seconds": 10.543823435000377
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100081,
+   "budget": 10.0,
+   "cost": 9.073985753743097,
+   "n_evaluations": 774,
+   "wall_seconds": 10.502813973027514
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100082,
+   "budget": 10.0,
+   "cost": 9.073985753743097,
+   "n_evaluations": 744,
+   "wall_seconds": 10.51257846801309
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100080,
+   "budget": 60.0,
+   "cost": 9.071294500791765,
+   "n_evaluations": 4472,
+   "wall_seconds": 60.55346888699569
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100081,
+   "budget": 60.0,
+   "cost": 9.066681088320966,
+   "n_evaluations": 4482,
+   "wall_seconds": 60.528793776000384
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100082,
+   "budget": 60.0,
+   "cost": 9.063989835369632,
+   "n_evaluations": 4506,
+   "wall_seconds": 60.532522510999115
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100080,
+   "budget": 10.0,
+   "cost": 9.073985753743097,
+   "n_evaluations": 667,
+   "wall_seconds": 10.561708763008937
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100081,
+   "budget": 10.0,
+   "cost": 9.073985753743097,
+   "n_evaluations": 623,
+   "wall_seconds": 10.569639266002923
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100082,
+   "budget": 10.0,
+   "cost": 9.073985753743097,
+   "n_evaluations": 661,
+   "wall_seconds": 10.525030253978912
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100080,
+   "budget": 60.0,
+   "cost": 9.073985753743097,
+   "n_evaluations": 3796,
+   "wall_seconds": 60.51972043799469
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100081,
+   "budget": 60.0,
+   "cost": 9.060799433612177,
+   "n_evaluations": 3870,
+   "wall_seconds": 60.467735539976275
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100082,
+   "budget": 60.0,
+   "cost": 9.038912928146907,
+   "n_evaluations": 3815,
+   "wall_seconds": 60.520289472013246
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100080,
+   "budget": 10.0,
+   "cost": 8.738759077164174,
+   "n_evaluations": 632,
+   "wall_seconds": 10.523735663999105
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100081,
+   "budget": 10.0,
+   "cost": 8.564439485118646,
+   "n_evaluations": 633,
+   "wall_seconds": 10.571308190003037
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100082,
+   "budget": 10.0,
+   "cost": 8.46215600068512,
+   "n_evaluations": 678,
+   "wall_seconds": 10.503212796000298
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100080,
+   "budget": 60.0,
+   "cost": 8.482075181725582,
+   "n_evaluations": 3787,
+   "wall_seconds": 60.52556190697942
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100081,
+   "budget": 60.0,
+   "cost": 8.317007905230648,
+   "n_evaluations": 3883,
+   "wall_seconds": 60.569180182006676
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100082,
+   "budget": 60.0,
+   "cost": 8.261363000294494,
+   "n_evaluations": 3883,
+   "wall_seconds": 60.59216956299497
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100080,
+   "budget": 10.0,
+   "cost": 8.770336807435333,
+   "n_evaluations": 667,
+   "wall_seconds": 10.499595358007355
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100081,
+   "budget": 10.0,
+   "cost": 8.856152025577126,
+   "n_evaluations": 643,
+   "wall_seconds": 10.549253377976129
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100082,
+   "budget": 10.0,
+   "cost": 8.802041446348706,
+   "n_evaluations": 636,
+   "wall_seconds": 10.571204673004104
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100080,
+   "budget": 60.0,
+   "cost": 8.514128420697114,
+   "n_evaluations": 3844,
+   "wall_seconds": 60.56360249000136
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100081,
+   "budget": 60.0,
+   "cost": 8.370119279535993,
+   "n_evaluations": 3963,
+   "wall_seconds": 60.53200759601896
+  },
+  {
+   "family": "tour",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100082,
+   "budget": 60.0,
+   "cost": 8.291699504546969,
+   "n_evaluations": 3892,
+   "wall_seconds": 60.53085784200812
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100090,
+   "budget": 10.0,
+   "cost": 9.819630980421406,
+   "n_evaluations": 765,
+   "wall_seconds": 10.594791665003868
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100091,
+   "budget": 10.0,
+   "cost": 9.819630980421406,
+   "n_evaluations": 806,
+   "wall_seconds": 10.538742969016312
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100092,
+   "budget": 10.0,
+   "cost": 9.819630980421406,
+   "n_evaluations": 748,
+   "wall_seconds": 10.512879160989542
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100090,
+   "budget": 60.0,
+   "cost": 9.800518220225491,
+   "n_evaluations": 4559,
+   "wall_seconds": 60.50100698598544
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100091,
+   "budget": 60.0,
+   "cost": 9.742467741345303,
+   "n_evaluations": 4642,
+   "wall_seconds": 60.556482252985006
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100092,
+   "budget": 60.0,
+   "cost": 9.78007522699527,
+   "n_evaluations": 4491,
+   "wall_seconds": 60.52837210701546
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100090,
+   "budget": 10.0,
+   "cost": 9.499750218979516,
+   "n_evaluations": 639,
+   "wall_seconds": 10.477948181011016
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100091,
+   "budget": 10.0,
+   "cost": 9.487020708277209,
+   "n_evaluations": 672,
+   "wall_seconds": 10.512850918981712
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100092,
+   "budget": 10.0,
+   "cost": 9.496203715208948,
+   "n_evaluations": 665,
+   "wall_seconds": 10.48266485700151
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100090,
+   "budget": 60.0,
+   "cost": 9.190579265799785,
+   "n_evaluations": 3803,
+   "wall_seconds": 60.59429505400476
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100091,
+   "budget": 60.0,
+   "cost": 9.241812284102101,
+   "n_evaluations": 3967,
+   "wall_seconds": 60.67951177401119
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100092,
+   "budget": 60.0,
+   "cost": 9.247692495404044,
+   "n_evaluations": 3822,
+   "wall_seconds": 60.55983414099319
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100090,
+   "budget": 10.0,
+   "cost": 8.81608994644739,
+   "n_evaluations": 616,
+   "wall_seconds": 10.513864746986656
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100091,
+   "budget": 10.0,
+   "cost": 9.071514358367226,
+   "n_evaluations": 650,
+   "wall_seconds": 10.551742137991823
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100092,
+   "budget": 10.0,
+   "cost": 8.735893314170168,
+   "n_evaluations": 627,
+   "wall_seconds": 10.5581322539947
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100090,
+   "budget": 60.0,
+   "cost": 8.733877126320392,
+   "n_evaluations": 3863,
+   "wall_seconds": 60.59227129400824
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100091,
+   "budget": 60.0,
+   "cost": 8.696415709461712,
+   "n_evaluations": 3859,
+   "wall_seconds": 60.58824736601673
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100092,
+   "budget": 60.0,
+   "cost": 8.57847375428045,
+   "n_evaluations": 3947,
+   "wall_seconds": 60.57296090698219
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100090,
+   "budget": 10.0,
+   "cost": 8.942467488692051,
+   "n_evaluations": 660,
+   "wall_seconds": 10.559085945977131
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100091,
+   "budget": 10.0,
+   "cost": 9.196196060850667,
+   "n_evaluations": 636,
+   "wall_seconds": 10.561257722991286
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100092,
+   "budget": 10.0,
+   "cost": 8.974635418688536,
+   "n_evaluations": 617,
+   "wall_seconds": 10.534375277988147
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100090,
+   "budget": 60.0,
+   "cost": 8.730790267427198,
+   "n_evaluations": 3787,
+   "wall_seconds": 60.57905003201449
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100091,
+   "budget": 60.0,
+   "cost": 8.766626413533025,
+   "n_evaluations": 3763,
+   "wall_seconds": 60.58554426301271
+  },
+  {
+   "family": "tour",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100092,
+   "budget": 60.0,
+   "cost": 8.650101592055286,
+   "n_evaluations": 3812,
+   "wall_seconds": 60.51354877999984
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100000,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 627,
+   "wall_seconds": 10.514862523996271
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100001,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 663,
+   "wall_seconds": 10.451732129004085
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100002,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 658,
+   "wall_seconds": 10.503681443020469
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100000,
+   "budget": 60.0,
+   "cost": 514.0,
+   "n_evaluations": 3957,
+   "wall_seconds": 60.515734070999315
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100001,
+   "budget": 60.0,
+   "cost": 514.0,
+   "n_evaluations": 4121,
+   "wall_seconds": 60.53613843000494
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "classical",
+   "seed": 7100002,
+   "budget": 60.0,
+   "cost": 514.0,
+   "n_evaluations": 4123,
+   "wall_seconds": 60.52551575299003
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100000,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 508,
+   "wall_seconds": 10.535042375006014
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100001,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 527,
+   "wall_seconds": 10.510062977002235
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100002,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 504,
+   "wall_seconds": 10.593457017996116
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100000,
+   "budget": 60.0,
+   "cost": 514.0,
+   "n_evaluations": 3089,
+   "wall_seconds": 60.537113454018254
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100001,
+   "budget": 60.0,
+   "cost": 514.0,
+   "n_evaluations": 3071,
+   "wall_seconds": 60.53335599999991
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "independent",
+   "seed": 7100002,
+   "budget": 60.0,
+   "cost": 514.0,
+   "n_evaluations": 3144,
+   "wall_seconds": 60.56910287201754
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100000,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 559,
+   "wall_seconds": 10.5252562329988
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100001,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 572,
+   "wall_seconds": 10.527163988997927
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100002,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 557,
+   "wall_seconds": 10.511349690001225
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100000,
+   "budget": 60.0,
+   "cost": 514.0,
+   "n_evaluations": 3617,
+   "wall_seconds": 60.50388605700573
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100001,
+   "budget": 60.0,
+   "cost": 512.0,
+   "n_evaluations": 2310,
+   "wall_seconds": 60.593312212993624
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "genetic",
+   "seed": 7100002,
+   "budget": 60.0,
+   "cost": 514.0,
+   "n_evaluations": 2201,
+   "wall_seconds": 61.09100763502647
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100000,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 441,
+   "wall_seconds": 10.835585694003385
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100001,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 414,
+   "wall_seconds": 10.683051023021108
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100002,
+   "budget": 10.0,
+   "cost": 514.0,
+   "n_evaluations": 554,
+   "wall_seconds": 10.670586827996885
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100000,
+   "budget": 60.0,
+   "cost": 514.0,
+   "n_evaluations": 3167,
+   "wall_seconds": 60.529894687992055
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100001,
+   "budget": 60.0,
+   "cost": 512.0,
+   "n_evaluations": 3567,
+   "wall_seconds": 60.50022584799444
+  },
+  {
+   "family": "cover",
+   "seed_group": 710000,
+   "arm": "portfolio",
+   "seed": 7100002,
+   "budget": 60.0,
+   "cost": 514.0,
+   "n_evaluations": 3571,
+   "wall_seconds": 60.47671114298282
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100010,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 636,
+   "wall_seconds": 10.507688045006944
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100011,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 643,
+   "wall_seconds": 10.568966590974014
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100012,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 603,
+   "wall_seconds": 10.534065478976117
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100010,
+   "budget": 60.0,
+   "cost": 518.0,
+   "n_evaluations": 3796,
+   "wall_seconds": 60.51414832100272
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100011,
+   "budget": 60.0,
+   "cost": 493.0,
+   "n_evaluations": 3593,
+   "wall_seconds": 60.533578735019546
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "classical",
+   "seed": 7100012,
+   "budget": 60.0,
+   "cost": 518.0,
+   "n_evaluations": 1665,
+   "wall_seconds": 60.77070450398605
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100010,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 151,
+   "wall_seconds": 14.138320361991646
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100011,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 147,
+   "wall_seconds": 11.664752763026627
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100012,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 83,
+   "wall_seconds": 11.947677136020502
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100010,
+   "budget": 60.0,
+   "cost": 517.0,
+   "n_evaluations": 2218,
+   "wall_seconds": 61.07825080299517
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100011,
+   "budget": 60.0,
+   "cost": 518.0,
+   "n_evaluations": 2943,
+   "wall_seconds": 60.5134673799912
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "independent",
+   "seed": 7100012,
+   "budget": 60.0,
+   "cost": 501.0,
+   "n_evaluations": 3002,
+   "wall_seconds": 60.52723996900022
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100010,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 581,
+   "wall_seconds": 10.515767049015267
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100011,
+   "budget": 10.0,
+   "cost": 499.0,
+   "n_evaluations": 565,
+   "wall_seconds": 10.502302379987668
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100012,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 537,
+   "wall_seconds": 10.505732662975788
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100010,
+   "budget": 60.0,
+   "cost": 513.0,
+   "n_evaluations": 1981,
+   "wall_seconds": 60.70079805798014
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100011,
+   "budget": 60.0,
+   "cost": 499.0,
+   "n_evaluations": 1267,
+   "wall_seconds": 61.24748405601713
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "genetic",
+   "seed": 7100012,
+   "budget": 60.0,
+   "cost": 518.0,
+   "n_evaluations": 1430,
+   "wall_seconds": 61.1812898380158
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100010,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 208,
+   "wall_seconds": 11.108228119002888
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100011,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 338,
+   "wall_seconds": 10.825325053010602
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100012,
+   "budget": 10.0,
+   "cost": 518.0,
+   "n_evaluations": 517,
+   "wall_seconds": 10.63489948300412
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100010,
+   "budget": 60.0,
+   "cost": 518.0,
+   "n_evaluations": 2682,
+   "wall_seconds": 60.73228568298509
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100011,
+   "budget": 60.0,
+   "cost": 499.0,
+   "n_evaluations": 1796,
+   "wall_seconds": 60.93604485099786
+  },
+  {
+   "family": "cover",
+   "seed_group": 710001,
+   "arm": "portfolio",
+   "seed": 7100012,
+   "budget": 60.0,
+   "cost": 518.0,
+   "n_evaluations": 3211,
+   "wall_seconds": 60.54858208299265
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100020,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 528,
+   "wall_seconds": 10.49498983300873
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100021,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 545,
+   "wall_seconds": 10.553978284995537
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100022,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 570,
+   "wall_seconds": 10.55273321500863
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100020,
+   "budget": 60.0,
+   "cost": 621.0,
+   "n_evaluations": 3552,
+   "wall_seconds": 60.518585999991046
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100021,
+   "budget": 60.0,
+   "cost": 596.0,
+   "n_evaluations": 3530,
+   "wall_seconds": 60.546284240990644
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "classical",
+   "seed": 7100022,
+   "budget": 60.0,
+   "cost": 621.0,
+   "n_evaluations": 3687,
+   "wall_seconds": 60.58228638500441
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100020,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 419,
+   "wall_seconds": 10.554823285987368
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100021,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 416,
+   "wall_seconds": 10.536694807000458
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100022,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 467,
+   "wall_seconds": 10.534832419012673
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100020,
+   "budget": 60.0,
+   "cost": 638.0,
+   "n_evaluations": 2559,
+   "wall_seconds": 60.573988320014905
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100021,
+   "budget": 60.0,
+   "cost": 638.0,
+   "n_evaluations": 2088,
+   "wall_seconds": 60.56003483699169
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "independent",
+   "seed": 7100022,
+   "budget": 60.0,
+   "cost": 638.0,
+   "n_evaluations": 2308,
+   "wall_seconds": 60.52710569999181
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100020,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 496,
+   "wall_seconds": 10.495758912002202
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100021,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 475,
+   "wall_seconds": 10.581128955003805
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100022,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 486,
+   "wall_seconds": 10.575006102997577
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100020,
+   "budget": 60.0,
+   "cost": 638.0,
+   "n_evaluations": 2572,
+   "wall_seconds": 60.515076347015565
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100021,
+   "budget": 60.0,
+   "cost": 637.0,
+   "n_evaluations": 2485,
+   "wall_seconds": 60.58695458699367
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "genetic",
+   "seed": 7100022,
+   "budget": 60.0,
+   "cost": 638.0,
+   "n_evaluations": 2484,
+   "wall_seconds": 60.63180156800081
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100020,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 372,
+   "wall_seconds": 10.691316825977992
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100021,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 408,
+   "wall_seconds": 10.637510950997239
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100022,
+   "budget": 10.0,
+   "cost": 638.0,
+   "n_evaluations": 356,
+   "wall_seconds": 10.572737540001981
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100020,
+   "budget": 60.0,
+   "cost": 638.0,
+   "n_evaluations": 2221,
+   "wall_seconds": 60.7746423589997
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100021,
+   "budget": 60.0,
+   "cost": 638.0,
+   "n_evaluations": 2246,
+   "wall_seconds": 60.78380429800018
+  },
+  {
+   "family": "cover",
+   "seed_group": 710002,
+   "arm": "portfolio",
+   "seed": 7100022,
+   "budget": 60.0,
+   "cost": 638.0,
+   "n_evaluations": 2180,
+   "wall_seconds": 60.454674512002384
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100030,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 511,
+   "wall_seconds": 10.587135276000481
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100031,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 481,
+   "wall_seconds": 10.624845294980332
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100032,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 552,
+   "wall_seconds": 10.629770280007506
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100030,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 2864,
+   "wall_seconds": 60.71091119499761
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100031,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 3290,
+   "wall_seconds": 60.61751976600499
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "classical",
+   "seed": 7100032,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 3156,
+   "wall_seconds": 60.55915509501938
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100030,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 407,
+   "wall_seconds": 10.611363075004192
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100031,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 449,
+   "wall_seconds": 10.561779123003362
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100032,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 414,
+   "wall_seconds": 10.5555402150203
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100030,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 2405,
+   "wall_seconds": 60.675322527997196
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100031,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 2636,
+   "wall_seconds": 60.53045674200985
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "independent",
+   "seed": 7100032,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 2857,
+   "wall_seconds": 60.55764787198859
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100030,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 505,
+   "wall_seconds": 10.555594026023755
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100031,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 527,
+   "wall_seconds": 10.562366981001105
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100032,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 481,
+   "wall_seconds": 10.54678029200295
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100030,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 3189,
+   "wall_seconds": 60.52952462199028
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100031,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 3280,
+   "wall_seconds": 60.50462940201396
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "genetic",
+   "seed": 7100032,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 3300,
+   "wall_seconds": 60.530550135008525
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100030,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 498,
+   "wall_seconds": 10.529024499992374
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100031,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 506,
+   "wall_seconds": 10.514787483989494
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100032,
+   "budget": 10.0,
+   "cost": 589.0,
+   "n_evaluations": 525,
+   "wall_seconds": 10.555574152996996
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100030,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 3272,
+   "wall_seconds": 60.56321726102033
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100031,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 3213,
+   "wall_seconds": 60.59009577802499
+  },
+  {
+   "family": "cover",
+   "seed_group": 710003,
+   "arm": "portfolio",
+   "seed": 7100032,
+   "budget": 60.0,
+   "cost": 589.0,
+   "n_evaluations": 3092,
+   "wall_seconds": 60.61672021698905
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100040,
+   "budget": 10.0,
+   "cost": 324.0,
+   "n_evaluations": 712,
+   "wall_seconds": 10.576744532998418
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100041,
+   "budget": 10.0,
+   "cost": 324.0,
+   "n_evaluations": 722,
+   "wall_seconds": 10.5393909009872
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100042,
+   "budget": 10.0,
+   "cost": 326.0,
+   "n_evaluations": 735,
+   "wall_seconds": 10.530514134006808
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100040,
+   "budget": 60.0,
+   "cost": 324.0,
+   "n_evaluations": 4306,
+   "wall_seconds": 60.532773878017906
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100041,
+   "budget": 60.0,
+   "cost": 324.0,
+   "n_evaluations": 4425,
+   "wall_seconds": 60.52420697102207
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "classical",
+   "seed": 7100042,
+   "budget": 60.0,
+   "cost": 326.0,
+   "n_evaluations": 4525,
+   "wall_seconds": 60.5440477450029
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100040,
+   "budget": 10.0,
+   "cost": 325.0,
+   "n_evaluations": 595,
+   "wall_seconds": 10.570276012993418
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100041,
+   "budget": 10.0,
+   "cost": 326.0,
+   "n_evaluations": 653,
+   "wall_seconds": 10.546914984995965
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100042,
+   "budget": 10.0,
+   "cost": 325.0,
+   "n_evaluations": 714,
+   "wall_seconds": 10.481904047977878
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100040,
+   "budget": 60.0,
+   "cost": 319.0,
+   "n_evaluations": 3765,
+   "wall_seconds": 60.45927677600412
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100041,
+   "budget": 60.0,
+   "cost": 318.0,
+   "n_evaluations": 3695,
+   "wall_seconds": 60.57762206098414
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "independent",
+   "seed": 7100042,
+   "budget": 60.0,
+   "cost": 321.0,
+   "n_evaluations": 3809,
+   "wall_seconds": 60.55511690900312
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100040,
+   "budget": 10.0,
+   "cost": 325.0,
+   "n_evaluations": 697,
+   "wall_seconds": 10.466162980999798
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100041,
+   "budget": 10.0,
+   "cost": 325.0,
+   "n_evaluations": 696,
+   "wall_seconds": 10.528867599001387
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100042,
+   "budget": 10.0,
+   "cost": 326.0,
+   "n_evaluations": 700,
+   "wall_seconds": 10.515818671003217
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100040,
+   "budget": 60.0,
+   "cost": 317.0,
+   "n_evaluations": 4159,
+   "wall_seconds": 60.51275741599966
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100041,
+   "budget": 60.0,
+   "cost": 325.0,
+   "n_evaluations": 4170,
+   "wall_seconds": 60.556268237007316
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "genetic",
+   "seed": 7100042,
+   "budget": 60.0,
+   "cost": 326.0,
+   "n_evaluations": 4243,
+   "wall_seconds": 60.54431078498601
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100040,
+   "budget": 10.0,
+   "cost": 323.0,
+   "n_evaluations": 667,
+   "wall_seconds": 10.607597894995706
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100041,
+   "budget": 10.0,
+   "cost": 326.0,
+   "n_evaluations": 705,
+   "wall_seconds": 10.539485303976107
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100042,
+   "budget": 10.0,
+   "cost": 326.0,
+   "n_evaluations": 648,
+   "wall_seconds": 10.47491477400763
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100040,
+   "budget": 60.0,
+   "cost": 317.0,
+   "n_evaluations": 4163,
+   "wall_seconds": 60.552648904005764
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100041,
+   "budget": 60.0,
+   "cost": 325.0,
+   "n_evaluations": 3949,
+   "wall_seconds": 60.55398383300053
+  },
+  {
+   "family": "cover",
+   "seed_group": 710004,
+   "arm": "portfolio",
+   "seed": 7100042,
+   "budget": 60.0,
+   "cost": 325.0,
+   "n_evaluations": 3961,
+   "wall_seconds": 60.55635997399804
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100050,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 648,
+   "wall_seconds": 10.563782937009819
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100051,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 644,
+   "wall_seconds": 10.593779090006137
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100052,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 635,
+   "wall_seconds": 10.559094666998135
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100050,
+   "budget": 60.0,
+   "cost": 458.0,
+   "n_evaluations": 3960,
+   "wall_seconds": 60.584973648015875
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100051,
+   "budget": 60.0,
+   "cost": 447.0,
+   "n_evaluations": 4104,
+   "wall_seconds": 60.5512075520237
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "classical",
+   "seed": 7100052,
+   "budget": 60.0,
+   "cost": 447.0,
+   "n_evaluations": 4012,
+   "wall_seconds": 60.54395463998662
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100050,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 506,
+   "wall_seconds": 10.562201777996961
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100051,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 526,
+   "wall_seconds": 10.55346515099518
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100052,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 532,
+   "wall_seconds": 10.581431118014734
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100050,
+   "budget": 60.0,
+   "cost": 458.0,
+   "n_evaluations": 2941,
+   "wall_seconds": 60.51285979201202
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100051,
+   "budget": 60.0,
+   "cost": 458.0,
+   "n_evaluations": 2770,
+   "wall_seconds": 60.63200379701448
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "independent",
+   "seed": 7100052,
+   "budget": 60.0,
+   "cost": 458.0,
+   "n_evaluations": 3157,
+   "wall_seconds": 60.51287762098946
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100050,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 542,
+   "wall_seconds": 10.52790194901172
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100051,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 537,
+   "wall_seconds": 10.469659277994651
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100052,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 558,
+   "wall_seconds": 10.50898584301467
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100050,
+   "budget": 60.0,
+   "cost": 458.0,
+   "n_evaluations": 3495,
+   "wall_seconds": 60.559189783991314
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100051,
+   "budget": 60.0,
+   "cost": 458.0,
+   "n_evaluations": 3263,
+   "wall_seconds": 60.52432544200565
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "genetic",
+   "seed": 7100052,
+   "budget": 60.0,
+   "cost": 458.0,
+   "n_evaluations": 3434,
+   "wall_seconds": 60.553111539979
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100050,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 555,
+   "wall_seconds": 10.533764093008358
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100051,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 515,
+   "wall_seconds": 10.523132953007007
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100052,
+   "budget": 10.0,
+   "cost": 458.0,
+   "n_evaluations": 433,
+   "wall_seconds": 10.599004265997792
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100050,
+   "budget": 60.0,
+   "cost": 458.0,
+   "n_evaluations": 3154,
+   "wall_seconds": 60.5113419900008
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100051,
+   "budget": 60.0,
+   "cost": 458.0,
+   "n_evaluations": 3370,
+   "wall_seconds": 60.57476884301286
+  },
+  {
+   "family": "cover",
+   "seed_group": 710005,
+   "arm": "portfolio",
+   "seed": 7100052,
+   "budget": 60.0,
+   "cost": 458.0,
+   "n_evaluations": 3388,
+   "wall_seconds": 60.47654821400647
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100060,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 626,
+   "wall_seconds": 10.514520937023917
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100061,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 576,
+   "wall_seconds": 10.534455057000741
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100062,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 550,
+   "wall_seconds": 10.497195136995288
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100060,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 3340,
+   "wall_seconds": 60.50029257600545
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100061,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 3478,
+   "wall_seconds": 60.539587468025275
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "classical",
+   "seed": 7100062,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 3487,
+   "wall_seconds": 60.56287077299203
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100060,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 455,
+   "wall_seconds": 10.55135371000506
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100061,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 451,
+   "wall_seconds": 10.598830024013296
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100062,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 457,
+   "wall_seconds": 10.528485716000432
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100060,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 2684,
+   "wall_seconds": 60.49096942000324
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100061,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 2607,
+   "wall_seconds": 60.48057811500621
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "independent",
+   "seed": 7100062,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 2709,
+   "wall_seconds": 60.52960825600894
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100060,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 493,
+   "wall_seconds": 10.514051990001462
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100061,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 453,
+   "wall_seconds": 10.551235396997072
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100062,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 524,
+   "wall_seconds": 10.554191720992094
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100060,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 2923,
+   "wall_seconds": 60.511091672000475
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100061,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 2870,
+   "wall_seconds": 60.59145939399605
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "genetic",
+   "seed": 7100062,
+   "budget": 60.0,
+   "cost": 560.0,
+   "n_evaluations": 2857,
+   "wall_seconds": 60.58159304197761
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100060,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 453,
+   "wall_seconds": 10.536922950996086
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100061,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 455,
+   "wall_seconds": 10.684243060008157
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100062,
+   "budget": 10.0,
+   "cost": 577.0,
+   "n_evaluations": 454,
+   "wall_seconds": 10.55064974099514
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100060,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 2628,
+   "wall_seconds": 60.510632233985234
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100061,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 2852,
+   "wall_seconds": 60.563254125008825
+  },
+  {
+   "family": "cover",
+   "seed_group": 710006,
+   "arm": "portfolio",
+   "seed": 7100062,
+   "budget": 60.0,
+   "cost": 577.0,
+   "n_evaluations": 2817,
+   "wall_seconds": 60.56846905100974
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100070,
+   "budget": 10.0,
+   "cost": 324.0,
+   "n_evaluations": 595,
+   "wall_seconds": 10.528514867008198
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100071,
+   "budget": 10.0,
+   "cost": 324.0,
+   "n_evaluations": 631,
+   "wall_seconds": 10.523952775984071
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100072,
+   "budget": 10.0,
+   "cost": 324.0,
+   "n_evaluations": 627,
+   "wall_seconds": 10.545535520010162
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100070,
+   "budget": 60.0,
+   "cost": 324.0,
+   "n_evaluations": 3792,
+   "wall_seconds": 60.55373441800475
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100071,
+   "budget": 60.0,
+   "cost": 324.0,
+   "n_evaluations": 3697,
+   "wall_seconds": 60.56611483398592
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "classical",
+   "seed": 7100072,
+   "budget": 60.0,
+   "cost": 324.0,
+   "n_evaluations": 3853,
+   "wall_seconds": 60.494405575009296
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100070,
+   "budget": 10.0,
+   "cost": 323.0,
+   "n_evaluations": 562,
+   "wall_seconds": 10.602608828019584
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100071,
+   "budget": 10.0,
+   "cost": 324.0,
+   "n_evaluations": 608,
+   "wall_seconds": 10.562182418012526
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100072,
+   "budget": 10.0,
+   "cost": 324.0,
+   "n_evaluations": 509,
+   "wall_seconds": 10.54328943300061
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100070,
+   "budget": 60.0,
+   "cost": 318.0,
+   "n_evaluations": 3108,
+   "wall_seconds": 60.55423654199694
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100071,
+   "budget": 60.0,
+   "cost": 322.0,
+   "n_evaluations": 3174,
+   "wall_seconds": 60.53164940600982
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "independent",
+   "seed": 7100072,
+   "budget": 60.0,
+   "cost": 320.0,
+   "n_evaluations": 3132,
+   "wall_seconds": 60.54561932600336
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100070,
+   "budget": 10.0,
+   "cost": 323.0,
+   "n_evaluations": 535,
+   "wall_seconds": 10.568182360002538
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100071,
+   "budget": 10.0,
+   "cost": 320.0,
+   "n_evaluations": 527,
+   "wall_seconds": 10.523388052999508
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100072,
+   "budget": 10.0,
+   "cost": 320.0,
+   "n_evaluations": 530,
+   "wall_seconds": 10.517830168973887
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100070,
+   "budget": 60.0,
+   "cost": 321.0,
+   "n_evaluations": 3488,
+   "wall_seconds": 60.54874826199375
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100071,
+   "budget": 60.0,
+   "cost": 318.0,
+   "n_evaluations": 3304,
+   "wall_seconds": 60.536786946002394
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "genetic",
+   "seed": 7100072,
+   "budget": 60.0,
+   "cost": 306.0,
+   "n_evaluations": 3420,
+   "wall_seconds": 60.54494923300808
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100070,
+   "budget": 10.0,
+   "cost": 324.0,
+   "n_evaluations": 547,
+   "wall_seconds": 10.540450094005791
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100071,
+   "budget": 10.0,
+   "cost": 320.0,
+   "n_evaluations": 458,
+   "wall_seconds": 10.548242855002172
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100072,
+   "budget": 10.0,
+   "cost": 324.0,
+   "n_evaluations": 498,
+   "wall_seconds": 10.559331878001103
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100070,
+   "budget": 60.0,
+   "cost": 321.0,
+   "n_evaluations": 3143,
+   "wall_seconds": 60.50420982501237
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100071,
+   "budget": 60.0,
+   "cost": 319.0,
+   "n_evaluations": 3091,
+   "wall_seconds": 60.54882136499509
+  },
+  {
+   "family": "cover",
+   "seed_group": 710007,
+   "arm": "portfolio",
+   "seed": 7100072,
+   "budget": 60.0,
+   "cost": 320.0,
+   "n_evaluations": 3057,
+   "wall_seconds": 60.500725826015696
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100080,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 599,
+   "wall_seconds": 10.536716689006425
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100081,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 612,
+   "wall_seconds": 10.52899282699218
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100082,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 584,
+   "wall_seconds": 10.550372439000057
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100080,
+   "budget": 60.0,
+   "cost": 478.0,
+   "n_evaluations": 3759,
+   "wall_seconds": 60.55792749300599
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100081,
+   "budget": 60.0,
+   "cost": 478.0,
+   "n_evaluations": 3676,
+   "wall_seconds": 60.551168474019505
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "classical",
+   "seed": 7100082,
+   "budget": 60.0,
+   "cost": 474.0,
+   "n_evaluations": 3689,
+   "wall_seconds": 60.54708997398848
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100080,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 470,
+   "wall_seconds": 10.568738458008738
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100081,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 506,
+   "wall_seconds": 10.523165738995885
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100082,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 480,
+   "wall_seconds": 10.553491575992666
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100080,
+   "budget": 60.0,
+   "cost": 478.0,
+   "n_evaluations": 2924,
+   "wall_seconds": 60.5687043859798
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100081,
+   "budget": 60.0,
+   "cost": 478.0,
+   "n_evaluations": 2863,
+   "wall_seconds": 60.58145006099949
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "independent",
+   "seed": 7100082,
+   "budget": 60.0,
+   "cost": 478.0,
+   "n_evaluations": 2915,
+   "wall_seconds": 60.5741727759887
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100080,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 542,
+   "wall_seconds": 10.490401251008734
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100081,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 516,
+   "wall_seconds": 10.5394020480162
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100082,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 505,
+   "wall_seconds": 10.54370132999611
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100080,
+   "budget": 60.0,
+   "cost": 478.0,
+   "n_evaluations": 3226,
+   "wall_seconds": 60.53497538701049
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100081,
+   "budget": 60.0,
+   "cost": 478.0,
+   "n_evaluations": 3324,
+   "wall_seconds": 60.556361978000496
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "genetic",
+   "seed": 7100082,
+   "budget": 60.0,
+   "cost": 477.0,
+   "n_evaluations": 3187,
+   "wall_seconds": 60.53739878698252
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100080,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 488,
+   "wall_seconds": 10.493681305000791
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100081,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 457,
+   "wall_seconds": 10.530820048006717
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100082,
+   "budget": 10.0,
+   "cost": 478.0,
+   "n_evaluations": 474,
+   "wall_seconds": 10.514915223990101
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100080,
+   "budget": 60.0,
+   "cost": 478.0,
+   "n_evaluations": 2965,
+   "wall_seconds": 60.58208189098514
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100081,
+   "budget": 60.0,
+   "cost": 478.0,
+   "n_evaluations": 2937,
+   "wall_seconds": 60.487255329004256
+  },
+  {
+   "family": "cover",
+   "seed_group": 710008,
+   "arm": "portfolio",
+   "seed": 7100082,
+   "budget": 60.0,
+   "cost": 477.0,
+   "n_evaluations": 2982,
+   "wall_seconds": 60.54622205600026
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100090,
+   "budget": 10.0,
+   "cost": 448.0,
+   "n_evaluations": 731,
+   "wall_seconds": 10.518910532002337
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100091,
+   "budget": 10.0,
+   "cost": 448.0,
+   "n_evaluations": 701,
+   "wall_seconds": 10.516280410985928
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100092,
+   "budget": 10.0,
+   "cost": 434.0,
+   "n_evaluations": 729,
+   "wall_seconds": 10.535534859984182
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100090,
+   "budget": 60.0,
+   "cost": 429.0,
+   "n_evaluations": 4399,
+   "wall_seconds": 60.57140845799586
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100091,
+   "budget": 60.0,
+   "cost": 434.0,
+   "n_evaluations": 4396,
+   "wall_seconds": 60.56207787399762
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "classical",
+   "seed": 7100092,
+   "budget": 60.0,
+   "cost": 429.0,
+   "n_evaluations": 3812,
+   "wall_seconds": 60.64942187900306
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100090,
+   "budget": 10.0,
+   "cost": 448.0,
+   "n_evaluations": 583,
+   "wall_seconds": 10.74180675399839
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100091,
+   "budget": 10.0,
+   "cost": 448.0,
+   "n_evaluations": 588,
+   "wall_seconds": 10.487929219001671
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100092,
+   "budget": 10.0,
+   "cost": 446.0,
+   "n_evaluations": 583,
+   "wall_seconds": 10.662326068995753
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100090,
+   "budget": 60.0,
+   "cost": 438.0,
+   "n_evaluations": 3441,
+   "wall_seconds": 60.46700393600622
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100091,
+   "budget": 60.0,
+   "cost": 442.0,
+   "n_evaluations": 3501,
+   "wall_seconds": 60.569140175997745
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "independent",
+   "seed": 7100092,
+   "budget": 60.0,
+   "cost": 438.0,
+   "n_evaluations": 3436,
+   "wall_seconds": 60.56524176400853
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100090,
+   "budget": 10.0,
+   "cost": 444.0,
+   "n_evaluations": 647,
+   "wall_seconds": 10.530911064997781
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100091,
+   "budget": 10.0,
+   "cost": 442.0,
+   "n_evaluations": 681,
+   "wall_seconds": 10.530131281004287
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100092,
+   "budget": 10.0,
+   "cost": 436.0,
+   "n_evaluations": 640,
+   "wall_seconds": 10.543711705016904
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100090,
+   "budget": 60.0,
+   "cost": 425.0,
+   "n_evaluations": 3955,
+   "wall_seconds": 60.558837398013566
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100091,
+   "budget": 60.0,
+   "cost": 431.0,
+   "n_evaluations": 3811,
+   "wall_seconds": 60.54377427700092
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "genetic",
+   "seed": 7100092,
+   "budget": 60.0,
+   "cost": 432.0,
+   "n_evaluations": 3713,
+   "wall_seconds": 60.562578536977526
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100090,
+   "budget": 10.0,
+   "cost": 448.0,
+   "n_evaluations": 593,
+   "wall_seconds": 10.58317500501289
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100091,
+   "budget": 10.0,
+   "cost": 447.0,
+   "n_evaluations": 631,
+   "wall_seconds": 10.526016454998171
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100092,
+   "budget": 10.0,
+   "cost": 448.0,
+   "n_evaluations": 593,
+   "wall_seconds": 10.506693917996017
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100090,
+   "budget": 60.0,
+   "cost": 444.0,
+   "n_evaluations": 3747,
+   "wall_seconds": 60.55952110700309
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100091,
+   "budget": 60.0,
+   "cost": 442.0,
+   "n_evaluations": 3663,
+   "wall_seconds": 60.48589379800251
+  },
+  {
+   "family": "cover",
+   "seed_group": 710009,
+   "arm": "portfolio",
+   "seed": 7100092,
+   "budget": 60.0,
+   "cost": 436.0,
+   "n_evaluations": 3647,
+   "wall_seconds": 60.56567586999154
+  }
+ ]
+}

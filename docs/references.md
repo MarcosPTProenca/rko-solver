@@ -406,14 +406,16 @@ literature.
   `benchmarks/engines/packing_problems.py`, `benchmarks/engines/priority_scorer.py`,
   `benchmarks/engines/learned_priority_study.py`, `benchmarks/engines/decoder_form_study.py`,
   `benchmarks/engines/tsp_decoder_form_study.py`, `benchmarks/engines/tsp_quantile_study.py`,
-  `benchmarks/engines/tsp_learned_study.py` and `benchmarks/engines/shake_sensitivity_study.py`,
-  which implement its residual-priority decoder, a quantile decoder, a per-family scorer trained
+  `benchmarks/engines/tsp_learned_study.py`, `benchmarks/engines/shake_sensitivity_study.py`,
+  `benchmarks/quantile/codec.py`, `benchmarks/quantile/study.py` and
+  `benchmarks/quantile/confirm.py`, which implement its residual-priority decoder, a quantile decoder, a per-family scorer trained
   with REINFORCE, the comparison of the decoder form against seeding on packing and on the
   traveling-salesman problem, the sequential quantile codec's own comparison against seeding on
   the traveling-salesman problem, a test of that same trained scorer against a hand-written 2-opt
   prior, and a measurement of the proposal's plateau-then-chaos sensitivity risk against RKO's own
-  shaking operator. The sequential per-decision policy with a global key block (the codec with
-  learned, not hand-written, scores) was **not** tested.
+  shaking operator, and a state-dependent trained scorer that chooses each next decision through
+  the sequential quantile codec, on Tour and Cover. The proposal's global key block over a learned
+  policy beyond those two families and 100 nodes was **not** tested.
 
 ### RKO-SR proposal
 
@@ -437,10 +439,13 @@ literature.
 | `benchmarks/engines/tsp_quantile_study.py`, `benchmarks/engines/report_sink.py` | The Q-RKO proposal's sequential quantile codec against the same mechanisms, on the traveling-salesman problem | No published reference; own design, built on the sequential codec of the Q-RKO proposal |
 | `benchmarks/engines/tsp_learned_study.py` | A REINFORCE-trained per-city scorer against a hand-written 2-opt prior, both seeded and inside the residual decoder, on the traveling-salesman problem | No published reference; own design, built on `PriorityScorer`/`ReinforceTrainer` and the decoder-form study's mechanisms |
 | `benchmarks/engines/shake_sensitivity_study.py` | The Q-RKO proposal's plateau-then-chaos sensitivity risk, measured against RKO's own shaking operator and the sort/greedy-fill decoders this repository ships | No published reference; own design, testing the proposal's risk claim against existing code |
+| `benchmarks/quantile/tasks.py`, `benchmarks/quantile/codec.py`, `benchmarks/quantile/solver.py`, `benchmarks/quantile/model.py`, `benchmarks/quantile/study.py`, `benchmarks/quantile/confirm.py` | A trained state-dependent scorer through the sequential quantile codec, searched by RKO on Tour and Cover, against classical search and against a 2-opt seeded baseline | No published reference; own design, built on the sequential codec of the Q-RKO proposal |
 
 Results are in `benchmarks/README.md`. The learned-component studies failed their pre-registered
 rules. The decoder-form study met its rule on packing and did not meet it on the traveling-salesman
-problem. The sequential quantile-codec study did not meet its rule either.
+problem. The sequential quantile-codec study did not meet its rule either. The state-dependent
+scorer beat classical search on Tour but lost to a 2-opt seeded baseline, and Cover was
+inconclusive.
 
 ## Local copies
 

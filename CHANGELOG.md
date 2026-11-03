@@ -87,6 +87,10 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Fixed
 
+- `examples/priority_decoders.py`: `QuantileCodec.order` no longer repeats an already selected item
+  when the temperature is near zero. It previously returned a non-permutation such as `[2, 2, 2]`.
+  The fix recomputes weights over the remaining items and validates inputs; a regression test
+  covers it. Benchmark-only: the installed library is unchanged.
 - With `execution="process"` (the default), a callback that overruns the five-second search
   grace no longer discards every solution found so far: `solve` stops the workers and returns
   the best solution with a `RuntimeWarning`, as the sequential and thread executions already

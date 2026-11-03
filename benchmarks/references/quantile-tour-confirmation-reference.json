@@ -1,0 +1,842 @@
+{
+ "manifest": {
+  "source_revision": "1f85a41724770fef4f061e68f3ffaf64216fd21a",
+  "checkpoint_fingerprint": "6b28d6aa62995512709e3b095769d71a36f2b177ab21924914c1dfd07b8cde8a",
+  "arms": [
+   "genetic",
+   "portfolio",
+   "twoopt_genetic",
+   "twoopt_portfolio"
+  ],
+  "budget": 60.0,
+  "noise": 0.1,
+  "test_panel": [
+   {
+    "seed": 720000,
+    "instance_hash": "661b0c5ba34435db08f88ef960e8e456f0b6d207fa109e99494a8edc3fdb2c39"
+   },
+   {
+    "seed": 720001,
+    "instance_hash": "979408242a663fec7b93db1e426d1a92f89137e97631b3b37f79b5ba835bff1f"
+   },
+   {
+    "seed": 720002,
+    "instance_hash": "976a258ca66c7d1c158e35c2d11259fbe0ac39999a27bfd4c49040a15192c4fa"
+   },
+   {
+    "seed": 720003,
+    "instance_hash": "b99fb421956458ae45eb076a9f89135a7bac8ca1776ab16ff3725a74ea4b13ce"
+   },
+   {
+    "seed": 720004,
+    "instance_hash": "c383b248c48714a36621f4276bdc8a00d31c9569115a866db863d024749eb7c0"
+   },
+   {
+    "seed": 720005,
+    "instance_hash": "8517f8baa4cc367e21c3cb8afd8edf371545a9704bb744788b61a75624f0588c"
+   },
+   {
+    "seed": 720006,
+    "instance_hash": "2bf3d2f2fd30275eefe617334a7857b62f7af5dbe0133364685880c9d75ab81c"
+   },
+   {
+    "seed": 720007,
+    "instance_hash": "b022187819d8b1510a22aafce972f22261b2e285b4fee0bafcb8fc9cd9ef6b85"
+   },
+   {
+    "seed": 720008,
+    "instance_hash": "962ea2330503891254f970ade4eb618c3de58e9acb9b34a7448e5e114ec1e67f"
+   },
+   {
+    "seed": 720009,
+    "instance_hash": "39e69c108786d9008a4dddfc993ac26c050d507873094dc9c2e8cef96dbc0051"
+   },
+   {
+    "seed": 720010,
+    "instance_hash": "5507182c948a738ab1be3e356800de5efdadf00c45458e30c42df78848ed6d75"
+   },
+   {
+    "seed": 720011,
+    "instance_hash": "ac8d8375472c975696c03b1a8fdb5bef9779f39ef534932abf52100934360252"
+   },
+   {
+    "seed": 720012,
+    "instance_hash": "3dbc742d0dcc036f3a47a9d58269a4e27fb0d35202cb71a467bbb1897781ea71"
+   },
+   {
+    "seed": 720013,
+    "instance_hash": "902d8b7072fe63c81b4afe21d6e47ddc101780b7fa9ab66ac95316326fd87234"
+   },
+   {
+    "seed": 720014,
+    "instance_hash": "0445a17b81166257b3d8988ec8e03d1ae9ade663e9a21d184617d50ab0bec75a"
+   },
+   {
+    "seed": 720015,
+    "instance_hash": "fb14fa235abb331006f06d4e2a287bd04090619865352e76db4d3b9edab1d378"
+   },
+   {
+    "seed": 720016,
+    "instance_hash": "bd4b91977f31e8b927a3c01633d076468e90b1cb0f9c08513b2a77d206b0a119"
+   },
+   {
+    "seed": 720017,
+    "instance_hash": "1d07c82d3455f52d958b1a3ef9a9357159ace76cf25f4c36779221c16dd2c37f"
+   },
+   {
+    "seed": 720018,
+    "instance_hash": "53b45ab9970940d117b13b831ef6ce307cf13ec96451ba5dce33068a9f7ae65f"
+   },
+   {
+    "seed": 720019,
+    "instance_hash": "cdc6458cd0711c387f3c69630bbfe982c9f97f77f1bf5ee8c8ecc10ec6bc4906"
+   }
+  ],
+  "claim": "development confirmation on fresh seeds, not release evidence"
+ },
+ "summary": {
+  "comparisons": {
+   "genetic_vs_twoopt_genetic": {
+    "difference": 0.23390745324175452,
+    "ci_low": 0.14246934304603256,
+    "ci_high": 0.31659887903636236
+   },
+   "portfolio_vs_twoopt_portfolio": {
+    "difference": 0.28371096101295956,
+    "ci_low": 0.19997749891145125,
+    "ci_high": 0.36388704333890376
+   }
+  },
+  "mean_costs": {
+   "genetic": 8.186388705639377,
+   "portfolio": 8.236192213410582,
+   "twoopt_genetic": 7.9524812523976225,
+   "twoopt_portfolio": 7.9524812523976225
+  },
+  "advance": false,
+  "rule": "advance only if a neural arm beats the 2-opt seeded arm with the same algorithms and a paired 95 percent interval entirely below zero",
+  "noise": 0.1
+ },
+ "trials": [
+  {
+   "seed_group": 720000,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.134645685546634,
+   "setup_seconds": 0.023619284009328112,
+   "n_evaluations": 4560,
+   "wall_seconds": 60.53319514900795
+  },
+  {
+   "seed_group": 720000,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.173108378055073,
+   "setup_seconds": 0.022711584984790534,
+   "n_evaluations": 4699,
+   "wall_seconds": 60.525835384003585
+  },
+  {
+   "seed_group": 720000,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.838517419571779,
+   "setup_seconds": 0.002514803985832259,
+   "n_evaluations": 1924405,
+   "wall_seconds": 60.468325191002805
+  },
+  {
+   "seed_group": 720000,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.838517419571779,
+   "setup_seconds": 0.002643578016432002,
+   "n_evaluations": 3050356,
+   "wall_seconds": 60.46599828300532
+  },
+  {
+   "seed_group": 720001,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.24742136384407,
+   "setup_seconds": 0.023375324992230162,
+   "n_evaluations": 4636,
+   "wall_seconds": 60.53876721102279
+  },
+  {
+   "seed_group": 720001,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.302534819432292,
+   "setup_seconds": 0.024194132012780756,
+   "n_evaluations": 4685,
+   "wall_seconds": 60.470187605009414
+  },
+  {
+   "seed_group": 720001,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 8.166996964412121,
+   "setup_seconds": 0.0034703970013651997,
+   "n_evaluations": 1835501,
+   "wall_seconds": 60.46313224901678
+  },
+  {
+   "seed_group": 720001,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 8.166996964412121,
+   "setup_seconds": 0.003529899986460805,
+   "n_evaluations": 3053508,
+   "wall_seconds": 60.48924807601725
+  },
+  {
+   "seed_group": 720002,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.077658695171827,
+   "setup_seconds": 0.02456863402039744,
+   "n_evaluations": 4699,
+   "wall_seconds": 60.508816871006275
+  },
+  {
+   "seed_group": 720002,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.077658695171827,
+   "setup_seconds": 0.023370680020889267,
+   "n_evaluations": 4712,
+   "wall_seconds": 60.49804800198763
+  },
+  {
+   "seed_group": 720002,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.608133724945124,
+   "setup_seconds": 0.003694847982842475,
+   "n_evaluations": 1915424,
+   "wall_seconds": 60.45476413299912
+  },
+  {
+   "seed_group": 720002,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.608133724945124,
+   "setup_seconds": 0.0037015620036982,
+   "n_evaluations": 3046879,
+   "wall_seconds": 60.45916300799581
+  },
+  {
+   "seed_group": 720003,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.450978484165127,
+   "setup_seconds": 0.022727362986188382,
+   "n_evaluations": 4683,
+   "wall_seconds": 60.51612836800632
+  },
+  {
+   "seed_group": 720003,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.593343305161662,
+   "setup_seconds": 0.021852969977771863,
+   "n_evaluations": 4608,
+   "wall_seconds": 60.474937889986904
+  },
+  {
+   "seed_group": 720003,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 8.04233449394421,
+   "setup_seconds": 0.0029125049768481404,
+   "n_evaluations": 1937034,
+   "wall_seconds": 60.4247097200132
+  },
+  {
+   "seed_group": 720003,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 8.04233449394421,
+   "setup_seconds": 0.002922878979006782,
+   "n_evaluations": 2992856,
+   "wall_seconds": 60.440488813008415
+  },
+  {
+   "seed_group": 720004,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.55840255561951,
+   "setup_seconds": 0.02301007299683988,
+   "n_evaluations": 4528,
+   "wall_seconds": 60.52637052698992
+  },
+  {
+   "seed_group": 720004,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.55840255561951,
+   "setup_seconds": 0.02299000899074599,
+   "n_evaluations": 4674,
+   "wall_seconds": 60.51375512598315
+  },
+  {
+   "seed_group": 720004,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 8.011741426668575,
+   "setup_seconds": 0.002712115994654596,
+   "n_evaluations": 1811802,
+   "wall_seconds": 60.41897387302015
+  },
+  {
+   "seed_group": 720004,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 8.011741426668575,
+   "setup_seconds": 0.0027827479934785515,
+   "n_evaluations": 3010700,
+   "wall_seconds": 60.45263563099434
+  },
+  {
+   "seed_group": 720005,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 9.034598425152602,
+   "setup_seconds": 0.022324081975966692,
+   "n_evaluations": 4725,
+   "wall_seconds": 60.51066518499283
+  },
+  {
+   "seed_group": 720005,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 9.037767991015336,
+   "setup_seconds": 0.02274617800139822,
+   "n_evaluations": 4705,
+   "wall_seconds": 60.5356879850151
+  },
+  {
+   "seed_group": 720005,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 8.68580947397899,
+   "setup_seconds": 0.0032957239891402423,
+   "n_evaluations": 1928391,
+   "wall_seconds": 60.46881496702554
+  },
+  {
+   "seed_group": 720005,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 8.68580947397899,
+   "setup_seconds": 0.003380432986887172,
+   "n_evaluations": 2838123,
+   "wall_seconds": 60.425134684017394
+  },
+  {
+   "seed_group": 720006,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.334593573950627,
+   "setup_seconds": 0.022963244991842657,
+   "n_evaluations": 4722,
+   "wall_seconds": 60.51065113200457
+  },
+  {
+   "seed_group": 720006,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.401677103044417,
+   "setup_seconds": 0.022937408997677267,
+   "n_evaluations": 4620,
+   "wall_seconds": 60.51512480399106
+  },
+  {
+   "seed_group": 720006,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 8.195548613568068,
+   "setup_seconds": 0.0023997829703148454,
+   "n_evaluations": 1849917,
+   "wall_seconds": 60.521704621001845
+  },
+  {
+   "seed_group": 720006,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 8.195548613568068,
+   "setup_seconds": 0.0024474129895679653,
+   "n_evaluations": 3029934,
+   "wall_seconds": 60.458646012004465
+  },
+  {
+   "seed_group": 720007,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 7.687769400086737,
+   "setup_seconds": 0.023018196981865913,
+   "n_evaluations": 4705,
+   "wall_seconds": 60.492882120015565
+  },
+  {
+   "seed_group": 720007,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 7.687769400086737,
+   "setup_seconds": 0.022635947010712698,
+   "n_evaluations": 4675,
+   "wall_seconds": 60.514000711002154
+  },
+  {
+   "seed_group": 720007,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.5582966742051365,
+   "setup_seconds": 0.0030044279992580414,
+   "n_evaluations": 1931164,
+   "wall_seconds": 60.45052714299527
+  },
+  {
+   "seed_group": 720007,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.5582966742051365,
+   "setup_seconds": 0.003004839993081987,
+   "n_evaluations": 3022739,
+   "wall_seconds": 60.43669601998408
+  },
+  {
+   "seed_group": 720008,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 7.890335104035907,
+   "setup_seconds": 0.022957629000302404,
+   "n_evaluations": 4674,
+   "wall_seconds": 60.52390962300706
+  },
+  {
+   "seed_group": 720008,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 7.925819222596412,
+   "setup_seconds": 0.023615173995494843,
+   "n_evaluations": 4682,
+   "wall_seconds": 60.498649949993705
+  },
+  {
+   "seed_group": 720008,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.625193975979888,
+   "setup_seconds": 0.002585192007245496,
+   "n_evaluations": 1851767,
+   "wall_seconds": 60.46526738500688
+  },
+  {
+   "seed_group": 720008,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.625193975979888,
+   "setup_seconds": 0.0026920090022031218,
+   "n_evaluations": 3060377,
+   "wall_seconds": 60.60654848397826
+  },
+  {
+   "seed_group": 720009,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.02019583092561,
+   "setup_seconds": 0.022566956002265215,
+   "n_evaluations": 4494,
+   "wall_seconds": 60.53839795899694
+  },
+  {
+   "seed_group": 720009,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.027752856549471,
+   "setup_seconds": 0.027201176999369636,
+   "n_evaluations": 4678,
+   "wall_seconds": 60.505519692989765
+  },
+  {
+   "seed_group": 720009,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.6672774941710164,
+   "setup_seconds": 0.002941429993370548,
+   "n_evaluations": 1938504,
+   "wall_seconds": 60.47531426299247
+  },
+  {
+   "seed_group": 720009,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.6672774941710164,
+   "setup_seconds": 0.0029678949795197695,
+   "n_evaluations": 3054327,
+   "wall_seconds": 60.46543340498465
+  },
+  {
+   "seed_group": 720010,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.133663840088413,
+   "setup_seconds": 0.022833112016087398,
+   "n_evaluations": 4640,
+   "wall_seconds": 60.50488361300086
+  },
+  {
+   "seed_group": 720010,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.321930487919063,
+   "setup_seconds": 0.022956616012379527,
+   "n_evaluations": 4175,
+   "wall_seconds": 60.52623366197804
+  },
+  {
+   "seed_group": 720010,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 8.394421067131445,
+   "setup_seconds": 0.002563866029959172,
+   "n_evaluations": 1903513,
+   "wall_seconds": 60.460075508017326
+  },
+  {
+   "seed_group": 720010,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 8.394421067131445,
+   "setup_seconds": 0.0024934149987529963,
+   "n_evaluations": 2890848,
+   "wall_seconds": 60.69096325300052
+  },
+  {
+   "seed_group": 720011,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.256628336385315,
+   "setup_seconds": 0.081083765020594,
+   "n_evaluations": 3227,
+   "wall_seconds": 60.889046227996005
+  },
+  {
+   "seed_group": 720011,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.256628336385315,
+   "setup_seconds": 0.025855075975414366,
+   "n_evaluations": 4442,
+   "wall_seconds": 60.511764938011765
+  },
+  {
+   "seed_group": 720011,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.863911925671942,
+   "setup_seconds": 0.010029581986600533,
+   "n_evaluations": 1918594,
+   "wall_seconds": 60.45842385099968
+  },
+  {
+   "seed_group": 720011,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.863911925671942,
+   "setup_seconds": 0.010042687994427979,
+   "n_evaluations": 2954446,
+   "wall_seconds": 60.45091592601966
+  },
+  {
+   "seed_group": 720012,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.360996082731306,
+   "setup_seconds": 0.02380201400956139,
+   "n_evaluations": 4652,
+   "wall_seconds": 60.483732341002906
+  },
+  {
+   "seed_group": 720012,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.633679803027684,
+   "setup_seconds": 0.021889473020564765,
+   "n_evaluations": 4707,
+   "wall_seconds": 60.537243281985866
+  },
+  {
+   "seed_group": 720012,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 8.157261813273955,
+   "setup_seconds": 0.0034730920160654932,
+   "n_evaluations": 1482232,
+   "wall_seconds": 60.50873833100195
+  },
+  {
+   "seed_group": 720012,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 8.157261813273955,
+   "setup_seconds": 0.003391968028154224,
+   "n_evaluations": 2881660,
+   "wall_seconds": 60.49648623197572
+  },
+  {
+   "seed_group": 720013,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.410328369399904,
+   "setup_seconds": 0.0242005419859197,
+   "n_evaluations": 4398,
+   "wall_seconds": 60.50871260400163
+  },
+  {
+   "seed_group": 720013,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.43410622608911,
+   "setup_seconds": 0.021938726014923304,
+   "n_evaluations": 4686,
+   "wall_seconds": 60.500195518980036
+  },
+  {
+   "seed_group": 720013,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 8.478390931634753,
+   "setup_seconds": 0.003692976984893903,
+   "n_evaluations": 1805962,
+   "wall_seconds": 60.46589790598955
+  },
+  {
+   "seed_group": 720013,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 8.478390931634753,
+   "setup_seconds": 0.0037439989973790944,
+   "n_evaluations": 2546073,
+   "wall_seconds": 60.487437442003284
+  },
+  {
+   "seed_group": 720014,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 7.842702627851499,
+   "setup_seconds": 0.029999207006767392,
+   "n_evaluations": 4000,
+   "wall_seconds": 60.5039393370098
+  },
+  {
+   "seed_group": 720014,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 7.860949644383299,
+   "setup_seconds": 0.023936120996950194,
+   "n_evaluations": 4616,
+   "wall_seconds": 60.514917829976184
+  },
+  {
+   "seed_group": 720014,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.870365960456553,
+   "setup_seconds": 0.0031018129957374185,
+   "n_evaluations": 1888354,
+   "wall_seconds": 60.49848076098715
+  },
+  {
+   "seed_group": 720014,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.870365960456553,
+   "setup_seconds": 0.0031547600228805095,
+   "n_evaluations": 2867987,
+   "wall_seconds": 60.434716257994296
+  },
+  {
+   "seed_group": 720015,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 7.93799809942735,
+   "setup_seconds": 0.026042330980999395,
+   "n_evaluations": 4315,
+   "wall_seconds": 60.5662895940186
+  },
+  {
+   "seed_group": 720015,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 7.943826667979518,
+   "setup_seconds": 0.024136594001902267,
+   "n_evaluations": 4505,
+   "wall_seconds": 60.5262272520049
+  },
+  {
+   "seed_group": 720015,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.858600499931546,
+   "setup_seconds": 0.0028830600203946233,
+   "n_evaluations": 1818974,
+   "wall_seconds": 60.46007819697843
+  },
+  {
+   "seed_group": 720015,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.858600499931546,
+   "setup_seconds": 0.002918233018135652,
+   "n_evaluations": 2892645,
+   "wall_seconds": 60.45390817700536
+  },
+  {
+   "seed_group": 720016,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.009239331321982,
+   "setup_seconds": 0.025415265990886837,
+   "n_evaluations": 4695,
+   "wall_seconds": 60.486132557009114
+  },
+  {
+   "seed_group": 720016,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.046592816275473,
+   "setup_seconds": 0.02259983099065721,
+   "n_evaluations": 4251,
+   "wall_seconds": 60.497910881997086
+  },
+  {
+   "seed_group": 720016,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.623331551794844,
+   "setup_seconds": 0.010777072020573542,
+   "n_evaluations": 1770938,
+   "wall_seconds": 60.55291518601007
+  },
+  {
+   "seed_group": 720016,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.623331551794844,
+   "setup_seconds": 0.010977964993799105,
+   "n_evaluations": 2544976,
+   "wall_seconds": 60.59687780900276
+  },
+  {
+   "seed_group": 720017,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.323130068089407,
+   "setup_seconds": 0.03370738899684511,
+   "n_evaluations": 3846,
+   "wall_seconds": 60.557136329007335
+  },
+  {
+   "seed_group": 720017,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.354559168771827,
+   "setup_seconds": 0.022348215017700568,
+   "n_evaluations": 4485,
+   "wall_seconds": 61.165317408012925
+  },
+  {
+   "seed_group": 720017,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.9393357343323325,
+   "setup_seconds": 0.007746090996079147,
+   "n_evaluations": 1544963,
+   "wall_seconds": 60.72763442498399
+  },
+  {
+   "seed_group": 720017,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.9393357343323325,
+   "setup_seconds": 0.002483415009919554,
+   "n_evaluations": 2878699,
+   "wall_seconds": 60.553483722993406
+  },
+  {
+   "seed_group": 720018,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 7.800206054593185,
+   "setup_seconds": 0.026850551017560065,
+   "n_evaluations": 3721,
+   "wall_seconds": 60.58724146100576
+  },
+  {
+   "seed_group": 720018,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 7.849507583447102,
+   "setup_seconds": 0.025456339004449546,
+   "n_evaluations": 3536,
+   "wall_seconds": 60.70418466499541
+  },
+  {
+   "seed_group": 720018,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 7.405995775724495,
+   "setup_seconds": 0.003814814001088962,
+   "n_evaluations": 1334188,
+   "wall_seconds": 60.638675002992386
+  },
+  {
+   "seed_group": 720018,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 7.405995775724495,
+   "setup_seconds": 0.003749322990188375,
+   "n_evaluations": 2860212,
+   "wall_seconds": 60.52777124897693
+  },
+  {
+   "seed_group": 720019,
+   "arm": "genetic",
+   "budget": 60.0,
+   "cost": 8.216282184400498,
+   "setup_seconds": 0.026383205986348912,
+   "n_evaluations": 4574,
+   "wall_seconds": 60.50465201999759
+  },
+  {
+   "seed_group": 720019,
+   "arm": "portfolio",
+   "budget": 60.0,
+   "cost": 8.236229207200484,
+   "setup_seconds": 0.021649362985044718,
+   "n_evaluations": 4428,
+   "wall_seconds": 60.498204840987455
+  },
+  {
+   "seed_group": 720019,
+   "arm": "twoopt_genetic",
+   "budget": 60.0,
+   "cost": 8.05815952655565,
+   "setup_seconds": 0.0029453299939632416,
+   "n_evaluations": 1867484,
+   "wall_seconds": 60.48378909600433
+  },
+  {
+   "seed_group": 720019,
+   "arm": "twoopt_portfolio",
+   "budget": 60.0,
+   "cost": 8.05815952655565,
+   "setup_seconds": 0.0035956689971499145,
+   "n_evaluations": 2896514,
+   "wall_seconds": 60.49385943598463
+  }
+ ]
+}
