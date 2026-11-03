@@ -1,0 +1,2142 @@
+{
+ "tour": {
+  "summary": {
+   "status": "complete",
+   "advance": true,
+   "rule": "development only: held-out mean normalized construction cost below both cheap controls",
+   "settings": {
+    "family": "tour",
+    "size": 100,
+    "steps": 400,
+    "cpu_seconds": 1500.0,
+    "seed": 0
+   },
+   "completed_teacher_steps": 100,
+   "completed_updates": 400,
+   "processor_seconds": 456.452431038,
+   "wall_seconds_after_initialization": 618.4068127939972,
+   "peak_rss_kib": 361768,
+   "model_fingerprint": "6b28d6aa62995512709e3b095769d71a36f2b177ab21924914c1dfd07b8cde8a",
+   "checkpoints": [
+    {
+     "checkpoint": "initial",
+     "fingerprint": "b6df84da448d196bf2c40f402feba93db00702d8c84a38c2a06626128af7d0ed",
+     "normalized_cost": 5.378070163877596,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "d1005d1dd581594efbdf98d63ee70752e0437ff25fa2d7db77da62e31a402c8b",
+       "reference": 8.885439195906727,
+       "mean_cost": 49.50535983928606,
+       "normalized_cost": 5.571515233832424,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "757d97f3ba59b1c2954ed900f2e515519b25f16da1cd165b6f295c6c005bf8bb",
+       "reference": 9.643728308765947,
+       "mean_cost": 51.4059780699109,
+       "normalized_cost": 5.330508743509908,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "9a55f20259abd8e6079b468ebb6bcc1ec29a962a0566c7061fb7c730477f87a2",
+       "reference": 9.355975526871912,
+       "mean_cost": 51.42528590460888,
+       "normalized_cost": 5.496517787686269,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "fdd94d570adbdf0fee6783a7d4e1590e27b579ff1ca0922c89fa1642cebaa89b",
+       "reference": 11.007688227362197,
+       "mean_cost": 53.37565621657777,
+       "normalized_cost": 4.848943312538597,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "a2e16b2400f9453da486ec5c4165be628dd414a7eb8561f10ea40d33db1263c6",
+       "reference": 10.669829131789555,
+       "mean_cost": 52.186902233109265,
+       "normalized_cost": 4.891071973929204,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "d15347dc618c4481db21d819c7a8761b990992095762256b838d639801ad7f28",
+       "reference": 9.166551987245896,
+       "mean_cost": 52.10964962117895,
+       "normalized_cost": 5.684760168674434,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "5a16666efb2977374db91b7b0e3ca43f07f83c9b37d02398585b2a93b9481109",
+       "reference": 9.266296552976254,
+       "mean_cost": 51.569564825858706,
+       "normalized_cost": 5.5652832316590395,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "fc40189d12a22c0ccb39c6f07dd062def3d472817af0ca6635c424e19f1fed4d",
+       "reference": 9.508152353782528,
+       "mean_cost": 53.58757450914208,
+       "normalized_cost": 5.6359608591908925,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "teacher",
+     "fingerprint": "8658a9ba0d1a9fad81023c5f99ced5b8768453da92e6d0431b004397b451d9d1",
+     "normalized_cost": 1.8479645006603898,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "d1005d1dd581594efbdf98d63ee70752e0437ff25fa2d7db77da62e31a402c8b",
+       "reference": 8.885439195906727,
+       "mean_cost": 17.26438103755176,
+       "normalized_cost": 1.9429969252960482,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "757d97f3ba59b1c2954ed900f2e515519b25f16da1cd165b6f295c6c005bf8bb",
+       "reference": 9.643728308765947,
+       "mean_cost": 17.732031266549367,
+       "normalized_cost": 1.8387112016035667,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "9a55f20259abd8e6079b468ebb6bcc1ec29a962a0566c7061fb7c730477f87a2",
+       "reference": 9.355975526871912,
+       "mean_cost": 17.22268831608884,
+       "normalized_cost": 1.8408222923010458,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "fdd94d570adbdf0fee6783a7d4e1590e27b579ff1ca0922c89fa1642cebaa89b",
+       "reference": 11.007688227362197,
+       "mean_cost": 17.61453730219558,
+       "normalized_cost": 1.600203143327634,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "a2e16b2400f9453da486ec5c4165be628dd414a7eb8561f10ea40d33db1263c6",
+       "reference": 10.669829131789555,
+       "mean_cost": 18.71361366869085,
+       "normalized_cost": 1.753881288776757,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "d15347dc618c4481db21d819c7a8761b990992095762256b838d639801ad7f28",
+       "reference": 9.166551987245896,
+       "mean_cost": 18.193184749264862,
+       "normalized_cost": 1.9847358935593657,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "5a16666efb2977374db91b7b0e3ca43f07f83c9b37d02398585b2a93b9481109",
+       "reference": 9.266296552976254,
+       "mean_cost": 18.1381686741625,
+       "normalized_cost": 1.9574345123172945,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "fc40189d12a22c0ccb39c6f07dd062def3d472817af0ca6635c424e19f1fed4d",
+       "reference": 9.508152353782528,
+       "mean_cost": 17.7320456822018,
+       "normalized_cost": 1.8649307481014068,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0050",
+     "fingerprint": "03833d03f1cee30210168ca9d69e4d2bc429d8835907aed3e9d2fd5d76a2cae4",
+     "normalized_cost": 1.4855971193193873,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "d1005d1dd581594efbdf98d63ee70752e0437ff25fa2d7db77da62e31a402c8b",
+       "reference": 8.885439195906727,
+       "mean_cost": 14.00633375869674,
+       "normalized_cost": 1.5763243042785173,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "757d97f3ba59b1c2954ed900f2e515519b25f16da1cd165b6f295c6c005bf8bb",
+       "reference": 9.643728308765947,
+       "mean_cost": 13.276128000542155,
+       "normalized_cost": 1.3766592727912537,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "9a55f20259abd8e6079b468ebb6bcc1ec29a962a0566c7061fb7c730477f87a2",
+       "reference": 9.355975526871912,
+       "mean_cost": 14.584051971483802,
+       "normalized_cost": 1.5587954382304643,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "fdd94d570adbdf0fee6783a7d4e1590e27b579ff1ca0922c89fa1642cebaa89b",
+       "reference": 11.007688227362197,
+       "mean_cost": 13.873263035690254,
+       "normalized_cost": 1.2603248519707342,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "a2e16b2400f9453da486ec5c4165be628dd414a7eb8561f10ea40d33db1263c6",
+       "reference": 10.669829131789555,
+       "mean_cost": 15.291649291142416,
+       "normalized_cost": 1.4331672140449436,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "d15347dc618c4481db21d819c7a8761b990992095762256b838d639801ad7f28",
+       "reference": 9.166551987245896,
+       "mean_cost": 14.429441380517641,
+       "normalized_cost": 1.574140571132351,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "5a16666efb2977374db91b7b0e3ca43f07f83c9b37d02398585b2a93b9481109",
+       "reference": 9.266296552976254,
+       "mean_cost": 14.03383862726171,
+       "normalized_cost": 1.5145035070946615,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "fc40189d12a22c0ccb39c6f07dd062def3d472817af0ca6635c424e19f1fed4d",
+       "reference": 9.508152353782528,
+       "mean_cost": 15.12615632078769,
+       "normalized_cost": 1.590861795012173,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0100",
+     "fingerprint": "96bc7b009dd9e1112d04dcf1f9faa4abd0d3f49ae52c0befbdb61462cfd84310",
+     "normalized_cost": 1.3833280208382828,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "d1005d1dd581594efbdf98d63ee70752e0437ff25fa2d7db77da62e31a402c8b",
+       "reference": 8.885439195906727,
+       "mean_cost": 14.372779558517028,
+       "normalized_cost": 1.6175654620582136,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "757d97f3ba59b1c2954ed900f2e515519b25f16da1cd165b6f295c6c005bf8bb",
+       "reference": 9.643728308765947,
+       "mean_cost": 12.800993896112246,
+       "normalized_cost": 1.3273905574959437,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "9a55f20259abd8e6079b468ebb6bcc1ec29a962a0566c7061fb7c730477f87a2",
+       "reference": 9.355975526871912,
+       "mean_cost": 12.323156725566996,
+       "normalized_cost": 1.3171428986932305,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "fdd94d570adbdf0fee6783a7d4e1590e27b579ff1ca0922c89fa1642cebaa89b",
+       "reference": 11.007688227362197,
+       "mean_cost": 12.639345766981373,
+       "normalized_cost": 1.1482289020108063,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "a2e16b2400f9453da486ec5c4165be628dd414a7eb8561f10ea40d33db1263c6",
+       "reference": 10.669829131789555,
+       "mean_cost": 13.568462879528983,
+       "normalized_cost": 1.271666369904957,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "d15347dc618c4481db21d819c7a8761b990992095762256b838d639801ad7f28",
+       "reference": 9.166551987245896,
+       "mean_cost": 13.088654631706639,
+       "normalized_cost": 1.4278710959058385,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "5a16666efb2977374db91b7b0e3ca43f07f83c9b37d02398585b2a93b9481109",
+       "reference": 9.266296552976254,
+       "mean_cost": 14.451499826707693,
+       "normalized_cost": 1.5595766597892873,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "fc40189d12a22c0ccb39c6f07dd062def3d472817af0ca6635c424e19f1fed4d",
+       "reference": 9.508152353782528,
+       "mean_cost": 13.284621421818864,
+       "normalized_cost": 1.3971822208479845,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0150",
+     "fingerprint": "6c97873e16e656b805ac47ae3a0333ac64fe471628df3f3dbb6507bbceae9b27",
+     "normalized_cost": 1.34395626790835,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "d1005d1dd581594efbdf98d63ee70752e0437ff25fa2d7db77da62e31a402c8b",
+       "reference": 8.885439195906727,
+       "mean_cost": 12.907815160568287,
+       "normalized_cost": 1.4526929818522145,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "757d97f3ba59b1c2954ed900f2e515519b25f16da1cd165b6f295c6c005bf8bb",
+       "reference": 9.643728308765947,
+       "mean_cost": 12.744059343115346,
+       "normalized_cost": 1.321486766848384,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "9a55f20259abd8e6079b468ebb6bcc1ec29a962a0566c7061fb7c730477f87a2",
+       "reference": 9.355975526871912,
+       "mean_cost": 12.605741438860575,
+       "normalized_cost": 1.3473465597098664,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "fdd94d570adbdf0fee6783a7d4e1590e27b579ff1ca0922c89fa1642cebaa89b",
+       "reference": 11.007688227362197,
+       "mean_cost": 13.500014506013027,
+       "normalized_cost": 1.2264168667545987,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "a2e16b2400f9453da486ec5c4165be628dd414a7eb8561f10ea40d33db1263c6",
+       "reference": 10.669829131789555,
+       "mean_cost": 13.799847361804137,
+       "normalized_cost": 1.2933522356688023,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "d15347dc618c4481db21d819c7a8761b990992095762256b838d639801ad7f28",
+       "reference": 9.166551987245896,
+       "mean_cost": 12.913223789693475,
+       "normalized_cost": 1.4087329464405594,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "5a16666efb2977374db91b7b0e3ca43f07f83c9b37d02398585b2a93b9481109",
+       "reference": 9.266296552976254,
+       "mean_cost": 12.6459850054262,
+       "normalized_cost": 1.364729148600842,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "fc40189d12a22c0ccb39c6f07dd062def3d472817af0ca6635c424e19f1fed4d",
+       "reference": 9.508152353782528,
+       "mean_cost": 12.71137887696884,
+       "normalized_cost": 1.3368926373915335,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0200",
+     "fingerprint": "4ea5c803b2f86079035c1636a71424a14442f8ca829722a307e007aa5ac16286",
+     "normalized_cost": 1.3180240773559113,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "d1005d1dd581594efbdf98d63ee70752e0437ff25fa2d7db77da62e31a402c8b",
+       "reference": 8.885439195906727,
+       "mean_cost": 13.41533217082499,
+       "normalized_cost": 1.50981081239125,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "757d97f3ba59b1c2954ed900f2e515519b25f16da1cd165b6f295c6c005bf8bb",
+       "reference": 9.643728308765947,
+       "mean_cost": 11.613635069637889,
+       "normalized_cost": 1.2042681728270317,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "9a55f20259abd8e6079b468ebb6bcc1ec29a962a0566c7061fb7c730477f87a2",
+       "reference": 9.355975526871912,
+       "mean_cost": 12.748060561349735,
+       "normalized_cost": 1.3625581346098217,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "fdd94d570adbdf0fee6783a7d4e1590e27b579ff1ca0922c89fa1642cebaa89b",
+       "reference": 11.007688227362197,
+       "mean_cost": 12.53811558524529,
+       "normalized_cost": 1.1390325857957038,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "a2e16b2400f9453da486ec5c4165be628dd414a7eb8561f10ea40d33db1263c6",
+       "reference": 10.669829131789555,
+       "mean_cost": 13.696834143257345,
+       "normalized_cost": 1.2836976088444723,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "d15347dc618c4481db21d819c7a8761b990992095762256b838d639801ad7f28",
+       "reference": 9.166551987245896,
+       "mean_cost": 12.51254835980131,
+       "normalized_cost": 1.3650223527026244,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "5a16666efb2977374db91b7b0e3ca43f07f83c9b37d02398585b2a93b9481109",
+       "reference": 9.266296552976254,
+       "mean_cost": 12.456159156448804,
+       "normalized_cost": 1.3442435265519312,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "fc40189d12a22c0ccb39c6f07dd062def3d472817af0ca6635c424e19f1fed4d",
+       "reference": 9.508152353782528,
+       "mean_cost": 12.69870249161352,
+       "normalized_cost": 1.3355594251244545,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0250",
+     "fingerprint": "aa86544b7adb07137ae402c45262a9528582c1a977c978bd648ee835aa3a91c6",
+     "normalized_cost": 1.2981361214857094,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "d1005d1dd581594efbdf98d63ee70752e0437ff25fa2d7db77da62e31a402c8b",
+       "reference": 8.885439195906727,
+       "mean_cost": 12.593276936578587,
+       "normalized_cost": 1.4172936935272662,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "757d97f3ba59b1c2954ed900f2e515519b25f16da1cd165b6f295c6c005bf8bb",
+       "reference": 9.643728308765947,
+       "mean_cost": 11.952029930857092,
+       "normalized_cost": 1.2393578031426857,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "9a55f20259abd8e6079b468ebb6bcc1ec29a962a0566c7061fb7c730477f87a2",
+       "reference": 9.355975526871912,
+       "mean_cost": 12.455709647134858,
+       "normalized_cost": 1.3313106272413813,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "fdd94d570adbdf0fee6783a7d4e1590e27b579ff1ca0922c89fa1642cebaa89b",
+       "reference": 11.007688227362197,
+       "mean_cost": 12.705270192579853,
+       "normalized_cost": 1.15421784575965,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "a2e16b2400f9453da486ec5c4165be628dd414a7eb8561f10ea40d33db1263c6",
+       "reference": 10.669829131789555,
+       "mean_cost": 12.920653267043493,
+       "normalized_cost": 1.2109522193329094,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "d15347dc618c4481db21d819c7a8761b990992095762256b838d639801ad7f28",
+       "reference": 9.166551987245896,
+       "mean_cost": 12.73149577929465,
+       "normalized_cost": 1.3889078245570337,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "5a16666efb2977374db91b7b0e3ca43f07f83c9b37d02398585b2a93b9481109",
+       "reference": 9.266296552976254,
+       "mean_cost": 12.442625089429178,
+       "normalized_cost": 1.3427829573868661,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "fc40189d12a22c0ccb39c6f07dd062def3d472817af0ca6635c424e19f1fed4d",
+       "reference": 9.508152353782528,
+       "mean_cost": 12.363127237360931,
+       "normalized_cost": 1.3002660009378835,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0300",
+     "fingerprint": "6c3ca099549e27b4f2ed9e73c0a6e28256ba63800bcef6cbedfe3b56d62cff91",
+     "normalized_cost": 1.2379593410929242,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "d1005d1dd581594efbdf98d63ee70752e0437ff25fa2d7db77da62e31a402c8b",
+       "reference": 8.885439195906727,
+       "mean_cost": 12.770553517444206,
+       "normalized_cost": 1.4372450518064703,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "757d97f3ba59b1c2954ed900f2e515519b25f16da1cd165b6f295c6c005bf8bb",
+       "reference": 9.643728308765947,
+       "mean_cost": 11.525408746027797,
+       "normalized_cost": 1.1951196028149653,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "9a55f20259abd8e6079b468ebb6bcc1ec29a962a0566c7061fb7c730477f87a2",
+       "reference": 9.355975526871912,
+       "mean_cost": 11.631826306835201,
+       "normalized_cost": 1.2432510403032444,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "fdd94d570adbdf0fee6783a7d4e1590e27b579ff1ca0922c89fa1642cebaa89b",
+       "reference": 11.007688227362197,
+       "mean_cost": 12.061631971831957,
+       "normalized_cost": 1.0957461478469144,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "a2e16b2400f9453da486ec5c4165be628dd414a7eb8561f10ea40d33db1263c6",
+       "reference": 10.669829131789555,
+       "mean_cost": 12.613039641191074,
+       "normalized_cost": 1.1821219895276431,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "d15347dc618c4481db21d819c7a8761b990992095762256b838d639801ad7f28",
+       "reference": 9.166551987245896,
+       "mean_cost": 11.495233879940326,
+       "normalized_cost": 1.254041202835537,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "5a16666efb2977374db91b7b0e3ca43f07f83c9b37d02398585b2a93b9481109",
+       "reference": 9.266296552976254,
+       "mean_cost": 12.055239436119379,
+       "normalized_cost": 1.300977080454795,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "fc40189d12a22c0ccb39c6f07dd062def3d472817af0ca6635c424e19f1fed4d",
+       "reference": 9.508152353782528,
+       "mean_cost": 11.363883294934942,
+       "normalized_cost": 1.1951726131538236,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0350",
+     "fingerprint": "8bdc96fc452cc0537069370a01ff0abb18fd1f5a71c69ed54088ce827a3648da",
+     "normalized_cost": 1.237536188088129,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "d1005d1dd581594efbdf98d63ee70752e0437ff25fa2d7db77da62e31a402c8b",
+       "reference": 8.885439195906727,
+       "mean_cost": 13.45464421686113,
+       "normalized_cost": 1.514235134607562,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "757d97f3ba59b1c2954ed900f2e515519b25f16da1cd165b6f295c6c005bf8bb",
+       "reference": 9.643728308765947,
+       "mean_cost": 11.293811949621665,
+       "normalized_cost": 1.1711043268769636,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "9a55f20259abd8e6079b468ebb6bcc1ec29a962a0566c7061fb7c730477f87a2",
+       "reference": 9.355975526871912,
+       "mean_cost": 12.153550730961935,
+       "normalized_cost": 1.2990148056773902,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "fdd94d570adbdf0fee6783a7d4e1590e27b579ff1ca0922c89fa1642cebaa89b",
+       "reference": 11.007688227362197,
+       "mean_cost": 11.310280519542621,
+       "normalized_cost": 1.027489177194196,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "a2e16b2400f9453da486ec5c4165be628dd414a7eb8561f10ea40d33db1263c6",
+       "reference": 10.669829131789555,
+       "mean_cost": 11.858430196764722,
+       "normalized_cost": 1.111398322343688,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "d15347dc618c4481db21d819c7a8761b990992095762256b838d639801ad7f28",
+       "reference": 9.166551987245896,
+       "mean_cost": 12.085737334907655,
+       "normalized_cost": 1.3184605674765646,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "5a16666efb2977374db91b7b0e3ca43f07f83c9b37d02398585b2a93b9481109",
+       "reference": 9.266296552976254,
+       "mean_cost": 11.214590035782596,
+       "normalized_cost": 1.2102558958336562,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "fc40189d12a22c0ccb39c6f07dd062def3d472817af0ca6635c424e19f1fed4d",
+       "reference": 9.508152353782528,
+       "mean_cost": 11.869323947791722,
+       "normalized_cost": 1.2483312746950121,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0400",
+     "fingerprint": "6b28d6aa62995512709e3b095769d71a36f2b177ab21924914c1dfd07b8cde8a",
+     "normalized_cost": 1.2169751506111965,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "d1005d1dd581594efbdf98d63ee70752e0437ff25fa2d7db77da62e31a402c8b",
+       "reference": 8.885439195906727,
+       "mean_cost": 12.174740530154168,
+       "normalized_cost": 1.3701900673365397,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "757d97f3ba59b1c2954ed900f2e515519b25f16da1cd165b6f295c6c005bf8bb",
+       "reference": 9.643728308765947,
+       "mean_cost": 11.466078610136249,
+       "normalized_cost": 1.1889674037906919,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "9a55f20259abd8e6079b468ebb6bcc1ec29a962a0566c7061fb7c730477f87a2",
+       "reference": 9.355975526871912,
+       "mean_cost": 11.304947905894805,
+       "normalized_cost": 1.2083131121308646,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "fdd94d570adbdf0fee6783a7d4e1590e27b579ff1ca0922c89fa1642cebaa89b",
+       "reference": 11.007688227362197,
+       "mean_cost": 12.124458045693732,
+       "normalized_cost": 1.101453619984943,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "a2e16b2400f9453da486ec5c4165be628dd414a7eb8561f10ea40d33db1263c6",
+       "reference": 10.669829131789555,
+       "mean_cost": 11.621551868248469,
+       "normalized_cost": 1.0891975611515055,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "d15347dc618c4481db21d819c7a8761b990992095762256b838d639801ad7f28",
+       "reference": 9.166551987245896,
+       "mean_cost": 12.19176861103851,
+       "normalized_cost": 1.3300277604929118,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "5a16666efb2977374db91b7b0e3ca43f07f83c9b37d02398585b2a93b9481109",
+       "reference": 9.266296552976254,
+       "mean_cost": 11.139796307286856,
+       "normalized_cost": 1.2021843077867878,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "fc40189d12a22c0ccb39c6f07dd062def3d472817af0ca6635c424e19f1fed4d",
+       "reference": 9.508152353782528,
+       "mean_cost": 11.842093526688524,
+       "normalized_cost": 1.2454673722153295,
+       "unique_solutions": 4
+      }
+     ]
+    }
+   ],
+   "qualification": {
+    "analytic": [
+     {
+      "seed": 610000,
+      "instance_hash": "da7744ad98214198bf79a8f5932a239b08839ec2f8b544811a5d76869191f01a",
+      "reference": 9.684932781863337,
+      "mean_cost": 23.661735775856698,
+      "normalized_cost": 2.443149199772173,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610001,
+      "instance_hash": "a422807bf88f42ea579c15db6b3b4ea42c4360c8f3b932ac6f101ae43036df73",
+      "reference": 9.524650962780665,
+      "mean_cost": 27.428578837665178,
+      "normalized_cost": 2.879746349220294,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610002,
+      "instance_hash": "44dcdec2feef5bd6d3c2eb540d120a438688421667f7c720ca1c7004977df4ce",
+      "reference": 9.451149907909027,
+      "mean_cost": 22.91277501181871,
+      "normalized_cost": 2.4243372748372725,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610003,
+      "instance_hash": "4808e5ea7485b343c12d54334636d5cca8b8fc53f3f7b370c4ac0aca365b3fb6",
+      "reference": 9.653119392599761,
+      "mean_cost": 22.549747757566358,
+      "normalized_cost": 2.3360063043303247,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610004,
+      "instance_hash": "7d5e3cc0a1e67fd7e22812904ab84f41bea0bcb8af12d70ec4c783c3975600b5",
+      "reference": 10.143226315389978,
+      "mean_cost": 25.26763021573452,
+      "normalized_cost": 2.491084141285184,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610005,
+      "instance_hash": "40c5a04481dbf5c6647dd88ea8e651d1f99aca7ecb600b241bf5d4ed7aaef889",
+      "reference": 9.380887036915452,
+      "mean_cost": 25.478486232671308,
+      "normalized_cost": 2.7159996845084002,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610006,
+      "instance_hash": "5394d4dbde7a8ca33f2d03c32f65a8debdde1eb9573f8a04dd65c862605dbcb1",
+      "reference": 10.015862680815573,
+      "mean_cost": 25.400600382839944,
+      "normalized_cost": 2.536037203414576,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610007,
+      "instance_hash": "31c22ea8bdc87d3f1509f9479c692be118b9ad43d87055ff8f73fefba325d360",
+      "reference": 10.972655571878905,
+      "mean_cost": 25.629484806948913,
+      "normalized_cost": 2.335759528680826,
+      "unique_solutions": 4
+     }
+    ],
+    "linear": [
+     {
+      "seed": 610000,
+      "instance_hash": "da7744ad98214198bf79a8f5932a239b08839ec2f8b544811a5d76869191f01a",
+      "reference": 9.684932781863337,
+      "mean_cost": 16.56344027246869,
+      "normalized_cost": 1.7102276954865927,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610001,
+      "instance_hash": "a422807bf88f42ea579c15db6b3b4ea42c4360c8f3b932ac6f101ae43036df73",
+      "reference": 9.524650962780665,
+      "mean_cost": 18.118815166080218,
+      "normalized_cost": 1.9023075214916365,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610002,
+      "instance_hash": "44dcdec2feef5bd6d3c2eb540d120a438688421667f7c720ca1c7004977df4ce",
+      "reference": 9.451149907909027,
+      "mean_cost": 16.106796980720897,
+      "normalized_cost": 1.7042155862158328,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610003,
+      "instance_hash": "4808e5ea7485b343c12d54334636d5cca8b8fc53f3f7b370c4ac0aca365b3fb6",
+      "reference": 9.653119392599761,
+      "mean_cost": 16.769555752676435,
+      "normalized_cost": 1.7372162376373643,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610004,
+      "instance_hash": "7d5e3cc0a1e67fd7e22812904ab84f41bea0bcb8af12d70ec4c783c3975600b5",
+      "reference": 10.143226315389978,
+      "mean_cost": 18.56427486249816,
+      "normalized_cost": 1.8302140054127756,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610005,
+      "instance_hash": "40c5a04481dbf5c6647dd88ea8e651d1f99aca7ecb600b241bf5d4ed7aaef889",
+      "reference": 9.380887036915452,
+      "mean_cost": 18.321544738271857,
+      "normalized_cost": 1.9530716728784105,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610006,
+      "instance_hash": "5394d4dbde7a8ca33f2d03c32f65a8debdde1eb9573f8a04dd65c862605dbcb1",
+      "reference": 10.015862680815573,
+      "mean_cost": 16.566057345787687,
+      "normalized_cost": 1.653982075604769,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610007,
+      "instance_hash": "31c22ea8bdc87d3f1509f9479c692be118b9ad43d87055ff8f73fefba325d360",
+      "reference": 10.972655571878905,
+      "mean_cost": 18.6200119215562,
+      "normalized_cost": 1.6969467235694702,
+      "unique_solutions": 4
+     }
+    ],
+    "neural": [
+     {
+      "seed": 610000,
+      "instance_hash": "da7744ad98214198bf79a8f5932a239b08839ec2f8b544811a5d76869191f01a",
+      "reference": 9.684932781863337,
+      "mean_cost": 11.87065600916943,
+      "normalized_cost": 1.2256828494875285,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610001,
+      "instance_hash": "a422807bf88f42ea579c15db6b3b4ea42c4360c8f3b932ac6f101ae43036df73",
+      "reference": 9.524650962780665,
+      "mean_cost": 11.669593219079683,
+      "normalized_cost": 1.225199040330273,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610002,
+      "instance_hash": "44dcdec2feef5bd6d3c2eb540d120a438688421667f7c720ca1c7004977df4ce",
+      "reference": 9.451149907909027,
+      "mean_cost": 11.713418594274037,
+      "normalized_cost": 1.2393643851180343,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610003,
+      "instance_hash": "4808e5ea7485b343c12d54334636d5cca8b8fc53f3f7b370c4ac0aca365b3fb6",
+      "reference": 9.653119392599761,
+      "mean_cost": 10.426654421328752,
+      "normalized_cost": 1.0801331670384182,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610004,
+      "instance_hash": "7d5e3cc0a1e67fd7e22812904ab84f41bea0bcb8af12d70ec4c783c3975600b5",
+      "reference": 10.143226315389978,
+      "mean_cost": 13.20038452964489,
+      "normalized_cost": 1.301398994678487,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610005,
+      "instance_hash": "40c5a04481dbf5c6647dd88ea8e651d1f99aca7ecb600b241bf5d4ed7aaef889",
+      "reference": 9.380887036915452,
+      "mean_cost": 12.216626718217459,
+      "normalized_cost": 1.30228907673047,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610006,
+      "instance_hash": "5394d4dbde7a8ca33f2d03c32f65a8debdde1eb9573f8a04dd65c862605dbcb1",
+      "reference": 10.015862680815573,
+      "mean_cost": 11.663261297704237,
+      "normalized_cost": 1.1644789539740894,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610007,
+      "instance_hash": "31c22ea8bdc87d3f1509f9479c692be118b9ad43d87055ff8f73fefba325d360",
+      "reference": 10.972655571878905,
+      "mean_cost": 12.005583626738355,
+      "normalized_cost": 1.0941365604791855,
+      "unique_solutions": 4
+     }
+    ]
+   },
+   "comparisons": {
+    "analytic": {
+     "difference": -1.3161795822765705,
+     "ci_low": -1.4286301263046242,
+     "ci_high": -1.2265194882786248,
+     "interpretation": "exploratory validation interval, not confirmation"
+    },
+    "linear": {
+     "difference": -0.5694373113075457,
+     "ci_low": -0.6246226414215521,
+     "ci_high": -0.5135458050638778,
+     "interpretation": "exploratory validation interval, not confirmation"
+    }
+   },
+   "export_parity": {
+    "checked_states": 72,
+    "max_probability_error": 5.551115123125783e-16,
+    "decision_mismatches": 0
+   },
+   "claim_boundary": "No guided-search, runtime-superiority, or release-readiness claim."
+  },
+  "model": {
+   "family": "tour",
+   "fingerprint": "6b28d6aa62995512709e3b095769d71a36f2b177ab21924914c1dfd07b8cde8a",
+   "format": "quantile-scorer-v1",
+   "weights": {
+    "b1": [
+     -0.37295429724348694,
+     -0.5223854961173409,
+     -0.2082331984899464,
+     -0.5856814267265885,
+     -0.23779521935104997,
+     0.0958354005343595,
+     0.31971144305080146,
+     0.2112974853062219,
+     -0.23066717978268064,
+     -0.58529437230155,
+     -0.35671263555570815,
+     0.38461518824199864,
+     -0.2299002065590354,
+     -0.3462300676809732,
+     -0.4567362295811707,
+     -0.6049969989872674
+    ],
+    "b2": 0.35921186063687144,
+    "w1": [
+     [
+      -1.9979116340038046,
+      -2.3269721165160506,
+      -0.5434026791044871,
+      -1.665199225156079,
+      -1.9246929467052296,
+      1.5844069166154369,
+      2.5026246671834387,
+      2.4944604755922555,
+      -1.9061019019602028,
+      -2.3246177030350994,
+      -1.708098412092647,
+      1.699433034130924,
+      -3.0159499167249217,
+      -1.73775540763927,
+      -2.47098999463596,
+      -1.708870533667293
+     ],
+     [
+      0.04692825156275233,
+      0.2866140885186765,
+      0.17279133579681383,
+      0.6115597205618432,
+      0.15628885399307854,
+      0.3073998814194008,
+      -0.4483726708022597,
+      -0.512914495608624,
+      0.5061169124772827,
+      0.3352211426906945,
+      -0.12022493229428366,
+      -0.5641351069300168,
+      0.2607555013113374,
+      0.27691474797661525,
+      -0.16305290000125752,
+      -0.0005457941553072402
+     ],
+     [
+      1.3252741720232246,
+      1.46747524184606,
+      0.8340155044228524,
+      1.3395639946355102,
+      0.9523684130146786,
+      -1.0932720844527952,
+      -0.9226202211424772,
+      -0.5933396709194731,
+      0.6297902761856128,
+      1.6016042786696154,
+      1.5651727589403353,
+      -0.8703335504741995,
+      1.0270450149414585,
+      1.068961763455148,
+      1.778224844713585,
+      1.8638399432596784
+     ],
+     [
+      0.3983312560108654,
+      0.40344878664064615,
+      0.31662713802001513,
+      0.2615969507015692,
+      0.28642079727972825,
+      -0.2786141889531477,
+      -0.21264342677221018,
+      -0.1219557494497501,
+      0.16691425130841164,
+      0.38919651972938957,
+      0.2939164486334219,
+      -0.25147541333784507,
+      0.12433278023647279,
+      0.30045890337742703,
+      0.48855865150889605,
+      0.4733701157321793
+     ]
+    ],
+    "w2": [
+     2.123749675275897,
+     2.423543607093615,
+     0.7156756482789356,
+     2.043277765965861,
+     1.7729995188732746,
+     -2.0184979060023642,
+     -1.4859797624483977,
+     -1.7748574448412977,
+     1.8099647088266648,
+     1.5065219114279045,
+     1.9240745231530914,
+     -2.0419991444227232,
+     1.2843661851625592,
+     2.0967905316458366,
+     1.400987850684238,
+     1.977179524861404
+    ]
+   }
+  }
+ },
+ "cover": {
+  "summary": {
+   "status": "complete",
+   "advance": true,
+   "rule": "development only: held-out mean normalized construction cost below both cheap controls",
+   "settings": {
+    "family": "cover",
+    "size": 100,
+    "steps": 400,
+    "cpu_seconds": 1500.0,
+    "seed": 0
+   },
+   "completed_teacher_steps": 100,
+   "completed_updates": 400,
+   "processor_seconds": 439.25080739,
+   "wall_seconds_after_initialization": 593.9816644600069,
+   "peak_rss_kib": 352860,
+   "model_fingerprint": "4c709e92aa0848826e464e9a1e7e8642eba98d4e27691875ffd281f297b51682",
+   "checkpoints": [
+    {
+     "checkpoint": "initial",
+     "fingerprint": "dfd1d6b53cb94958b251d705f3eb5ee05faaff398e4b1c7376ae3a932f77ec25",
+     "normalized_cost": 4.586363363422894,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "ae748ab77c68457d7ab03c44750c3e77a95c49588cd810120cdbeb79a789e26c",
+       "reference": 512.0,
+       "mean_cost": 2203.0,
+       "normalized_cost": 4.302734375,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "eef14a41237ef5bb8c2b21ba2985cbac588b9ca2b41e6dc5cbad5b3d8ddf9517",
+       "reference": 334.0,
+       "mean_cost": 1982.5,
+       "normalized_cost": 5.93562874251497,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "b233d8a2b0aaa0e14322c816dff02c12d65780d65d9b409d88d3ce8ebe806d9a",
+       "reference": 534.0,
+       "mean_cost": 2221.5,
+       "normalized_cost": 4.160112359550562,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "0d1ccc95929316aa76017dcd0954e94203c79e0b582285be06e7f463c402c65f",
+       "reference": 631.0,
+       "mean_cost": 2272.5,
+       "normalized_cost": 3.6014263074484942,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "717debd1291cfa078b508f0b80f05dc52753876767d125825f835df104fb8096",
+       "reference": 390.0,
+       "mean_cost": 2321.5,
+       "normalized_cost": 5.952564102564103,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "7b147f00e440013109336dad6e75ca647a16e72f0a4c9d8ab359f51eda857cd6",
+       "reference": 485.0,
+       "mean_cost": 2220.75,
+       "normalized_cost": 4.578865979381443,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "11c433b6f0239d52273e389f98a507a04a50c702ad820c2a25718188718ede6c",
+       "reference": 636.0,
+       "mean_cost": 2281.75,
+       "normalized_cost": 3.5876572327044025,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "b3870df52aa0039df24e4af5ec76903286e163090f252eb9bf66e11a9b499e8e",
+       "reference": 511.0,
+       "mean_cost": 2336.25,
+       "normalized_cost": 4.571917808219178,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "teacher",
+     "fingerprint": "538d2829ff19333e4a5c9d020ea3a0190711a332246b351c0bc5cb9bf4af0a37",
+     "normalized_cost": 1.4090639237722284,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "ae748ab77c68457d7ab03c44750c3e77a95c49588cd810120cdbeb79a789e26c",
+       "reference": 512.0,
+       "mean_cost": 659.25,
+       "normalized_cost": 1.28759765625,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "eef14a41237ef5bb8c2b21ba2985cbac588b9ca2b41e6dc5cbad5b3d8ddf9517",
+       "reference": 334.0,
+       "mean_cost": 431.25,
+       "normalized_cost": 1.2911676646706587,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "b233d8a2b0aaa0e14322c816dff02c12d65780d65d9b409d88d3ce8ebe806d9a",
+       "reference": 534.0,
+       "mean_cost": 724.25,
+       "normalized_cost": 1.3562734082397003,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "0d1ccc95929316aa76017dcd0954e94203c79e0b582285be06e7f463c402c65f",
+       "reference": 631.0,
+       "mean_cost": 805.25,
+       "normalized_cost": 1.276148969889065,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "717debd1291cfa078b508f0b80f05dc52753876767d125825f835df104fb8096",
+       "reference": 390.0,
+       "mean_cost": 644.0,
+       "normalized_cost": 1.6512820512820512,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "7b147f00e440013109336dad6e75ca647a16e72f0a4c9d8ab359f51eda857cd6",
+       "reference": 485.0,
+       "mean_cost": 758.0,
+       "normalized_cost": 1.5628865979381443,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "11c433b6f0239d52273e389f98a507a04a50c702ad820c2a25718188718ede6c",
+       "reference": 636.0,
+       "mean_cost": 924.0,
+       "normalized_cost": 1.4528301886792452,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "b3870df52aa0039df24e4af5ec76903286e163090f252eb9bf66e11a9b499e8e",
+       "reference": 511.0,
+       "mean_cost": 712.5,
+       "normalized_cost": 1.3943248532289627,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0050",
+     "fingerprint": "73c2bafaa0b840f0d952450baa8288c7dfdbebcce301ecce8e30179e60dec029",
+     "normalized_cost": 1.3568446357639656,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "ae748ab77c68457d7ab03c44750c3e77a95c49588cd810120cdbeb79a789e26c",
+       "reference": 512.0,
+       "mean_cost": 577.75,
+       "normalized_cost": 1.12841796875,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "eef14a41237ef5bb8c2b21ba2985cbac588b9ca2b41e6dc5cbad5b3d8ddf9517",
+       "reference": 334.0,
+       "mean_cost": 465.5,
+       "normalized_cost": 1.3937125748502994,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "b233d8a2b0aaa0e14322c816dff02c12d65780d65d9b409d88d3ce8ebe806d9a",
+       "reference": 534.0,
+       "mean_cost": 705.25,
+       "normalized_cost": 1.320692883895131,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "0d1ccc95929316aa76017dcd0954e94203c79e0b582285be06e7f463c402c65f",
+       "reference": 631.0,
+       "mean_cost": 802.0,
+       "normalized_cost": 1.2709984152139462,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "717debd1291cfa078b508f0b80f05dc52753876767d125825f835df104fb8096",
+       "reference": 390.0,
+       "mean_cost": 552.25,
+       "normalized_cost": 1.416025641025641,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "7b147f00e440013109336dad6e75ca647a16e72f0a4c9d8ab359f51eda857cd6",
+       "reference": 485.0,
+       "mean_cost": 728.25,
+       "normalized_cost": 1.5015463917525773,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "11c433b6f0239d52273e389f98a507a04a50c702ad820c2a25718188718ede6c",
+       "reference": 636.0,
+       "mean_cost": 936.25,
+       "normalized_cost": 1.4720911949685536,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "b3870df52aa0039df24e4af5ec76903286e163090f252eb9bf66e11a9b499e8e",
+       "reference": 511.0,
+       "mean_cost": 690.5,
+       "normalized_cost": 1.3512720156555773,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0100",
+     "fingerprint": "65a08c4c6c4fbdd9ec6cae8b5745bc3d8639e7f4bdf4dd3e6129b6341acf1905",
+     "normalized_cost": 1.34903424297866,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "ae748ab77c68457d7ab03c44750c3e77a95c49588cd810120cdbeb79a789e26c",
+       "reference": 512.0,
+       "mean_cost": 584.25,
+       "normalized_cost": 1.14111328125,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "eef14a41237ef5bb8c2b21ba2985cbac588b9ca2b41e6dc5cbad5b3d8ddf9517",
+       "reference": 334.0,
+       "mean_cost": 472.25,
+       "normalized_cost": 1.4139221556886228,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "b233d8a2b0aaa0e14322c816dff02c12d65780d65d9b409d88d3ce8ebe806d9a",
+       "reference": 534.0,
+       "mean_cost": 693.0,
+       "normalized_cost": 1.297752808988764,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "0d1ccc95929316aa76017dcd0954e94203c79e0b582285be06e7f463c402c65f",
+       "reference": 631.0,
+       "mean_cost": 862.5,
+       "normalized_cost": 1.366877971473851,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "717debd1291cfa078b508f0b80f05dc52753876767d125825f835df104fb8096",
+       "reference": 390.0,
+       "mean_cost": 553.25,
+       "normalized_cost": 1.4185897435897437,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "7b147f00e440013109336dad6e75ca647a16e72f0a4c9d8ab359f51eda857cd6",
+       "reference": 485.0,
+       "mean_cost": 722.0,
+       "normalized_cost": 1.488659793814433,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "11c433b6f0239d52273e389f98a507a04a50c702ad820c2a25718188718ede6c",
+       "reference": 636.0,
+       "mean_cost": 852.25,
+       "normalized_cost": 1.3400157232704402,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "b3870df52aa0039df24e4af5ec76903286e163090f252eb9bf66e11a9b499e8e",
+       "reference": 511.0,
+       "mean_cost": 677.25,
+       "normalized_cost": 1.3253424657534247,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0150",
+     "fingerprint": "4c709e92aa0848826e464e9a1e7e8642eba98d4e27691875ffd281f297b51682",
+     "normalized_cost": 1.2754379358144936,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "ae748ab77c68457d7ab03c44750c3e77a95c49588cd810120cdbeb79a789e26c",
+       "reference": 512.0,
+       "mean_cost": 610.25,
+       "normalized_cost": 1.19189453125,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "eef14a41237ef5bb8c2b21ba2985cbac588b9ca2b41e6dc5cbad5b3d8ddf9517",
+       "reference": 334.0,
+       "mean_cost": 421.75,
+       "normalized_cost": 1.2627245508982037,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "b233d8a2b0aaa0e14322c816dff02c12d65780d65d9b409d88d3ce8ebe806d9a",
+       "reference": 534.0,
+       "mean_cost": 734.75,
+       "normalized_cost": 1.375936329588015,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "0d1ccc95929316aa76017dcd0954e94203c79e0b582285be06e7f463c402c65f",
+       "reference": 631.0,
+       "mean_cost": 784.75,
+       "normalized_cost": 1.243660855784469,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "717debd1291cfa078b508f0b80f05dc52753876767d125825f835df104fb8096",
+       "reference": 390.0,
+       "mean_cost": 497.0,
+       "normalized_cost": 1.2743589743589743,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "7b147f00e440013109336dad6e75ca647a16e72f0a4c9d8ab359f51eda857cd6",
+       "reference": 485.0,
+       "mean_cost": 672.25,
+       "normalized_cost": 1.386082474226804,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "11c433b6f0239d52273e389f98a507a04a50c702ad820c2a25718188718ede6c",
+       "reference": 636.0,
+       "mean_cost": 876.0,
+       "normalized_cost": 1.3773584905660377,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "b3870df52aa0039df24e4af5ec76903286e163090f252eb9bf66e11a9b499e8e",
+       "reference": 511.0,
+       "mean_cost": 557.75,
+       "normalized_cost": 1.0914872798434443,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0200",
+     "fingerprint": "9bd5a791f31c4007092aa9db4e3f1572398a0c387d42ed7a1dae9656abe0d444",
+     "normalized_cost": 1.3069354500942965,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "ae748ab77c68457d7ab03c44750c3e77a95c49588cd810120cdbeb79a789e26c",
+       "reference": 512.0,
+       "mean_cost": 602.5,
+       "normalized_cost": 1.1767578125,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "eef14a41237ef5bb8c2b21ba2985cbac588b9ca2b41e6dc5cbad5b3d8ddf9517",
+       "reference": 334.0,
+       "mean_cost": 389.75,
+       "normalized_cost": 1.1669161676646707,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "b233d8a2b0aaa0e14322c816dff02c12d65780d65d9b409d88d3ce8ebe806d9a",
+       "reference": 534.0,
+       "mean_cost": 736.75,
+       "normalized_cost": 1.3796816479400749,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "0d1ccc95929316aa76017dcd0954e94203c79e0b582285be06e7f463c402c65f",
+       "reference": 631.0,
+       "mean_cost": 803.25,
+       "normalized_cost": 1.2729793977812995,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "717debd1291cfa078b508f0b80f05dc52753876767d125825f835df104fb8096",
+       "reference": 390.0,
+       "mean_cost": 557.0,
+       "normalized_cost": 1.4282051282051282,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "7b147f00e440013109336dad6e75ca647a16e72f0a4c9d8ab359f51eda857cd6",
+       "reference": 485.0,
+       "mean_cost": 645.75,
+       "normalized_cost": 1.331443298969072,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "11c433b6f0239d52273e389f98a507a04a50c702ad820c2a25718188718ede6c",
+       "reference": 636.0,
+       "mean_cost": 851.25,
+       "normalized_cost": 1.338443396226415,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "b3870df52aa0039df24e4af5ec76903286e163090f252eb9bf66e11a9b499e8e",
+       "reference": 511.0,
+       "mean_cost": 695.5,
+       "normalized_cost": 1.3610567514677103,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0250",
+     "fingerprint": "9521cb370eacca27adb0d60e73df606fd4e1928ea3f555c1d5184e37a130370f",
+     "normalized_cost": 1.313286951435804,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "ae748ab77c68457d7ab03c44750c3e77a95c49588cd810120cdbeb79a789e26c",
+       "reference": 512.0,
+       "mean_cost": 665.75,
+       "normalized_cost": 1.30029296875,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "eef14a41237ef5bb8c2b21ba2985cbac588b9ca2b41e6dc5cbad5b3d8ddf9517",
+       "reference": 334.0,
+       "mean_cost": 390.25,
+       "normalized_cost": 1.1684131736526946,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "b233d8a2b0aaa0e14322c816dff02c12d65780d65d9b409d88d3ce8ebe806d9a",
+       "reference": 534.0,
+       "mean_cost": 703.25,
+       "normalized_cost": 1.3169475655430711,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "0d1ccc95929316aa76017dcd0954e94203c79e0b582285be06e7f463c402c65f",
+       "reference": 631.0,
+       "mean_cost": 804.0,
+       "normalized_cost": 1.2741679873217115,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "717debd1291cfa078b508f0b80f05dc52753876767d125825f835df104fb8096",
+       "reference": 390.0,
+       "mean_cost": 544.75,
+       "normalized_cost": 1.3967948717948717,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "7b147f00e440013109336dad6e75ca647a16e72f0a4c9d8ab359f51eda857cd6",
+       "reference": 485.0,
+       "mean_cost": 690.5,
+       "normalized_cost": 1.4237113402061856,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "11c433b6f0239d52273e389f98a507a04a50c702ad820c2a25718188718ede6c",
+       "reference": 636.0,
+       "mean_cost": 844.0,
+       "normalized_cost": 1.3270440251572326,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "b3870df52aa0039df24e4af5ec76903286e163090f252eb9bf66e11a9b499e8e",
+       "reference": 511.0,
+       "mean_cost": 663.75,
+       "normalized_cost": 1.2989236790606653,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0300",
+     "fingerprint": "fe6d10d21b85ea0bb3c180211dff778ba6993579f1c0ecac0f6d2819881e46cf",
+     "normalized_cost": 1.3317215112295908,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "ae748ab77c68457d7ab03c44750c3e77a95c49588cd810120cdbeb79a789e26c",
+       "reference": 512.0,
+       "mean_cost": 672.75,
+       "normalized_cost": 1.31396484375,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "eef14a41237ef5bb8c2b21ba2985cbac588b9ca2b41e6dc5cbad5b3d8ddf9517",
+       "reference": 334.0,
+       "mean_cost": 410.25,
+       "normalized_cost": 1.2282934131736527,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "b233d8a2b0aaa0e14322c816dff02c12d65780d65d9b409d88d3ce8ebe806d9a",
+       "reference": 534.0,
+       "mean_cost": 693.0,
+       "normalized_cost": 1.297752808988764,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "0d1ccc95929316aa76017dcd0954e94203c79e0b582285be06e7f463c402c65f",
+       "reference": 631.0,
+       "mean_cost": 810.75,
+       "normalized_cost": 1.2848652931854199,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "717debd1291cfa078b508f0b80f05dc52753876767d125825f835df104fb8096",
+       "reference": 390.0,
+       "mean_cost": 552.5,
+       "normalized_cost": 1.4166666666666667,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "7b147f00e440013109336dad6e75ca647a16e72f0a4c9d8ab359f51eda857cd6",
+       "reference": 485.0,
+       "mean_cost": 674.75,
+       "normalized_cost": 1.3912371134020618,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "11c433b6f0239d52273e389f98a507a04a50c702ad820c2a25718188718ede6c",
+       "reference": 636.0,
+       "mean_cost": 889.5,
+       "normalized_cost": 1.3985849056603774,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "b3870df52aa0039df24e4af5ec76903286e163090f252eb9bf66e11a9b499e8e",
+       "reference": 511.0,
+       "mean_cost": 675.75,
+       "normalized_cost": 1.3224070450097847,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0350",
+     "fingerprint": "7223c5161996c6d8766bbf98fca5fb2fa970a54b153383fba990b2ebda0ce25b",
+     "normalized_cost": 1.3580583840243532,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "ae748ab77c68457d7ab03c44750c3e77a95c49588cd810120cdbeb79a789e26c",
+       "reference": 512.0,
+       "mean_cost": 610.5,
+       "normalized_cost": 1.1923828125,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "eef14a41237ef5bb8c2b21ba2985cbac588b9ca2b41e6dc5cbad5b3d8ddf9517",
+       "reference": 334.0,
+       "mean_cost": 532.0,
+       "normalized_cost": 1.592814371257485,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "b233d8a2b0aaa0e14322c816dff02c12d65780d65d9b409d88d3ce8ebe806d9a",
+       "reference": 534.0,
+       "mean_cost": 700.5,
+       "normalized_cost": 1.3117977528089888,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "0d1ccc95929316aa76017dcd0954e94203c79e0b582285be06e7f463c402c65f",
+       "reference": 631.0,
+       "mean_cost": 779.5,
+       "normalized_cost": 1.2353407290015848,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "717debd1291cfa078b508f0b80f05dc52753876767d125825f835df104fb8096",
+       "reference": 390.0,
+       "mean_cost": 590.25,
+       "normalized_cost": 1.5134615384615384,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "7b147f00e440013109336dad6e75ca647a16e72f0a4c9d8ab359f51eda857cd6",
+       "reference": 485.0,
+       "mean_cost": 663.0,
+       "normalized_cost": 1.3670103092783505,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "11c433b6f0239d52273e389f98a507a04a50c702ad820c2a25718188718ede6c",
+       "reference": 636.0,
+       "mean_cost": 852.25,
+       "normalized_cost": 1.3400157232704402,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "b3870df52aa0039df24e4af5ec76903286e163090f252eb9bf66e11a9b499e8e",
+       "reference": 511.0,
+       "mean_cost": 670.25,
+       "normalized_cost": 1.3116438356164384,
+       "unique_solutions": 4
+      }
+     ]
+    },
+    {
+     "checkpoint": "step-0400",
+     "fingerprint": "bd646d2a43e96850db08e424e5f1b602e3720046163f0bbe785614792298ddc4",
+     "normalized_cost": 1.2996737283609645,
+     "rows": [
+      {
+       "seed": 600000,
+       "instance_hash": "ae748ab77c68457d7ab03c44750c3e77a95c49588cd810120cdbeb79a789e26c",
+       "reference": 512.0,
+       "mean_cost": 619.25,
+       "normalized_cost": 1.20947265625,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600001,
+       "instance_hash": "eef14a41237ef5bb8c2b21ba2985cbac588b9ca2b41e6dc5cbad5b3d8ddf9517",
+       "reference": 334.0,
+       "mean_cost": 373.5,
+       "normalized_cost": 1.1182634730538923,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600002,
+       "instance_hash": "b233d8a2b0aaa0e14322c816dff02c12d65780d65d9b409d88d3ce8ebe806d9a",
+       "reference": 534.0,
+       "mean_cost": 742.5,
+       "normalized_cost": 1.3904494382022472,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600003,
+       "instance_hash": "0d1ccc95929316aa76017dcd0954e94203c79e0b582285be06e7f463c402c65f",
+       "reference": 631.0,
+       "mean_cost": 782.75,
+       "normalized_cost": 1.2404912836767037,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600004,
+       "instance_hash": "717debd1291cfa078b508f0b80f05dc52753876767d125825f835df104fb8096",
+       "reference": 390.0,
+       "mean_cost": 618.5,
+       "normalized_cost": 1.5858974358974358,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600005,
+       "instance_hash": "7b147f00e440013109336dad6e75ca647a16e72f0a4c9d8ab359f51eda857cd6",
+       "reference": 485.0,
+       "mean_cost": 676.25,
+       "normalized_cost": 1.3943298969072164,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600006,
+       "instance_hash": "11c433b6f0239d52273e389f98a507a04a50c702ad820c2a25718188718ede6c",
+       "reference": 636.0,
+       "mean_cost": 791.0,
+       "normalized_cost": 1.2437106918238994,
+       "unique_solutions": 4
+      },
+      {
+       "seed": 600007,
+       "instance_hash": "b3870df52aa0039df24e4af5ec76903286e163090f252eb9bf66e11a9b499e8e",
+       "reference": 511.0,
+       "mean_cost": 620.75,
+       "normalized_cost": 1.2147749510763208,
+       "unique_solutions": 4
+      }
+     ]
+    }
+   ],
+   "qualification": {
+    "analytic": [
+     {
+      "seed": 610000,
+      "instance_hash": "2c0f49e7db659e9c676c25ea84b457cbcaa6920bfe69c9a0e5d9f71700b3d158",
+      "reference": 442.0,
+      "mean_cost": 1048.75,
+      "normalized_cost": 2.372737556561086,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610001,
+      "instance_hash": "aaeea57a036332a5a5245e57dff2c3024e03f98b391fdde1a9ebbcc5ce941f4b",
+      "reference": 540.0,
+      "mean_cost": 1154.25,
+      "normalized_cost": 2.1375,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610002,
+      "instance_hash": "ca4d6a51be539d37deda2d89155cd4b486d06a6eff13f6b509f3cb7ff92fa745",
+      "reference": 434.0,
+      "mean_cost": 1117.75,
+      "normalized_cost": 2.5754608294930876,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610003,
+      "instance_hash": "ae9b9a6bad1797ec511d63b955ccd2111e8f69950348b8de26d4e37897249c6b",
+      "reference": 576.0,
+      "mean_cost": 1234.25,
+      "normalized_cost": 2.142795138888889,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610004,
+      "instance_hash": "b7cf5b23792c0c1198af54001ed2e4af32794a284a6da28f91aa5f48ca672dd2",
+      "reference": 541.0,
+      "mean_cost": 1256.0,
+      "normalized_cost": 2.321626617375231,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610005,
+      "instance_hash": "cd7213262d3abd903e20b70319ff0fd3230d60337405cdff970ddfbbe7ecc417",
+      "reference": 535.0,
+      "mean_cost": 1331.5,
+      "normalized_cost": 2.488785046728972,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610006,
+      "instance_hash": "3e1146272054cc009bc272f51f5c9e78982b96bf1845e9df0659328d4a87237e",
+      "reference": 521.0,
+      "mean_cost": 1159.5,
+      "normalized_cost": 2.22552783109405,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610007,
+      "instance_hash": "5b08aceb78d71e80b3ab10126e3a66f65b3d9b0ba06453a6a87e849cd1ab80b1",
+      "reference": 474.0,
+      "mean_cost": 1140.75,
+      "normalized_cost": 2.4066455696202533,
+      "unique_solutions": 4
+     }
+    ],
+    "linear": [
+     {
+      "seed": 610000,
+      "instance_hash": "2c0f49e7db659e9c676c25ea84b457cbcaa6920bfe69c9a0e5d9f71700b3d158",
+      "reference": 442.0,
+      "mean_cost": 672.25,
+      "normalized_cost": 1.5209276018099547,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610001,
+      "instance_hash": "aaeea57a036332a5a5245e57dff2c3024e03f98b391fdde1a9ebbcc5ce941f4b",
+      "reference": 540.0,
+      "mean_cost": 684.5,
+      "normalized_cost": 1.2675925925925926,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610002,
+      "instance_hash": "ca4d6a51be539d37deda2d89155cd4b486d06a6eff13f6b509f3cb7ff92fa745",
+      "reference": 434.0,
+      "mean_cost": 639.25,
+      "normalized_cost": 1.472926267281106,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610003,
+      "instance_hash": "ae9b9a6bad1797ec511d63b955ccd2111e8f69950348b8de26d4e37897249c6b",
+      "reference": 576.0,
+      "mean_cost": 1013.0,
+      "normalized_cost": 1.7586805555555556,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610004,
+      "instance_hash": "b7cf5b23792c0c1198af54001ed2e4af32794a284a6da28f91aa5f48ca672dd2",
+      "reference": 541.0,
+      "mean_cost": 857.25,
+      "normalized_cost": 1.58456561922366,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610005,
+      "instance_hash": "cd7213262d3abd903e20b70319ff0fd3230d60337405cdff970ddfbbe7ecc417",
+      "reference": 535.0,
+      "mean_cost": 799.0,
+      "normalized_cost": 1.4934579439252336,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610006,
+      "instance_hash": "3e1146272054cc009bc272f51f5c9e78982b96bf1845e9df0659328d4a87237e",
+      "reference": 521.0,
+      "mean_cost": 647.25,
+      "normalized_cost": 1.2423224568138196,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610007,
+      "instance_hash": "5b08aceb78d71e80b3ab10126e3a66f65b3d9b0ba06453a6a87e849cd1ab80b1",
+      "reference": 474.0,
+      "mean_cost": 724.75,
+      "normalized_cost": 1.5290084388185654,
+      "unique_solutions": 4
+     }
+    ],
+    "neural": [
+     {
+      "seed": 610000,
+      "instance_hash": "2c0f49e7db659e9c676c25ea84b457cbcaa6920bfe69c9a0e5d9f71700b3d158",
+      "reference": 442.0,
+      "mean_cost": 715.5,
+      "normalized_cost": 1.6187782805429864,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610001,
+      "instance_hash": "aaeea57a036332a5a5245e57dff2c3024e03f98b391fdde1a9ebbcc5ce941f4b",
+      "reference": 540.0,
+      "mean_cost": 723.75,
+      "normalized_cost": 1.3402777777777777,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610002,
+      "instance_hash": "ca4d6a51be539d37deda2d89155cd4b486d06a6eff13f6b509f3cb7ff92fa745",
+      "reference": 434.0,
+      "mean_cost": 581.25,
+      "normalized_cost": 1.3392857142857142,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610003,
+      "instance_hash": "ae9b9a6bad1797ec511d63b955ccd2111e8f69950348b8de26d4e37897249c6b",
+      "reference": 576.0,
+      "mean_cost": 898.5,
+      "normalized_cost": 1.5598958333333333,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610004,
+      "instance_hash": "b7cf5b23792c0c1198af54001ed2e4af32794a284a6da28f91aa5f48ca672dd2",
+      "reference": 541.0,
+      "mean_cost": 760.25,
+      "normalized_cost": 1.405268022181146,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610005,
+      "instance_hash": "cd7213262d3abd903e20b70319ff0fd3230d60337405cdff970ddfbbe7ecc417",
+      "reference": 535.0,
+      "mean_cost": 808.0,
+      "normalized_cost": 1.5102803738317756,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610006,
+      "instance_hash": "3e1146272054cc009bc272f51f5c9e78982b96bf1845e9df0659328d4a87237e",
+      "reference": 521.0,
+      "mean_cost": 655.0,
+      "normalized_cost": 1.2571976967370442,
+      "unique_solutions": 4
+     },
+     {
+      "seed": 610007,
+      "instance_hash": "5b08aceb78d71e80b3ab10126e3a66f65b3d9b0ba06453a6a87e849cd1ab80b1",
+      "reference": 474.0,
+      "mean_cost": 651.25,
+      "normalized_cost": 1.373945147679325,
+      "unique_solutions": 4
+     }
+    ]
+   },
+   "comparisons": {
+    "analytic": {
+     "difference": -0.9082687179240583,
+     "ci_low": -1.0328884153619056,
+     "ci_high": -0.779862287806347,
+     "interpretation": "exploratory validation interval, not confirmation"
+    },
+    "linear": {
+     "difference": -0.05806907870642314,
+     "ci_low": -0.1357920906618254,
+     "ci_high": 0.020705201475334167,
+     "interpretation": "exploratory validation interval, not confirmation"
+    }
+   },
+   "export_parity": {
+    "checked_states": 73,
+    "max_probability_error": 3.885780586188048e-16,
+    "decision_mismatches": 0
+   },
+   "claim_boundary": "No guided-search, runtime-superiority, or release-readiness claim."
+  },
+  "model": {
+   "family": "cover",
+   "fingerprint": "4c709e92aa0848826e464e9a1e7e8642eba98d4e27691875ffd281f297b51682",
+   "format": "quantile-scorer-v1",
+   "weights": {
+    "b1": [
+     -0.17766814916147117,
+     -0.24755046990818305,
+     -0.14522986143307814,
+     0.1695414130685765,
+     0.026131836637812884,
+     -0.4946365955275626,
+     0.3528178494516292,
+     -0.4012978128845425,
+     -0.20254665422910736,
+     -0.048174112661812575,
+     0.3463380373909345,
+     -0.23513164366758318,
+     0.1792185564322656,
+     0.28285552612457565,
+     -0.3944442136233162,
+     -0.12545093197115348
+    ],
+    "b2": 0.163854015661934,
+    "w1": [
+     [
+      1.843691127134461,
+      1.6136929924207584,
+      2.09646429789431,
+      1.2722705707666637,
+      1.6537895390892545,
+      -1.2630528001773274,
+      2.39471122374668,
+      1.9479490806902138,
+      -1.6328792797887863,
+      1.2834086206067266,
+      1.169868339742061,
+      0.023553385543485034,
+      0.14839856276262284,
+      1.9648501644510064,
+      0.8765397791566641,
+      0.9745639816422267
+     ],
+     [
+      -1.0866814477264621,
+      -0.9404091480892531,
+      -0.5671744682599156,
+      0.09109610310227896,
+      -0.9732282235694123,
+      1.388144652023328,
+      -1.1571234198824776,
+      -0.6170971932444532,
+      0.417601637174359,
+      -0.1554731370965204,
+      -1.0318947741983777,
+      -0.1627122736042388,
+      -0.29747378000488045,
+      -0.6284976676720516,
+      -1.2914052613704632,
+      -0.7332908515914527
+     ],
+     [
+      0.9212465569154367,
+      1.3672109190577417,
+      1.0844471584055204,
+      0.6618725655407958,
+      0.865522554823523,
+      -0.8207486869595098,
+      1.7070974520875057,
+      2.0396925614365498,
+      -1.0182556545548165,
+      1.6087381731984893,
+      1.6985999811835637,
+      0.15410804805659134,
+      0.5164307893051636,
+      0.9479626075814218,
+      2.0631913468887584,
+      2.081075787491048
+     ],
+     [
+      1.0631471068597078,
+      0.9683704115595375,
+      0.5943425460579626,
+      -0.18429843641159227,
+      0.7501210110061586,
+      -0.3507889182270545,
+      0.3109885225926897,
+      0.8415916787849663,
+      0.019306429056219234,
+      0.184226394502314,
+      0.18331378699826245,
+      -0.5749261854687682,
+      0.05883133316184666,
+      0.1540201078710439,
+      1.3471162950834594,
+      0.5804556232982088
+     ]
+    ],
+    "w2": [
+     1.0578739882259036,
+     1.1077174704237651,
+     1.3539151509615266,
+     0.2818166899157208,
+     1.2149384954290974,
+     -1.379404697471896,
+     0.948562935656248,
+     1.2724861680331334,
+     -0.443156780567816,
+     0.6723660290752401,
+     1.3189671284154367,
+     0.07124830063939468,
+     0.33895756446194014,
+     1.1759708682079135,
+     0.8395767130862808,
+     1.425771584599438
+    ]
+   }
+  }
+ }
+}
