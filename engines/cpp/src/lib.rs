@@ -174,6 +174,7 @@ mod tests {
         let config = Config {
             time_limit: 1.0,
             seed: 1,
+            sa_t0_auto: false,
             pool_size: 4,
             threads: None,
             history_limit: 0,
@@ -217,6 +218,7 @@ mod tests {
         Config {
             time_limit,
             seed: 7,
+            sa_t0_auto: false,
             pool_size: 10,
             threads: None,
             history_limit: 0,

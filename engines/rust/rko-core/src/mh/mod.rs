@@ -36,6 +36,7 @@ pub mod multi_start;
 mod population;
 pub mod pso;
 pub mod sa;
+pub mod sa_temperature;
 pub mod vns;
 
 use crate::pool::Pool;
@@ -154,6 +155,8 @@ pub struct Context<'a, 'b> {
     pub strategy: u8,
     /// Use the progress-driven Q-learning schedule and scale-free reward.
     pub progress_schedule: bool,
+    /// Enable the repository-only offline SA temperature experiment.
+    pub sa_t0_auto: bool,
 }
 
 impl Algorithm {

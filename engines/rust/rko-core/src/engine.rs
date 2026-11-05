@@ -137,6 +137,11 @@ pub fn run_portfolio(
     config.validate_for(problem.dimension())?;
     for spec in specs {
         spec.validate().map_err(EngineError::Invalid)?;
+        if config.sa_t0_auto && spec.algorithm == crate::mh::Algorithm::Sa && spec.adaptive {
+            return Err(EngineError::Invalid(
+                "temperature calibration requires offline SA".to_owned(),
+            ));
+        }
     }
     let workers = config.threads.unwrap_or(specs.len()).clamp(1, specs.len());
     let overall_started = Instant::now();
@@ -180,6 +185,7 @@ pub fn run_portfolio(
                                 source: index,
                                 strategy: config.ls_strategy,
                                 progress_schedule: config.progress_schedule,
+                                sa_t0_auto: config.sa_t0_auto,
                             };
                             let stop = match spec.run(&mut context) {
                                 Err(stop) => stop,
@@ -314,6 +320,7 @@ mod tests {
         Config {
             time_limit: 0.4,
             seed: 5,
+            sa_t0_auto: false,
             pool_size: 10,
             threads,
             history_limit: 16,

@@ -39,6 +39,7 @@ fn finishes_at_the_time_limit(spec: Spec, what: &str) {
         let config = Config {
             time_limit: 0.3,
             seed: 5,
+            sa_t0_auto: false,
             pool_size: 10,
             threads: None,
             history_limit: 0,

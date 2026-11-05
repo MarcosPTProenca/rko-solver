@@ -361,6 +361,7 @@ fn run<'py>(
         prefill,
         max_evaluations,
         progress_schedule,
+        sa_t0_auto: false,
         initial_keys: initial_keys.unwrap_or_default(),
     };
     if let Ok(knapsack) = problem.cast::<KnapsackProblem>() {
