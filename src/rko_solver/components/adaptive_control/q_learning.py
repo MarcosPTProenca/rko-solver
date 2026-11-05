@@ -112,7 +112,6 @@ class QLearningController:
         restart_epsilon: int = 1,
         max_time: float = 1.0,
         state_filter: Callable[[list[float]], bool] | None = None,
-        progress_schedule: bool = False,
     ) -> None:
         """Initializes the Q-learning controller.
 
@@ -123,8 +122,6 @@ class QLearningController:
           restart_epsilon: Restart counter for exploration.
           max_time: Maximum execution time for dynamic normalization.
           state_filter: Optional predicate excluding infeasible joint states.
-          progress_schedule: Use the progress-driven schedule and scale-free reward; false
-            keeps the earlier whole-second schedule and fixed-scale reward.
         """
         self.parameters = parameters
         if parameters and all(len(values) > 0 for values in parameters):
@@ -138,7 +135,7 @@ class QLearningController:
         self.restart_epsilon = restart_epsilon
         self.max_time = max_time
         self.ti = max(1, int(max_time * 0.1))
-        self.progress_schedule = progress_schedule
+        self.progress_schedule = False
 
     @staticmethod
     def _create_states(

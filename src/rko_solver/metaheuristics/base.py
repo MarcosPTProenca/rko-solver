@@ -25,6 +25,7 @@ Inputs/Outputs:
 from __future__ import annotations
 
 import numpy as np
+import sys
 import threading
 import time
 from ..components.solution_pool import ElitePool
@@ -37,6 +38,7 @@ from typing import Any
 from typing import Protocol
 
 if TYPE_CHECKING:
+    from ..components.adaptive_control.q_learning import QLearningController
     from ..orchestration.types import SearchMetadata
 
 
@@ -183,6 +185,49 @@ class MetaheuristicBase(ABC):
         timed = self.elapsed() / limit_time if limit_time > 0 else 1.0
         counted = self._evaluation_share() if self._evaluation_share is not None else 0.0
         return min(max(timed, counted), 1.0)
+
+    def schedule_parameters(
+        self, ql: QLearningController, limit_time: float
+    ) -> tuple[float, float, float, int, float, int]:
+        """Advance the controller schedule from elapsed time and search progress.
+
+        Args:
+            ql (QLearningController): Active adaptive controller.
+            limit_time (float): Time horizon of this run in seconds.
+
+        Returns:
+            tuple[float, float, float, int, float, int]: Epsilon, learning factor,
+                discount factor, restart counter, epsilon ceiling and legacy window.
+        """
+        return ql.set_parameters(self.elapsed(), self.progress(limit_time))
+
+    def _build_controller(
+        self,
+        parameters: list[list[float]],
+        max_time: float,
+        state_filter: Callable[[list[float]], bool] | None,
+    ) -> QLearningController:
+        """Create the adaptive controller and apply the run's schedule mode.
+
+        Args:
+            parameters (list[list[float]]): Discrete parameter grid for the states.
+            max_time (float): Time horizon of this run in seconds.
+            state_filter (Callable[[list[float]], bool] | None): Feasibility predicate.
+
+        Returns:
+            QLearningController: Controller carrying this run's ``progress_schedule``.
+        """
+        controller_type = sys.modules[type(self).__module__].QLearningController
+        ql = controller_type(
+            parameters,
+            epsilon_max=1.0,
+            epsilon_min=0.1,
+            restart_epsilon=1,
+            max_time=max_time,
+            state_filter=state_filter,
+        )
+        ql.progress_schedule = self.progress_schedule
+        return ql
 
     def time_limit_reached(self, limit_time: float) -> bool:
         """Return ``True`` when :meth:`elapsed` exceeds *limit_time*."""

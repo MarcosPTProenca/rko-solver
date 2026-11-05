@@ -313,7 +313,6 @@ def test_worker_preserves_deadline_and_constructor_rng(
         control: int,
         params_dir: Path | None,
         hyperparameters: dict[str, int | float] | None = None,
-        progress_schedule: bool = False,
     ) -> SimpleNamespace:
         """Consume constructor RNG draws before returning a named test search.
 
@@ -326,7 +325,6 @@ def test_worker_preserves_deadline_and_constructor_rng(
             control (int): Unused control mode.
             params_dir (Path | None): Unused parameter location.
             hyperparameters (dict[str, int | float] | None): Absent optional overrides.
-            progress_schedule (bool): Unused schedule flag.
 
         Returns:
             SimpleNamespace: Algorithm name used by the simulated session.

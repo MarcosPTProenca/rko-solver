@@ -176,12 +176,6 @@ impl QLearning {
         self
     }
 
-    /// Whether the progress schedule and scale-free reward are active.
-    #[must_use]
-    pub fn progress_schedule(&self) -> bool {
-        self.progress_schedule
-    }
-
     /// Number of states.
     #[must_use]
     pub fn len(&self) -> usize {

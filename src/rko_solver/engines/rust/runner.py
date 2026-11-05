@@ -135,7 +135,6 @@ class NativeRunner:
                 self.config.control,
                 self.params_dir,
                 self.hyperparameters.get(name),
-                self.config.progress_schedule,
             )
             offline = [
                 float(getattr(algorithm, key)) for key in spec.int_params + spec.float_params
@@ -208,10 +207,9 @@ class NativeRunner:
             workers,
             history_limit,
             1,
-            self.config.prefill_pool,
+            (self.config.prefill_pool, self.config.progress_schedule),
             self.engine,
             max_evaluations=max_evaluations,
-            progress_schedule=self.config.progress_schedule,
             initial_keys=self.initial_keys.keys.tolist(),
         )
         self.workers = int(result["workers"])

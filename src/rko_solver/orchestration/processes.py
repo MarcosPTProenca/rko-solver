@@ -232,8 +232,8 @@ def _worker(
                     config.control,
                     params_dir,
                     (hyperparameters or {}).get(name),
-                    config.progress_schedule,
                 )
+                mh.progress_schedule = config.progress_schedule
             prepared.append((mh, streams))
         connection.send(("ready", None))
         if startup is not None:

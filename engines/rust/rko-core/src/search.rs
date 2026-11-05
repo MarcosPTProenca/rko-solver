@@ -145,11 +145,10 @@ impl<'a> Search<'a> {
     }
 
     /// Share of the time budget or evaluation limit already used, in `[0, 1]`.
-    #[must_use]
     pub fn progress(&self) -> f64 {
-        let timed = self.elapsed() / self.budget().max(f64::MIN_POSITIVE);
-        let counted = self.evaluations as f64 / self.max_evaluations as f64;
-        timed.max(counted).min(1.0)
+        let used = self.elapsed() / self.budget().max(f64::MIN_POSITIVE);
+        let share = self.evaluations as f64 / self.max_evaluations as f64;
+        used.max(share).min(1.0)
     }
 
     /// Completed finite evaluations so far.

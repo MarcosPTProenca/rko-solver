@@ -52,6 +52,7 @@ from .types import HistoryPoint
 from .types import ModelCallbackOptions
 from .types import RunResult
 from .types import SearchMetadata
+from collections.abc import Callable
 from dataclasses import dataclass
 from dataclasses import replace
 from functools import partial
@@ -344,9 +345,7 @@ class SearchSession:
         original_share = algorithm._evaluation_share
         algorithm.decoder, algorithm.cost = self.decode, self.evaluate
         algorithm._cancelled = cancelled
-        algorithm._evaluation_share = (
-            None if max_evaluations is None else lambda: self.n_evaluations / max_evaluations
-        )
+        algorithm._evaluation_share = self._evaluation_share_for(max_evaluations)
         trace_token = _ACTIVE_STORE.set(self._trace_store)
         try:
             try:
@@ -381,6 +380,19 @@ class SearchSession:
             algorithm.decoder, algorithm.cost = original_decoder, original_cost
             algorithm._cancelled = original_cancelled
             algorithm._evaluation_share = original_share
+
+    def _evaluation_share_for(self, max_evaluations: int | None) -> Callable[[], float] | None:
+        """Return the evaluation-share callback, or ``None`` without an evaluation cap.
+
+        Args:
+            max_evaluations (int | None): Positive completed-evaluation limit, or None.
+
+        Returns:
+            Callable[[], float] | None: ``n_evaluations / max_evaluations`` reader, or None.
+        """
+        if max_evaluations is None:
+            return None
+        return lambda: self.n_evaluations / max_evaluations
 
     def _record_model(self, evidence: ModelEvaluation, value: float) -> None:
         """Admit only completed generated-model invocation evidence.

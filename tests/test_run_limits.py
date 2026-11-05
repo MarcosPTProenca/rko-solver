@@ -102,8 +102,8 @@ problem = _native.KnapsackProblem([3, 4], [2, 3], 4)
 spec = [("SA", [100.0, 1e5, 0.98, 0.01, 0.05], [], False)]
 for engine in ("rust", "cpp"):
     for label, args in (
-        ("time 1e300", (1e300, 1, 10, None, 0, 1, False, engine, None)),
-        ("pool over bound", (1.0, 1, 1_000_001, None, 0, 1, False, engine, None)),
+        ("time 1e300", (1e300, 1, 10, None, 0, 1, (False, False), engine, None)),
+        ("pool over bound", (1.0, 1, 1_000_001, None, 0, 1, (False, False), engine, None)),
     ):
         try:
             _native.run(problem, spec, *args)

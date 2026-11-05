@@ -151,7 +151,6 @@ def build_metaheuristic(
     control: int,
     params_dir: Path | None,
     hyperparameters: Mapping[str, int | float] | None = None,
-    progress_schedule: bool = False,
 ) -> MetaheuristicBase:
     """Construct a configured algorithm after merging optional offline scalars.
 
@@ -164,8 +163,6 @@ def build_metaheuristic(
         control (int): Offline or adaptive control mode.
         params_dir (Path | None): Optional TOML directory.
         hyperparameters (Mapping[str, int | float] | None): Partial offline overrides.
-        progress_schedule (bool): Use the progress-driven Q-learning schedule and scale-free
-            reward; false keeps the earlier whole-second schedule and fixed-scale reward.
 
     Returns:
         MetaheuristicBase: Fresh configured algorithm.
@@ -206,7 +203,6 @@ def build_metaheuristic(
             kwargs["parameters"] = online_grid
 
     algorithm = spec.constructor(**kwargs)
-    algorithm.progress_schedule = progress_schedule
     algorithm._search_metadata = SearchMetadata(
         algorithm=canonical_name,
         control=control if spec.supports_control else 0,

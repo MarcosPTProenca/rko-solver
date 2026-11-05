@@ -157,15 +157,7 @@ class SA(MetaheuristicBase):
         ql: QLearningController | None = None
         st = 0
         if self.control == 1:
-            ql = QLearningController(
-                self.parameters,
-                epsilon_max=1.0,
-                epsilon_min=0.1,
-                restart_epsilon=1,
-                max_time=limit_time,
-                state_filter=self._state_filter,
-                progress_schedule=self.progress_schedule,
-            )
+            ql = self._build_controller(self.parameters, limit_time, self._state_filter)
             st = random.randint(0, len(ql.states) - 1)
             sa_max, t0, alpha, beta_min, beta_max = ql.states[st].par
             sa_max = int(sa_max)
@@ -182,9 +174,7 @@ class SA(MetaheuristicBase):
             while T > 0.0001 and not self.time_limit_reached(limit_time):
                 previous_best = best_cost
                 if ql is not None:
-                    epsilon, lf, df, _, _, _ = ql.set_parameters(
-                        self.elapsed(), self.progress(limit_time)
-                    )
+                    epsilon, lf, df, _, _, _ = self.schedule_parameters(ql, limit_time)
                     at = ql.choose_action(st, epsilon)
                     next_state = ql.states[st].Ai[at]
                     sa_max, t0, alpha, beta_min, beta_max = ql.states[next_state].par

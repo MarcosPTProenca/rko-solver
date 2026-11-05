@@ -107,6 +107,25 @@ def canonical_mh_name(name: str) -> str:
     return MH_ALIASES.get(normalized, normalized)
 
 
+def _require_bool(run_section: dict[str, object], key: str) -> bool:
+    """Return a boolean run setting, defaulting to ``False`` when absent.
+
+    Args:
+        run_section (dict[str, object]): Parsed ``[run]`` table.
+        key (str): Boolean setting name.
+
+    Returns:
+        bool: The validated value.
+
+    Raises:
+        ValueError: When the value is present but not a boolean.
+    """
+    value = run_section.get(key, False)
+    if type(value) is not bool:
+        raise ValueError(f"Invalid config.toml: 'run.{key}' must be a boolean.")
+    return value
+
+
 def parse_run_config(cfg: dict[str, object]) -> RunConfig:
     """Validate and normalize run configuration loaded from ``config.toml``."""
     try:
@@ -151,12 +170,8 @@ def parse_run_config(cfg: dict[str, object]) -> RunConfig:
 
     if any(not isinstance(name, str) for name in active_raw):
         raise ValueError("Metaheuristic names must be strings.")
-    prefill_pool = run_section.get("prefill_pool", False)
-    if type(prefill_pool) is not bool:
-        raise ValueError("Invalid config.toml: 'run.prefill_pool' must be a boolean.")
-    progress_schedule = run_section.get("progress_schedule", False)
-    if type(progress_schedule) is not bool:
-        raise ValueError("Invalid config.toml: 'run.progress_schedule' must be a boolean.")
+    prefill_pool = _require_bool(run_section, "prefill_pool")
+    progress_schedule = _require_bool(run_section, "progress_schedule")
     active = tuple(canonical_mh_name(name) for name in active_raw)
     if len(set(active)) != len(active):
         raise ValueError("Duplicate metaheuristic names are not supported.")

@@ -86,7 +86,8 @@ def trace(horizon: float, progress: bool) -> list[float]:
     Returns:
         list[float]: Epsilon at 21 equally spaced points of progress.
     """
-    controller = QLearningController([[1.0]], max_time=horizon, progress_schedule=progress)
+    controller = QLearningController([[1.0]], max_time=horizon)
+    controller.progress_schedule = progress
     samples = []
     for step in range(21):
         share = step / 20
@@ -106,7 +107,8 @@ def test_progress_schedule_is_the_same_for_every_horizon(horizon: float) -> None
 
 def test_progress_schedule_follows_evaluation_counts_without_a_clock() -> None:
     """Reproduce the trace from progress alone, with the elapsed time held at zero."""
-    controller = QLearningController([[1.0]], max_time=1000.0, progress_schedule=True)
+    controller = QLearningController([[1.0]], max_time=1000.0)
+    controller.progress_schedule = True
     counted = [controller.set_parameters(0.0, (step * 20) / 400)[0] for step in range(21)]
     assert counted == pytest.approx(PROGRESS_TRACE, abs=1e-9)
     assert controller.set_parameters(0.0, 1.0)[1] == pytest.approx(0.1)
@@ -115,7 +117,8 @@ def test_progress_schedule_follows_evaluation_counts_without_a_clock() -> None:
 
 def test_progress_defaults_to_the_time_share() -> None:
     """Derive progress from elapsed time and horizon when none is supplied."""
-    controller = QLearningController([[1.0]], max_time=10.0, progress_schedule=True)
+    controller = QLearningController([[1.0]], max_time=10.0)
+    controller.progress_schedule = True
     assert controller.set_parameters(5.0)[1] == pytest.approx(0.55)
 
 
@@ -130,7 +133,8 @@ def test_legacy_schedule_keeps_the_whole_second_window() -> None:
 
 def test_legacy_schedule_ignores_progress() -> None:
     """Keep the earlier learning factor, which depends on elapsed time only."""
-    controller = QLearningController([[1.0]], max_time=10.0, progress_schedule=False)
+    controller = QLearningController([[1.0]], max_time=10.0)
+    controller.progress_schedule = False
     assert controller.set_parameters(5.0, 1.0)[1] == pytest.approx(0.55)
 
 
@@ -159,6 +163,7 @@ def test_legacy_reward_keeps_the_fixed_scale() -> None:
     assert QLearningController.relative_reward(0.0, 0.5) == -0.5
     assert QLearningController.relative_reward(1.0, 3.0) == pytest.approx(-2 / 3)
     legacy = QLearningController([[1.0]])
-    progress = QLearningController([[1.0]], progress_schedule=True)
+    progress = QLearningController([[1.0]])
+    progress.progress_schedule = True
     assert legacy.reward(0.0, 0.5) == -0.5
     assert progress.reward(0.0, 0.5) == -1.0
