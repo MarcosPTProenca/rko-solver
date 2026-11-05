@@ -71,6 +71,7 @@ def payload(tmp_path: Path) -> tuple[ReleaseManager, Path]:
     )
     resources = {
         "parameters/SA.toml": b"x=1",
+        "py.typed": b"",
     }
     licenses = {name: (root / name).read_bytes() for name in ReleaseManager.licenses}
     runtime = ["rko_solver.libs/libgomp-1a2b3c.so.1.0.0"]
@@ -276,6 +277,49 @@ def test_every_platform_wheel_is_required_and_structurally_checked(
     linux.unlink()
     (directory / "stripped.whl").rename(linux)
     with pytest.raises(ValueError, match="OpenMP"):
+        manager.create(directory)
+
+
+def test_distributions_without_the_typing_marker_fail(
+    payload: tuple[ReleaseManager, Path],
+) -> None:
+    """Reject wheels and source archives that omit the PEP 561 typing marker.
+
+    Args:
+        payload (tuple[ReleaseManager, Path]): Valid synthetic artifact set carrying the marker.
+    """
+    manager, directory = payload
+    manager.create(directory)
+    (directory / "manifest.json").unlink()
+    linux = next((directory / "dist").glob("*manylinux*x86_64.whl"))
+    with ZipFile(linux) as source, ZipFile(directory / "untyped.whl", "w") as target:
+        for entry in source.infolist():
+            if entry.filename != "rko_solver/py.typed":
+                target.writestr(entry, source.read(entry.filename))
+    linux.unlink()
+    (directory / "untyped.whl").rename(linux)
+    with pytest.raises(ValueError, match="typing marker"):
+        manager.create(directory)
+    (directory / "manifest.json").unlink(missing_ok=True)
+    sdist = next((directory / "dist").glob("*.tar.gz"))
+    with tarfile.open(sdist) as source:
+        members = {
+            member.name: source.extractfile(member).read()
+            for member in source.getmembers()
+            if member.name != "rko_solver-0.3.0a1/src/rko_solver/py.typed"
+        }
+    with ZipFile(linux) as source, ZipFile(directory / "retyped.whl", "w") as target:
+        for entry in source.infolist():
+            target.writestr(entry, source.read(entry.filename))
+        target.writestr("rko_solver/py.typed", b"")
+    linux.unlink()
+    (directory / "retyped.whl").rename(linux)
+    with tarfile.open(sdist, "w:gz") as target:
+        for name, content in members.items():
+            member = tarfile.TarInfo(name)
+            member.size = len(content)
+            target.addfile(member, io.BytesIO(content))
+    with pytest.raises(ValueError, match="typing marker"):
         manager.create(directory)
 
 

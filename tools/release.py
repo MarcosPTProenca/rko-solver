@@ -411,6 +411,8 @@ class ReleaseManager:
             )
             if any(tool in parsed.name.lower() for tool in banned):
                 raise ValueError("Release tooling must not become a runtime dependency.")
+        if resource_prefix + "py.typed" not in names:
+            raise ValueError("Distributions must ship the PEP 561 typing marker.")
         if not any(
             name.startswith(resource_prefix + "parameters/") and name.endswith(".toml")
             for name in names
