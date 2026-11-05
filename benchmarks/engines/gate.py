@@ -418,7 +418,6 @@ class Gate:
             "instance": instance.name,
             "instance_sha256": instance.sha256,
             "budget": budget.label,
-            "time_limit": budget.time_limit,
             "max_evaluations": budget.max_evaluations,
             "n_jobs": budget.solver_options(engine).get("n_jobs"),
             "time_cap": budget.time_limit,
