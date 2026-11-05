@@ -58,13 +58,15 @@ class ScreenInputs(GateInstances):
         count (int): Twenty instances per family in this frozen screen.
     """
 
-    def __init__(self, cache_dir: Path) -> None:
-        """Bind the screen to its fixed count and cache.
+    def __init__(self, cache_dir: Path, count: int = 20) -> None:
+        """Bind the screen to its cache and instance count.
 
         Args:
             cache_dir (Path): Input cache root.
+            count (int): Instances to draw; the frozen screen used 20 and a larger value
+                exposes the whole reserved pool.
         """
-        super().__init__(cache_dir, "test", 20)
+        super().__init__(cache_dir, "test", count)
 
     def knapsack_ids(self) -> list[tuple[str, int]]:
         """Select twenty fresh, repeatable KPLIB inputs.
