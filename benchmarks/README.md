@@ -81,6 +81,24 @@ uv run python -m benchmarks.engines.gate --candidate rust --baseline rust --cand
 uv run python -m benchmarks.runtime.overhead --quick
 ```
 
+For a fresh cohort after exploratory runs, use `--split confirmation` (1–100 instances per
+family). It reserves 20 calibration IDs and the historical test selections for counts 1–100
+per KPLIB type, then draws a fixed, disjoint 20-ID confirmation pool per type. Smaller counts
+are prefixes of the same round-robin selection. Rastrigin uses a new seed and separate input
+filenames. The old `test` default, its selections and the calibration inputs remain unchanged.
+The reservation does not cover historical test runs requesting more than 100 instances, or
+other benchmark tools that may already have used the same public KPLIB data.
+
+Freeze hypotheses, budgets and tolerances before inspecting confirmation outcomes. Deterministic
+A/A equality does not justify a positive noise floor; between-seed spread is not acceptable
+regression. To use only the existing relative tolerance, pass `--floor knapsack=0,rastrigin=0`;
+this is still a 2% relative margin when baseline gap is positive, not a zero-margin test.
+A passing non-inferiority result does not demonstrate superiority.
+
+```bash
+uv run python -m benchmarks.engines.gate --candidate rust --baseline rust --candidate-option progress_schedule=true --baseline-option progress_schedule=false --split confirmation --instances 20 --replicates 5 --budgets evals --evaluations 100000 --margin 0.02 --floor knapsack=0,rastrigin=0 --output /tmp/gate-confirmation.jsonl
+```
+
 `runtime/overhead.py` reports evaluations per second per algorithm (ILS, BRKGA, SA, GA, PSO) for
 an O(1) objective at n = 10, 100 and 1000 on one native thread. With `perf` installed it also
 prints the five heaviest symbols, and with `cargo flamegraph` it writes an SVG; otherwise it

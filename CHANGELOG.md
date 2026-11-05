@@ -7,6 +7,11 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- The repository-only benchmark gate accepts `--split confirmation`: a fixed cohort
+  disjoint from calibration and historical test selections of up to 100 instances per
+  family. Existing splits and defaults are unchanged. This adds measurement tooling,
+  not evidence of solver quality improvement.
+
 - Repository-only benchmark tooling: a non-inferiority gate
   (`python -m benchmarks.engines.gate`) that compares a candidate engine configuration with a
   baseline per family and budget, tying every verdict to one recorded native binary, and a

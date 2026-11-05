@@ -1,7 +1,7 @@
 """Instance selection and construction for the non-inferiority gate.
 
 Objective:
-- Draw disjoint calibration and test instances from fixed seeds and build each one with an
+- Draw calibration, test and disjoint confirmation instances from fixed seeds, each with an
   independent scoring closure, so the gate can score solver output without trusting the solver.
 
 Technical approach:
@@ -17,6 +17,7 @@ Flow (pseudocode):
 
 Important criteria:
 - The test and calibration splits never share a KPLIB id.
+- Confirmation excludes both historical cohorts for counts up to 100 instances per family.
 - A KPLIB file must be 500 items and at most 64 KiB.
 
 Inputs/Outputs:
@@ -48,6 +49,8 @@ from typing import Any
 
 CALIBRATION_SEED = 20261120
 TEST_SEED = 20261111
+CONFIRMATION_SEED = 20261121
+CONFIRMATION_POOL = 20
 CALIBRATION_POOL = 20
 RASTRIGIN_DIMENSIONS = (100, 300)
 EVALUATION_TIME_CAP = 600.0
@@ -171,12 +174,12 @@ class GateInstances:
     """Select and build the gate instances for one split.
 
     Responsibilities:
-    - Draw disjoint calibration and test samples from fixed seeds.
+    - Draw fixed calibration and test samples, plus a reserved confirmation cohort.
     - Download and verify-by-hash KPLIB inputs and write shifted Rastrigin inputs.
 
     Attributes:
         cache_dir (Path): Cache root for KPLIB files and generated Rastrigin shifts.
-        split (str): `test` or `calibration`.
+        split (str): `test`, `calibration` or `confirmation`.
         count (int): Instances per family.
     """
 
@@ -185,16 +188,19 @@ class GateInstances:
 
         Args:
             cache_dir (Path): Cache root for inputs.
-            split (str): `test` or `calibration`.
+            split (str): `test`, `calibration` or `confirmation`.
             count (int): Positive instances per family.
 
         Raises:
-            ValueError: If the split is unknown or the count is not positive.
+            ValueError: If the split is unknown, count is not positive, or confirmation
+                requests more than 100 instances.
         """
-        if split not in ("test", "calibration"):
-            raise ValueError("split must be 'test' or 'calibration'.")
+        if split not in ("test", "calibration", "confirmation"):
+            raise ValueError("split must be 'test', 'calibration' or 'confirmation'.")
         if count < 1:
             raise ValueError("instances must be positive.")
+        if split == "confirmation" and count > CONFIRMATION_POOL * len(FAMILIES):
+            raise ValueError("confirmation supports at most 100 instances per family.")
         self.cache_dir = cache_dir
         self.split = split
         self.count = count
@@ -203,7 +209,8 @@ class GateInstances:
         """Choose KPLIB (type, id) pairs round-robin over the five types.
 
         Returns:
-            list[tuple[str, int]]: `count` pairs; the test split excludes every calibration id.
+            list[tuple[str, int]]: `count` pairs. Test excludes calibration IDs; confirmation
+                excludes calibration and historical test selections of up to 100 instances.
         """
         per_type = -(-self.count // len(FAMILIES))
         calibration = sorted(random.Random(CALIBRATION_SEED).sample(range(100), CALIBRATION_POOL))
@@ -211,7 +218,12 @@ class GateInstances:
             ids = calibration[:per_type]
         else:
             pool = [item for item in range(100) if item not in calibration]
-            ids = sorted(random.Random(TEST_SEED).sample(pool, per_type))
+            if self.split == "confirmation":
+                historical = random.Random(TEST_SEED).sample(pool, CONFIRMATION_POOL)
+                pool = sorted(set(pool) - set(historical))
+                ids = sorted(random.Random(CONFIRMATION_SEED).sample(pool, CONFIRMATION_POOL))
+            else:
+                ids = sorted(random.Random(TEST_SEED).sample(pool, per_type))
         return [
             (FAMILIES[position % len(FAMILIES)], ids[position // len(FAMILIES)])
             for position in range(self.count)
@@ -302,7 +314,11 @@ class GateInstances:
         Raises:
             OSError: If the instance file cannot be written.
         """
-        seed = CALIBRATION_SEED if self.split == "calibration" else TEST_SEED
+        seed = {
+            "calibration": CALIBRATION_SEED,
+            "test": TEST_SEED,
+            "confirmation": CONFIRMATION_SEED,
+        }[self.split]
         generator = random.Random(f"{seed}:{dimension}:{index}")
         shifts = [round(generator.uniform(-2.0, 2.0), 3) for _ in range(dimension)]
         path = self.cache_dir / "gate-rastrigin" / f"{self.split}-{dimension}-{index:02d}.txt"
