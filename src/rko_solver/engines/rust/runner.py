@@ -207,7 +207,7 @@ class NativeRunner:
             workers,
             history_limit,
             1,
-            self.config.prefill_pool,
+            (self.config.prefill_pool, self.config.progress_schedule),
             self.engine,
             max_evaluations=max_evaluations,
             initial_keys=self.initial_keys.keys.tolist(),

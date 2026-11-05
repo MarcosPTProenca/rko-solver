@@ -10,6 +10,10 @@ control = 1
 pool_size = 10
 prefill_pool = false
 
+# false keeps the earlier Q-learning schedule (whole-second epsilon windows) and
+# fixed-scale reward; true selects the progress-driven schedule and scale-free reward
+progress_schedule = false
+
 [active_metaheuristics]
 # Algorithms dispatched through the explicitly selected engine.
 # Remove or comment out entries to disable individual algorithms.

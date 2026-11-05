@@ -8,23 +8,39 @@
 //! - Each feasible Cartesian parameter combination is a state; actions connect states
 //!   that differ in at most one axis (including staying put).
 //! - Initial Q-values are uniform in `[0.005, 0.01)`; selection is epsilon-greedy with
-//!   a cosine schedule that restarts every tenth of the horizon with a lower ceiling.
-//! - Rewards are 1 for a strict improvement and otherwise a bounded relative penalty.
+//!   a cosine schedule that restarts every tenth of the search progress with a lower ceiling.
+//! - Progress is `max(elapsed / horizon, evaluations / max_evaluations)` in `[0, 1]`, so the
+//!   schedule is the same for a 2 s and a 100 s run and for runs bounded only by evaluations.
+//! - Rewards are 1 for a strict improvement and otherwise `-min(1, (candidate - previous) /
+//!   max(|previous|, |candidate|))`, which does not depend on the scale of the objective.
+//! - The default (`progress_schedule` false) is the legacy whole-second window and the fixed
+//!   reward scale of 1; the progress schedule and scale-free reward above are opt-in.
 //!
 //! Flow (pseudocode):
 //! 1. Build states and distance-one actions from the filtered grid.
-//! 2. Per decision: update epsilon/learning factor, pick an action, adopt its state.
+//! 2. Per decision: update epsilon/learning factor from progress, pick an action, adopt its state.
 //! 3. After observing the outcome, apply the Bellman update to that action.
 //!
 //! Important criteria:
 //! - The greedy action is the first maximum after every update.
-//! - Learning factor decays linearly to 0.1; discount factor is 0.8.
+//! - Learning factor decays linearly with progress to 0.1; discount factor is 0.8.
+//! - Epsilon ceiling drops by 0.1 for every tenth of progress crossed, down to 0.1.
 //!
 //! Inputs/Outputs:
-//! - Input: feasible parameter vectors, the time horizon and an `Rng`.
+//! - Input: feasible parameter vectors, the time horizon, search progress and an `Rng`.
 //! - Output: chosen state indices, learning factors and updated Q-values.
 
+use crate::mh::Context;
+use crate::mh::Spec;
 use crate::rng::Rng;
+use crate::search::Search;
+use crate::search::Stop;
+
+/// Number of epsilon restart windows per search horizon (each spans a tenth of progress).
+const RESTART_WINDOWS: f64 = 10.0;
+
+/// Smallest cost scale used as a divisor by the scale-free reward.
+pub const REWARD_SCALE_FLOOR: f64 = f64::MIN_POSITIVE;
 
 /// Parameter vector with its outgoing actions and Q-values.
 #[derive(Clone, Debug)]
@@ -61,6 +77,7 @@ pub struct QLearning {
     restart: usize,
     horizon: f64,
     window: usize,
+    progress_schedule: bool,
 }
 
 impl QLearning {
@@ -137,7 +154,26 @@ impl QLearning {
             restart: 1,
             horizon,
             window: ((horizon * 0.1) as usize).max(1),
+            progress_schedule: false,
         })
+    }
+
+    /// Builds the controller of one search from its spec, honouring the context's schedule mode.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Stop::InvalidCost` when the spec holds no feasible online state.
+    pub fn for_context(spec: &Spec, context: &mut Context<'_, '_>) -> Result<Self, Stop> {
+        let controller = Self::new(spec.states.clone(), context.search.budget(), context.rng)
+            .map_err(|_| Stop::InvalidCost)?;
+        Ok(controller.with_progress_schedule(context.progress_schedule))
+    }
+
+    /// Selects the progress schedule and scale-free reward; false keeps the legacy mode.
+    #[must_use]
+    pub fn with_progress_schedule(mut self, progress_schedule: bool) -> Self {
+        self.progress_schedule = progress_schedule;
+        self
     }
 
     /// Number of states.
@@ -158,8 +194,40 @@ impl QLearning {
         &self.states[index]
     }
 
-    /// Computes epsilon, learning and discount factors at `elapsed` seconds.
-    pub fn schedule(&mut self, elapsed: f64) -> Schedule {
+    /// Computes the schedule of one decision from the search clock and evaluation counter.
+    pub fn schedule(&mut self, search: &Search<'_>) -> Schedule {
+        self.schedule_at(search.elapsed(), search.progress())
+    }
+
+    /// Computes epsilon, learning and discount factors for one decision.
+    ///
+    /// # Arguments
+    ///
+    /// * `elapsed` - Seconds since the search started; used only by the legacy schedule.
+    /// * `progress` - Search progress in `[0, 1]`; values outside are clamped.
+    pub fn schedule_at(&mut self, elapsed: f64, progress: f64) -> Schedule {
+        if !self.progress_schedule {
+            return self.legacy_schedule(elapsed);
+        }
+        let scaled = progress.clamp(0.0, 1.0) * RESTART_WINDOWS;
+        while self.restart as f64 <= scaled {
+            self.restart += 1;
+            self.epsilon_max = (self.epsilon_max - 0.1).max(self.epsilon_min);
+        }
+        let phase = scaled.fract();
+        let epsilon = self.epsilon_min
+            + 0.5
+                * (self.epsilon_max - self.epsilon_min)
+                * (1.0 + (phase * std::f64::consts::PI).cos());
+        Schedule {
+            epsilon,
+            learning: 1.0 - 0.9 * progress.clamp(0.0, 1.0),
+            discount: 0.8,
+        }
+    }
+
+    /// Earlier schedule: whole-second restart windows of a tenth of the horizon.
+    fn legacy_schedule(&mut self, elapsed: f64) -> Schedule {
         self.window = ((self.horizon * 0.1) as usize).max(1);
         let epsilon = if elapsed >= (self.restart * self.window) as f64 {
             self.restart += 1;
@@ -211,7 +279,26 @@ impl QLearning {
         node.max_q = node.q[best];
     }
 
-    /// Reward for strict improvement, or a bounded relative penalty otherwise.
+    /// Reward for strict improvement, or a scale-free penalty in `[-1, 0]` otherwise.
+    ///
+    /// The penalty is `-min(1, (candidate - previous) / max(|previous|, |candidate|))`, so it
+    /// depends only on the relative worsening and is zero when the costs are equal.
+    #[must_use]
+    pub fn progress_reward(previous_best: f64, candidate: f64) -> f64 {
+        if candidate < previous_best {
+            return 1.0;
+        }
+        if candidate == previous_best {
+            return 0.0;
+        }
+        let scale = previous_best
+            .abs()
+            .max(candidate.abs())
+            .max(REWARD_SCALE_FLOOR);
+        -((candidate - previous_best) / scale).min(1.0)
+    }
+
+    /// Earlier reward: improvement is 1, otherwise the difference over `max(|a|, |b|, 1)`.
     #[must_use]
     pub fn relative_reward(previous_best: f64, candidate: f64) -> f64 {
         if candidate < previous_best {
@@ -219,6 +306,16 @@ impl QLearning {
         }
         let scale = previous_best.abs().max(candidate.abs()).max(1.0);
         (previous_best / scale - candidate / scale).max(-1.0)
+    }
+
+    /// Reward under the active mode.
+    #[must_use]
+    pub fn reward(&self, previous_best: f64, candidate: f64) -> f64 {
+        if self.progress_schedule {
+            Self::progress_reward(previous_best, candidate)
+        } else {
+            Self::relative_reward(previous_best, candidate)
+        }
     }
 }
 
@@ -257,7 +354,7 @@ mod tests {
         let mut rng = Rng::new(2);
         let states = QLearning::grid_states(&axes(), |_| true);
         let mut controller = QLearning::new(states, 10.0, &mut rng).unwrap();
-        let schedule = controller.schedule(0.0);
+        let schedule = controller.schedule_at(0.0, 0.0);
         controller.update(0, 2, 1.0, schedule);
         assert_eq!(controller.state(0).max_action, 2);
         assert!(controller.state(0).max_q > 0.5);
@@ -268,19 +365,112 @@ mod tests {
         let mut rng = Rng::new(3);
         let states = QLearning::grid_states(&axes(), |_| true);
         let mut controller = QLearning::new(states, 10.0, &mut rng).unwrap();
-        let start = controller.schedule(0.0);
+        let start = controller.schedule_at(0.0, 0.0);
         assert!((start.epsilon - 1.0).abs() < 1e-12);
         assert!((start.learning - 1.0).abs() < 1e-12);
-        let late = controller.schedule(9.5);
+        let late = controller.schedule_at(9.5, 0.95);
         assert!((late.learning - 0.145).abs() < 1e-9);
         assert!(late.epsilon <= 1.0 && late.epsilon >= 0.1);
     }
 
+    fn trace(horizon: f64, progress_schedule: bool) -> Vec<f64> {
+        let mut rng = Rng::new(3);
+        let states = QLearning::grid_states(&axes(), |_| true);
+        let mut controller = QLearning::new(states, horizon, &mut rng)
+            .unwrap()
+            .with_progress_schedule(progress_schedule);
+        (0..=20)
+            .map(|step| {
+                let share = f64::from(step) / 20.0;
+                controller.schedule_at(horizon * share, share).epsilon
+            })
+            .collect()
+    }
+
+    fn assert_close(actual: &[f64], expected: &[f64]) {
+        assert_eq!(actual.len(), expected.len());
+        for (left, right) in actual.iter().zip(expected) {
+            assert!((left - right).abs() < 1e-9, "{actual:?} != {expected:?}");
+        }
+    }
+
+    const PROGRESS_TRACE: [f64; 21] = [
+        1.0, 0.55, 0.9, 0.5, 0.8, 0.45, 0.7, 0.4, 0.6, 0.35, 0.5, 0.3, 0.4, 0.25, 0.3, 0.2, 0.2,
+        0.15, 0.1, 0.1, 0.1,
+    ];
+
+    #[test]
+    fn progress_schedule_is_the_same_for_every_horizon() {
+        for horizon in [2.0, 10.0, 100.0] {
+            assert_close(&trace(horizon, true), &PROGRESS_TRACE);
+        }
+    }
+
+    #[test]
+    fn progress_schedule_follows_evaluation_counts_without_a_clock() {
+        let mut rng = Rng::new(3);
+        let states = QLearning::grid_states(&axes(), |_| true);
+        let mut controller = QLearning::new(states, 1000.0, &mut rng)
+            .unwrap()
+            .with_progress_schedule(true);
+        let counted: Vec<f64> = (0..=20)
+            .map(|step| {
+                controller
+                    .schedule_at(0.0, f64::from(step * 20) / 400.0)
+                    .epsilon
+            })
+            .collect();
+        assert_close(&counted, &PROGRESS_TRACE);
+        assert!((controller.schedule_at(0.0, 1.0).learning - 0.1).abs() < 1e-12);
+        assert!((controller.schedule_at(0.0, 7.0).learning - 0.1).abs() < 1e-12);
+    }
+
+    #[test]
+    fn legacy_schedule_keeps_the_whole_second_window() {
+        let two = trace(2.0, false);
+        assert_close(&two[..10], &[1.0; 10]);
+        assert_close(&two[10..20], &[0.9; 10]);
+        assert_close(
+            &trace(10.0, false),
+            &[
+                1.0, 1.0, 0.9, 0.9, 0.8, 0.8, 0.7, 0.7, 0.6, 0.6, 0.5, 0.5, 0.4, 0.4, 0.3, 0.3,
+                0.2, 0.2, 0.1, 0.1, 0.1,
+            ],
+        );
+        assert_close(&trace(100.0, false), &PROGRESS_TRACE);
+    }
+
     #[test]
     fn reward_rules() {
-        assert_eq!(QLearning::relative_reward(10.0, 9.0), 1.0);
-        assert_eq!(QLearning::relative_reward(10.0, 10.0), 0.0);
-        assert!(QLearning::relative_reward(10.0, 1000.0) >= -1.0);
-        assert!(QLearning::relative_reward(-100.0, -50.0) < 0.0);
+        assert_eq!(QLearning::progress_reward(10.0, 9.0), 1.0);
+        assert_eq!(QLearning::progress_reward(10.0, 10.0), 0.0);
+        assert_eq!(QLearning::progress_reward(0.0, 0.0), 0.0);
+        assert!(QLearning::progress_reward(10.0, 1000.0) >= -1.0);
+        assert!(QLearning::progress_reward(-100.0, -50.0) < 0.0);
+        assert_eq!(QLearning::progress_reward(0.0, 5.0), -1.0);
+        assert_eq!(QLearning::progress_reward(1e308, -1e308), 1.0);
+        assert_eq!(QLearning::progress_reward(-1e308, 1e308), -1.0);
+    }
+
+    #[test]
+    fn penalty_does_not_depend_on_cost_scale() {
+        let small = QLearning::progress_reward(1e-6, 1.5e-6);
+        let large = QLearning::progress_reward(1e6, 1.5e6);
+        assert!((small - large).abs() < 1e-12);
+        assert!((small + 1.0 / 3.0).abs() < 1e-12);
+        let legacy_small = QLearning::relative_reward(1e-6, 1.5e-6);
+        assert!((legacy_small + 5e-7).abs() < 1e-12);
+    }
+
+    #[test]
+    fn legacy_reward_keeps_the_fixed_scale() {
+        assert_eq!(QLearning::relative_reward(0.0, 0.5), -0.5);
+        assert!((QLearning::relative_reward(1.0, 3.0) + 2.0 / 3.0).abs() < 1e-12);
+        let mut rng = Rng::new(3);
+        let states = QLearning::grid_states(&axes(), |_| true);
+        let controller = QLearning::new(states, 1.0, &mut rng)
+            .unwrap()
+            .with_progress_schedule(false);
+        assert_eq!(controller.reward(0.0, 0.5), -0.5);
     }
 }

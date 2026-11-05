@@ -275,14 +275,7 @@ class GRASP(MetaheuristicBase):
         lf = 1.0
         df = 0.8
         if self.control == 1:
-            ql = QLearningController(
-                self.parameters,
-                epsilon_max=1.0,
-                epsilon_min=0.1,
-                restart_epsilon=1,
-                max_time=limit_time,
-                state_filter=self._state_filter,
-            )
+            ql = self._build_controller(self.parameters, limit_time, self._state_filter)
             st = random.randint(0, max(0, len(ql.states) - 1))
 
         best_keys: np.ndarray = numpy_rng.random(n)
@@ -302,7 +295,7 @@ class GRASP(MetaheuristicBase):
         while not self.time_limit_reached(limit_time):
             previous_best = best_cost
             if ql is not None:
-                epsilon, lf, df, _, _, _ = ql.set_parameters(self.elapsed())
+                epsilon, lf, df, _, _, _ = self.schedule_parameters(ql, limit_time)
                 at = ql.choose_action(st, epsilon)
                 i_curr = ql.states[st].Ai[at]
                 hs_cur = ql.states[i_curr].par[1]
@@ -337,7 +330,7 @@ class GRASP(MetaheuristicBase):
                     h /= 2.0
 
             if ql is not None:
-                reward = 1.0 if best_cost < previous_best else ql.relative_reward(best_cost, s_cost)
+                reward = 1.0 if best_cost < previous_best else ql.reward(best_cost, s_cost)
                 st_next = ql.states[st].Ai[at]
                 ql.update_q_value(st, at, reward, lf, df)
                 st = st_next

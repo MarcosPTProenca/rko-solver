@@ -44,6 +44,16 @@ versions must be verified against their tag, manifest and package-index metadata
 - `RKO(..., initial_keys=...)` evaluates copied, validated random-key vectors once before search
   and offers them to the shared pool across Python, Rust and C++; `result.initial_keys` reports
   seeded evaluations separately, while total evaluation counts include them.
+- An opt-in Q-learning schedule, `[run] progress_schedule = true` (default `false`). The default is
+  unchanged: adaptive control keeps the legacy whole-second epsilon windows and the fixed-scale
+  reward, byte for byte. When enabled, the schedule follows search progress, the larger of the
+  elapsed time share and the `max_evaluations` share: epsilon restarts every tenth of progress, so a
+  2 s run sees the same schedule as a 100 s run, and the penalty for a worse candidate is
+  `-min(1, (candidate - previous) / max(|previous|, |candidate|))`, independent of the objective
+  scale. The Python and Rust engines agree on the trace; the C++ reference keeps its own schedule
+  and ignores the key. This is not a measured quality improvement; it exists because the legacy
+  schedule never anneals for runs under about 20 s, where its first whole-second window spans the
+  whole run. Default adaptive results and the `adaptive` golden entries are unchanged.
 
 ### Removed
 

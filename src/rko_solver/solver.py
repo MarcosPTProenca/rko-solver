@@ -496,18 +496,18 @@ class RKO:
         metaheuristics = []
         for name, stream in zip(config.active_metaheuristics, streams, strict=True):
             with stream.activate():
-                metaheuristics.append(
-                    build_metaheuristic(
-                        name,
-                        pool,
-                        self.decoder,
-                        self.cost,
-                        self.n_variables,
-                        config.control,
-                        self.params_dir,
-                        (hyperparameters or {}).get(name),
-                    )
+                mh = build_metaheuristic(
+                    name,
+                    pool,
+                    self.decoder,
+                    self.cost,
+                    self.n_variables,
+                    config.control,
+                    self.params_dir,
+                    (hyperparameters or {}).get(name),
                 )
+                mh.progress_schedule = config.progress_schedule
+                metaheuristics.append(mh)
         if execution == "process":
             return run_processes(
                 config,

@@ -246,6 +246,9 @@ impl Problem for CallbackAdapter<'_> {
 
 type SpecTuple = (String, Vec<f64>, Vec<Vec<f64>>, bool);
 
+/// `(prefill, progress_schedule)` run-level booleans passed as one Python tuple.
+type RunFlags = (bool, bool);
+
 fn parse_specs(specs: Vec<SpecTuple>) -> PyResult<Vec<Spec>> {
     specs
         .into_iter()
@@ -329,7 +332,7 @@ fn cpp_available() -> bool {
 
 /// Runs a native portfolio and returns a result dictionary.
 #[pyfunction]
-#[pyo3(signature = (problem, specs, time_limit, seed, pool_size, threads=None, history_limit=0, ls_strategy=1, prefill=false, engine="rust", max_evaluations=None, initial_keys=None))]
+#[pyo3(signature = (problem, specs, time_limit, seed, pool_size, threads=None, history_limit=0, ls_strategy=1, flags=(false, false), engine="rust", max_evaluations=None, initial_keys=None))]
 #[allow(clippy::too_many_arguments)]
 fn run<'py>(
     problem: &Bound<'py, PyAny>,
@@ -340,13 +343,14 @@ fn run<'py>(
     threads: Option<usize>,
     history_limit: usize,
     ls_strategy: u8,
-    prefill: bool,
+    flags: RunFlags,
     engine: &str,
     max_evaluations: Option<u64>,
     initial_keys: Option<Vec<Vec<f64>>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     let py = problem.py();
     let specs = parse_specs(specs)?;
+    let (prefill, progress_schedule) = flags;
     let config = Config {
         time_limit,
         seed,
@@ -356,6 +360,7 @@ fn run<'py>(
         ls_strategy,
         prefill,
         max_evaluations,
+        progress_schedule,
         initial_keys: initial_keys.unwrap_or_default(),
     };
     if let Ok(knapsack) = problem.cast::<KnapsackProblem>() {

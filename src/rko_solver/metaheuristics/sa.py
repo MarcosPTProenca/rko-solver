@@ -157,14 +157,7 @@ class SA(MetaheuristicBase):
         ql: QLearningController | None = None
         st = 0
         if self.control == 1:
-            ql = QLearningController(
-                self.parameters,
-                epsilon_max=1.0,
-                epsilon_min=0.1,
-                restart_epsilon=1,
-                max_time=limit_time,
-                state_filter=self._state_filter,
-            )
+            ql = self._build_controller(self.parameters, limit_time, self._state_filter)
             st = random.randint(0, len(ql.states) - 1)
             sa_max, t0, alpha, beta_min, beta_max = ql.states[st].par
             sa_max = int(sa_max)
@@ -181,7 +174,7 @@ class SA(MetaheuristicBase):
             while T > 0.0001 and not self.time_limit_reached(limit_time):
                 previous_best = best_cost
                 if ql is not None:
-                    epsilon, lf, df, _, _, _ = ql.set_parameters(self.elapsed())
+                    epsilon, lf, df, _, _, _ = self.schedule_parameters(ql, limit_time)
                     at = ql.choose_action(st, epsilon)
                     next_state = ql.states[st].Ai[at]
                     sa_max, t0, alpha, beta_min, beta_max = ql.states[next_state].par
@@ -223,9 +216,7 @@ class SA(MetaheuristicBase):
                     self.solution_pool.insert((best_cost, best_keys.tolist()), self.name)
                 if ql is not None and iter_t > 0:
                     reward = (
-                        1.0
-                        if best_cost < previous_best
-                        else ql.relative_reward(best_cost, best_ofv_level)
+                        1.0 if best_cost < previous_best else ql.reward(best_cost, best_ofv_level)
                     )
                     ql.update_q_value(st, at, reward, lf, df)
                     st = next_state

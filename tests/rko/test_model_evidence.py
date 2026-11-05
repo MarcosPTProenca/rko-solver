@@ -57,6 +57,7 @@ class RejectedCandidates:
 
     name = "rejected"
     _cancelled = None
+    _evaluation_share = None
 
     def __init__(self, model: CompiledLinearModel, keys: tuple[float, ...]) -> None:
         """Retain generated callbacks and the exact evaluation sequence.

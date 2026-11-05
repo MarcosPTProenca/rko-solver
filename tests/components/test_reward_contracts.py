@@ -154,3 +154,18 @@ def test_reward_survives_incumbent_update(name: str, monkeypatch: pytest.MonkeyP
     _, _, best = algorithm.solve(1.0)
     assert best == -150.0
     assert rewards == [1.0]
+
+
+@pytest.mark.parametrize("scale", [1e-6, 1.0, 1e6])
+def test_progress_penalty_is_the_relative_worsening(scale: float) -> None:
+    """Penalize a deterioration by (candidate - previous) / max(|previous|, |candidate|).
+
+    The expected value is the closed form, not the implementation, and holds at every scale.
+
+    Args:
+        scale (float): Magnitude of the costs.
+    """
+    assert QLearningController.progress_reward(2 * scale, 3 * scale) == pytest.approx(-1 / 3)
+    assert QLearningController.progress_reward(-3 * scale, -2 * scale) == pytest.approx(-1 / 3)
+    assert QLearningController.progress_reward(0.0, scale) == -1.0
+    assert QLearningController.progress_reward(scale, scale) == 0.0

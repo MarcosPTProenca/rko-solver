@@ -62,10 +62,22 @@ def test_run_executes_orchestration_flow(monkeypatch: pytest.MonkeyPatch) -> Non
         "parse_run_config",
         lambda cfg: RunConfig(control=0, pool_size=3, active_metaheuristics=("SA", "GA")),
     )
+
+    class _Search(str):
+        """String-valued search label that accepts the solver's schedule flag.
+
+        Responsibilities:
+        - Compare equal to its name so dispatch assertions stay unchanged.
+        - Accept ``progress_schedule`` assignment like a real metaheuristic.
+
+        Attributes:
+            progress_schedule (bool): Schedule flag written by the solver.
+        """
+
     monkeypatch.setattr(
         solver,
         "build_metaheuristic",
-        lambda name, pool, decoder, cost, tam_solution, control, params_dir, hyperparameters=None: (
+        lambda name, pool, decoder, cost, tam_solution, control, params_dir, *rest: _Search(
             f"mh:{name}"
         ),
     )

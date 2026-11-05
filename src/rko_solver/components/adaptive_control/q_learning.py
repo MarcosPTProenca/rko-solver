@@ -9,31 +9,46 @@ Technical approach:
 - Index finite numeric states by all-but-one-coordinate signatures to avoid
   testing unrelated pairs; retain pairwise comparison for other scalar types.
 - Update Q-values with an epsilon-greedy policy and the Bellman equation.
+- Drive epsilon and the learning factor from search progress, the larger of the elapsed
+  share of the time horizon and the share of the evaluation limit, so the schedule has the
+  same shape for any horizon and for runs bounded only by evaluations.
+- Reward a strict improvement with 1 and penalize a deterioration by its relative size.
 
 Flow (pseudocode):
 1. Build feasible states and actions.
 2. Choose actions through exploration/exploitation.
-3. Update Q-values and learning parameters over time.
+3. Update Q-values and learning parameters from search progress.
 
 Important criteria:
-- Cyclical epsilon control.
+- Cyclical epsilon control: one cosine cycle per tenth of progress, with the ceiling
+  falling by 0.1 per cycle down to the floor; the learning factor is 1 - 0.9 * progress.
+- The penalty is -min(1, (candidate - previous) / max(|previous|, |candidate|)) with the
+  denominator floored at the smallest positive float, so it ignores the objective scale;
+  equal costs give 0.
+- The default (`progress_schedule=False`) keeps the earlier whole-second windows
+  (`max(1, int(0.1 * horizon))`) and the reward scaled by at least 1; `progress_schedule=True`
+  selects the progress schedule and scale-free reward. The Rust engine mirrors both modes exactly.
 - Recompute the current best action after every Q update.
 - Preserve ascending neighbor labels and the exact initialization RNG draw order.
 - Signature indexes add temporary memory; dense graphs still require quadratic output.
 - Reference: docs/references.md, section q-learning-parameter-control
 
 Inputs/Outputs:
-- Input: parameter grid, rewards, and current time.
+- Input: parameter grid, rewards, elapsed time and search progress.
 - Output: selected action, learning parameters, and updated Q-table.
 """
 
 import math
 import random as random
+import sys
 from ..random_streams import RandomStreams
 from collections.abc import Callable
 from dataclasses import dataclass
 from dataclasses import field
 from itertools import product
+
+REWARD_SCALE_FLOOR = sys.float_info.min
+RESTART_WINDOWS = 10.0
 
 
 @dataclass
@@ -83,7 +98,9 @@ class QLearningController:
       epsilon_min (float): Lower exploration bound.
       restart_epsilon (int): Epsilon restart counter.
       max_time (float): Time horizon used for normalization.
-      ti (int): Time window for periodic control.
+      ti (int): Whole-second epsilon window; used only by the legacy schedule.
+      progress_schedule (bool): Use the progress-driven schedule and scale-free reward;
+        false keeps the earlier whole-second schedule and fixed-scale reward.
     """
 
     def __init__(
@@ -118,6 +135,7 @@ class QLearningController:
         self.restart_epsilon = restart_epsilon
         self.max_time = max_time
         self.ti = max(1, int(max_time * 0.1))
+        self.progress_schedule = False
 
     @staticmethod
     def _create_states(
@@ -220,18 +238,51 @@ class QLearningController:
             return state.maxA
         return random.randint(0, len(state.Ai) - 1)
 
-    def set_parameters(self, current_time: float) -> tuple[float, float, float, int, float, int]:
+    def set_parameters(
+        self, current_time: float, progress: float | None = None
+    ) -> tuple[float, float, float, int, float, int]:
         """Updates dynamic exploration and learning parameters.
 
+        The progress schedule restarts the cosine every tenth of progress, lowers the
+        ceiling by 0.1 per restart down to the floor and decays the learning factor
+        linearly to 0.1. The legacy schedule uses whole-second windows of `current_time`.
+
         Args:
-          current_time (float): Current execution time.
+          current_time (float): Seconds since the search started; used by the legacy schedule
+            and, when `progress` is omitted, as `current_time / max_time`.
+          progress (float | None): Search progress in [0, 1], the larger of the elapsed share
+            of the horizon and the share of the evaluation limit; clamped to [0, 1].
 
         Returns:
           tuple[float, float, float, int, float, int]: Epsilon, learning factor,
-            discount factor, restart_epsilon, epsilon_max e ti.
+            discount factor, restart_epsilon, epsilon_max and the legacy window `ti`.
+        """
+        if not self.progress_schedule:
+            return self._legacy_parameters(current_time)
+        if progress is None:
+            progress = current_time / self.max_time if self.max_time > 0 else 1.0
+        progress = min(max(progress, 0.0), 1.0)
+        scaled = progress * RESTART_WINDOWS
+        while self.restart_epsilon <= scaled:
+            self.restart_epsilon += 1
+            self.epsilon_max = max(self.epsilon_max - 0.1, self.epsilon_min)
+        phase = scaled - math.floor(scaled)
+        epsilon = self.epsilon_min + 0.5 * (self.epsilon_max - self.epsilon_min) * (
+            1 + math.cos(phase * math.pi)
+        )
+        return epsilon, 1.0 - 0.9 * progress, 0.8, self.restart_epsilon, self.epsilon_max, self.ti
 
-        Raises:
-          ValueError: When required by external domain validation.
+    def _legacy_parameters(
+        self, current_time: float
+    ) -> tuple[float, float, float, int, float, int]:
+        """Computes the earlier schedule: whole-second windows of a tenth of the horizon.
+
+        Args:
+          current_time (float): Seconds since the search started.
+
+        Returns:
+          tuple[float, float, float, int, float, int]: Epsilon, learning factor,
+            discount factor, restart_epsilon, epsilon_max and ti.
         """
         self.ti = max(1, int(self.max_time * 0.1))
 
@@ -251,8 +302,35 @@ class QLearningController:
         return epsilon, lf, df, self.restart_epsilon, self.epsilon_max, self.ti
 
     @staticmethod
+    def progress_reward(previous_best: float, candidate: float) -> float:
+        """Reward strict improvement and penalize deterioration by its relative size.
+
+        The penalty is -min(1, (candidate - previous) / max(|previous|, |candidate|)), so it
+        does not depend on the objective scale; the denominator is floored at
+        `REWARD_SCALE_FLOOR`.
+
+        Args:
+            previous_best (float): Finite incumbent before the transition.
+            candidate (float): Finite objective produced by the transition.
+
+        Returns:
+            float: One for improvement, zero for equal costs, or a penalty in [-1, 0).
+
+        Raises:
+            ValueError: If either objective is nonfinite.
+        """
+        if not math.isfinite(previous_best) or not math.isfinite(candidate):
+            raise ValueError("Adaptive rewards require finite objective values.")
+        if candidate < previous_best:
+            return 1.0
+        if candidate == previous_best:
+            return 0.0
+        scale = max(abs(previous_best), abs(candidate), REWARD_SCALE_FLOOR)
+        return -min((candidate - previous_best) / scale, 1.0)
+
+    @staticmethod
     def relative_reward(previous_best: float, candidate: float) -> float:
-        """Reward strict minimization improvement and normalize deterioration safely.
+        """Earlier reward: improvement is 1, otherwise the difference over max(|a|, |b|, 1).
 
         Args:
             previous_best (float): Finite incumbent before the transition.
@@ -270,6 +348,24 @@ class QLearningController:
             return 1.0
         scale = max(abs(previous_best), abs(candidate), 1.0)
         return max(-1.0, previous_best / scale - candidate / scale)
+
+    def reward(self, previous_best: float, candidate: float) -> float:
+        """Reward a transition under the active schedule mode.
+
+        Args:
+            previous_best (float): Finite incumbent before the transition.
+            candidate (float): Finite objective produced by the transition.
+
+        Returns:
+            float: `progress_reward` when the progress schedule is active, otherwise
+                `relative_reward`.
+
+        Raises:
+            ValueError: If either objective is nonfinite.
+        """
+        if self.progress_schedule:
+            return self.progress_reward(previous_best, candidate)
+        return self.relative_reward(previous_best, candidate)
 
     def update_q_value(self, st: int, at: int, reward: float, lf: float, df: float) -> None:
         """Updates a Q-value using the Bellman equation.

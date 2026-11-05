@@ -179,6 +179,7 @@ pub fn run_portfolio(
                                 rng: &mut rng,
                                 source: index,
                                 strategy: config.ls_strategy,
+                                progress_schedule: config.progress_schedule,
                             };
                             let stop = match spec.run(&mut context) {
                                 Err(stop) => stop,
@@ -319,6 +320,7 @@ mod tests {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            progress_schedule: false,
             initial_keys: Vec::new(),
         }
     }

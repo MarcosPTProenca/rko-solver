@@ -214,6 +214,7 @@ mod tests {
         Config {
             time_limit: 0.05,
             max_evaluations: Some(1),
+            progress_schedule: false,
             initial_keys: rows,
             ..Config::default()
         }

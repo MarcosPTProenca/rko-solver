@@ -152,6 +152,8 @@ pub struct Context<'a, 'b> {
     pub source: usize,
     /// Local-search sweep strategy: 1 sequential acceptance, 2 fixed-base best.
     pub strategy: u8,
+    /// Use the progress-driven Q-learning schedule and scale-free reward.
+    pub progress_schedule: bool,
 }
 
 impl Algorithm {
@@ -319,8 +321,7 @@ impl Adapter {
                 current: spec.offline.clone(),
             });
         }
-        let controller = QLearning::new(spec.states.clone(), context.search.budget(), context.rng)
-            .map_err(|_| Stop::InvalidCost)?;
+        let controller = QLearning::for_context(spec, context)?;
         let state = context.rng.below(controller.len());
         let current = controller.state(state).parameters.clone();
         Ok(Self {
@@ -345,12 +346,20 @@ impl Adapter {
     /// Chooses the next action and adopts its parameters; no-op when offline.
     pub(crate) fn begin(&mut self, context: &mut Context<'_, '_>) {
         if let Some(controller) = self.controller.as_mut() {
-            let timing = controller.schedule(context.search.elapsed());
+            let timing = controller.schedule(context.search);
             self.action = controller.choose_action(self.state, timing.epsilon, context.rng);
             let target = controller.state(self.state).actions[self.action];
             self.current
                 .clone_from(&controller.state(target).parameters);
             self.schedule = Some(timing);
+        }
+    }
+
+    /// Reward for a non-improving transition under the active schedule mode.
+    pub(crate) fn reward(&self, previous_best: f64, candidate: f64) -> f64 {
+        match self.controller.as_ref() {
+            Some(controller) => controller.reward(previous_best, candidate),
+            None => QLearning::relative_reward(previous_best, candidate),
         }
     }
 

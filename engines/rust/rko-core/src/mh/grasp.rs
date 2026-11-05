@@ -30,7 +30,6 @@
 use super::{Adapter, Context, Spec};
 use crate::local_search::LocalSearch;
 use crate::operators::random_keys;
-use crate::qlearning::QLearning;
 use crate::rng::Rng;
 use crate::search::{Search, Stop};
 
@@ -221,7 +220,7 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
         adapter.finish(if best_cost < previous_best {
             1.0
         } else {
-            QLearning::relative_reward(best_cost, current_cost)
+            adapter.reward(best_cost, current_cost)
         });
     }
 }

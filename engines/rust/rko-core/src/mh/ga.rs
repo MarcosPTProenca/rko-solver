@@ -27,7 +27,6 @@
 use super::{Adapter, Context, Spec};
 use crate::local_search::LocalSearch;
 use crate::operators::{PoolPolicy, random_keys};
-use crate::qlearning::QLearning;
 use crate::search::Stop;
 
 /// Runs the genetic algorithm until the search budget ends.
@@ -198,7 +197,7 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
         adapter.finish(if improved {
             1.0
         } else {
-            QLearning::relative_reward(best_cost, best_offspring)
+            adapter.reward(best_cost, best_offspring)
         });
     }
 }

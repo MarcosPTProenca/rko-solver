@@ -66,10 +66,7 @@ fn crossover(elite: &[f64], other: &[f64], rhoe: f64, out: &mut [f64], rng: &mut
 pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
     let n = context.search.dimension();
     let mut controller = if spec.adaptive {
-        Some(
-            QLearning::new(spec.states.clone(), context.search.budget(), context.rng)
-                .map_err(|_| Stop::InvalidCost)?,
-        )
+        Some(QLearning::for_context(spec, context)?)
     } else {
         None
     };
@@ -99,7 +96,7 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
     let mut schedule = None;
     loop {
         if let Some(controller) = controller.as_mut() {
-            let timing = controller.schedule(context.search.elapsed());
+            let timing = controller.schedule(context.search);
             action = controller.choose_action(state, timing.epsilon, context.rng);
             let target = controller.state(state).actions[action];
             params = Parameters::from(&controller.state(target).parameters);
@@ -190,7 +187,7 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
             let reward = if improved {
                 1.0
             } else {
-                QLearning::relative_reward(best_cost, best_offspring)
+                controller.reward(best_cost, best_offspring)
             };
             let following = controller.state(state).actions[action];
             controller.update(state, action, reward, timing);
