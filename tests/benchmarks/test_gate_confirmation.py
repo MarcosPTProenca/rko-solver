@@ -5,6 +5,7 @@ Objective:
 
 Technical approach:
 - Exhaust all supported counts and verify historical selection fingerprints.
+- Compare canonical historical shift content while verifying each platform's raw file digest.
 - Exercise generated Rastrigin inputs without executing a search.
 
 Flow (pseudocode):
@@ -25,6 +26,7 @@ import json
 import pytest
 from benchmarks.engines import gate
 from benchmarks.engines.gate_instances import GateInstances
+from functools import partialmethod
 from pathlib import Path
 
 
@@ -73,12 +75,18 @@ def test_historical_knapsack_fingerprints(split: str, count: int, digest: str) -
     assert hashlib.sha256(json.dumps(selected).encode()).hexdigest() == digest
 
 
-def test_confirmation_rastrigin_inputs_are_distinct(tmp_path: Path) -> None:
-    """Keep generated shifts repeatable and distinct from both old splits.
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_confirmation_rastrigin_inputs_are_distinct(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, newline: str
+) -> None:
+    """Keep generated shifts repeatable under both supported line-ending conventions.
 
     Args:
         tmp_path (Path): Isolated generated-input cache root.
+        monkeypatch (pytest.MonkeyPatch): Forces the platform's output convention.
+        newline (str): Unix or Windows newline sequence.
     """
+    monkeypatch.setattr(Path, "write_text", partialmethod(Path.write_text, newline=newline))
     historical_hashes = {
         100: (
             "dfe21b70bf70c0409f07b463b01b3670aa975490303cd85ed82b2b6e21398fb4",
@@ -94,7 +102,10 @@ def test_confirmation_rastrigin_inputs_are_distinct(tmp_path: Path) -> None:
             next(GateInstances(tmp_path, split, 1).build(f"rastrigin-{dimension}"))
             for split in ("calibration", "test", "confirmation")
         ]
-        assert tuple(instance.sha256 for instance in instances[:2]) == historical_hashes[dimension]
+        for instance, expected in zip(instances[:2], historical_hashes[dimension], strict=True):
+            content = (tmp_path / "gate-rastrigin" / f"{instance.name}.txt").read_bytes()
+            assert hashlib.sha256(content).hexdigest() == instance.sha256
+            assert hashlib.sha256(content.replace(b"\r\n", b"\n")).hexdigest() == expected
         assert len({instance.name for instance in instances}) == 3
         assert len({instance.sha256 for instance in instances}) == 3
         repeated = next(GateInstances(tmp_path, "confirmation", 1).build(f"rastrigin-{dimension}"))
