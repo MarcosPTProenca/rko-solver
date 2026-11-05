@@ -21,7 +21,9 @@
 //! Inputs/Outputs:
 //! - Input: `<instance> <seconds> [--problem kp|tsp|rastrigin] [--algo A,B] [--grid toml|cpp] [--seed N]
 //!   [--threads N] [--fixed] [--prefill] [--strategy 1|2] [--targets gap:profit,...]`.
-//! - Repository-only Rust SA screen: `--evaluations N --algo SA --fixed [--sa-t0-auto]`.
+//! - Repository-only offline screen: `--evaluations N --algo SA --fixed [--sa-t0-auto]`.
+//! - `--sa-parameters max,t0,alpha,beta_min,beta_max` imports an explicit offline vector;
+//!   its absence keeps the legacy benchmark grid, and output echoes the effective override.
 //! - Output: an `RKO_BENCH_RESULT` line with full-precision keys, then one summary JSON object;
 //!   first feasible target hits are reported on standard error.
 
@@ -221,10 +223,11 @@ fn feasible(algorithm: Algorithm, state: &[f64]) -> bool {
 struct StudyOptions {
     max_evaluations: Option<u64>,
     sa_t0_auto: bool,
+    sa_parameters: Option<Vec<f64>>,
 }
 
 impl StudyOptions {
-    /// Remove the two study controls while preserving positional and legacy arguments.
+    /// Remove repository-only study controls while preserving positional and legacy arguments.
     fn take(arguments: &mut Vec<String>) -> Self {
         let mut options = Self::default();
         let mut index = 2;
@@ -240,6 +243,17 @@ impl StudyOptions {
                     );
                     arguments.drain(index..=index + 1);
                 }
+                "--sa-parameters" => {
+                    options.sa_parameters = Some(
+                        arguments
+                            .get(index + 1)
+                            .expect("missing offline parameters")
+                            .split(',')
+                            .map(|value| value.parse().expect("offline parameter"))
+                            .collect(),
+                    );
+                    arguments.drain(index..=index + 1);
+                }
                 "--sa-t0-auto" => {
                     options.sa_t0_auto = true;
                     arguments.remove(index);
@@ -250,11 +264,21 @@ impl StudyOptions {
         options
     }
 
-    /// Refuse temperature screening outside a Rust offline SA-only run.
+    /// Refuse offline parameter export or calibration outside the Rust fixed-control benchmark.
     fn require_compatible(&self, name: &str, algorithms: &str, adaptive: bool) {
-        if self.sa_t0_auto && (name != "rko_bench" || adaptive || algorithms != "SA") {
-            eprintln!("--sa-t0-auto requires the Rust benchmark with --algo SA --fixed");
+        if (self.sa_t0_auto || self.sa_parameters.is_some())
+            && (name != "rko_bench" || adaptive || algorithms != "SA")
+        {
+            eprintln!(
+                "offline parameter export and calibration require the Rust benchmark with --algo SA --fixed"
+            );
             std::process::exit(2);
+        }
+    }
+    /// Apply exported values only after the mode check has required one offline search.
+    fn apply(&self, specifications: &mut [Spec]) {
+        if let Some(values) = &self.sa_parameters {
+            specifications[0].offline.clone_from(values);
         }
     }
 }
@@ -281,13 +305,17 @@ fn print_result(
         .map(|key| format!("{key:?}"))
         .collect();
     let sa_t0_auto = study.sa_t0_auto;
+    let sa_parameters = study
+        .sa_parameters
+        .as_ref()
+        .map_or_else(|| "null".to_owned(), |values| format!("{values:?}"));
     println!(
         "RKO_BENCH_RESULT {{\"keys\":[{}],\"objective\":{:?}}}",
         keys.join(","),
         result.best_cost
     );
     println!(
-        "{{\"algorithms\":\"{algos}\",\"seed\":{seed},{extra}\"cost\":{},\"evaluations\":{evaluations},\"elapsed\":{:.6},\"workers\":{},\"stops\":[{stops}],\"sa_t0_auto\":{sa_t0_auto},\"adaptive\":{adaptive}}}",
+        "{{\"algorithms\":\"{algos}\",\"seed\":{seed},{extra}\"cost\":{},\"evaluations\":{evaluations},\"elapsed\":{:.6},\"workers\":{},\"stops\":[{stops}],\"sa_t0_auto\":{sa_t0_auto},\"adaptive\":{adaptive},\"sa_parameters\":{sa_parameters}}}",
         result.best_cost, result.elapsed, result.workers
     );
 }
@@ -362,7 +390,7 @@ pub fn run(name: &str, engine: Engine) {
         algos
     };
     study.require_compatible(name, &algos, adaptive);
-    let specs: Vec<Spec> = algos
+    let mut specs: Vec<Spec> = algos
         .split(',')
         .map(|name| {
             let algorithm = Algorithm::parse(name).expect("unknown algorithm");
@@ -375,6 +403,7 @@ pub fn run(name: &str, engine: Engine) {
             }
         })
         .collect();
+    study.apply(&mut specs);
     let config = Config {
         time_limit: seconds,
         seed,
