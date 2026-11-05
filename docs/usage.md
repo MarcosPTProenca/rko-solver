@@ -245,7 +245,7 @@ callables are optional overrides, not required problem callbacks. Their public
 contracts are `LocalSearchOperator` and `ShakingOperator` from
 `rko_solver.metaheuristics`; local-search overrides receive `pool=` as a keyword.
 
-`adaptation` (or legacy `control`), `pool_size` and `prefill_pool` are supported under `[run]`. Remove the formerly
+`adaptation` (or legacy `control`), `pool_size`, `prefill_pool` and `progress_schedule` are supported under `[run]`. Remove the formerly
 ignored `strategy`, `max_runs` and `debug` fields from custom configurations;
 unsupported keys now raise an error. Portfolio local search currently uses
 best-improvement defaults. Repeat `solve` for independent trials and use standard

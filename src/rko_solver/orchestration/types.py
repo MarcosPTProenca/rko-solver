@@ -407,12 +407,15 @@ class RunConfig:
         pool_size (int): Shared elite capacity, also startup slot count when opted in.
         active_metaheuristics (tuple[str, ...]): Canonical selected algorithm names.
         prefill_pool (bool): Enable a separately accounted reference-style prefix.
+        progress_schedule (bool): Use the progress-driven Q-learning schedule and scale-free
+            reward; false keeps the earlier whole-second schedule and fixed-scale reward.
     """
 
     control: int
     pool_size: int
     active_metaheuristics: tuple[str, ...]
     prefill_pool: bool = False
+    progress_schedule: bool = False
 
 
 class NativeProblem(Protocol):

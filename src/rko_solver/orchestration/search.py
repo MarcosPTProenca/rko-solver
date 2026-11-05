@@ -341,8 +341,12 @@ class SearchSession:
         self.max_evaluations = max_evaluations
         original_decoder, original_cost = algorithm.decoder, algorithm.cost
         original_cancelled = algorithm._cancelled
+        original_share = algorithm._evaluation_share
         algorithm.decoder, algorithm.cost = self.decode, self.evaluate
         algorithm._cancelled = cancelled
+        algorithm._evaluation_share = (
+            None if max_evaluations is None else lambda: self.n_evaluations / max_evaluations
+        )
         trace_token = _ACTIVE_STORE.set(self._trace_store)
         try:
             try:
@@ -376,6 +380,7 @@ class SearchSession:
             _ACTIVE_STORE.reset(trace_token)
             algorithm.decoder, algorithm.cost = original_decoder, original_cost
             algorithm._cancelled = original_cancelled
+            algorithm._evaluation_share = original_share
 
     def _record_model(self, evidence: ModelEvaluation, value: float) -> None:
         """Admit only completed generated-model invocation evidence.

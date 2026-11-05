@@ -50,6 +50,9 @@ pub struct Config {
     /// Completed evaluations after which each search stops; `None` leaves only the time
     /// limit. It applies to every search separately and not to the prefill.
     pub max_evaluations: Option<u64>,
+    /// Use the progress-driven Q-learning schedule and scale-free reward; false keeps the
+    /// legacy whole-second windows and fixed reward scale of 1.
+    pub progress_schedule: bool,
     /// Caller-supplied key rows evaluated once and offered to the pool before the searches.
     pub initial_keys: Vec<Vec<f64>>,
 }
@@ -65,6 +68,7 @@ impl Default for Config {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            progress_schedule: false,
             initial_keys: Vec::new(),
         }
     }
@@ -127,6 +131,7 @@ mod tests {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            progress_schedule: false,
             initial_keys: Vec::new(),
         }
     }

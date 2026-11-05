@@ -56,10 +56,7 @@ impl Parameters {
 pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
     let n = context.search.dimension();
     let mut controller = if spec.adaptive {
-        Some(
-            QLearning::new(spec.states.clone(), context.search.budget(), context.rng)
-                .map_err(|_| Stop::InvalidCost)?,
-        )
+        Some(QLearning::for_context(spec, context)?)
     } else {
         None
     };
@@ -93,7 +90,7 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
             let mut next_state = state;
             let mut schedule = None;
             if let Some(controller) = controller.as_mut() {
-                let timing = controller.schedule(context.search.elapsed());
+                let timing = controller.schedule(context.search);
                 action = controller.choose_action(state, timing.epsilon, context.rng);
                 next_state = controller.state(state).actions[action];
                 params = Parameters::from(&controller.state(next_state).parameters);
@@ -177,7 +174,7 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
                 let reward = if best_cost < previous_best {
                     1.0
                 } else {
-                    QLearning::relative_reward(best_cost, level_best)
+                    controller.reward(best_cost, level_best)
                 };
                 controller.update(state, action, reward, timing);
                 state = next_state;

@@ -506,6 +506,7 @@ class RKO:
                         config.control,
                         self.params_dir,
                         (hyperparameters or {}).get(name),
+                        config.progress_schedule,
                     )
                 )
         if execution == "process":

@@ -26,7 +26,6 @@
 use super::{Adapter, Context, Spec};
 use crate::local_search::{FAREY, LocalSearch};
 use crate::operators::{PoolPolicy, random_keys};
-use crate::qlearning::QLearning;
 use crate::search::{Search, Stop};
 
 /// Runs LNS until the search budget ends.
@@ -108,7 +107,7 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
                 }
             }
             temperature *= alpha;
-            adapter.finish(QLearning::relative_reward(previous_best, candidate_cost));
+            adapter.finish(adapter.reward(previous_best, candidate_cost));
         }
     }
 }

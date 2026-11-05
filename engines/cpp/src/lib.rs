@@ -180,6 +180,7 @@ mod tests {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            progress_schedule: false,
             initial_keys: Vec::new(),
         };
         assert!(!available());
@@ -222,6 +223,7 @@ mod tests {
             ls_strategy: 1,
             prefill: false,
             max_evaluations: None,
+            progress_schedule: false,
             initial_keys: Vec::new(),
         }
     }

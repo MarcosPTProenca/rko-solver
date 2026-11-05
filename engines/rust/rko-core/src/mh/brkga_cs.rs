@@ -31,7 +31,6 @@ use super::population::Population;
 use super::{Adapter, Context, Spec};
 use crate::local_search::LocalSearch;
 use crate::operators::random_keys;
-use crate::qlearning::QLearning;
 use crate::rng::Rng;
 use crate::search::Stop;
 
@@ -275,7 +274,7 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
         adapter.finish(if improved {
             1.0
         } else {
-            QLearning::relative_reward(best_cost, offspring_best)
+            adapter.reward(best_cost, offspring_best)
         });
     }
 }

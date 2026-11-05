@@ -212,6 +212,7 @@ class PSO(MetaheuristicBase):
                 restart_epsilon=1,
                 max_time=limit_time,
                 state_filter=self._state_filter,
+                progress_schedule=self.progress_schedule,
             )
             st = random.randint(0, max(0, len(ql.states) - 1))
             if ql.states:
@@ -233,7 +234,9 @@ class PSO(MetaheuristicBase):
 
         while not self.time_limit_reached(limit_time):
             if ql is not None:
-                epsilon, lf, df, _, _, _ = ql.set_parameters(self.elapsed())
+                epsilon, lf, df, _, _, _ = ql.set_parameters(
+                    self.elapsed(), self.progress(limit_time)
+                )
                 at = ql.choose_action(st, epsilon)
                 i_curr = ql.states[st].Ai[at]
                 p_size = int(ql.states[i_curr].par[0])
@@ -292,7 +295,7 @@ class PSO(MetaheuristicBase):
                 self.solution_pool.insert((gbest_cost, gbest.tolist()), self.name)
 
             if ql is not None:
-                reward = 1.0 if improv else ql.relative_reward(gbest_cost, best_of_current)
+                reward = 1.0 if improv else ql.reward(gbest_cost, best_of_current)
                 st_next = ql.states[st].Ai[at]
                 ql.update_q_value(st, at, reward, lf, df)
                 st = st_next

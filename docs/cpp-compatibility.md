@@ -42,6 +42,18 @@ initial simplex vertices. Some issues were inherited from the reference.
 These are explicit correctness choices; do not silently revert them just to
 match a historical defect or claim byte-for-byte C++ search trajectories.
 
+The Q-learning epsilon schedule can also be corrected through an opt-in option. The C++ reference
+(`QLearning.h:156-167`) casts `MAXTIME * 0.1` to an integer and compares whole elapsed
+seconds with it, so a horizon below 10 s gives a window of 0 and the schedule is not
+defined, and short horizons see a coarse staircase instead of the intended cycles. Python and Rust
+keep this whole-second schedule by default, matching the reference, and expose `[run]
+progress_schedule = true` as an opt-in alternative that drives the schedule from search progress
+(the larger of the elapsed time share and the evaluation share), restarts the cosine every tenth of
+progress, and scores a worse candidate by its relative worsening without a fixed scale of 1. The
+C++ engine keeps its integer-second schedule (undefined below 10 s) and ignores the key. With
+`progress_schedule = true`, adaptive trajectories on Python and Rust differ from the C++ reference
+by design.
+
 ## IPR initialization contract
 
 The C++ driver calls `CreatePoolSolutions` before invoking its selected searches;

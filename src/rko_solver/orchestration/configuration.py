@@ -120,7 +120,13 @@ def parse_run_config(cfg: dict[str, object]) -> RunConfig:
             "Invalid config.toml: sections 'run' and 'active_metaheuristics' must be tables."
         )
 
-    unsupported = set(run_section) - {"control", "adaptation", "pool_size", "prefill_pool"}
+    unsupported = set(run_section) - {
+        "control",
+        "adaptation",
+        "pool_size",
+        "prefill_pool",
+        "progress_schedule",
+    }
     if unsupported:
         raise ValueError(f"Unsupported run settings: {', '.join(sorted(unsupported))}")
 
@@ -148,6 +154,9 @@ def parse_run_config(cfg: dict[str, object]) -> RunConfig:
     prefill_pool = run_section.get("prefill_pool", False)
     if type(prefill_pool) is not bool:
         raise ValueError("Invalid config.toml: 'run.prefill_pool' must be a boolean.")
+    progress_schedule = run_section.get("progress_schedule", False)
+    if type(progress_schedule) is not bool:
+        raise ValueError("Invalid config.toml: 'run.progress_schedule' must be a boolean.")
     active = tuple(canonical_mh_name(name) for name in active_raw)
     if len(set(active)) != len(active):
         raise ValueError("Duplicate metaheuristic names are not supported.")
@@ -160,4 +169,5 @@ def parse_run_config(cfg: dict[str, object]) -> RunConfig:
         pool_size=pool_size,
         active_metaheuristics=active,
         prefill_pool=prefill_pool,
+        progress_schedule=progress_schedule,
     )

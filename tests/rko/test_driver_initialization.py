@@ -75,6 +75,7 @@ def test_driver_does_not_prefill_shared_pool(
         control: int,
         params_dir: Path | None,
         hyperparameters: Mapping[str, int | float] | None = None,
+        progress_schedule: bool = False,
     ) -> MetaheuristicBase:
         """Delegate real construction and observe driver state at both boundaries.
 
@@ -87,6 +88,7 @@ def test_driver_does_not_prefill_shared_pool(
             control (int): Offline control used by this probe.
             params_dir (Path | None): Normal parameter resources.
             hyperparameters (Mapping | None): Offline overrides.
+            progress_schedule (bool): Progress-schedule flag, forwarded unchanged.
 
         Returns:
             MetaheuristicBase: Real configured instance with a one-observation body.

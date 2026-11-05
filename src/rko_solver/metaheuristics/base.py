@@ -135,6 +135,8 @@ class MetaheuristicBase(ABC):
         self._start_time: float | None = None
         self._cancelled: threading.Event | None = None
         self._search_metadata: SearchMetadata | None = None
+        self._evaluation_share: Callable[[], float] | None = None
+        self.progress_schedule = False
 
     @abstractmethod
     def solve(self, limit_time: float) -> tuple[list[object], list[float], float]:
@@ -167,6 +169,20 @@ class MetaheuristicBase(ABC):
         if self._start_time is None:
             return 0.0
         return time.perf_counter() - self._start_time
+
+    def progress(self, limit_time: float) -> float:
+        """Return search progress as the larger of the time share and the evaluation share.
+
+        Args:
+            limit_time (float): Time horizon of this run in seconds.
+
+        Returns:
+            float: ``max(elapsed / limit_time, evaluations / max_evaluations)`` in [0, 1]; the
+                evaluation share is 0 when no evaluation limit applies.
+        """
+        timed = self.elapsed() / limit_time if limit_time > 0 else 1.0
+        counted = self._evaluation_share() if self._evaluation_share is not None else 0.0
+        return min(max(timed, counted), 1.0)
 
     def time_limit_reached(self, limit_time: float) -> bool:
         """Return ``True`` when :meth:`elapsed` exceeds *limit_time*."""

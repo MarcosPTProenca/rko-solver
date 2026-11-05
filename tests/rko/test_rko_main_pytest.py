@@ -65,9 +65,7 @@ def test_run_executes_orchestration_flow(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setattr(
         solver,
         "build_metaheuristic",
-        lambda name, pool, decoder, cost, tam_solution, control, params_dir, hyperparameters=None: (
-            f"mh:{name}"
-        ),
+        lambda name, pool, decoder, cost, tam_solution, control, params_dir, *rest: f"mh:{name}",
     )
 
     def _fake_parallel(

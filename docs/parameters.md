@@ -25,6 +25,26 @@ In TOML, `[run] adaptation = "fixed"` can replace `[run] control = 0`. Python
 settings override TOML defaults. Contradictory names **within** a TOML file are
 rejected. Existing `[offline]` and `[online]` table names stay unchanged.
 
+## Q-learning schedule
+
+By default adaptive control uses the legacy schedule: epsilon windows of
+`max(1, int(0.1 * horizon))` whole seconds (a single window below 10 s) and a penalty for a worse
+candidate scaled by at least 1. This is the behavior of prior releases and the default on the
+Python and Rust engines.
+
+`[run] progress_schedule = true` selects the opt-in progress schedule instead. It follows search
+progress, the larger of the elapsed share of the time budget and the share of `max_evaluations`
+used, clamped to 0 to 1. Epsilon restarts its cosine every tenth of progress while its ceiling
+falls by 0.1 per restart down to 0.1, and the learning factor is `1 - 0.9 * progress`. The schedule
+therefore has the same shape for a 2 s and a 100 s run and for a run bounded only by evaluations.
+Its penalty for a worse candidate is
+`-min(1, (candidate - previous) / max(|previous|, |candidate|))`: it does not depend on the scale of
+the objective, equal costs give 0 and a strict improvement gives 1. It is a boolean under `[run]`,
+defaults to `false`, applies to the Python and Rust engines, and is not read by the C++ reference
+engine, which keeps its own schedule. The progress schedule is not a measured quality improvement;
+it exists because the legacy schedule never anneals for runs under about 20 s, where its first
+window spans the whole run.
+
 ## Set fixed values in Python
 
 ```python
