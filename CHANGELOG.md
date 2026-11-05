@@ -7,6 +7,10 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- Wheels and source distributions now ship the PEP 561 `py.typed` marker, so type checkers use the
+  package's type hints in downstream projects. The release check and the installed-artifact smoke
+  fail when the marker is missing. No runtime behavior changes.
+
 - A [scientific reference index](docs/references.md) links every algorithm, shared component and
   benchmark to its source paper and to the files that implement or test it, with provenance labels
   (journal article, preprint, unpublished machine-generated proposal, no published reference). Records

@@ -192,6 +192,7 @@ def main() -> None:
     """
     package = default_params_dir().parent
     assert not (package / "tests").exists()
+    assert (package / "py.typed").is_file()
     assert (default_params_dir() / "config.toml").is_file()
     assert len(list(default_params_dir().glob("*.toml"))) == 12
     assert not (package / "examples").exists()
