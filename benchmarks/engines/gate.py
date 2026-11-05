@@ -491,7 +491,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default="",
         help="Absolute margin floors, e.g. knapsack=0.05,rastrigin=0.05.",
     )
-    parser.add_argument("--split", choices=("test", "calibration"), default="test")
+    parser.add_argument("--split", choices=("test", "calibration", "confirmation"), default="test")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE)
     parser.add_argument("--quick", action="store_true", help="3 instances, 1 s, 1 replicate.")
