@@ -7,6 +7,15 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- Repository-only benchmark tooling: a non-inferiority gate
+  (`python -m benchmarks.engines.gate`) that compares a candidate engine configuration with a
+  baseline per family and budget, tying every verdict to one recorded native binary, and a
+  native-overhead profile (`python -m benchmarks.runtime.overhead`). The gate overrides scalar
+  `config.toml` keys per side with `--candidate-option KEY=VALUE` and `--baseline-option
+  KEY=VALUE` so two configurations run with the same binary, interleaved; an unknown key is
+  refused before any trial. See [the benchmark layout](benchmarks/README.md). The installed
+  library's behavior is unchanged.
+
 - Wheels and source distributions now ship the PEP 561 `py.typed` marker, so type checkers use the
   package's type hints in downstream projects. The release check and the installed-artifact smoke
   fail when the marker is missing. No runtime behavior changes.

@@ -45,6 +45,47 @@ identity of new runs: use a fresh study directory when a source-pinned campaign 
 rather than rewriting historical metadata to force compatibility. This reorganization is not a
 new measurement or a performance claim.
 
+## Non-inferiority gate and overhead profile
+
+`engines/gate.py` compares a candidate engine configuration with a baseline on 500-item KPLIB
+Knapsack (exact optimum) and shifted Rastrigin (100 and 300 dimensions, optimum 0; 30 was dropped because every budget
+saturates it), at 2 s, 10 s
+and an equal `max_evaluations` budget, with three replicates and calibration and test instances
+drawn from different seeds. Every JSONL row records the SHA-256 of the native extension, the git
+commit, the host, the budget and the absolute gap to the reference value; the run is refused when
+the extension cannot be hashed. A cell passes only if the upper bound of the 95% bootstrap
+interval (10,000 resamples) of the paired median difference is at most the margin and the Holm-adjusted one-sided signed-rank p is below 0.05. The margin is
+`max(0.02 * median baseline gap, floor)`; the floor is 0.05 for each family (percentage points of
+the optimum for Knapsack, raw objective value for Rastrigin), set with
+`--floor knapsack=0.05,rastrigin=0.05`, and the report prints the effective margin and which term set
+it. Cells with fewer than 15 paired instances are `inconclusive`. The `evals` budget runs the Rust engine with `n_jobs=1` (algorithms in sequence, each capped by
+`max_evaluations`) and a 600 s time cap (`--evals-time-cap`) so the evaluation cap is the active
+limit and thread timing cannot change the result; rows record `n_jobs` and `time_cap`. Time-budget cells are noisy on a 6-CPU machine
+running 10 engine threads. The full run takes hours; `--quick` uses 3 instances and 1 s.
+
+To compare two configurations with the same native binary, interleaved in the same instant (no
+machine-load bias between a recorded baseline and a candidate), give a live `--baseline` spec and
+override solver `config.toml` keys per side with the repeatable `--candidate-option KEY=VALUE` and
+`--baseline-option KEY=VALUE`. A bare key resolves to the unique `config.toml` key of that name
+(`progress_schedule`) and `table.key` (`run.pool_size`) is explicit. The
+gate copies the default parameter directory to a temporary directory, rewrites the keys there and
+passes it as `params_dir`. Values are parsed with the type of the default (bool, int, float, str);
+unknown, ambiguous, repeated or mistyped options are refused before any trial, and
+`--baseline-option` is refused with a JSONL baseline. Every row records `spec` and the applied
+`options`.
+
+```bash
+uv run python -m benchmarks.engines.gate --candidate rust/SA --baseline rust/ILS --quick --output /tmp/gate.jsonl
+uv run python -m benchmarks.engines.gate --candidate rust --baseline gate-main.jsonl --families knapsack,rastrigin --budgets 2,10,evals --replicates 3 --output gate-branch.jsonl
+uv run python -m benchmarks.engines.gate --candidate rust --baseline rust --candidate-option progress_schedule=true --baseline-option progress_schedule=false --quick --output /tmp/gate-ab.jsonl
+uv run python -m benchmarks.runtime.overhead --quick
+```
+
+`runtime/overhead.py` reports evaluations per second per algorithm (ILS, BRKGA, SA, GA, PSO) for
+an O(1) objective at n = 10, 100 and 1000 on one native thread. With `perf` installed it also
+prints the five heaviest symbols, and with `cargo flamegraph` it writes an SVG; otherwise it
+prints the commands and still exits zero.
+
 ## Bounded model decoder development port
 
 `modeling/cases.py`, `modeling/validation.py` and `modeling/overhead.py` now use
