@@ -90,3 +90,25 @@ def test_summary_without_feasible_runs_has_no_gap() -> None:
     (row,) = KeyConvergenceStudy.summarize(records)
     assert row["feasible_runs"] == 0
     assert row["best_gap"] is None and row["median_gap"] is None
+
+
+def test_structure_decoder_is_recorded_and_solves_assignment() -> None:
+    """The prototype decoder is labelled in each record and finds a feasible assignment."""
+    kwargs = {**TINY, "names": ("assignment",), "budgets": (200,)}
+    (default,) = KeyConvergenceStudy.run(**kwargs)
+    (structured,) = KeyConvergenceStudy.run(**kwargs, decoder="structure")
+    assert default["decoder"] == "default" and structured["decoder"] == "structure"
+    assert structured["feasible"] and structured["evaluations"] == 200
+
+
+def test_summary_keeps_decoders_apart() -> None:
+    """Records of different decoders are never pooled in one group."""
+    base = {"case": "c", "algorithm": "SA", "budget": 10, "evaluations": 10, "seed": 0}
+    records = [
+        {**base, "decoder": "default", "feasible": False, "gap": None},
+        {**base, "decoder": "structure", "feasible": True, "gap": 0.0},
+    ]
+    records[0]["seconds_to_first_feasible"] = None
+    records[1]["seconds_to_first_feasible"] = 0.1
+    rows = KeyConvergenceStudy.summarize(records)
+    assert {(r["decoder"], r["feasible_runs"]) for r in rows} == {("default", 0), ("structure", 1)}

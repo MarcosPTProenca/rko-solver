@@ -106,3 +106,19 @@ def test_output_refuses_to_overwrite(tmp_path: Path) -> None:
     assert json.loads(target.read_text()) == [{"case": "x"}]
     with pytest.raises(FileExistsError):
         KeyFeasibilityStudy.write(target, [])
+
+
+def test_structure_policy_makes_assignment_feasible_for_every_key() -> None:
+    """The structure-aware prototype (issue 125, L1) is selectable as a third policy."""
+    case = next(c for c in PracticalModels.cases() if c.name == "assignment")
+    measured = KeyFeasibilityStudy.measure(case, "structure", keys=64, seed=2026)
+    assert measured["feasible"] == 64
+    assert measured["independent_errors"] == 0
+
+
+def test_run_accepts_an_explicit_policy_list() -> None:
+    """Callers can add the structure policy without changing the recorded baseline default."""
+    default = KeyFeasibilityStudy.run(keys=8, seed=1)
+    assert {p["repair"] for p in default[0]["policies"]} == {"none", "continuous"}
+    wider = KeyFeasibilityStudy.run(keys=8, seed=1, policies=("none", "continuous", "structure"))
+    assert {p["repair"] for p in wider[0]["policies"]} == {"none", "continuous", "structure"}

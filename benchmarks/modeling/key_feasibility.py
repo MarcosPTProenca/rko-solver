@@ -33,7 +33,9 @@ import time
 from .cases import PracticalCase
 from .cases import PracticalModels
 from .structure_cases import StructureCases
+from .structure_construction import StructureConstruction
 from pathlib import Path
+from rko_solver.modeling.construction import ModelConstruction
 from rko_solver.modeling.linear import CompiledLinearModel
 from rko_solver.modeling.linear import LinearRow
 from rko_solver.modeling.linear import LinearVariable
@@ -61,8 +63,10 @@ class KeyFeasibilityStudy:
         return tuple(case for case in every if case.expected is not None)
 
     @staticmethod
-    def _snapshot(case: PracticalCase, repair: str) -> CompiledLinearModel:
-        """Compile one fixture under one repair policy."""
+    def _snapshot(case: PracticalCase, repair: str) -> CompiledLinearModel | ModelConstruction:
+        """Compile one fixture under one repair policy; `structure` binds the L1 prototype."""
+        if repair == "structure":
+            return StructureConstruction.bind(case)
         return CompiledLinearModel(
             tuple(LinearVariable(v.name, v.name, v.lower, v.upper, v.kind) for v in case.variables),
             case.objective,
@@ -148,12 +152,15 @@ class KeyFeasibilityStudy:
         }
 
     @staticmethod
-    def run(keys: int = 2048, seed: int = 2026) -> list[dict[str, Any]]:
+    def run(
+        keys: int = 2048, seed: int = 2026, policies: tuple[str, ...] = POLICIES
+    ) -> list[dict[str, Any]]:
         """Measure every fixture under both policies on the same keys.
 
         Args:
             keys (int): Random key vectors per fixture and policy.
             seed (int): Generator seed.
+            policies (tuple[str, ...]): Policies to measure; add `structure` for the L1 prototype.
 
         Returns:
             list[dict[str, Any]]: One record per fixture.
@@ -163,7 +170,7 @@ class KeyFeasibilityStudy:
                 "case": case.name,
                 "family": case.family,
                 "policies": [
-                    KeyFeasibilityStudy.measure(case, repair, keys, seed) for repair in POLICIES
+                    KeyFeasibilityStudy.measure(case, repair, keys, seed) for repair in policies
                 ],
             }
             for case in KeyFeasibilityStudy.cases()
@@ -190,9 +197,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--keys", type=int, default=2048)
     parser.add_argument("--seed", type=int, default=2026)
+    parser.add_argument("--structure", action="store_true", help="also measure the L1 prototype")
     parser.add_argument("--output", type=Path, default=None)
     args = parser.parse_args()
-    records = KeyFeasibilityStudy.run(args.keys, args.seed)
+    records = KeyFeasibilityStudy.run(
+        args.keys, args.seed, POLICIES + (("structure",) if args.structure else ())
+    )
     if args.output is None:
         print(json.dumps(records, indent=2))
     else:
