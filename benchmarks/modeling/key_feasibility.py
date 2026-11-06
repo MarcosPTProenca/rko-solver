@@ -72,6 +72,25 @@ class KeyFeasibilityStudy:
         )
 
     @staticmethod
+    def gap(case: PracticalCase, objective: float) -> float:
+        """Return the gap to the known optimum relative to `max(1, |optimum|)`, positive is worse.
+
+        Args:
+            case (PracticalCase): Fixture with a known optimum.
+            objective (float): Original objective of a feasible solution.
+
+        Returns:
+            float: Relative gap.
+
+        Raises:
+            ValueError: If the fixture has no known optimum.
+        """
+        if case.expected is None:
+            raise ValueError("A known optimum is required to report gaps.")
+        sign = -1.0 if case.maximize else 1.0
+        return sign * (objective - case.expected) / max(1.0, abs(case.expected))
+
+    @staticmethod
     def _gaps(case: PracticalCase, results: list[ModelEvaluation]) -> tuple[list[float], int]:
         """Collect relative gaps of feasible results and count checker disagreements.
 
@@ -83,16 +102,13 @@ class KeyFeasibilityStudy:
             tuple[list[float], int]: Gaps to the optimum (negative is better than the reference)
                 and the number of results whose feasibility the independent checker disputes.
         """
-        assert case.expected is not None
-        scale = max(1.0, abs(case.expected))
-        sign = -1.0 if case.maximize else 1.0
         gaps: list[float] = []
         errors = 0
         for result in results:
             values = {v.name: value for v, value in zip(case.variables, result.values, strict=True)}
             errors += result.feasible != PracticalModels.check(case, values)["feasible"]
             if result.feasible:
-                gaps.append(sign * (result.objective - case.expected) / scale)
+                gaps.append(KeyFeasibilityStudy.gap(case, result.objective))
         return gaps, errors
 
     @staticmethod
