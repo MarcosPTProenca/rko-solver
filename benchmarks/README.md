@@ -3121,3 +3121,37 @@ candidate data, then run each mechanism (`adaptive` toggles `progress_schedule`;
 Outputs are never overwritten, a manifest whose digest does not match is refused, and an
 incomplete campaign is reported as incomplete, never as evidence. A timed profile is only
 interpretable when the pilot's median coefficient of variation stays at or below 0.05.
+
+## Decoder key-feasibility baseline
+
+`modeling/key_feasibility.py` decodes seeded uniform random keys with the current model decoder
+and reports how many reach a feasible solution and how far those are from the known optimum
+(issue 125, phase 0). It measures sampled keys only, not search quality, and throughput is
+descriptive. Fixtures: the cited practical cases plus `modeling/structure_cases.py`
+(coupled equality, cardinality with linking, set cover).
+
+```bash
+uv run --locked --group model-validation python -m benchmarks.modeling.key_feasibility \
+  --keys 2048 --seed 2026 --output results/key-feasibility.json
+```
+
+Baseline of the decoder at `f4ddbfd` (2048 keys, seed 2026, 1,024-sweep restoration cap, Python
+3.14.7, NumPy 2.5.4, i7-1255U, 6 CPUs; raw file `references/key-feasibility-baseline-f4ddbfd.json`).
+Gaps are relative to the known optimum, positive is worse.
+
+| Case | Box only | Restoration | Best gap | Median gap |
+| --- | ---: | ---: | ---: | ---: |
+| production_lp | 1409 | 2048 | 0.000 | 0.229 |
+| production_integer | 1410 | 1410 | 0.000 | 0.381 |
+| production_setup | 674 | 2048 | 0.000 | 0.403 |
+| transport_lp | 0 | 2048 | 0.172 | 0.498 |
+| transport_equalities | 0 | 2048 | 0.001 | 0.258 |
+| knapsack_50 | 707 | 707 | 0.094 | 0.302 |
+| assignment | 2 | 2 | 0.094 | 0.123 |
+| coupled_equality | 0 | 2048 | 0.003 | 0.496 |
+| cardinality_linking | 0 | 619 | 0.000 | 2.125 |
+| set_cover | 1383 | 1383 | 0.000 | 1.000 |
+
+Restoration repairs continuous coupling (equalities) but leaves integer structure untouched:
+assignment (2 of 2048), cardinality (619) and knapsack (707) show where a structure-aware decoder
+could add value. Convergence trajectories under SA and IPR are not measured yet.
