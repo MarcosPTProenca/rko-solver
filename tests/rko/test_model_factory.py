@@ -466,3 +466,13 @@ def test_public_model_failure_does_not_return_partial_witness(
         solver.solve(0.1)
     assert calls == [1]
     assert solver.result_ is None
+
+
+def test_cp_sat_error_names_the_mathopt_alternative() -> None:
+    """The rejection of CP-SAT says what is supported and where to read more (issue 73)."""
+    cp_model = pytest.importorskip("ortools.sat.python.cp_model")
+    model = cp_model.CpModel()
+    x, y = model.NewBoolVar("x"), model.NewBoolVar("y")
+    model.AddImplication(x, y)
+    with pytest.raises(ValueError, match="MathOpt.*docs/modeling.md"):
+        RKO.from_model(model, algorithms=["SA"], adaptation="fixed", engine="python")

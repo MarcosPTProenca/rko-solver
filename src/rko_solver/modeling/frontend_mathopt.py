@@ -58,7 +58,9 @@ class MathOptExtractor:
         module = importlib.import_module("ortools.math_opt.python.model")
         if not isinstance(model, module.Model):
             raise ValueError(
-                "OR-Tools conversion supports MathOpt Model only, not CP-SAT/MPSolver."
+                "OR-Tools conversion supports MathOpt Model only, not CP-SAT/MPSolver. "
+                "Rebuild the model with ortools.math_opt.python.mathopt if an equivalent MILP/LP "
+                "formulation exists; see docs/modeling.md."
             )
         proto = model.export_model()
         MathOptExtractor._audit(proto)

@@ -129,6 +129,12 @@ access. Rust-only work can detach; ordinary Python callbacks cannot execute whil
 detached [1, 2]. NumPy/native callbacks may themselves release the GIL, so the
 actual callback mix must be measured rather than assumed.
 
+For plain Python callbacks (no `Numba`, `Blocks` or built-in problem), one measured case
+(issue 74; 7 instances, 7 to 245 keys, 6 cores) found `engine="python", execution="process"`
+2x to 7x faster in evaluations per second than `engine="rust"` or `engine="cpp"`, with equal
+final objectives. Treat `process` as the first choice for such callbacks and measure on your
+own workload; see [native engines](native.md).
+
 A useful bound for a **kernel-only** change is `S = 1 / (u + (1-u)/s)`, where `u`
 is the measured unchanged fraction and `s` is that kernel's speedup. If unchanged
 callback/other work is 80% of runtime, even an infinitely fast remaining core is
