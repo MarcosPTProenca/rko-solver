@@ -3155,3 +3155,39 @@ Gaps are relative to the known optimum, positive is worse.
 Restoration repairs continuous coupling (equalities) but leaves integer structure untouched:
 assignment (2 of 2048), cardinality (619) and knapsack (707) show where a structure-aware decoder
 could add value. Convergence trajectories under SA and IPR are not measured yet.
+
+## Decoder convergence baseline
+
+`modeling/key_convergence.py` runs `RKO.from_model` (MathOpt frontend, Python engine, sequential,
+one algorithm per run) at fixed **evaluation** budgets, with fresh searches per budget and seed.
+It reports the best feasible objective as a gap to the known optimum (positive is worse), the
+number of runs that found a feasible solution, and the wall-clock time of the first one
+(issue 125, phase 0). Budgets are exact evaluation counts, never wall-clock.
+
+```bash
+uv run --locked --group model-validation python -m benchmarks.modeling.key_convergence \
+  --output results/key-convergence.json
+```
+
+Baseline at `9a2968f` (SA, IPR and BRKGA; budgets 200, 800, 3200; seeds 0 to 2; same host as the
+feasibility baseline). Full summary: `references/key-convergence-baseline-9a2968f.json`. Median gap
+over feasible runs; the count is shown only when some of the 3 runs found nothing feasible.
+
+| Case | SA 200 | SA 3200 | BRKGA 200 | BRKGA 3200 |
+| --- | ---: | ---: | ---: | ---: |
+| production_lp | 0.006 | 0.000 | 0.000 | 0.000 |
+| production_integer | 0.035 | -0.000 | 0.027 | -0.000 |
+| production_setup | 0.004 | 0.000 | 0.001 | 0.001 |
+| transport_lp | 0.257 | 0.133 | 0.124 | 0.105 |
+| transport_equalities | 0.041 | 0.004 | 0.011 | 0.000 |
+| knapsack_50 | 0.201 | 0.107 | 0.148 | 0.034 |
+| assignment | none | 0.170 (2/3) | 0.151 (1/3) | 0.208 |
+| coupled_equality | 0.086 | 0.013 | 0.084 | 0.014 |
+| cardinality_linking | 0.516 | 0.000 | 0.250 | 0.000 |
+| set_cover | 0.000 | 0.000 | 0.000 | 0.000 |
+
+With only three seeds these are descriptive, not a ranking. IPR alone stays flat at every budget
+(it refines an elite pool, so a one-algorithm portfolio does not evolve) and is kept in the
+reference file as a degenerate baseline. The assignment case is the hard one: SA finds no
+feasible point in 800 evaluations and BRKGA stalls at a gap above 0.2; transport_lp and knapsack_50
+do not reach the optimum within 3200 evaluations either.
