@@ -3229,3 +3229,40 @@ prototype changes only what it recognises. The cost is decode speed on structure
 187 against 696 decodes per second on cardinality_linking, about 2 to 4 times slower, in pure Python).
 Not measured: IPR-only portfolios beyond the summary file, larger instances, rows with non-unit
 coefficients such as Knapsack (left untouched), and any effect on exploration diversity.
+
+### General binary-linear construction experiment
+
+The follow-up to issue 125's L1 prototype accepts nonzero coefficients of either sign over free
+binary variables. No problem name, objective shape or fixture identifier participates in decoding.
+A tentative selection may activate one negative-coefficient helper per overflowing row; if the
+remaining overflow cannot be resolved, selections are undone. Affine row constants are folded into
+the row bounds. The original evaluator remains authoritative for feasibility and objective values.
+
+This is **not** a complete constructor for arbitrary mixed-integer models. Mixed continuous/integer
+rows are still handled by the original evaluator and continuous restoration. Helpers do not recurse;
+negative lower-bound cases, interacting rows and longer implication chains can still yield infeasible
+assignments. No infeasibility certificate is produced. Structural decisions use a fixed internal
+`1e-9` guard; final feasibility uses the original model tolerances.
+
+The two new fixtures are facility location (assignment plus signed linking rows) and budgeted project
+selection (weighted budget plus precedence). Their optima, 19 and 14, are checked with hand witnesses
+and separately with HiGHS. These are test inputs, not algorithm special cases.
+
+Measurements: base `e5a773c`, 12 cases, 2048 random keys (seed 2026), plus 324 fresh searches **per
+decoder** over SA, IPR and BRKGA, budgets 200/800/3200 and seeds 0/1/2. References:
+`key-feasibility-binary-linear-e5a773c.json`, `key-convergence-default-general-e5a773c.json`,
+`key-convergence-binary-linear-e5a773c.json`, and `key-binary-linear-e5a773c-metadata.json` in
+`references/`. All searches completed their exact evaluation budgets. The default and prototype
+campaigns ran concurrently, so their elapsed times are not a controlled speed comparison.
+
+| Fixture | Default feasible keys | Prototype feasible keys | SA median gap at 3200, default / prototype | BRKGA median gap at 3200, default / prototype |
+| --- | ---: | ---: | ---: | ---: |
+| knapsack_50 | 707 | 2048 | 0.107 / 0.094 | 0.034 / 0.007 |
+| facility_location | 6 | 2048 | 0.263 / 0.000 | 0.053 / 0.000 |
+| project_selection | 617 | 2048 | 0.000 / 0.000 | 0.000 / 0.000 |
+
+All sampled prototype assignments agreed with the independent feasibility checker. Improved feasibility
+is not automatically improved quality: project selection already reached the optimum with SA/BRKGA.
+The original assignment improvement is retained. Larger models, deeper implications, diversity and
+quality at equal wall time remain unqualified. The earlier all-ones measurements above are historical;
+their claim that non-unit rows are untouched does not apply to this follow-up.

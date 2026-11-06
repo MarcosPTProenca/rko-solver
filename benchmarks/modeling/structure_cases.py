@@ -47,6 +47,8 @@ class StructureCases:
             StructureCases._equality(),
             StructureCases._cardinality(),
             StructureCases._set_cover(),
+            StructureCases._facility_location(),
+            StructureCases._project_selection(),
         )
 
     @staticmethod
@@ -117,4 +119,71 @@ class StructureCases:
             rows,
             False,
             3,
+        )
+
+    @staticmethod
+    def _facility_location() -> PracticalCase:
+        """Open facilities and assign four customers; optimum 19 (open 0 and 1).
+
+        Opening costs are 4, 5 and 6. Linking rows `x_ij - y_j <= 0` carry a negative coefficient.
+        Opening 0 and 1 costs 9, and the cheapest open facility serves customers at 2, 3, 2 and 3.
+        """
+        fixed = (4, 5, 6)
+        costs = ((2, 6, 9), (3, 4, 8), (7, 2, 5), (8, 3, 1))
+        variables = tuple(CaseVariable(f"y_{j}", 0, 1, "binary") for j in range(3)) + tuple(
+            CaseVariable(f"x_{i}_{j}", 0, 1, "binary") for i in range(4) for j in range(3)
+        )
+        rows = StructureCases._serve_rows() + StructureCases._open_rows()
+        return PracticalCase(
+            "facility_location",
+            "IP",
+            SOURCE,
+            "Uncapacitated facility location with assignment and linking rows.",
+            variables,
+            fixed + tuple(costs[i][j] for i in range(4) for j in range(3)),
+            tuple(rows),
+            False,
+            19,
+        )
+
+    @staticmethod
+    def _serve_rows() -> list[CaseRow]:
+        """Each customer is served by exactly one facility."""
+        return [
+            CaseRow(f"serve_{i}", tuple((3 + i * 3 + j, 1) for j in range(3)), lower=1, upper=1)
+            for i in range(4)
+        ]
+
+    @staticmethod
+    def _open_rows() -> list[CaseRow]:
+        """An assignment needs its facility open: `x_ij - y_j <= 0`."""
+        return [
+            CaseRow(f"open_{i}_{j}", ((3 + i * 3 + j, 1), (j, -1)), upper=0)
+            for i in range(4)
+            for j in range(3)
+        ]
+
+    @staticmethod
+    def _project_selection() -> PracticalCase:
+        """Pick projects under a budget with precedence; optimum 14 (projects 1, 3 and 4).
+
+        Profits 5, 4, 6, 3, 7, 2; costs 4, 3, 5, 2, 6, 1; budget 11. Project 2 needs 0; project 4
+        needs 1 and 3. Projects 1, 3 and 4 cost exactly 11 and earn 4 + 3 + 7.
+        """
+        profits = (5, 4, 6, 3, 7, 2)
+        costs = (4, 3, 5, 2, 6, 1)
+        rows = [CaseRow("budget", tuple(enumerate(costs)), upper=11)] + [
+            CaseRow(f"needs_{a}_{b}", ((a, 1), (b, -1)), upper=0)
+            for a, b in ((2, 0), (4, 1), (4, 3))
+        ]
+        return PracticalCase(
+            "project_selection",
+            "IP",
+            SOURCE,
+            "Budgeted project selection with precedence rows.",
+            tuple(CaseVariable(f"p_{i}", 0, 1, "binary") for i in range(6)),
+            profits,
+            tuple(rows),
+            True,
+            14,
         )

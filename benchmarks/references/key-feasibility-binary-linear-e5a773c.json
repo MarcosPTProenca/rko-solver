@@ -1,0 +1,470 @@
+[
+  {
+    "case": "production_lp",
+    "family": "LP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 1409,
+        "feasible_fraction": 0.68798828125,
+        "best_gap": 0.006920540423437055,
+        "median_gap": 0.37720400169885515,
+        "independent_errors": 0,
+        "decode_seconds": 0.31851842200558167,
+        "decodes_per_second": 6429.769390117445
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 5.666082865200924e-05,
+        "median_gap": 0.22887466860224628,
+        "independent_errors": 0,
+        "decode_seconds": 0.4388020270052948,
+        "decodes_per_second": 4667.252824644057
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 5.666082865200924e-05,
+        "median_gap": 0.22887466860224628,
+        "independent_errors": 0,
+        "decode_seconds": 0.3128670280057122,
+        "decodes_per_second": 6545.911894437813
+      }
+    ]
+  },
+  {
+    "case": "production_integer",
+    "family": "IP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 1410,
+        "feasible_fraction": 0.6884765625,
+        "best_gap": -0.0,
+        "median_gap": 0.38076923076923075,
+        "independent_errors": 0,
+        "decode_seconds": 0.2933278060008888,
+        "decodes_per_second": 6981.949743945497
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 1410,
+        "feasible_fraction": 0.6884765625,
+        "best_gap": -0.0,
+        "median_gap": 0.38076923076923075,
+        "independent_errors": 0,
+        "decode_seconds": 0.30917118400248,
+        "decodes_per_second": 6624.161972299372
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 1410,
+        "feasible_fraction": 0.6884765625,
+        "best_gap": -0.0,
+        "median_gap": 0.38076923076923075,
+        "independent_errors": 0,
+        "decode_seconds": 0.23768405900045764,
+        "decodes_per_second": 8616.48024950658
+      }
+    ]
+  },
+  {
+    "case": "production_setup",
+    "family": "MILP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 674,
+        "feasible_fraction": 0.3291015625,
+        "best_gap": 0.01716004366506495,
+        "median_gap": 0.36962635029404556,
+        "independent_errors": 0,
+        "decode_seconds": 0.24823605700657936,
+        "decodes_per_second": 8250.211611867968
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 5.89272617980896e-05,
+        "median_gap": 0.4030506625493547,
+        "independent_errors": 0,
+        "decode_seconds": 0.506504707998829,
+        "decodes_per_second": 4043.397756541159
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 5.89272617980896e-05,
+        "median_gap": 0.4030506625493547,
+        "independent_errors": 0,
+        "decode_seconds": 0.6847347510047257,
+        "decodes_per_second": 2990.9391877583644
+      }
+    ]
+  },
+  {
+    "case": "transport_lp",
+    "family": "LP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 0,
+        "feasible_fraction": 0.0,
+        "best_gap": null,
+        "median_gap": null,
+        "independent_errors": 0,
+        "decode_seconds": 0.6099043150024954,
+        "decodes_per_second": 3357.9037721541954
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 0.17188297997912763,
+        "median_gap": 0.49789959915046406,
+        "independent_errors": 0,
+        "decode_seconds": 17.618242001000908,
+        "decodes_per_second": 116.24315297086119
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 0.17188297997912763,
+        "median_gap": 0.49789959915046406,
+        "independent_errors": 0,
+        "decode_seconds": 25.869797509003547,
+        "decodes_per_second": 79.16567569913248
+      }
+    ]
+  },
+  {
+    "case": "transport_equalities",
+    "family": "LP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 0,
+        "feasible_fraction": 0.0,
+        "best_gap": null,
+        "median_gap": null,
+        "independent_errors": 0,
+        "decode_seconds": 0.35322752100182697,
+        "decodes_per_second": 5797.962724397704
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 0.001043996227580105,
+        "median_gap": 0.25796375125715487,
+        "independent_errors": 0,
+        "decode_seconds": 16.869573582996964,
+        "decodes_per_second": 121.40200165250191
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 0.001043996227580105,
+        "median_gap": 0.25796375125715487,
+        "independent_errors": 0,
+        "decode_seconds": 28.498495870000625,
+        "decodes_per_second": 71.86344182311244
+      }
+    ]
+  },
+  {
+    "case": "knapsack_50",
+    "family": "IP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 707,
+        "feasible_fraction": 0.34521484375,
+        "best_gap": 0.09395973154362416,
+        "median_gap": 0.30201342281879195,
+        "independent_errors": 0,
+        "decode_seconds": 0.2626223100014613,
+        "decodes_per_second": 7798.271213091547
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 707,
+        "feasible_fraction": 0.34521484375,
+        "best_gap": 0.09395973154362416,
+        "median_gap": 0.30201342281879195,
+        "independent_errors": 0,
+        "decode_seconds": 0.3808217149999109,
+        "decodes_per_second": 5377.844590612379
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 0.09395973154362416,
+        "median_gap": 0.26174496644295303,
+        "independent_errors": 0,
+        "decode_seconds": 0.7206157529944903,
+        "decodes_per_second": 2842.0139186377996
+      }
+    ]
+  },
+  {
+    "case": "assignment",
+    "family": "IP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 2,
+        "feasible_fraction": 0.0009765625,
+        "best_gap": 0.09433962264150944,
+        "median_gap": 0.12264150943396226,
+        "independent_errors": 0,
+        "decode_seconds": 0.30597128799854545,
+        "decodes_per_second": 6693.438503320403
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 2,
+        "feasible_fraction": 0.0009765625,
+        "best_gap": 0.09433962264150944,
+        "median_gap": 0.12264150943396226,
+        "independent_errors": 0,
+        "decode_seconds": 0.3064430989979883,
+        "decodes_per_second": 6683.133040674036
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 0.0,
+        "median_gap": 0.22641509433962265,
+        "independent_errors": 0,
+        "decode_seconds": 0.4145043739990797,
+        "decodes_per_second": 4940.840503662688
+      }
+    ]
+  },
+  {
+    "case": "coupled_equality",
+    "family": "LP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 0,
+        "feasible_fraction": 0.0,
+        "best_gap": null,
+        "median_gap": null,
+        "independent_errors": 0,
+        "decode_seconds": 0.16192922499612905,
+        "decodes_per_second": 12647.500783437688
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 0.0030517851894908965,
+        "median_gap": 0.49615212997813063,
+        "independent_errors": 0,
+        "decode_seconds": 0.44711292900319677,
+        "decodes_per_second": 4580.498274934378
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 0.0030517851894908965,
+        "median_gap": 0.49615212997813063,
+        "independent_errors": 0,
+        "decode_seconds": 0.4736009889966226,
+        "decodes_per_second": 4324.315294059922
+      }
+    ]
+  },
+  {
+    "case": "cardinality_linking",
+    "family": "MILP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 0,
+        "feasible_fraction": 0.0,
+        "best_gap": null,
+        "median_gap": null,
+        "independent_errors": 0,
+        "decode_seconds": 0.3243518919989583,
+        "decodes_per_second": 6314.129963535336
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 619,
+        "feasible_fraction": 0.30224609375,
+        "best_gap": 6.481459844757491e-07,
+        "median_gap": 2.124995832419878,
+        "independent_errors": 0,
+        "decode_seconds": 2.451055746001657,
+        "decodes_per_second": 835.5583112872274
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 6.481459844757491e-07,
+        "median_gap": 2.1048748474272045,
+        "independent_errors": 0,
+        "decode_seconds": 9.244179802997678,
+        "decodes_per_second": 221.5448037191877
+      }
+    ]
+  },
+  {
+    "case": "set_cover",
+    "family": "IP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 1383,
+        "feasible_fraction": 0.67529296875,
+        "best_gap": 0.0,
+        "median_gap": 1.0,
+        "independent_errors": 0,
+        "decode_seconds": 0.5520450679978239,
+        "decodes_per_second": 3709.8420377665125
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 1383,
+        "feasible_fraction": 0.67529296875,
+        "best_gap": 0.0,
+        "median_gap": 1.0,
+        "independent_errors": 0,
+        "decode_seconds": 0.6933729089942062,
+        "decodes_per_second": 2953.6775571038543
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 0.0,
+        "median_gap": 1.0,
+        "independent_errors": 0,
+        "decode_seconds": 0.7767668369997409,
+        "decodes_per_second": 2636.569820501597
+      }
+    ]
+  },
+  {
+    "case": "facility_location",
+    "family": "IP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 6,
+        "feasible_fraction": 0.0029296875,
+        "best_gap": 0.2631578947368421,
+        "median_gap": 0.6842105263157894,
+        "independent_errors": 0,
+        "decode_seconds": 0.5033887190002133,
+        "decodes_per_second": 4068.4264916932557
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 6,
+        "feasible_fraction": 0.0029296875,
+        "best_gap": 0.2631578947368421,
+        "median_gap": 0.6842105263157894,
+        "independent_errors": 0,
+        "decode_seconds": 0.6977496850013267,
+        "decodes_per_second": 2935.150017296111
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": 0.0,
+        "median_gap": 0.7368421052631579,
+        "independent_errors": 0,
+        "decode_seconds": 1.6026564909989247,
+        "decodes_per_second": 1277.8783298244377
+      }
+    ]
+  },
+  {
+    "case": "project_selection",
+    "family": "IP",
+    "policies": [
+      {
+        "repair": "none",
+        "keys": 2048,
+        "feasible": 617,
+        "feasible_fraction": 0.30126953125,
+        "best_gap": -0.0,
+        "median_gap": 0.42857142857142855,
+        "independent_errors": 0,
+        "decode_seconds": 0.7699011939985212,
+        "decodes_per_second": 2660.0816000344244
+      },
+      {
+        "repair": "continuous",
+        "keys": 2048,
+        "feasible": 617,
+        "feasible_fraction": 0.30126953125,
+        "best_gap": -0.0,
+        "median_gap": 0.42857142857142855,
+        "independent_errors": 0,
+        "decode_seconds": 0.3076302960034809,
+        "decodes_per_second": 6657.341707257683
+      },
+      {
+        "repair": "structure",
+        "keys": 2048,
+        "feasible": 2048,
+        "feasible_fraction": 1.0,
+        "best_gap": -0.0,
+        "median_gap": 0.07142857142857142,
+        "independent_errors": 0,
+        "decode_seconds": 0.6481036000041058,
+        "decodes_per_second": 3159.98861908347
+      }
+    ]
+  }
+]

@@ -39,6 +39,15 @@ WITNESSES = {
         "w_5": 0.0,
     },
     "set_cover": {f"s_{i}": float(i in (0, 2, 3)) for i in range(6)},
+    "facility_location": {
+        **{f"y_{j}": float(j in (0, 1)) for j in range(3)},
+        **{
+            f"x_{i}_{j}": float((i, j) in ((0, 0), (1, 0), (2, 1), (3, 1)))
+            for i in range(4)
+            for j in range(3)
+        },
+    },
+    "project_selection": {f"p_{i}": float(i in (1, 3, 4)) for i in range(6)},
 }
 
 
@@ -62,7 +71,9 @@ def test_structure_fixtures_match_the_exact_reference() -> None:
     for case in StructureCases.cases():
         result, _ = PracticalModels._solve_reference(case)
         assert result.status == 0, case.name
-        assert result.fun == pytest.approx(case.expected), case.name
+        assert (-result.fun if case.maximize else result.fun) == pytest.approx(case.expected), (
+            case.name
+        )
 
 
 def test_box_decoding_finds_no_coupled_equality_but_restoration_does() -> None:

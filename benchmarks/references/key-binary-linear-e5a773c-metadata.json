@@ -1,0 +1,31 @@
+{
+  "base_commit": "e5a773ce7878d02c99e24bee02248960eb6bd253",
+  "python": "3.14.4",
+  "numpy": "2.5.4",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "keys": 2048,
+  "key_seed": 2026,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "budgets": [
+    200,
+    800,
+    3200
+  ],
+  "runs_per_decoder": 324,
+  "measurement_limitations": [
+    "Concurrent default/structure campaigns: timings are descriptive under contention, not a speed comparison.",
+    "Binary-only rows; mixed and nonbinary rows retain original mapping and evaluation.",
+    "One-step helpers only; no general feasibility guarantee.",
+    "Zero-offset fixture measurements precede the affine-offset bug fix; that fix does not alter these fixtures."
+  ],
+  "reviewed_source_sha256": {
+    "benchmarks/modeling/structure_construction.py": "f6f2b00a557561d8c5b9c3c0997d7384a5e7cf004300b5187a45d26977ab0a25",
+    "benchmarks/modeling/structure_cases.py": "f83eed2944aeee3b413f49dae170492ecd8f608db07add389d5a4882ed829245",
+    "benchmarks/modeling/key_feasibility.py": "02b430093216d9aaae2843859f28df2f62003a5df3eb0e553ac149fafee4ecaf",
+    "benchmarks/modeling/key_convergence.py": "9694e3adcccce35e37ffd3146558394c56616ccc7ab25351c601f001e40b9fb9"
+  }
+}
