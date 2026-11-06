@@ -189,7 +189,12 @@ Differences from the Rust engine, all imposed by the reference code:
   `random_state` values do not give equal results.
 - Python callbacks run on the reference's threads and require the global interpreter
   lock when it is enabled. With free threading, callback state must still be thread-safe.
-
+- With plain Python callbacks (no `Numba`, `Blocks` or built-in problem), `engine="rust"` and
+  `engine="cpp"` were slower than `engine="python", execution="process"` in one user report
+  (issue 74: 2x to 7x fewer evaluations per second across 7 instances of 7 to 245 keys, 6 cores,
+  Linux under WSL2, 20 to 30 s budgets, same decoder, objective and seed, same final objective).
+  This is a single workload, not a guarantee. Use the process execution for plain Python
+  callbacks unless you measure otherwise, or `engine="auto"` to let short probes decide.
 
 ## Automatic engine
 

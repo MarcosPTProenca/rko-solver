@@ -177,6 +177,9 @@ class RKO:
                 reference, available only in builds made with `RKO_BUILD_CPP=1`) or "auto".
                 Python callbacks in compiled engines require the global interpreter lock
                 when it is enabled; `Numba` and built-ins need rust, cpp or auto.
+                For plain Python callbacks, `engine="python"` with `execution="process"` was
+                measured faster than rust or cpp (see docs/native.md). `cpp` with IPR needs at
+                least `MIN_KEYS_CPP_IPR` keys and raises `ValueError` here otherwise.
             execution (Execution | None): Python engine only: "process" (default),
                 "thread" (Python threads, sharing the global interpreter lock when enabled)
                 or "sequential" (algorithms one after another in the calling thread,

@@ -9,6 +9,8 @@ versions must be verified against their tag, manifest and package-index metadata
 
 - The `RKO.from_model` error for CP-SAT/MPSolver models now names MathOpt as the supported
   alternative and points to `docs/modeling.md`.
+- Docs state that plain Python callbacks ran faster on `engine="python", execution="process"`
+  than on rust or cpp in one measured case.
 
 ### Added
 
