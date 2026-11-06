@@ -172,6 +172,10 @@ Differences from the Rust engine, all imposed by the reference code:
   when the deadline passes.
 - IPR needs at least 10 keys: the reference computes its block size as `dimension / 10` and
   crashes the process with a division by zero below that, so the wrapper rejects it first.
+  `RKO(...)` raises `ValueError` at construction when `engine="cpp"` has fewer keys and IPR is
+  selected (explicitly, or by the default portfolio). Check `n_variables >= rko_solver.MIN_KEYS_CPP_IPR`
+  to choose another engine, or leave IPR out of `algorithms`. A custom `params_dir` without
+  `algorithms` is checked when `solve` runs.
 - Runs are serialized inside a process (the reference keeps its elite pool in a global).
 - `max_evaluations` is enforced by the driver without touching the reference headers: the stop
   flag they poll also reports a per-thread limit, and the first objective call after the limit
@@ -185,6 +189,7 @@ Differences from the Rust engine, all imposed by the reference code:
   `random_state` values do not give equal results.
 - Python callbacks run on the reference's threads and require the global interpreter
   lock when it is enabled. With free threading, callback state must still be thread-safe.
+
 
 ## Automatic engine
 

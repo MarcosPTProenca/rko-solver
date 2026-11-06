@@ -244,6 +244,7 @@ class RKO:
         self.initial_keys = InitialKeys.from_values(None, self.n_variables)
         self.params_dir = params_dir
         self.engine, self.execution = EngineSelection.request(engine, execution)
+        EngineSelection.check_cpp_keys(self.engine, self.n_variables, algorithms, params_dir)
         self.auto_time = auto_time
         self.auto_candidates = auto_candidates
         self.n_jobs = n_jobs

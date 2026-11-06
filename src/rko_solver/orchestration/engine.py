@@ -24,7 +24,12 @@ Inputs/Outputs:
 
 from __future__ import annotations
 
+from .configuration import canonical_mh_name
+from collections.abc import Sequence
+from pathlib import Path
 from typing import Final
+
+MIN_KEYS_CPP_IPR: Final = 10
 
 
 class EngineSelection:
@@ -56,6 +61,43 @@ class EngineSelection:
             tuple[str, str | None]: Stored engine and requested execution.
         """
         return ("python" if engine is None else engine), execution
+
+    @staticmethod
+    def check_cpp_keys(
+        engine: str,
+        n_variables: int,
+        algorithms: Sequence[str] | str | None,
+        params_dir: Path | None,
+    ) -> None:
+        """Reject, before `solve`, a C++ run whose IPR cannot work on so few keys.
+
+        The reference computes IPR's block size as `dimension / 10`. Selections the constructor
+        cannot see (custom `params_dir` without explicit `algorithms`) stay checked at solve time.
+
+        Args:
+            engine (str): Requested engine.
+            n_variables (int): Number of random keys.
+            algorithms (Sequence[str] | str | None): Explicit portfolio, or None for the default.
+            params_dir (Path | None): Optional parameter directory that may change the default.
+
+        Raises:
+            ValueError: If `engine` is `cpp`, IPR is selected and `n_variables` is below
+                `MIN_KEYS_CPP_IPR`.
+        """
+        if engine != "cpp" or n_variables >= MIN_KEYS_CPP_IPR:
+            return
+        if algorithms is None:
+            has_ipr = params_dir is None
+        else:
+            has_ipr = not isinstance(algorithms, str) and any(
+                isinstance(name, str) and canonical_mh_name(name) == "IPR" for name in algorithms
+            )
+        if has_ipr:
+            raise ValueError(
+                f"engine='cpp' with IPR needs at least {MIN_KEYS_CPP_IPR} keys, got {n_variables}: "
+                "the C++ reference's IPR block size is dimension / 10 and divides by zero below "
+                "that. Use more keys, drop IPR from `algorithms`, or choose another engine."
+            )
 
     @classmethod
     def validate(cls, engine: str, execution: str | None) -> str | None:

@@ -12,6 +12,9 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- `rko_solver.MIN_KEYS_CPP_IPR` (10), and `RKO(...)` now raises `ValueError` at construction for
+  `engine="cpp"` with fewer keys when IPR is selected, instead of failing at `solve`.
+
 - Repository-only utility-study tooling (`python -m benchmarks.algorithms.utility_cli`):
   a frozen, digest-checked manifest of fresh KPLIB (500 and 1000 items), rounded-route and
   shifted-Rastrigin inputs; a seeded sequential runner with first-error abort and a time

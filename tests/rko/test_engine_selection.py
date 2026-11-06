@@ -173,3 +173,22 @@ def test_run_adapter_preserves_canonical_execution() -> None:
     """Forward canonical execution and retain independently verified tuple results."""
     keys, value = run(decode, cost, 30, 0.1, execution="sequential", random_state=1)
     assert len(keys) == 30 and value == cost(decode(np.asarray(keys)))
+
+
+def test_cpp_ipr_minimum_is_public_and_enforced_at_construction() -> None:
+    """The C++ IPR minimum is importable and rejected before `solve` (issue 72)."""
+    from rko_solver import MIN_KEYS_CPP_IPR
+
+    assert MIN_KEYS_CPP_IPR == 10
+    with pytest.raises(ValueError, match="at least 10 keys"):
+        RKO(decode, cost, 7, engine="cpp")
+    with pytest.raises(ValueError, match="at least 10 keys"):
+        RKO(decode, cost, 7, engine="cpp", algorithms=["ipr".upper()])
+
+
+def test_cpp_small_problems_without_ipr_and_other_engines_are_accepted() -> None:
+    """Only the IPR-in-portfolio case on `cpp` is rejected eagerly."""
+    RKO(decode, cost, 7, engine="cpp", algorithms=["SA"])
+    RKO(decode, cost, 7, engine="rust")
+    RKO(decode, cost, 7)
+    RKO(decode, cost, 10, engine="cpp")

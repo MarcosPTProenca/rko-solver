@@ -32,6 +32,7 @@ from .modeling.linear import RepairDiagnostic
 from .modeling.results import ModelAssignment
 from .modeling.results import ModelResult
 from .modeling.results import ModelSolution
+from .orchestration.engine import MIN_KEYS_CPP_IPR
 from .orchestration.types import InitialKeysMetadata
 from .orchestration.types import PoolInitializationMetadata
 from .orchestration.types import SearchMetadata
@@ -56,6 +57,7 @@ __all__ = [
     "SearchMetadata",
     "PoolInitializationMetadata",
     "InitialKeysMetadata",
+    "MIN_KEYS_CPP_IPR",
     "run",
     "ValidationCheck",
     "ValidationReport",
