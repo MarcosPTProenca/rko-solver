@@ -7,6 +7,15 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- Repository-only utility-study tooling (`python -m benchmarks.algorithms.utility_cli`):
+  a frozen, digest-checked manifest of fresh KPLIB (500 and 1000 items), rounded-route and
+  shifted-Rastrigin inputs; a seeded sequential runner with first-error abort and a time
+  ceiling; independent scoring; a baseline-only pilot; and a registered win rule (5% for
+  knapsack and continuous, 1% for routes) with Hoeffding p-values and Holm correction. It
+  also adds an opt-in `--sa-t0-auto` temperature estimator and `--sa-parameters` export to the
+  native benchmark binary only; the installed library, its Python API and all defaults are
+  unchanged. This is measurement tooling, not evidence of solver improvement.
+
 - The repository-only benchmark gate accepts `--split confirmation`: a fixed cohort
   disjoint from calibration and historical test selections of up to 100 instances per
   family. Existing splits and defaults are unchanged. This adds measurement tooling,

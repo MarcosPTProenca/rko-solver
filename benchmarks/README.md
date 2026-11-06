@@ -3110,3 +3110,14 @@ decoder whose outcome depends only on items near a capacity margin (packing). Th
 form, independently rejected as a search mechanism in PR 60, happens to also reduce this
 sensitivity, which is worth keeping in mind if `mirror_shake`'s all-or-nothing jump is ever revisited
 for a full-sort decoder, but that is future work this measurement does not scope.
+
+
+## Expanded utility study
+
+`python -m benchmarks.algorithms.utility_cli` has `manifest`, `pilot`, `pilot-report`, `run`
+and `analyze` subcommands. Build a manifest once, run a baseline-only pilot before any
+candidate data, then run each mechanism (`adaptive` toggles `progress_schedule`;
+`temperature` uses the native `--sa-t0-auto` estimator) and combine the rows with `analyze`.
+Outputs are never overwritten, a manifest whose digest does not match is refused, and an
+incomplete campaign is reported as incomplete, never as evidence. A timed profile is only
+interpretable when the pilot's median coefficient of variation stays at or below 0.05.
