@@ -5,6 +5,11 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ## Unreleased
 
+### Changed
+
+- The `RKO.from_model` error for CP-SAT/MPSolver models now names MathOpt as the supported
+  alternative and points to `docs/modeling.md`.
+
 ### Added
 
 - Repository-only utility-study tooling (`python -m benchmarks.algorithms.utility_cli`):
