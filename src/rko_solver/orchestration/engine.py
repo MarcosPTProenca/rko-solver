@@ -86,18 +86,34 @@ class EngineSelection:
         """
         if engine != "cpp" or n_variables >= MIN_KEYS_CPP_IPR:
             return
+        if not EngineSelection._selects_ipr(algorithms, params_dir):
+            return
+        raise ValueError(
+            f"engine='cpp' with IPR needs at least {MIN_KEYS_CPP_IPR} keys, got {n_variables}: "
+            "the C++ reference's IPR block size is dimension / 10 and divides by zero below "
+            "that. Use more keys, drop IPR from `algorithms`, or choose another engine."
+        )
+
+    @staticmethod
+    def _selects_ipr(algorithms: Sequence[str] | str | None, params_dir: Path | None) -> bool:
+        """Report whether IPR is in the resolved portfolio the constructor can see.
+
+        Args:
+            algorithms (Sequence[str] | str | None): Explicit portfolio, or None for the default.
+            params_dir (Path | None): Optional parameter directory that may change the default.
+
+        Returns:
+            bool: True when IPR is selected. A custom `params_dir` without explicit `algorithms`
+                hides the portfolio from the constructor, so this returns False and defers to
+                solve-time validation.
+        """
         if algorithms is None:
-            has_ipr = params_dir is None
-        else:
-            has_ipr = not isinstance(algorithms, str) and any(
-                isinstance(name, str) and canonical_mh_name(name) == "IPR" for name in algorithms
-            )
-        if has_ipr:
-            raise ValueError(
-                f"engine='cpp' with IPR needs at least {MIN_KEYS_CPP_IPR} keys, got {n_variables}: "
-                "the C++ reference's IPR block size is dimension / 10 and divides by zero below "
-                "that. Use more keys, drop IPR from `algorithms`, or choose another engine."
-            )
+            return params_dir is None
+        if isinstance(algorithms, str):
+            return False
+        return any(
+            isinstance(name, str) and canonical_mh_name(name) == "IPR" for name in algorithms
+        )
 
     @classmethod
     def validate(cls, engine: str, execution: str | None) -> str | None:
