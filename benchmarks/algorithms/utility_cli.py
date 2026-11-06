@@ -31,11 +31,13 @@ import os
 import platform
 import sys
 import tempfile
+from benchmarks.algorithms import utility_pilot
 from benchmarks.algorithms.utility_analysis import UtilityAnalysis
 from benchmarks.algorithms.utility_executors import AdaptiveExecutor
 from benchmarks.algorithms.utility_executors import TemperatureExecutor
 from benchmarks.algorithms.utility_executors import UtilityScoring
 from benchmarks.algorithms.utility_inputs import UtilityInputs
+from benchmarks.algorithms.utility_pilot import UtilityPilot
 from benchmarks.algorithms.utility_study import CLASSES
 from benchmarks.algorithms.utility_study import UtilityManifest
 from benchmarks.algorithms.utility_study import UtilityRunner
@@ -81,6 +83,8 @@ class UtilityCli:
         handlers = {
             "manifest": UtilityCli._manifest,
             "run": UtilityCli._run,
+            "pilot": UtilityCli._run,
+            "pilot-report": UtilityCli._pilot_report,
             "analyze": UtilityCli._analyze,
         }
         return handlers[args.command](args)
@@ -106,6 +110,15 @@ class UtilityCli:
         run.add_argument("--profiles", default="evaluations,time")
         run.add_argument("--max-hours", type=float, default=24.0)
         run.add_argument("--binary", type=Path, default=BINARY)
+        pilot = commands.add_parser("pilot")
+        pilot.add_argument("--manifest", type=Path, required=True)
+        pilot.add_argument("--output", type=Path, required=True)
+        pilot.add_argument("--order-seed", type=int, required=True)
+        pilot.add_argument("--mechanism", choices=("adaptive", "temperature"), required=True)
+        pilot.add_argument("--max-hours", type=float, default=utility_pilot.PILOT_HOURS)
+        pilot.add_argument("--binary", type=Path, default=BINARY)
+        report = commands.add_parser("pilot-report")
+        report.add_argument("--rows", action="append", default=[], metavar="MECHANISM=PATH")
         analyze = commands.add_parser("analyze")
         analyze.add_argument("--manifest", type=Path, required=True)
         analyze.add_argument("--rows", action="append", default=[], metavar="MECHANISM=PATH")
@@ -159,10 +172,54 @@ class UtilityCli:
         return document
 
     @staticmethod
+    def _params(scratch: Path) -> dict[str, Path]:
+        """Copy the packaged parameters once per arm with the schedule toggled.
+
+        Args:
+            scratch (Path): Existing directory for the copies.
+
+        Returns:
+            dict[str, Path]: Parameter directory per arm.
+
+        Raises:
+            ValueError: If a configuration override cannot be applied.
+            OSError: If a directory cannot be written.
+        """
+        params = {}
+        for arm, value in (("baseline", "false"), ("candidate", "true")):
+            (scratch / arm).mkdir()
+            overrides = ConfigOverrides.parse([f"progress_schedule={value}"])
+            params[arm] = overrides.write(scratch / arm)
+        return params
+
+    @staticmethod
     def _executor(
+        args: argparse.Namespace,
+        entries: Sequence[Mapping[str, Any]],
+        params: Mapping[str, Path],
+        budget: tuple[float, int],
+    ) -> Callable[[dict[str, Any]], dict[str, Any]]:
+        """Build the executor of the chosen mechanism for one budget.
+
+        Args:
+            args (argparse.Namespace): Parsed arguments.
+            entries (Sequence[Mapping[str, Any]]): Manifest entries.
+            params (Mapping[str, Path]): Parameter directory per arm.
+            budget (tuple[float, int]): Search seconds and per-algorithm evaluation cap.
+
+        Returns:
+            Callable[[dict[str, Any]], dict[str, Any]]: Trial executor.
+        """
+        scoring = UtilityScoring(UtilityInputs(DEFAULT_CACHE))
+        if args.mechanism == "temperature":
+            return TemperatureExecutor(args.binary, entries, scoring, budget)
+        return AdaptiveExecutor(entries, scoring, params, budget)
+
+    @staticmethod
+    def _execute(
         args: argparse.Namespace, entries: Sequence[Mapping[str, Any]], scratch: Path
     ) -> Callable[[dict[str, Any]], dict[str, Any]]:
-        """Build the executor of the chosen mechanism.
+        """Return the trial callable of a registered run or a pilot.
 
         Args:
             args (argparse.Namespace): Parsed arguments.
@@ -170,21 +227,19 @@ class UtilityCli:
             scratch (Path): Directory for the copied parameter sets.
 
         Returns:
-            Callable[[dict[str, Any]], dict[str, Any]]: Trial executor.
+            Callable[[dict[str, Any]], dict[str, Any]]: Executes one planned trial.
 
         Raises:
             ValueError: If a configuration override cannot be applied.
-            OSError: If a parameter directory cannot be written.
+            OSError: If a directory cannot be written.
         """
-        scoring = UtilityScoring(UtilityInputs(DEFAULT_CACHE))
-        if args.mechanism == "temperature":
-            return TemperatureExecutor(args.binary, entries, scoring, BUDGET)
-        params = {}
-        for arm, value in (("baseline", "false"), ("candidate", "true")):
-            (scratch / arm).mkdir()
-            overrides = ConfigOverrides.parse([f"progress_schedule={value}"])
-            params[arm] = overrides.write(scratch / arm)
-        return AdaptiveExecutor(entries, scoring, params, BUDGET)
+        params = UtilityCli._params(scratch)
+        if args.command != "pilot":
+            return UtilityCli._executor(args, entries, params, BUDGET)
+        budgets = {"evaluations": BUDGET}
+        budgets.update({k: (v, BUDGET[1]) for k, v in utility_pilot.PILOT_SECONDS.items()})
+        executors = {k: UtilityCli._executor(args, entries, params, v) for k, v in budgets.items()}
+        return lambda trial: UtilityPilot.execute(executors, trial)
 
     @staticmethod
     def _run(args: argparse.Namespace) -> int:
@@ -206,26 +261,60 @@ class UtilityCli:
             return 2
         document = UtilityCli._load(args.manifest)
         entries = document["entries"]
-        profiles = tuple(args.profiles.split(","))
-        runner = UtilityRunner(entries, profiles, args.order_seed)
-        status, error = "complete", ""
-        with tempfile.TemporaryDirectory() as scratch:
-            try:
-                runner.run(
-                    UtilityCli._executor(args, entries, Path(scratch)),
-                    args.output,
-                    args.max_hours * 3600.0,
-                )
-            except TimeoutError as problem:
-                status, error = "incomplete", str(problem)
-            except Exception as problem:
-                status, error = "failed", f"{type(problem).__name__}: {problem}"
+        runner = UtilityCli._runner(args, entries)
+        status, error = UtilityCli._execute_runner(args, entries, runner)
         completed = len(args.output.read_text().splitlines()) if args.output.exists() else 0
         provenance = UtilityCli._provenance(args, document, len(runner.plan()), completed)
         with meta.open("x") as handle:
             json.dump({**provenance, "status": status, "error": error}, handle, indent=1)
         sys.stderr.write(f"{status}: {completed} trials. {error}\n")
         return {"complete": 0, "incomplete": 3}.get(status, 1)
+
+    @staticmethod
+    def _runner(
+        args: argparse.Namespace, entries: Sequence[Mapping[str, Any]]
+    ) -> UtilityPilot | UtilityRunner:
+        """Build the pilot or the registered runner for this command.
+
+        Args:
+            args (argparse.Namespace): Parsed arguments.
+            entries (Sequence[Mapping[str, Any]]): Manifest entries.
+
+        Returns:
+            UtilityPilot | UtilityRunner: Plan-and-run object for this command.
+        """
+        if args.command == "pilot":
+            return UtilityPilot(entries, args.order_seed)
+        return UtilityRunner(entries, tuple(args.profiles.split(",")), args.order_seed)
+
+    @staticmethod
+    def _execute_runner(
+        args: argparse.Namespace,
+        entries: Sequence[Mapping[str, Any]],
+        runner: UtilityPilot | UtilityRunner,
+    ) -> tuple[str, str]:
+        """Run the plan, catching the time ceiling and any trial failure.
+
+        Args:
+            args (argparse.Namespace): Parsed arguments.
+            entries (Sequence[Mapping[str, Any]]): Manifest entries.
+            runner (UtilityPilot | UtilityRunner): Plan-and-run object to execute.
+
+        Returns:
+            tuple[str, str]: Status and error message, empty on success.
+        """
+        with tempfile.TemporaryDirectory() as scratch:
+            try:
+                runner.run(
+                    UtilityCli._execute(args, entries, Path(scratch)),
+                    args.output,
+                    args.max_hours * 3600.0,
+                )
+                return "complete", ""
+            except TimeoutError as problem:
+                return "incomplete", str(problem)
+            except Exception as problem:
+                return "failed", f"{type(problem).__name__}: {problem}"
 
     @staticmethod
     def _provenance(
@@ -252,7 +341,7 @@ class UtilityCli:
             "manifest_digest": document["digest"],
             "role": document["role"],
             "order_seed": args.order_seed,
-            "profiles": args.profiles.split(","),
+            "profiles": getattr(args, "profiles", ",".join(utility_pilot.PROFILES)).split(","),
             "budget": {"seconds": BUDGET[0], "evaluations": BUDGET[1]},
             "max_hours": args.max_hours,
             "planned": planned,
@@ -264,6 +353,31 @@ class UtilityCli:
             "cpus": os.cpu_count(),
             "python": sys.version.split()[0],
         }
+
+    @staticmethod
+    def _pilot_report(args: argparse.Namespace) -> int:
+        """Print the pilot verdict for the mechanisms given.
+
+        Args:
+            args (argparse.Namespace): Parsed arguments.
+
+        Returns:
+            int: Zero for PASS, four for STOP.
+
+        Raises:
+            ValueError: If a mechanism label is unknown or repeats are missing.
+            OSError: If a file cannot be read.
+        """
+        reports = {}
+        for item in args.rows:
+            mechanism, _, path = item.partition("=")
+            if mechanism not in ("adaptive", "temperature"):
+                raise ValueError(f"unknown mechanism {mechanism!r}")
+            rows = [json.loads(line) for line in Path(path).read_text().splitlines()]
+            reports[mechanism] = UtilityPilot.report(rows)
+        verdict = UtilityPilot.verdict(reports)
+        sys.stdout.write(json.dumps({"reports": reports, "verdict": verdict}, indent=1) + "\n")
+        return 0 if verdict["status"] == "PASS" else 4
 
     @staticmethod
     def _analyze(args: argparse.Namespace) -> int:
