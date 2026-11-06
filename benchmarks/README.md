@@ -3191,3 +3191,41 @@ With only three seeds these are descriptive, not a ranking. IPR alone stays flat
 reference file as a degenerate baseline. The assignment case is the hard one: SA finds no
 feasible point in 800 evaluations and BRKGA stalls at a gap above 0.2; transport_lp and knapsack_50
 do not reach the optimum within 3200 evaluations either.
+
+## Structure-aware construction prototype (issue 125, layer L1)
+
+`modeling/structure_construction.py` is a benchmark-only prototype passed to `RKO.from_model` as
+`construction=`. It detects rows whose variables are all free binaries with coefficient one
+(assignment, cardinality, covering, packing) and reads each key as a priority: variables are taken in
+decreasing key order (ties by index) while every touching row stays within its upper bound, then rows
+below their lower bound are topped up. Everything else keeps the default box mapping, and continuous
+restoration still runs afterwards. It keeps one key per free variable, so `n_keys` is unchanged.
+
+```bash
+uv run --locked --group model-validation python -m benchmarks.modeling.key_feasibility --structure
+uv run --locked --group model-validation python -m benchmarks.modeling.key_convergence --decoder structure
+```
+
+Same host, seeds and budgets as the baselines above (measured at `e9b5ab6`; files
+`references/key-feasibility-structure-e9b5ab6.json` and `references/key-convergence-structure-e9b5ab6.json`).
+Feasible keys out of 2048: assignment 2 to 2048, cardinality_linking 619 to 2048, set_cover 1383 to 2048;
+every other case is unchanged. Median gap to the optimum (positive is worse):
+
+| Case | SA 800 default | SA 800 structure | BRKGA 800 default | BRKGA 800 structure | SA 3200 default | SA 3200 structure |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| production_lp | 0.001 | 0.001 | 0.000 | 0.000 | 0.000 | 0.000 |
+| production_integer | 0.015 | 0.015 | 0.027 | 0.027 | -0.000 | -0.000 |
+| production_setup | 0.001 | 0.001 | 0.001 | 0.001 | 0.000 | 0.000 |
+| transport_lp | 0.188 | 0.188 | 0.105 | 0.105 | 0.133 | 0.133 |
+| transport_equalities | 0.028 | 0.028 | 0.000 | 0.000 | 0.004 | 0.004 |
+| knapsack_50 | 0.174 | 0.174 | 0.087 | 0.087 | 0.107 | 0.107 |
+| assignment | none | 0.000 | 0.208 | 0.000 | 0.170 (2/3) | 0.000 |
+| coupled_equality | 0.028 | 0.028 | 0.018 | 0.018 | 0.013 | 0.013 |
+| cardinality_linking | 0.106 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| set_cover | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+
+The seven cases without detected structure are identical to the default decoder at every budget, so the
+prototype changes only what it recognises. The cost is decode speed on structured models (for example
+187 against 696 decodes per second on cardinality_linking, about 2 to 4 times slower, in pure Python).
+Not measured: IPR-only portfolios beyond the summary file, larger instances, rows with non-unit
+coefficients such as Knapsack (left untouched), and any effect on exploration diversity.

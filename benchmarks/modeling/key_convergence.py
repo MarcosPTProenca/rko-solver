@@ -34,6 +34,7 @@ import sys
 from .cases import PracticalModels
 from .key_feasibility import KeyFeasibilityStudy
 from .schema import PracticalCase
+from .structure_construction import StructureConstruction
 from pathlib import Path
 from rko_solver import RKO
 from typing import Any
@@ -58,6 +59,7 @@ class KeyConvergenceStudy:
         budgets: tuple[int, ...] = BUDGETS,
         seeds: tuple[int, ...] = SEEDS,
         progress: bool = False,
+        decoder: str = "default",
     ) -> list[dict[str, Any]]:
         """Solve every fixture, algorithm, budget and seed once.
 
@@ -67,6 +69,7 @@ class KeyConvergenceStudy:
             budgets (tuple[int, ...]): Exact evaluation counts.
             seeds (tuple[int, ...]): Search seeds.
             progress (bool): Print one line per finished run to stderr.
+            decoder (str): `default` or `structure` (the L1 prototype of issue 125).
 
         Returns:
             list[dict[str, Any]]: One record per run.
@@ -75,7 +78,7 @@ class KeyConvergenceStudy:
         grid = list(itertools.product(cases, algorithms, budgets, seeds))
         records = []
         for done, (case, algorithm, budget, seed) in enumerate(grid, 1):
-            records.append(KeyConvergenceStudy._one(case, algorithm, budget, seed))
+            records.append(KeyConvergenceStudy._one(case, algorithm, budget, seed, decoder))
             if progress:
                 print(
                     f"{done}/{len(grid)} {case.name} {algorithm} {budget} {seed}", file=sys.stderr
@@ -83,7 +86,9 @@ class KeyConvergenceStudy:
         return records
 
     @staticmethod
-    def _one(case: PracticalCase, algorithm: str, budget: int, seed: int) -> dict[str, Any]:
+    def _one(
+        case: PracticalCase, algorithm: str, budget: int, seed: int, decoder: str
+    ) -> dict[str, Any]:
         """Run one search and reduce its model result to a record."""
         solver = RKO.from_model(
             PracticalModels.native(case, FRONTEND),
@@ -93,6 +98,7 @@ class KeyConvergenceStudy:
             execution="sequential",
             random_state=seed,
             max_evaluations=budget,
+            **({"construction": StructureConstruction()} if decoder == "structure" else {}),
         )
         result = solver.solve(3600.0)
         model = result.model
@@ -100,6 +106,7 @@ class KeyConvergenceStudy:
         feasible = model.best_feasible
         return {
             "case": case.name,
+            "decoder": decoder,
             "algorithm": algorithm,
             "budget": budget,
             "seed": seed,
@@ -119,22 +126,28 @@ class KeyConvergenceStudy:
         Returns:
             list[dict[str, Any]]: Run and feasible counts, gap and first-feasible-time statistics.
         """
-        groups: dict[tuple[str, str, int], list[dict[str, Any]]] = {}
+        groups: dict[tuple[str, str, str, int], list[dict[str, Any]]] = {}
         for record in records:
-            key = (record["case"], record["algorithm"], record["budget"])
+            key = (
+                record["case"],
+                record.get("decoder", "default"),
+                record["algorithm"],
+                record["budget"],
+            )
             groups.setdefault(key, []).append(record)
         return [KeyConvergenceStudy._row(key, runs) for key, runs in groups.items()]
 
     @staticmethod
-    def _row(key: tuple[str, str, int], runs: list[dict[str, Any]]) -> dict[str, Any]:
+    def _row(key: tuple[str, str, str, int], runs: list[dict[str, Any]]) -> dict[str, Any]:
         """Summarize the runs of one fixture, algorithm and budget."""
         feasible = [r for r in runs if r["feasible"]]
         gaps = [r["gap"] for r in feasible]
         times = [r["seconds_to_first_feasible"] for r in feasible]
         return {
             "case": key[0],
-            "algorithm": key[1],
-            "budget": key[2],
+            "decoder": key[1],
+            "algorithm": key[2],
+            "budget": key[3],
             "runs": len(runs),
             "feasible_runs": len(feasible),
             "best_gap": min(gaps, default=None),
@@ -149,6 +162,7 @@ def main() -> None:
     parser.add_argument("--case", action="append", default=None, help="fixture name, repeatable")
     parser.add_argument("--budgets", type=int, nargs="+", default=list(BUDGETS))
     parser.add_argument("--seeds", type=int, nargs="+", default=list(SEEDS))
+    parser.add_argument("--decoder", choices=("default", "structure"), default="default")
     parser.add_argument("--output", type=Path, default=None, help="raw records, never overwritten")
     args = parser.parse_args()
     records = KeyConvergenceStudy.run(
@@ -157,6 +171,7 @@ def main() -> None:
         tuple(args.budgets),
         tuple(args.seeds),
         progress=True,
+        decoder=args.decoder,
     )
     if args.output is not None:
         KeyFeasibilityStudy.write(args.output, records)
