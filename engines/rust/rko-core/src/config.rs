@@ -53,6 +53,8 @@ pub struct Config {
     /// Use the progress-driven Q-learning schedule and scale-free reward; false keeps the
     /// legacy whole-second windows and fixed reward scale of 1.
     pub progress_schedule: bool,
+    /// Repository-only offline SA calibration experiment; no Python option exposes this.
+    pub sa_t0_auto: bool,
     /// Caller-supplied key rows evaluated once and offered to the pool before the searches.
     pub initial_keys: Vec<Vec<f64>>,
 }
@@ -62,6 +64,7 @@ impl Default for Config {
         Self {
             time_limit: 1.0,
             seed: 0,
+            sa_t0_auto: false,
             pool_size: 10,
             threads: None,
             history_limit: 0,
@@ -125,6 +128,7 @@ mod tests {
         Config {
             time_limit: 1.0,
             seed: 1,
+            sa_t0_auto: false,
             pool_size: 10,
             threads: None,
             history_limit: 0,

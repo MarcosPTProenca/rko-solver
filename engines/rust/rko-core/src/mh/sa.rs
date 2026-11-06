@@ -18,11 +18,15 @@
 //! Important criteria:
 //! - A schedule ends when `T <= 0.0001`; the next one starts at `0.3 * t0`.
 //! - A selected `t0` applies from the next schedule.
+//! - Repository-only offline calibration samples 32 budgeted shakes from the fixed start.
+//!   Success replaces both `t0` and the cutoff with `t0 * 1e-7`; failure keeps the legacy
+//!   values after sampling. This is a composite experiment, not an isolated `t0` effect.
 //!
 //! Inputs/Outputs:
 //! - Input: `Spec` with axes `[sa_max, t0, alpha, beta_min, beta_max]` and a `Context`.
 //! - Output: `Result<(), Stop>`; the incumbent and pool carry the result.
 
+use super::sa_temperature::{SaTemperature, TARGET_ACCEPTANCE};
 use super::{Context, Spec};
 use crate::operators::{NelderMead, PoolPolicy, random_keys, shake};
 use crate::qlearning::QLearning;
@@ -41,6 +45,35 @@ struct Parameters {
 }
 
 impl Parameters {
+    /// Score and publish the random start, optionally calibrating the offline experiment.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the search stop reason if calibration exhausts its budget.
+    fn initialize(
+        &mut self,
+        start: &mut [f64],
+        context: &mut Context,
+        scratch: &mut [f64],
+    ) -> Result<(f64, f64), Stop> {
+        random_keys(start, context.rng);
+        let cost = context.search.eval(start)?;
+        context.pool.insert(cost, start, context.source);
+        if context.sa_t0_auto
+            && let Some(temperature) = SaTemperature::new(TARGET_ACCEPTANCE).calibrate(
+                start,
+                cost,
+                [self.beta_min, self.beta_max],
+                context,
+                scratch,
+            )?
+        {
+            self.t0 = temperature;
+            return Ok((cost, temperature * 1e-7));
+        }
+        Ok((cost, 0.0001))
+    }
+
     fn from(values: &[f64]) -> Self {
         Self {
             sa_max: values[0] as usize,
@@ -74,17 +107,14 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
     let mut block = capacity.min(4);
     let mut rows: Vec<f64> = Vec::new();
     let mut row_costs: Vec<f64> = Vec::new();
-    random_keys(&mut keys, context.rng);
-    let mut current_cost = context.search.eval(&keys)?;
+    let (mut current_cost, cutoff) = params.initialize(&mut keys, context, &mut neighbor)?;
     let mut best_cost = current_cost;
-    context.pool.insert(best_cost, &keys, context.source);
-
     let mut searcher = NelderMead::new(PoolPolicy::Elite);
     let mut reannealing = false;
     loop {
         context.search.check()?;
         let mut temperature = params.t0 * RESTART_SCALE[usize::from(reannealing)];
-        while temperature > 0.0001 {
+        while temperature > cutoff {
             let previous_best = best_cost;
             let mut action = 0;
             let mut next_state = state;
