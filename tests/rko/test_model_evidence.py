@@ -24,12 +24,14 @@ Inputs/Outputs:
 import math
 import numpy as np
 import pytest
+import time
 from rko_solver.components.random_streams import RandomStreams
 from rko_solver.components.solution_pool import SolutionPool
 from rko_solver.modeling.linear import CompiledLinearModel
 from rko_solver.modeling.linear import LinearRow
 from rko_solver.modeling.linear import LinearVariable
 from rko_solver.modeling.linear import ModelEvidence
+from rko_solver.modeling.records import ModelEvaluation
 from rko_solver.orchestration.initialization import initialize_pool
 from rko_solver.orchestration.search import SearchSession
 from rko_solver.orchestration.search import _BudgetExpired
@@ -207,28 +209,60 @@ def test_merge_requires_actual_identity_and_never_replays(monkeypatch: pytest.Mo
         model.merge_evidence(archives, [0.3], 0.15)
 
 
+class DelayedEvidenceModel(CompiledLinearModel):
+    """Simulate callback latency without changing generated-model callback ownership.
+
+    Responsibilities:
+    - Preserve model evidence collection across spawn while exercising a slow evaluation.
+    """
+
+    @staticmethod
+    def cost(evaluation: ModelEvaluation) -> float:
+        """Return the original score after a delay longer than the former test budget.
+
+        Args:
+            evaluation (ModelEvaluation): Completed model evaluation.
+
+        Returns:
+            float: Unchanged model score.
+        """
+        time.sleep(0.06)
+        return CompiledLinearModel.cost(evaluation)
+
+
 @pytest.mark.parametrize("execution", ["sequential", "thread", "process"])
 @pytest.mark.parametrize("prefill", [False, True])
 def test_bounded_evidence_survives_execution_backends(execution: str, prefill: bool) -> None:
-    """Collect independent bounded records through startup, threads and spawn workers.
+    """Collect bounded evidence with fixed work despite callback latency.
+
+    Two evaluations per algorithm bound the work; a generous deadline is only a watchdog.
+    The delayed model reproduces starvation under the former 0.05-second process budget.
 
     Args:
         execution (str): Existing execution execution.
         prefill (bool): Whether to include separately accounted startup evaluation evidence.
     """
-    model = CompiledLinearModel(
+    model = DelayedEvidenceModel(
         (LinearVariable("x", "x", -2, 2),),
         (1,),
         objective_constant=-3,
     )
-    solver = RKO(model.decode, model.cost, 1, execution=execution, n_jobs=1, random_state=42)
+    solver = RKO(
+        model.decode,
+        model.cost,
+        1,
+        execution=execution,
+        n_jobs=1,
+        random_state=42,
+        max_evaluations=2,
+    )
     evidence: list[ModelEvidence] = []
     searches: list[SearchMetadata] = []
     initialization: list[PoolInitializationMetadata] = []
     config = RunConfig(0, 2, ("MultiStart", "SA"), prefill_pool=prefill)
     keys, score = solver._execute(
         config,
-        0.05,
+        10.0,
         started_at=0.0,
         search_metadata=searches,
         initialization_metadata=initialization,
@@ -236,7 +270,8 @@ def test_bounded_evidence_survives_execution_backends(execution: str, prefill: b
     )
     assert 1 <= len(evidence) <= 2 + int(prefill)
     assert all(archive.best_feasible is not None for archive in evidence)
-    assert all(search.n_evaluations > 0 for search in searches)
+    assert {search.algorithm for search in searches} == {"MultiStart", "SA"}
+    assert all(search.n_evaluations == 2 for search in searches)
     assert len(initialization) == int(prefill)
     merged = model.merge_evidence(tuple(evidence), keys, score)
     assert merged.incumbent.keys == tuple(keys)
