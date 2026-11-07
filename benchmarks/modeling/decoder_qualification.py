@@ -97,7 +97,15 @@ class DecoderQualification:
         policy = "structure" if decoder == "structure" else "continuous"
         snapshot = KeyFeasibilityStudy._snapshot(case, policy)
         started = time.perf_counter()
-        results = [snapshot.decode(row) for row in keys]
+        results = []
+        for position, row in enumerate(keys, 1):
+            results.append(snapshot.decode(row))
+            if position % 16 == 0:
+                print(
+                    f"probe-progress {case.name} {decoder} {position}/{len(keys)}",
+                    file=sys.stderr,
+                    flush=True,
+                )
         elapsed = time.perf_counter() - started
         for result in results:
             DecoderQualification.validate(case, result)
