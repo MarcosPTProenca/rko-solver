@@ -1,25 +1,29 @@
 """Prototype of structure-aware construction for model decoding (issue 125, layer L1).
 
 Objective:
-- Test whether treating binary all-ones rows (assignment, cardinality, covering, packing) as
-  structure raises the feasible fraction of random keys without changing the key dimension.
+- Test whether treating rows over free binary variables as structure raises the feasible fraction
+  of random keys for any model, without changing the key dimension and without problem-specific
+  rules (no assumption of assignment, knapsack or routing shape).
 
 Technical approach:
-- Detect rows whose variables are all free binaries with coefficient one.
-- Read each key as a priority: variables are taken in decreasing key order (ties by index) when
-  the key is at least one half and every row they touch stays within its upper bound; rows still
-  below their lower bound are then topped up with the highest-priority variables that fit.
-- Every other variable keeps the default box mapping; continuous restoration still runs after.
+- Detect rows whose variables are all free binaries, with any nonzero coefficient.
+- Read each key as a priority: variables are taken in decreasing key order (ties by index) when the
+  key is at least one half and the row activities stay within their upper bounds. A variable whose
+  row would overflow may pull in one unselected variable with a negative coefficient in that row
+  (an implication such as `x - y <= 0`); if that cannot restore the row the choice is undone.
+- Rows still below their lower bound are then topped up with the highest-priority variables that
+  fit. Every other variable keeps the default box mapping; continuous restoration runs afterwards.
 
 Flow (pseudocode):
-1. Build the plan once per context: structured variables, their rows and the row bounds.
+1. Build the plan once per context: structured variables, their rows and coefficients.
 2. Map all variables with the default box mapping, zeroing structured binaries.
-3. Select structured binaries by priority, then top up unmet lower bounds.
+3. Select structured binaries by priority with one-step implications, then top up lower bounds.
 
 Important criteria:
 - One key per free variable is kept, so the driver and `n_keys` are unchanged.
 - Sorting is stable with an index tie-break, so decoding is deterministic for fixed keys.
-- Rows with non-binary, fixed or non-unit terms are left to the default decoder and repair.
+- Rows with non-binary, fixed or integer-range terms are left to the default decoder and repair.
+- Implications are followed one level only; deeper chains are rejected, never guessed.
 
 Inputs/Outputs:
 - Input: keys and the frozen construction context.
@@ -38,17 +42,18 @@ from rko_solver.modeling.records import LinearVariable
 from rko_solver.modeling.source import ExtractedLinearModel
 
 THRESHOLD = 0.5
+TOLERANCE = 1e-9
 
 
 class StructurePlan:
     """Rows and variables the prototype constructs, derived once from a context.
 
     Responsibilities:
-    - Select binary all-ones rows over free variables and index them by variable.
+    - Select rows over free binaries and index them by variable with their coefficients.
 
     Attributes:
-        rows (list[tuple[list[int], float, float]]): Member indices, lower and upper bound per row.
-        by_variable (dict[int, list[int]]): Row positions touching each structured variable.
+        rows (list[tuple[list[tuple[int, float]], float, float]]): Terms, lower and upper bound.
+        by_variable (dict[int, list[tuple[int, float]]]): Row position and coefficient per variable.
     """
 
     def __init__(self, context: ConstructionInput) -> None:
@@ -61,25 +66,132 @@ class StructurePlan:
             not d.fixed and v.domain != "continuous" and v.lower == 0 and v.upper == 1
             for v, d in zip(context.variables, context.domains, strict=True)
         ]
-        self.rows: list[tuple[list[int], float, float]] = []
-        self.by_variable: dict[int, list[int]] = {}
+        self.rows: list[tuple[list[tuple[int, float]], float, float]] = []
+        self.by_variable: dict[int, list[tuple[int, float]]] = {}
         for row in context.rows:
             if self._eligible(row, binary):
                 self._add(row)
 
     def _add(self, row: LinearRow) -> None:
         """Index one eligible row by its member variables."""
-        members = [index for index, _ in row.coefficients]
-        for index in members:
-            self.by_variable.setdefault(index, []).append(len(self.rows))
-        self.rows.append((members, row.lower, row.upper))
+        terms = [(index, float(coefficient)) for index, coefficient in row.coefficients]
+        for index, coefficient in terms:
+            self.by_variable.setdefault(index, []).append((len(self.rows), coefficient))
+        self.rows.append((terms, row.lower - row.constant, row.upper - row.constant))
 
     @staticmethod
     def _eligible(row: LinearRow, binary: list[bool]) -> bool:
-        """Return whether every term is a free binary with coefficient one."""
+        """Return whether every term is a free binary with a nonzero coefficient."""
         return bool(row.coefficients) and all(
-            coefficient == 1 and binary[index] for index, coefficient in row.coefficients
+            coefficient != 0 and binary[index] for index, coefficient in row.coefficients
         )
+
+
+class _Selection:
+    """One decoding in progress: selected binaries and per-row activity.
+
+    Responsibilities:
+    - Apply and undo selections, check row bounds and follow one-step implications.
+    """
+
+    def __init__(
+        self, plan: StructurePlan, values: list[float], order: list[int], key_of: dict[int, float]
+    ) -> None:
+        """Start with nothing selected.
+
+        Args:
+            plan (StructurePlan): Detected rows.
+            values (list[float]): Assignment being built; structured binaries are zero.
+            order (list[int]): Structured variables by decreasing key, ties by index.
+            key_of (dict[int, float]): Key of every free variable.
+        """
+        self.plan, self.values, self.order, self.key_of = plan, values, order, key_of
+        self.activity = [0.0] * len(plan.rows)
+        self.rank = {index: position for position, index in enumerate(order)}
+
+    def _apply(self, index: int, sign: float = 1.0) -> None:
+        """Select (`sign` 1) or unselect (`sign` -1) one variable and update activities."""
+        self.values[index] = 1.0 if sign > 0 else 0.0
+        for row, coefficient in self.plan.by_variable[index]:
+            self.activity[row] += sign * coefficient
+
+    def _allowed(self, row: int, coefficient: float) -> bool:
+        """Return whether adding one coefficient keeps a row from leaving its bounds."""
+        _, lower, upper = self.plan.rows[row]
+        activity = self.activity[row]
+        if coefficient > 0:
+            return activity + coefficient <= upper + TOLERANCE
+        return activity + coefficient >= lower - TOLERANCE or activity > upper + TOLERANCE
+
+    def _fits(self, index: int) -> bool:
+        """Return whether one variable can be added without leaving any touching row's bounds."""
+        return all(self._allowed(row, c) for row, c in self.plan.by_variable[index])
+
+    def _overfull(self, index: int) -> list[int]:
+        """Return touching rows whose activity exceeds the upper bound."""
+        return [
+            row
+            for row, _ in self.plan.by_variable[index]
+            if self.activity[row] > self.plan.rows[row][2] + TOLERANCE
+        ]
+
+    def _helper(self, row: int) -> int | None:
+        """Return the best unselected variable with a negative coefficient that fits, if any."""
+        terms = self.plan.rows[row][0]
+        candidates = [i for i, c in terms if c < 0 and self.values[i] == 0.0 and self._fits(i)]
+        return min(candidates, key=self.rank.__getitem__, default=None)
+
+    def try_set(self, index: int) -> bool:
+        """Select a variable, pulling in one helper per overfull row; undo everything on failure.
+
+        Args:
+            index (int): Variable to select.
+
+        Returns:
+            bool: Whether the variable (and any helpers) are now selected.
+        """
+        if self._breaks_lower(index):
+            return False
+        added = [index]
+        self._apply(index)
+        for row in self._overfull(index):
+            helper = self._helper(row)
+            if helper is None:
+                break
+            self._apply(helper)
+            added.append(helper)
+        if self._overfull(index):
+            self._undo(added)
+            return False
+        return True
+
+    def _breaks_lower(self, index: int) -> bool:
+        """Return whether a negative coefficient would push a row below its lower bound."""
+        return any(c < 0 and not self._allowed(r, c) for r, c in self.plan.by_variable[index])
+
+    def _undo(self, added: list[int]) -> None:
+        """Unselect variables in reverse order of selection."""
+        for variable in reversed(added):
+            self._apply(variable, -1.0)
+
+    def take(self) -> None:
+        """Select variables in priority order when their key is at least the threshold."""
+        for index in self.order:
+            if self.key_of[index] >= THRESHOLD and self.values[index] == 0.0:
+                self.try_set(index)
+
+    def top_up(self) -> None:
+        """Raise rows below their lower bound using the highest-priority variables that fit."""
+        for row, (terms, lower, _) in enumerate(self.plan.rows):
+            if self.activity[row] < lower - TOLERANCE:
+                self._fill(row, {i for i, c in terms if c > 0}, lower)
+
+    def _fill(self, row: int, positive: set[int], lower: float) -> None:
+        """Add positive-coefficient members, highest priority first, until a row is met."""
+        for index in (i for i in self.order if i in positive):
+            if self.values[index] == 0.0 and self.try_set(index):
+                if self.activity[row] >= lower - TOLERANCE:
+                    return
 
 
 class StructureConstruction:
@@ -112,9 +224,9 @@ class StructureConstruction:
         for index in structured:
             values[index] = 0.0
         order = sorted(structured, key=lambda i: (-key_of[i], i))
-        activity = [0.0] * len(self._plan.rows)
-        self._take(order, key_of, activity, values, threshold=THRESHOLD)
-        self._top_up(order, key_of, activity, values)
+        selection = _Selection(self._plan, values, order, key_of)
+        selection.take()
+        selection.top_up()
         return values
 
     @staticmethod
@@ -138,63 +250,6 @@ class StructureConstruction:
             else:
                 values.append(domain.lower + min(float(np.floor(key * (width + 1))), width))
         return values, key_of
-
-    def _fits(self, index: int, activity: list[float]) -> bool:
-        """Return whether adding one unit at `index` respects every touching upper bound."""
-        assert self._plan is not None
-        return all(
-            activity[r] + 1 <= self._plan.rows[r][2] + 1e-9 for r in self._plan.by_variable[index]
-        )
-
-    def _set(self, index: int, activity: list[float], values: list[float]) -> None:
-        """Select one structured variable and update row activity."""
-        assert self._plan is not None
-        values[index] = 1.0
-        for r in self._plan.by_variable[index]:
-            activity[r] += 1
-
-    def _take(
-        self,
-        order: list[int],
-        key_of: dict[int, float],
-        activity: list[float],
-        values: list[float],
-        threshold: float,
-    ) -> None:
-        """Select variables in priority order while their rows stay within upper bounds."""
-        for index in order:
-            if key_of[index] >= threshold and values[index] == 0.0 and self._fits(index, activity):
-                self._set(index, activity, values)
-
-    def _top_up(
-        self,
-        order: list[int],
-        key_of: dict[int, float],
-        activity: list[float],
-        values: list[float],
-    ) -> None:
-        """Raise rows below their lower bound using the highest-priority variables that fit."""
-        assert self._plan is not None
-        for position, (_, lower, _) in enumerate(self._plan.rows):
-            if activity[position] < lower - 1e-9:
-                self._fill(position, order, activity, values)
-
-    def _fill(
-        self,
-        position: int,
-        order: list[int],
-        activity: list[float],
-        values: list[float],
-    ) -> None:
-        """Add the highest-priority members that fit until one row reaches its lower bound."""
-        assert self._plan is not None
-        members, lower, _ = self._plan.rows[position]
-        member_set = set(members)
-        for index in (i for i in order if i in member_set):
-            if values[index] == 0.0 and self._fits(index, activity):
-                self._set(index, activity, values)
-                if activity[position] >= lower - 1e-9:
-                    return
 
     @staticmethod
     def bind(case: PracticalCase) -> ModelConstruction:

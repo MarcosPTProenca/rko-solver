@@ -44,7 +44,17 @@ def independent_feasible(name: str, result: object) -> bool:
     return bool(PracticalModels.check(case, values)["feasible"])
 
 
-@pytest.mark.parametrize("name", ["assignment", "set_cover", "cardinality_linking"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "assignment",
+        "set_cover",
+        "cardinality_linking",
+        "facility_location",
+        "project_selection",
+        "knapsack_50",
+    ],
+)
 def test_structured_fixtures_are_feasible_for_every_sampled_key(name: str) -> None:
     """Detected structure makes every seeded random key decode to a feasible solution."""
     model = StructureConstruction.bind(CASES[name])
@@ -93,3 +103,51 @@ def test_keys_dimension_is_preserved() -> None:
     for name in ("assignment", "cardinality_linking", "set_cover"):
         plain = KeyFeasibilityStudy._snapshot(CASES[name], "continuous")
         assert StructureConstruction.bind(CASES[name]).n_keys == plain.n_keys
+
+
+def test_implications_with_negative_coefficients_are_propagated() -> None:
+    """Choosing an assignment opens its facility, so `x_ij <= y_j` rows hold for every key."""
+    model = StructureConstruction.bind(CASES["facility_location"])
+    for row in np.random.default_rng(4).random((100, model.n_keys)):
+        values = model.decode(row).values
+        facilities, assignment = values[:3], values[3:]
+        for i in range(4):
+            assert sum(assignment[i * 3 : i * 3 + 3]) == 1
+            assert all(a <= facilities[j] for j, a in enumerate(assignment[i * 3 : i * 3 + 3]))
+
+
+def test_weighted_rows_never_exceed_their_capacity() -> None:
+    """A row with arbitrary positive weights is respected, not only unit coefficients."""
+    case = CASES["knapsack_50"]
+    model = StructureConstruction.bind(case)
+    (row,) = case.rows
+    for keys in np.random.default_rng(6).random((50, model.n_keys)):
+        values = model.decode(keys).values
+        assert sum(values[i] * c for i, c in row.coefficients) <= row.upper
+
+
+@pytest.mark.parametrize("constant", [-7.0, 0.0, 1.0, 11.5])
+def test_affine_offsets_preserve_the_same_binary_constraint(constant: float) -> None:
+    """Equivalent affine rows decode identically, independently of their constant offset."""
+    from rko_solver.modeling.construction import ModelConstruction
+    from rko_solver.modeling.records import LinearRow
+    from rko_solver.modeling.records import LinearVariable
+    from rko_solver.modeling.source import ExtractedLinearModel
+
+    variables = tuple(LinearVariable(str(i), str(i), 0, 1, "binary") for i in range(2))
+    source = ExtractedLinearModel(
+        "mathopt",
+        "test",
+        "offset",
+        variables,
+        (1, 1),
+        0,
+        False,
+        (LinearRow("zero", ((0, 1), (1, 1)), upper=constant, constant=constant),),
+    )
+    snapshot = source.compile(repair="none")
+    bound = ModelConstruction.bind(snapshot, source, StructureConstruction())
+    for keys in np.random.default_rng(43).random((32, 2)):
+        result = bound.decode(keys)
+        assert result.values == (0.0, 0.0)
+        assert result.feasible
