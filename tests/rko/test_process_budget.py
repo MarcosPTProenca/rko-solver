@@ -154,10 +154,11 @@ def test_queued_failure_is_not_hidden_by_completed_result() -> None:
         control=0,
         n_jobs=1,
         random_state=42,
+        max_evaluations=1,
     )
     before = {child.pid for child in mp.active_children()}
     with pytest.raises(RuntimeError, match="SA") as captured:
-        solver.solve(0.2)
+        solver.solve(5.0)
     assert isinstance(captured.value.__cause__, ArithmeticError)
     assert "\nSA:\n" in str(captured.value)
     assert solver.result_ is None
