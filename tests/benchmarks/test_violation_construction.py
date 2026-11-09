@@ -68,3 +68,27 @@ def test_feasible_default_assignment_is_returned_unchanged() -> None:
     assert model.decode(keys).feasible
     plain = model.snapshot.decode(keys)
     assert model.decode(keys).values == pytest.approx(plain.values)
+
+
+def test_descent_never_leaves_the_effective_search_box() -> None:
+    """Moves never leave a search box narrower than the declared domain."""
+    from rko_solver.modeling.construction import ModelConstruction
+    from rko_solver.modeling.records import LinearRow
+    from rko_solver.modeling.records import LinearVariable
+    from rko_solver.modeling.source import ExtractedLinearModel
+
+    variables = tuple(LinearVariable(f"n{i}", f"n{i}", 0, 5, "integer") for i in range(3))
+    source = ExtractedLinearModel(
+        "mathopt",
+        "test",
+        "box",
+        variables,
+        (1, 1, 1),
+        0,
+        False,
+        (LinearRow("total", ((0, 1), (1, 1), (2, 1)), lower=7, upper=15),),
+    )
+    snapshot = source.compile(repair="none", search_bounds={f"n{i}": (0, 3) for i in range(3)})
+    bound = ModelConstruction.bind(snapshot, source, ViolationConstruction())
+    for keys in np.random.default_rng(12).random((32, bound.n_keys)):
+        assert max(bound.decode(keys).values) <= 3

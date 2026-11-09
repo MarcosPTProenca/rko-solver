@@ -10,6 +10,7 @@ Technical approach:
 - Otherwise repeat sweeps: evaluate every +1/-1 move on a free non-continuous coordinate within its
   bounds, apply the single move that most lowers total violation, ties by variable index, and stop
   when no move lowers it or after a fixed sweep cap.
+- Moves stay inside the effective domains (declared bounds intersected with search bounds).
 - Continuous coordinates are left to the existing continuous restoration that the bound policy runs.
 
 Flow (pseudocode):
@@ -97,10 +98,10 @@ class ViolationConstruction:
         """Return the unit move with the lowest resulting violation, ties by variable index."""
         best: tuple[float, int, float] | None = None
         for index in movable:
-            variable = context.variables[index]
+            domain = context.domains[index]
             for step in (-1.0, 1.0):
                 candidate = values[index] + step
-                if not variable.lower <= candidate <= variable.upper:
+                if not domain.lower <= candidate <= domain.upper:
                     continue
                 trial = list(values)
                 trial[index] = candidate
