@@ -3266,3 +3266,47 @@ is not automatically improved quality: project selection already reached the opt
 The original assignment improvement is retained. Larger models, deeper implications, diversity and
 quality at equal wall time remain unqualified. The earlier all-ones measurements above are historical;
 their claim that non-unit rows are untouched does not apply to this follow-up.
+
+### Decoder qualification at equal total time (negative result)
+
+`modeling/decoder_qualification.py` compares the default decoder with the benchmark-only structure
+prototype on six generated stress families (binary chains, general integers, mixed
+activation/coupling; 48 and 192 variables). Every family has an analytic optimum certified
+independently by HiGHS (`status=certified_optimal`). Each search arm charges model setup to a
+2-second total; SA and BRKGA run separately with five paired seeds, alternating arm order. Fixed-key
+probes use 128 keys per decoder and report exact output collisions, not evolving-population diversity.
+
+Reference: `references/decoder-qualification-8b85975.jsonl` (metadata revision `b1e688d`; 120 search
+records, 0 errors; the campaign completed). An earlier run was stopped during a probe and is not
+retained; its partial output does not contribute to any table.
+
+| Family | Default feasible keys (of 128) | Prototype feasible keys | Prototype unique outputs | Prototype probe time |
+| --- | ---: | ---: | ---: | ---: |
+| binary_chain_48 | 0 | 0 | 2 | 0.08 s |
+| binary_chain_192 | 0 | 0 | 4 | 0.3 s |
+| ranged_integer_48 | 35 | 35 | 128 | 0.04 s |
+| ranged_integer_192 | 0 | 0 | 128 | 0.1 s |
+| mixed_48 | 0 | 0 | 128 | 50.7 s |
+| mixed_192 | 0 | 0 | 128 | 173.5 s |
+
+Findings, all descriptive:
+
+- **Search results are mostly infeasible.** With a 2-second total, no arm found a feasible solution in
+  any binary-chain or mixed fixture (0 of 5 seeds each), and the prototype did not change that.
+- **The prototype does not improve feasibility on these families.** It only collapses outputs on
+  binary chains (2 to 4 distinct assignments from 128 keys, zero feasible).
+- **Decode cost is a blocking problem.** The prototype spends 50.7 s and 173.5 s on 128 keys for the
+  48- and 192-variable mixed fixtures, against about 0.1 s for the default. This is unrelated to
+  search quality and would make any equal-time comparison meaningless on such models.
+- **The ranged-integer control is not identical across arms.** It contains no binary rows, so the
+  prototype should behave exactly like the default there. Its probe outputs match, but search gaps
+  differ (for example BRKGA 0.042 against 0.125). Equal wall time makes evaluation counts vary between
+  runs, so these differences show measurement noise, not decoder effect.
+- Three seeds and five-seed pairs cannot support any ranking claim.
+
+Conclusion: the prototype does not qualify for promotion to `src/`. Its feasibility gain was limited
+to the earlier assignment/cardinality fixtures; on these broader families it fails on diversity,
+feasibility, and decode cost. Any future construction work needs a faster implementation and a
+diversity-preserving design before it can be measured again. Typing: `decoder_qualification.py` has
+mypy complaints about forwarding `**` keyword arguments into `RKO.from_model`; this module is not in
+the project's gates and the reference was recorded before any change.
