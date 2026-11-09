@@ -3310,3 +3310,53 @@ feasibility, and decode cost. Any future construction work needs a faster implem
 diversity-preserving design before it can be measured again. Typing: `decoder_qualification.py` has
 mypy complaints about forwarding `**` keyword arguments into `RKO.from_model`; this module is not in
 the project's gates and the reference was recorded before any change.
+
+### Greedy violation descent (issue 125 follow-up, mixed result)
+
+`modeling/violation_construction.py` maps keys with the default box mapping and, while any row is
+violated, applies the single unit move on a free integer or binary coordinate that most lowers total
+violation (row constants included, ties by index, 50-sweep cap). It uses rows and bounds only, with no
+fixture or objective shape. Continuous restoration still follows. It is deterministic for fixed keys;
+adaptive per-row penalty weights were not tested, because weights changing between evaluations would
+break that contract.
+
+Equal evaluation budget (SA, IPR and BRKGA; budgets 200/800/3200; seeds 0 to 2; references
+`key-convergence-violation-$SHA.json` and `key-convergence-default-violation-run-$SHA.json`), median
+gap of feasible runs:
+
+- Gains: assignment (none or 0.208 to 0.000), facility_location (0.263 to 0.000 for SA; 0.368 to 0.000
+  for BRKGA at 800), knapsack_50 (SA 3200: 0.107 to 0.047; BRKGA 3200: 0.034 to 0.007),
+  cardinality_linking (SA 800: 0.106 to 0.069).
+- No regression beyond noise in the other fixtures.
+
+Equal total wall time (2 s, setup included, 5 seeds, SA and BRKGA), median gap of feasible runs:
+
+| Fixture | Algorithm | Default (feasible/5) | Violation (feasible/5) |
+| --- | --- | --- | --- |
+| assignment | SA | 0.245 (4) | 0.000 (5) |
+| assignment | BRKGA | 0.113 (5) | 0.000 (5) |
+| facility_location | SA | 0.211 (5) | 0.000 (5) |
+| facility_location | BRKGA | 0.053 (5) | 0.000 (5) |
+| knapsack_50 | SA | 0.074 (5) | 0.047 (5) |
+| knapsack_50 | BRKGA | 0.013 (5) | 0.013 (5) |
+| cardinality_linking | SA | 0.134 (5) | 0.079 (5) |
+| cardinality_linking | BRKGA | 0.000 (5) | 0.000 (5) |
+
+Generated families, 64 fixed keys (feasible count and decode time): binary_chain_48 0/64 both
+(descent 1.3 s); binary_chain_192 0/64 both (110 s); mixed_48 0/64 both (1.5 s); mixed_192 0/64 both
+(50 s). ranged_integer_48: default 22/64, violation 64/64. ranged_integer_192: default 1/64, violation
+64/64, but about 100 ms per decode against 0.3 ms.
+
+Equal total wall time on the ranged-integer families (2 s, 3 seeds): the violation arm is **worse**.
+ranged_integer_48 SA median gap 1.125 (default) against 3.125 (violation); BRKGA 0.0 against 1.417.
+ranged_integer_192 SA 2.333 against 4.042; BRKGA 1.146 against 3.594. The descent finds feasible points
+but evaluates far fewer candidates in the same time.
+
+Reading: the descent helps where its moves reach feasibility cheaply (assignment, facility location,
+some knapsack and cardinality rows) and costs too much where it does not (generic integer families at
+192 variables, long chains and mixed models, where it finds nothing). It is not a general solution.
+Development used these same fixtures, so there is no held-out set; the generated families are the
+only separate check.
+
+Open: an incremental violation update (changing only rows touching the moved variable) would cut the
+decode cost substantially and could change the equal-time result. That is untested.
