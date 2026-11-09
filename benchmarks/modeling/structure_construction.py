@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import numpy as np
 from .schema import PracticalCase
+from rko_solver.modeling.construction import ConstructionFn
 from rko_solver.modeling.construction import ConstructionInput
 from rko_solver.modeling.construction import ModelConstruction
 from rko_solver.modeling.linear import CompiledLinearModel
@@ -252,11 +253,12 @@ class StructureConstruction:
         return values, key_of
 
     @staticmethod
-    def bind(case: PracticalCase) -> ModelConstruction:
-        """Bind the prototype to a fixture with continuous restoration.
+    def bind(case: PracticalCase, construction: ConstructionFn | None = None) -> ModelConstruction:
+        """Bind a construction to a fixture with continuous restoration.
 
         Args:
             case (PracticalCase): Fixture to decode.
+            construction (ConstructionFn | None): Construction to bind; the L1 prototype when None.
 
         Returns:
             ModelConstruction: Decoder with `decode`, `cost` and `n_keys`.
@@ -272,4 +274,4 @@ class StructureConstruction:
             tuple(LinearRow(r.name, r.coefficients, r.lower, r.upper) for r in case.rows),
         )
         snapshot: CompiledLinearModel = source.compile(repair="continuous")
-        return ModelConstruction.bind(snapshot, source, StructureConstruction())
+        return ModelConstruction.bind(snapshot, source, construction or StructureConstruction())

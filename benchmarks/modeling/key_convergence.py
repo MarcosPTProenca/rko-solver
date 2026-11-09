@@ -35,6 +35,7 @@ from .cases import PracticalModels
 from .key_feasibility import KeyFeasibilityStudy
 from .schema import PracticalCase
 from .structure_construction import StructureConstruction
+from .violation_construction import ViolationConstruction
 from pathlib import Path
 from rko_solver import RKO
 from typing import Any
@@ -69,7 +70,7 @@ class KeyConvergenceStudy:
             budgets (tuple[int, ...]): Exact evaluation counts.
             seeds (tuple[int, ...]): Search seeds.
             progress (bool): Print one line per finished run to stderr.
-            decoder (str): `default` or `structure` (the L1 prototype of issue 125).
+            decoder (str): `default`, `structure` (L1) or `violation` (descent).
 
         Returns:
             list[dict[str, Any]]: One record per run.
@@ -86,6 +87,12 @@ class KeyConvergenceStudy:
         return records
 
     @staticmethod
+    def _construction(decoder: str) -> dict[str, object]:
+        """Return the optional construction keyword for a decoder label."""
+        constructions = {"structure": StructureConstruction, "violation": ViolationConstruction}
+        return {"construction": constructions[decoder]()} if decoder in constructions else {}
+
+    @staticmethod
     def _one(
         case: PracticalCase, algorithm: str, budget: int, seed: int, decoder: str
     ) -> dict[str, Any]:
@@ -98,7 +105,7 @@ class KeyConvergenceStudy:
             execution="sequential",
             random_state=seed,
             max_evaluations=budget,
-            **({"construction": StructureConstruction()} if decoder == "structure" else {}),
+            **KeyConvergenceStudy._construction(decoder),
         )
         result = solver.solve(3600.0)
         model = result.model
@@ -162,7 +169,9 @@ def main() -> None:
     parser.add_argument("--case", action="append", default=None, help="fixture name, repeatable")
     parser.add_argument("--budgets", type=int, nargs="+", default=list(BUDGETS))
     parser.add_argument("--seeds", type=int, nargs="+", default=list(SEEDS))
-    parser.add_argument("--decoder", choices=("default", "structure"), default="default")
+    parser.add_argument(
+        "--decoder", choices=("default", "structure", "violation"), default="default"
+    )
     parser.add_argument("--output", type=Path, default=None, help="raw records, never overwritten")
     args = parser.parse_args()
     records = KeyConvergenceStudy.run(
