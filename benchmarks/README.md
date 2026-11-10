@@ -3449,3 +3449,21 @@ Reading: the issue's 3–14% estimate holds at the top only for IPR. A pool-free
 about 12–14% in evaluations per second, and halving the round trips (option 3) at most about 6%. Ceilings
 are upper bounds; they say nothing about the quality effect of any change. The shares are from one host
 only; the issue's acceptance asks for at least two, so this does not yet meet it. Nothing in `src/` changed.
+
+### Does IPR improve quality in a process-mode portfolio? (issue 136, one host)
+
+`runtime/ipr_contribution_study.py` runs the default portfolio (SA, IPR, BRKGA, GA) and the same portfolio
+without IPR (SA, BRKGA, GA), in process mode, five seconds each, on the correlated knapsacks 100x5 and
+300x5, 30 paired seeds. Arms alternate order by seed and run one at a time.
+[Raw records and summary](references/ipr-contribution-process-wsl2.json).
+
+| Fixture | Mean difference (with − without IPR) | Median difference | Wins / losses | Exact sign test (two-sided) |
+| --- | ---: | ---: | ---: | ---: |
+| 100x5 | +40.9 (about +0.13%) | +25.2 | 18 / 12 | p = 0.36 |
+| 300x5 | +40.0 (about +0.04%) | −12.5 | 14 / 16 | p = 0.86 |
+
+Reading: no detectable quality contribution from IPR at equal wall time here. The mean difference is about
+one standard error (paired differences vary by roughly ±200 objective units), and the sign tests do not
+separate the arms. With the pool-cost ceiling from above (IPR spends about 12% of its worker time in pool
+calls), even a free pool would not change this picture. The result is one host, two generated families and
+five-second runs; it does not show that IPR is useless on other problems.
