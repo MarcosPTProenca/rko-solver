@@ -3427,3 +3427,25 @@ uv run python -m benchmarks.modeling.violation_incremental_study --mode search -
 The next useful experiment is stronger adversarial model generation or a solver-based completion
 step for the still-infeasible large binary and mixed cases. This optimization is benchmark-only and
 not a general decoder guarantee.
+
+### Elite-pool cost in process mode (issue 136, one host)
+
+`runtime/pool_cost_study.py` runs one `execution="process"` solve with `runtime/pool_call_probe.py`
+imported first, so spawned workers time each manager round trip. Totals are written once a second per
+process, so each worker's final partial second is not counted, and the probe adds two clock reads per call.
+[Raw records](references/pool-cost-process-wsl2.jsonl): WSL2, five seconds, seeds 1 to 3, fixtures
+correlated knapsacks 100x5 and 300x5 (see `modeling/hard_cases.py`).
+
+| Fixture | Algorithms | Pool share of worker time (median) | Range | Calls per 1000 evaluations | Ceiling if pool were free |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 100x5 | IPR | 12.6% | 11.8–14.3% | 66.1 | ×1.14 |
+| 100x5 | BRKGA / GA / SA | 2.4% / 2.4% / 0.5% | — | 8.3 / 8.6 / 1.3 | ×1.02 / ×1.03 / ×1.01 |
+| 100x5 | IPR+BRKGA+GA+SA | 3.6% | 3.5–3.8% | 16.2 | ×1.04 |
+| 300x5 | IPR | 10.4% | 10.2–10.8% | 69.9 | ×1.12 |
+| 300x5 | BRKGA / GA / SA | 1.1% / 1.1% / 0.4% | — | 4.3 / 4.4 / 1.7 | ×1.01 |
+| 300x5 | IPR+BRKGA+GA+SA | 2.5% | 2.5–2.8% | 14.9 | ×1.03 |
+
+Reading: the issue's 3–14% estimate holds at the top only for IPR. A pool-free IPR would gain at most
+about 12–14% in evaluations per second, and halving the round trips (option 3) at most about 6%. Ceilings
+are upper bounds; they say nothing about the quality effect of any change. The shares are from one host
+only; the issue's acceptance asks for at least two, so this does not yet meet it. Nothing in `src/` changed.
