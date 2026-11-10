@@ -3360,3 +3360,70 @@ only separate check.
 
 Open: an incremental violation update (changing only rows touching the moved variable) would cut the
 decode cost substantially and could change the equal-time result. That is untested.
+
+### Incremental violation scoring: much faster, still not general
+
+`modeling/violation_incremental_study.py` compares the merged full-row-rescan decoder with the
+incremental version. The latter caches row activities and recomputes only rows incident to each
+candidate variable move. The `FullRescanViolation` class preserves the old benchmark algorithm as a
+reference; neither approach changes `src/`.
+
+[Decode measurement](references/violation-incremental-decode-64.json): 64 identical seeded keys per
+generated family and size (48, 192). Timing includes complete model decoding and protected
+assignment evaluation. Exact assignments agree except on 41 of 64 `mixed_192` keys; there the
+objective delta is zero and the maximum total-violation delta is 7.1e-15, consistent with floating-
+point tie ordering. Feasibility counts agree in all six cases.
+
+| Family | Size | Full rescan (s) | Incremental (s) | Speedup | Exact assignments |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| binary_chain | 48 | 1.19 | 0.06 | 18.3x | 64/64 |
+| binary_chain | 192 | 89.86 | 0.79 | 114.0x | 64/64 |
+| ranged_integer | 48 | 0.15 | 0.02 | 6.9x | 64/64 |
+| ranged_integer | 192 | 9.00 | 0.17 | 52.1x | 64/64 |
+| mixed | 48 | 2.46 | 0.10 | 23.5x | 64/64 |
+| mixed | 192 | 51.15 | 0.38 | 134.1x | 23/64 |
+
+Equal-wall-time search used 10 seeds (0–9), 5 seconds per run including setup, SA and BRKGA, at both
+sizes. It covered 240 runs total. [Raw records and summaries](references/):
+`violation-incremental-search-binary-chain.json`,
+`violation-incremental-search-ranged-integer.json`, and
+`violation-incremental-search-mixed.json`. Median completed evaluations and feasible objective gaps:
+
+| Family | Size | Algorithm | Evaluations: old → incremental | Feasible: old → incremental | Median gap: old → incremental | Paired W/T/L |
+| --- | ---: | --- | ---: | ---: | --- | ---: |
+| binary_chain | 48 | SA | 210 → 4,586 | 2/10 → 10/10 | 0.281 → 0.000 | 10/0/0 |
+| binary_chain | 48 | BRKGA | 172 → 2,660 | 10/10 → 10/10 | 0.063 → 0.000 | 6/4/0 |
+| binary_chain | 192 | SA | 3 → 469 | 0/10 → 0/10 | n/a | 0/10/0 |
+| binary_chain | 192 | BRKGA | 4 → 286 | 0/10 → 0/10 | n/a | 0/10/0 |
+| ranged_integer | 48 | SA | 1,912 → 15,156 | 10/10 → 10/10 | 1.896 → 0.646 | 9/1/0 |
+| ranged_integer | 48 | BRKGA | 989 → 8,196 | 10/10 → 10/10 | 0.625 → 0.000 | 10/0/0 |
+| ranged_integer | 192 | SA | 28 → 2,322 | 10/10 → 10/10 | 3.958 → 1.646 | 10/0/0 |
+| ranged_integer | 192 | BRKGA | 35 → 2,123 | 10/10 → 10/10 | 3.563 → 1.219 | 10/0/0 |
+| mixed | 48 | SA | 156 → 2,788 | 0/10 → 0/10 | n/a | 0/10/0 |
+| mixed | 48 | BRKGA | 180 → 2,254 | 0/10 → 7/10 | n/a → 0.185 | 7/3/0 |
+| mixed | 192 | SA | 5 → 742 | 0/10 → 0/10 | n/a | 0/10/0 |
+| mixed | 192 | BRKGA | 8 → 912 | 0/10 → 0/10 | n/a | 0/10/0 |
+
+`Paired W/T/L` counts seeds where incremental has a better/tied/worse feasible gap; if only one arm
+found a feasible assignment, that counts as a win or loss for the arm that found one. This is a
+10-seed screen, not a broad generalization claim. Incremental scoring gains most where the old
+implementation could barely evaluate; the 192-variable binary-chain and mixed families remain
+unsolved. The 5-second budget was not a strict ceiling: the slow full-rescan arm could overrun by up
+to 1.32 s while finishing a non-interruptible decode, which gives the baseline extra time and does
+not explain its lower evaluation count.
+
+Reproduce decode timing:
+
+```bash
+uv run python -m benchmarks.modeling.violation_incremental_study --mode decode --samples 64 --sizes 48 192 --output /tmp/violation-decode.json
+```
+
+Reproduce one 10-seed search family (repeat with `binary_chain`, `ranged_integer`, `mixed`):
+
+```bash
+uv run python -m benchmarks.modeling.violation_incremental_study --mode search --seconds 5 --seeds 10 --sizes 48 192 --algorithms SA BRKGA --families ranged_integer --output /tmp/violation-search.json
+```
+
+The next useful experiment is stronger adversarial model generation or a solver-based completion
+step for the still-infeasible large binary and mixed cases. This optimization is benchmark-only and
+not a general decoder guarantee.
