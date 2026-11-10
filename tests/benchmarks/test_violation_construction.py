@@ -25,6 +25,7 @@ import numpy as np
 import pytest
 from benchmarks.modeling.cases import PracticalModels
 from benchmarks.modeling.structure_cases import StructureCases
+from benchmarks.modeling.structure_construction import StructureConstruction
 from benchmarks.modeling.violation_construction import ViolationConstruction
 
 CASES = {c.name: c for c in PracticalModels.cases() + StructureCases.cases()}
@@ -68,6 +69,82 @@ def test_feasible_default_assignment_is_returned_unchanged() -> None:
     assert model.decode(keys).feasible
     plain = model.snapshot.decode(keys)
     assert model.decode(keys).values == pytest.approx(plain.values)
+
+
+@pytest.mark.parametrize(
+    "name", ["assignment", "facility_location", "knapsack_50", "cardinality_linking"]
+)
+def test_incremental_best_move_matches_full_row_rescoring(name: str) -> None:
+    """Incremental candidate scores select the same first move as full rescoring."""
+    model = ViolationConstruction.bind(CASES[name])
+    context = model.context
+    movable = [
+        index
+        for index, (variable, domain) in enumerate(
+            zip(context.variables, context.domains, strict=True)
+        )
+        if not domain.fixed and variable.domain != "continuous"
+    ]
+    for keys in np.random.default_rng(11).random((12, model.n_keys)):
+        values, _ = StructureConstruction._box(keys, context)
+        state = ViolationConstruction._state(values, context)
+        current = sum(state.violations)
+        expected = None
+        for index in movable:
+            for step in (-1.0, 1.0):
+                candidate = values[index] + step
+                domain = context.domains[index]
+                if not domain.lower <= candidate <= domain.upper:
+                    continue
+                trial = list(values)
+                trial[index] = candidate
+                score = ViolationConstruction._violation(trial, context)
+                if score < current - 1e-12 and (expected is None or score < expected[0]):
+                    expected = (score, index, candidate)
+        actual = ViolationConstruction._best_move(values, movable, current, context, state)
+        assert (actual is None) == (expected is None)
+        if actual is not None and expected is not None:
+            assert actual[1:] == expected[1:]
+            assert actual[0] == pytest.approx(expected[0], abs=1e-10)
+
+
+@pytest.mark.parametrize(
+    "name", ["assignment", "facility_location", "knapsack_50", "cardinality_linking"]
+)
+def test_incremental_descent_matches_full_rescoring(name: str) -> None:
+    """Incremental updates preserve every move selected by the original full-rescan descent."""
+    model = ViolationConstruction.bind(CASES[name])
+    context = model.context
+    movable = [
+        index
+        for index, (variable, domain) in enumerate(
+            zip(context.variables, context.domains, strict=True)
+        )
+        if not domain.fixed and variable.domain != "continuous"
+    ]
+    for keys in np.random.default_rng(11).random((12, model.n_keys)):
+        expected, _ = StructureConstruction._box(keys, context)
+        current = ViolationConstruction._violation(expected, context)
+        for _ in range(50):
+            if current <= 1e-12:
+                break
+            best = None
+            for index in movable:
+                for step in (-1.0, 1.0):
+                    candidate = expected[index] + step
+                    domain = context.domains[index]
+                    if not domain.lower <= candidate <= domain.upper:
+                        continue
+                    trial = list(expected)
+                    trial[index] = candidate
+                    score = ViolationConstruction._violation(trial, context)
+                    if score < current - 1e-12 and (best is None or score < best[0]):
+                        best = (score, index, candidate)
+            if best is None:
+                break
+            current, index, candidate = best
+            expected[index] = candidate
+        assert ViolationConstruction()(keys, context) == expected
 
 
 def test_descent_never_leaves_the_effective_search_box() -> None:
