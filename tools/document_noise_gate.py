@@ -41,6 +41,7 @@ DOC_ALLOW = frozenset(
         "AGENTS.override.md",
         "CLAUDE.md",
         "CONTRIBUTING.md",
+        "CODE_OF_CONDUCT.md",
         "CHANGELOG.md",
         "SECURITY.md",
         "LICENSE",

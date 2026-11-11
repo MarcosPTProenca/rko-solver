@@ -155,6 +155,12 @@ def test_document_noise_gate_admits_the_scientific_reference_index() -> None:
     assert document_noise_gate._noise_paths(listing) == ["docs/references-notes.md"]
 
 
+def test_document_noise_gate_admits_the_code_of_conduct() -> None:
+    """The conduct policy is a maintained project document; a lookalike stays flagged."""
+    listing = "CODE_OF_CONDUCT.md\nCODE_OF_CONDUCT-notes.md"
+    assert document_noise_gate._noise_paths(listing) == ["CODE_OF_CONDUCT-notes.md"]
+
+
 def test_documented_coverage_floor_equals_the_enforced_floor() -> None:
     """The contributor guide must state the floor that the coverage job enforces."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
