@@ -9,6 +9,69 @@ See [the C++ acceptance target and native-backend gates](../docs/performance.md)
 for end-to-end quality/time/resource criteria; historical Python results must not
 be merged with corrected-revision observations as if they were one experiment.
 
+## Public-instance measurement protocol (#156)
+
+`public/study.py` measures the unchanged solver on hash-verified public inputs.
+It does not add problem-specific code to `src/`.
+
+| Dataset | Selection | Reference |
+| --- | --- | --- |
+| TSPLIB | 10 fixed EUC_2D instances: eil51, berlin52, st70, kroA100, kroB100, ch150, tsp225, a280, pcb442, rat783 | Hash-verified mirror `solutions` table |
+| KPLIB | Existing 15 pinned 500-item instances across five families | Exact capacity-indexed dynamic programming |
+| OR-Library mknap1 | All **7** instances in the file | Declared optima, including fractional 8706.1 |
+| OR-Library mknapcb1 | First 10 instances | None: header zeros mean unknown, not an optimum of zero |
+
+The full protocol has **42 instances, five arms, seeds 0–4, and budgets of 10
+and 60 seconds**: 2,100 rows and at least **20 hours 25 minutes** of requested
+solver time, before startup and preparation. This corrects #156's conflicting
+four-arm acceptance text, six-instance mknap1 count, and six-hour estimate. The
+five arms are Rust's default portfolio, simulated annealing (`SA`), biased
+random-key genetic algorithm (`BRKGA`), iterated local search (`ILS`), and Python's
+default portfolio in process mode. Both engines use identical decoders; Rust
+receives a Numba objective and Python receives picklable callbacks.
+
+```bash
+uv run python -m benchmarks.public.study --pilot --output /tmp/public-pilot.jsonl
+uv run python -m benchmarks.public.study --pilot --resume --output /tmp/public-pilot.jsonl
+uv run python -m benchmarks.public.report /tmp/public-pilot.jsonl
+uv run python -m benchmarks.public.study --output /tmp/public-full.jsonl
+uv run python -m benchmarks.public.study --resume --output /tmp/public-full.jsonl
+```
+
+`--pilot` uses the first instance of each of the four dataset groups, all five
+arms, seed 0 and two seconds: 20 rows, not a quality qualification. A broader
+smoke run uses `--seconds 2 --seeds 1` without `--pilot` and produces 210 rows.
+Only the default full grid satisfies the requested five-seed, two-budget study.
+No full-grid results are claimed by the smoke measurements below.
+
+URLs and all SHA-256 digests are recorded in [`public/sources.py`](public/sources.py),
+which reuses the existing pinned KPLIB digest table. Instance names include their
+KPLIB directory, so repeated basenames cannot reuse another instance's compiled
+objective or collide during resume. Inputs stay in `~/.cache/rko-public` (or
+`--cache-dir`) and are never committed. Warm-cache loading requires no network.
+
+TSPLIB distances use `floor(distance + 0.5)`. Sorting is stable in both engines,
+including tied keys. Knapsacks select keys at least 0.5 and minimize negative
+profit plus `1000 * sum(row_excess)`. Returned keys are independently checked;
+the recomputed penalized cost must agree with the solver cost before a row is
+written. Positive gaps mean worse than the reference: excess for minimization,
+shortfall for maximization. Infeasible solutions and missing references have
+null gaps; infeasible results never contribute to gap statistics.
+
+`seconds` is the solver's requested search budget, which excludes solver startup.
+`wall_seconds` includes solver construction, startup and the solve, but excludes
+downloads, parsing, exact-reference calculation and shared Numba compilation.
+Each instance's native objective is created and warmed once before any timed
+solve. Evaluation rates use observed `wall_seconds`, not the requested budget.
+These rates do not establish engine speedups or trajectory equivalence.
+
+Rows record host, source commit, benchmark-source digest and schema version.
+Resume rejects different provenance instead of blending campaigns; reports also
+reject mixed provenance. Use a new output after changing benchmark code or
+switching hosts/revisions. Corrupted resume input fails rather than silently
+skipping unfinished work. Results from this Windows Subsystem for Linux host
+are single-host evidence, not a portability claim.
+
 ## Layout
 
 Run studies from the repository root with `uv run --locked python -m benchmarks.<group>.<study>`.
