@@ -35,6 +35,7 @@ from rko_solver import Callbacks
 from rko_solver.components.solution_pool import SolutionPool
 from rko_solver.metaheuristics.base import MetaheuristicBase
 from rko_solver.orchestration.configuration import parse_run_config
+from rko_solver.orchestration.limits import SearchLimits
 from rko_solver.orchestration.search import SearchSession
 from rko_solver.parameters.loader import load_config
 from typing import Literal
@@ -210,7 +211,7 @@ def test_progress_follows_evaluations_under_a_long_time_budget() -> None:
             return [], [0.3] * 4, value
 
     session = SearchSession(decode, lambda selection: 1.0)
-    session.solve(Probe(SolutionPool(), "probe"), 1000.0, max_evaluations=20)
+    session.solve(Probe(SolutionPool(), "probe"), 1000.0, limits=SearchLimits(max_evaluations=20))
     assert seen == pytest.approx([(index + 1) / 20 for index in range(10)], abs=1e-3)
     unbounded = Probe(SolutionPool(), "probe")
     unbounded._start_timer()

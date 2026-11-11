@@ -44,6 +44,7 @@ from .execution import select_best_result
 from .factory import build_metaheuristic
 from .factory import normalize_hyperparameters
 from .initialization import PoolStartup
+from .limits import SearchLimits
 from .pool_proxy import PoolManager
 from .pool_proxy import PoolProxy
 from .search import SearchReporting
@@ -112,7 +113,7 @@ def _worker(
         max_evaluations (int | None): Completed evaluations after which each search stops.
         capture_options (WorkerCaptureOptions): Evaluation cap and bounded model transport policy.
     """
-    max_evaluations = capture_options.get("max_evaluations")
+    limits = capture_options.get("search_limits", SearchLimits())
     model_evidence: list[ModelEvidence] | None = (
         [] if capture_options.get("collect_model_evidence", False) else None
     )
@@ -172,7 +173,7 @@ def _worker(
                     deadline=search_deadline,
                     random_state=streams.seed,
                     history_limit=history_limit,
-                    max_evaluations=max_evaluations,
+                    limits=limits,
                 )
             SearchReporting.collect(session, model_evidence)
             if collect_metadata:
@@ -341,7 +342,7 @@ def run_processes(
     search_metadata: list[SearchMetadata] | None = None,
     initialization_metadata: list[PoolInitializationMetadata] | None = None,
     history_limit: int = 0,
-    max_evaluations: int | None = None,
+    limits: SearchLimits | None = None,
     **callback_options: Unpack[ExecutionOptions],
 ) -> tuple[list[float], float]:
     """Execute a selected portfolio with a common start and managed pool.
@@ -363,7 +364,7 @@ def run_processes(
         initialization_metadata (list | None): Separate opt-in random-startup report collector.
         history_limit (int): Per-search scalar history cap; zero disables capture.
         trace (TraceConfig | None): Optional bounded original-decoder recording.
-        max_evaluations (int | None): Completed evaluations after which each search stops.
+        limits (SearchLimits | None): Per-search evaluation and early-stop criteria.
         callback_options (ExecutionOptions): Optional trace, model witness and caller-key input.
 
     Returns:
@@ -375,6 +376,7 @@ def run_processes(
         TimeoutError: If startup or initialization exceeds its grace, or the search overruns its
             grace before any solution was found. A search overrun with a solution returns it.
     """
+    limits = SearchLimits() if limits is None else limits
     trace = callback_options.get("trace")
     model_evidence = callback_options.get("model_evidence")
     names = config.active_metaheuristics
@@ -444,7 +446,7 @@ def run_processes(
                         trace,
                     ),
                     kwargs={
-                        "max_evaluations": max_evaluations,
+                        "search_limits": limits,
                         "collect_model_evidence": model_evidence is not None,
                     },
                 )

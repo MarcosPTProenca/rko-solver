@@ -445,11 +445,20 @@ def test_real_algorithm_returns_consistent_result(params_dir: Path, name: str) -
         f'[run]\ncontrol = 0\npool_size = 5\n[active_metaheuristics]\nlist = ["{name}"]\n',
         encoding="utf-8",
     )
-    keys, cost = run(identity, sphere, 4, 0.05, params_dir=params_dir, random_state=12)
-    assert len(keys) == 4
-    assert np.isfinite(cost)
-    assert all(0 <= key < 1 for key in keys)
-    assert cost == pytest.approx(sphere(np.array(keys)))
+    result = RKO(
+        identity,
+        sphere,
+        4,
+        algorithms=[name],
+        params_dir=params_dir,
+        random_state=12,
+        max_evaluations=1,
+    ).solve(5.0)
+    assert len(result.keys) == 4
+    assert result.searches[0].n_evaluations == 1
+    assert np.isfinite(result.cost)
+    assert all(0 <= key < 1 for key in result.keys)
+    assert result.cost == pytest.approx(sphere(np.array(result.keys)))
 
 
 @pytest.mark.parametrize("n_jobs", [2, 1])

@@ -28,7 +28,55 @@ Inputs/Outputs:
 """
 
 import math
+from dataclasses import dataclass
 from numbers import Real
+
+
+@dataclass(frozen=True)
+class SearchLimits:
+    """Carry validated per-search evaluation, target-cost and stagnation limits.
+
+    Responsibilities:
+    - Keep stopping criteria together while they cross orchestration boundaries.
+    - Reject invalid values before an algorithm starts.
+
+    Attributes:
+        max_evaluations (int | None): Maximum completed evaluations, or no cap.
+        target_cost (float | None): Cost at which this search can stop successfully.
+        patience (int | None): Consecutive completed evaluations without improvement.
+    """
+
+    max_evaluations: int | None = None
+    target_cost: float | None = None
+    patience: int | None = None
+
+    def __post_init__(self) -> None:
+        """Validate every configured stopping criterion.
+
+        Raises:
+            ValueError: If an evaluation cap, target cost or patience value is invalid.
+        """
+        RunLimits.evaluations(self.max_evaluations)
+        if self.target_cost is not None and (
+            isinstance(self.target_cost, bool)
+            or not isinstance(self.target_cost, Real)
+            or not math.isfinite(self.target_cost)
+        ):
+            raise ValueError("'target_cost' must be a finite real number or None.")
+        if self.patience is not None and (type(self.patience) is not int or self.patience < 1):
+            raise ValueError("'patience' must be a positive integer or None.")
+
+    def require_python_engine(self, engine: str) -> None:
+        """Reject early-stop criteria for engines that do not implement them yet.
+
+        Args:
+            engine (str): Selected engine name.
+
+        Raises:
+            ValueError: If target cost or patience is configured for a non-Python engine.
+        """
+        if (self.target_cost is not None or self.patience is not None) and engine != "python":
+            raise ValueError("'target_cost' and 'patience' currently require engine='python'.")
 
 
 class RunLimits:
