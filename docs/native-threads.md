@@ -60,6 +60,40 @@ actual runtime and verify your workload. These settings do not limit arbitrary
 callback thread pools, GPU runtimes, other applications or concurrent RKO solves.
 Keep `n_jobs` within the resources allocated to this application as well.
 
+## Library option for process workers
+
+Wrap the solve in `worker_thread_limit` to give every process worker started inside the block
+one native thread. It exports `OPENBLAS_NUM_THREADS`, `OMP_NUM_THREADS`, `MKL_NUM_THREADS` and
+`BLIS_NUM_THREADS` while the block runs, then restores the parent's values (or removes the
+variables that were unset). The parent's own libraries are not reconfigured.
+
+```python
+import numpy as np
+
+from rko_solver import RKO
+from rko_solver import worker_thread_limit
+
+
+def decode(keys: np.ndarray) -> np.ndarray:
+    """Return the key vector unchanged."""
+    return keys
+
+
+def cost(solution: np.ndarray) -> float:
+    """Return the sum of squares."""
+    return float(np.sum(solution**2))
+
+
+if __name__ == "__main__":
+    with worker_thread_limit(1):
+        result = RKO(decode, cost, 4, n_jobs=2, random_state=1).solve(1.0)
+    print(result.cost >= 0.0)
+```
+
+The limit covers only workers started inside the block, so keep the `solve` call inside it.
+It has no effect on the Rust and C++ engines, which do not start process workers, and on
+`execution="thread"`, which shares the parent's libraries. The count must be a positive integer.
+
 ## Why RKO does not silently change native pools
 
 Wrapping only the parent `solve()` in `threadpoolctl.threadpool_limits(...)` does
