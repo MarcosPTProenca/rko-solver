@@ -41,6 +41,19 @@ THREAD_VARIABLES = (
 )
 
 
+def _restore_environment(saved: dict[str, str | None]) -> None:
+    """Put back saved environment values, removing variables that were unset.
+
+    Args:
+        saved (dict[str, str | None]): Previous value of each variable, None when unset.
+    """
+    for name, value in saved.items():
+        if value is None:
+            os.environ.pop(name, None)
+        else:
+            os.environ[name] = value
+
+
 @contextlib.contextmanager
 def worker_thread_limit(threads: int) -> Iterator[None]:
     """Give process workers started inside the block a fixed native thread count.
@@ -61,8 +74,4 @@ def worker_thread_limit(threads: int) -> Iterator[None]:
     try:
         yield
     finally:
-        for name, value in saved.items():
-            if value is None:
-                os.environ.pop(name, None)
-            else:
-                os.environ[name] = value
+        _restore_environment(saved)
