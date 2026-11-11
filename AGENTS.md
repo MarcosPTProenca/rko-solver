@@ -125,3 +125,11 @@ cargo test --release
 - Do not leave functions without input and output type hints.
 - Do not skip running Ruff after finishing changes.
 - Do not split a single logic into multiple separate functions unnecessarily; prefer one cohesive class.
+
+## Workflow autonomy
+
+- Do not ask whether to open a pull request when a piece of work is finished. Open it, following the commit-pr-conventions skill, and report the URL.
+- Do not ask whether to extend a measurement or experiment. When an issue needs more evidence, run the next measurement the issue calls for, including longer runs, more seeds, more families or more hosts when the issue asks for them.
+- Exhaust the possibilities before closing an issue: every acceptance criterion gets evidence or an explicit "not verified" reason. Close only when those criteria are met or the issue's own rule says to close with the profile.
+- Every finished piece of work ends in a pull request, not a local commit or an unpublished branch.
+- When reporting the next steps to the user, give only the recommended next issue to attack. Do not list other options or ask for confirmation of it.
