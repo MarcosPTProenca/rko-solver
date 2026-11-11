@@ -91,6 +91,33 @@ write through or keep the key array (it is a view of engine memory during the ca
 Compilation happens before the timed search. Numba is optional; select the `compiled`
 extra using [the installation workflow matching your source or package](installation.md#optional-features).
 
+If the decoder and objective are already separate `@njit` functions, pass the objective as
+`cost=`; they compile into one entry point, equal to `njit(lambda keys: cost(decode(keys)))`:
+
+<!-- doc-test: requires numba -->
+```python
+import numba
+import numpy as np
+import rko_solver
+from rko_solver import RKO
+
+@numba.njit
+def decode(keys):
+    return np.argsort(keys)
+
+@numba.njit
+def cost(order):
+    return float(order[0])
+
+result = RKO(
+    rko_solver.Numba(decode, 3, cost=cost), engine="rust", random_state=42
+).solve(10.0)
+```
+
+Both must be Numba dispatchers, and a cfunc is not accepted as the decoder in this form. The
+decoder cannot return a Python object such as a list or a tuple of arrays: `cost` must accept
+whatever `decode` returns inside nopython mode.
+
 **Native problem (fastest to start).** The decoder and objective run inside Rust. Python
 exposes a built-in 0/1 Knapsack as an example (`RKO(rko_solver.problems.Knapsack(...), engine="rust")`); the
 Rust core also contains TSP and Rastrigin problems used by the benchmarks. Built-in and
