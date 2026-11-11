@@ -196,15 +196,16 @@ def test_process_execution_runs_distinct_children(params_dir: Path, tmp_path: Pa
         tmp_path (Path): Destination for worker identity observations.
     """
     before = {child.pid for child in mp.active_children()}
-    keys, cost = run(
+    result = RKO(
         identity,
         RecordingCost(tmp_path),
         4,
-        0.1,
         params_dir=params_dir,
         n_jobs=2,
         random_state=42,
-    )
+        max_evaluations=1,
+    ).solve(5.0)
+    keys, cost = result.keys, result.cost
     observations = [path for path in tmp_path.iterdir() if path.is_file()]
     assert len(observations) == 2
     assert all(int(path.name) != os.getpid() for path in observations)
@@ -365,15 +366,15 @@ def test_seed_allocates_stable_distinct_streams(params_dir: Path, tmp_path: Path
     for trial in range(2):
         directory = tmp_path / str(trial)
         directory.mkdir()
-        run(
+        RKO(
             identity,
             RecordingCost(directory),
             4,
-            0.05,
             params_dir=params_dir,
             random_state=42,
             n_jobs=2,
-        )
+            max_evaluations=1,
+        ).solve(5.0)
         samples.append(sorted(path.read_text() for path in directory.iterdir()))
     assert samples[0] == samples[1]
     assert len(set(samples[0])) == 2
