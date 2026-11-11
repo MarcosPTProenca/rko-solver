@@ -37,6 +37,24 @@ from typing import Protocol
 from typing import runtime_checkable
 
 
+def validate_rank_pair(indices: object) -> None:
+    """Reject rank requests that are not two distinct nonnegative integers.
+
+    Args:
+        indices (object): Requested ranks, expected as a two-element tuple.
+
+    Raises:
+        ValueError: If the request is malformed.
+    """
+    if (
+        not isinstance(indices, tuple)
+        or len(indices) != 2
+        or any(type(index) is not int or index < 0 for index in indices)
+        or indices[0] == indices[1]
+    ):
+        raise ValueError("Elite ranks must be two distinct nonnegative integers.")
+
+
 @runtime_checkable
 class SolutionPoolWriter(Protocol):
     """Describe the insertion contract shared by metaheuristic pool clients.
@@ -286,13 +304,7 @@ class SolutionPool:
         Raises:
             ValueError: If ranks are malformed or outside current occupancy.
         """
-        if (
-            not isinstance(indices, tuple)
-            or len(indices) != 2
-            or any(type(index) is not int or index < 0 for index in indices)
-            or indices[0] == indices[1]
-        ):
-            raise ValueError("Elite ranks must be two distinct nonnegative integers.")
+        validate_rank_pair(indices)
         with self._lock:
             if any(index >= len(self._pool) for index in indices):
                 raise ValueError("Elite rank is outside current pool occupancy.")

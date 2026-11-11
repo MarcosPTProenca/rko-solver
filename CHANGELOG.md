@@ -12,6 +12,13 @@ versions must be verified against their tag, manifest and package-index metadata
 - Docs state that plain Python callbacks ran faster on `engine="python", execution="process"`
   than on rust or cpp in one measured case.
 
+### Changed
+
+- Process execution keeps the elite pool in shared memory unless progress output or decision
+  tracing is requested; those keep the manager-hosted pool. Same admission, ordering and
+  deduplication as before; a single-worker solve gives the same result on both paths
+  (tested). Removes one manager round trip per pool operation.
+
 ### Added
 
 - `rko_solver.worker_thread_limit(threads)`: a context manager that gives process workers started

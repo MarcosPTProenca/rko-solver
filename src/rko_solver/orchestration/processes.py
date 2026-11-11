@@ -4,7 +4,8 @@ Objective:
 - Run CPU-bound searches in separate processes with one shared elite pool.
 
 Technical approach:
-- Host SolutionPool in a manager and exchange control/results through pipes.
+- Host the elite pool in shared memory, or in a manager when progress output or decision tracing
+  needs it, and exchange control/results through pipes.
 - Optional startup uses one existing child before fresh search-deadline release.
 - Construct searches in bounded worker groups and release ready workers together.
 - Divide each worker's remaining common time among its queued searches at dispatch.
@@ -28,6 +29,7 @@ Inputs/Outputs:
 
 from __future__ import annotations
 
+import contextlib
 import multiprocessing as mp
 import numpy as np
 import os
@@ -35,13 +37,15 @@ import pickle
 import time
 import traceback
 from ..components.random_streams import RandomStreams
-from ..components.solution_pool import SolutionPool
+from ..components.shared_pool import SharedElitePool
 from ..modeling.linear import ModelEvidence
 from ..tracing import TraceConfig
 from .execution import select_best_result
 from .factory import build_metaheuristic
 from .factory import normalize_hyperparameters
 from .initialization import PoolStartup
+from .pool_proxy import PoolManager
+from .pool_proxy import PoolProxy
 from .search import SearchReporting
 from .search import SearchSession
 from .stopped import StoppedSearches
@@ -57,10 +61,10 @@ from .types import SearchMetadata
 from .types import StartupJob
 from .types import StartupReport
 from .types import WorkerCaptureOptions
+from collections.abc import Iterator
 from multiprocessing.connection import Connection
 from multiprocessing.connection import wait
-from multiprocessing.managers import BaseManager
-from multiprocessing.managers import BaseProxy
+from multiprocessing.context import BaseContext
 from multiprocessing.process import BaseProcess
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event
@@ -69,114 +73,10 @@ from typing import Unpack
 from typing import cast
 
 
-class PoolProxy(BaseProxy):
-    """Expose the existing elite-pool contract across process boundaries.
-
-    Responsibilities:
-    - Delegate mutations and return detached elite snapshots.
-
-    Attributes:
-        _exposed_ (tuple[str, ...]): Manager methods available to workers.
-    """
-
-    _exposed_ = (
-        "insert",
-        "get_elite",
-        "__len__",
-        "start_progress",
-        "stop_progress",
-        "_get_elite_pair",
-    )
-
-    def insert(self, entry: tuple[float, list[float]], source: str = "") -> None:
-        """Insert a candidate into the authoritative pool.
-
-        Args:
-            entry (tuple[float, list[float]]): Finite objective and key vector.
-            source (str): Producing algorithm label.
-
-        Raises:
-            ValueError: If the candidate violates pool validation.
-        """
-        self._callmethod("insert", (entry, source))
-
-    def start_progress(self) -> None:
-        """Start periodic status reporting inside the authoritative manager."""
-        self._callmethod("start_progress")
-
-    def stop_progress(self) -> None:
-        """Join the managed reporter and flush its last snapshot before shutdown."""
-        self._callmethod("stop_progress")
-
-    def get_elite(self, k: int = 1) -> list[tuple[float, list[float]]]:
-        """Fetch detached elite entries from the manager.
-
-        Args:
-            k (int): Maximum number of entries to retrieve.
-
-        Returns:
-            list[tuple[float, list[float]]]: Cost-ordered elite snapshots.
-        """
-        return self._callmethod("get_elite", (k,))
-
-    def _sample_elite_pair(self, pool_size: int) -> list[tuple[float, list[float]]]:
-        """Sample client-side ranks and transfer only their two current entries.
-
-        Pool occupancy never decreases, so ranks drawn from an earlier count
-        remain valid. A single server lock selects both from the same snapshot.
-
-        Args:
-            pool_size (int): Previously observed occupancy, at least two.
-
-        Returns:
-            list[tuple[float, list[float]]]: Detached pair in random selection order.
-
-        Raises:
-            ValueError: If the supplied count or selected ranks are invalid.
-        """
-        if type(pool_size) is not int or pool_size < 2:
-            raise ValueError("Pair sampling requires an integer pool size of at least two.")
-        first, second = RandomStreams.python_rng().sample(list(range(pool_size)), 2)
-        return self._callmethod("_get_elite_pair", ((first, second),))
-
-    @property
-    def size(self) -> int:
-        """Return the number of managed entries.
-
-        Returns:
-            int: Current pool occupancy.
-        """
-        return self._callmethod("__len__")
-
-    @property
-    def best(self) -> tuple[float, list[float]] | None:
-        """Return the best managed entry when available.
-
-        Returns:
-            tuple[float, list[float]] | None: Best detached entry or None.
-        """
-        entries = self.get_elite(1)
-        return entries[0] if entries else None
-
-
-class PoolManager(BaseManager):
-    """Host the authoritative pool in a dedicated manager process.
-
-    Responsibilities:
-    - Own pool lifetime and serialize access through its existing lock.
-
-    Attributes:
-        SolutionPool (Callable): Registered constructor returning a pool proxy.
-    """
-
-
-PoolManager.register("SolutionPool", SolutionPool, proxytype=PoolProxy)
-
-
 def _worker(
     assignments: tuple[tuple[str, int], ...],
     config: RunConfig,
-    pool: PoolProxy,
+    pool: PoolProxy | SharedElitePool,
     decoder: DecoderFn,
     cost: CostFn,
     dimension: int,
@@ -378,6 +278,53 @@ class WorkerShutdown:
             connection.close()
 
 
+def _use_shared_pool(verbose: bool, trace: TraceConfig | None) -> bool:
+    """Choose the shared-memory pool unless progress output or decision tracing needs the manager.
+
+    Args:
+        verbose (bool): Whether pool progress output was requested.
+        trace (TraceConfig | None): Decision-trace configuration, if any.
+
+    Returns:
+        bool: True when workers should attach to the shared-memory pool.
+    """
+    return not verbose and trace is None
+
+
+@contextlib.contextmanager
+def _pool_scope(
+    capacity: int,
+    dimension: int,
+    verbose: bool,
+    started_at: float | None,
+    context: BaseContext,
+    shared: bool,
+) -> Iterator[PoolProxy | SharedElitePool]:
+    """Provide the elite pool for one process solve and release it afterwards.
+
+    Args:
+        capacity (int): Pool capacity.
+        dimension (int): Key dimension, used by the shared-memory block.
+        verbose (bool): Whether the manager pool should report progress.
+        started_at (float | None): Solve origin for the manager pool's timestamps.
+        context (BaseContext): Spawn context shared by the manager and the lock.
+        shared (bool): True to use shared memory instead of a manager process.
+
+    Yields:
+        PoolProxy | SharedElitePool: The pool every worker and the parent use.
+    """
+    if shared:
+        pool = SharedElitePool.create(capacity, dimension, context)
+        try:
+            yield pool
+        finally:
+            pool.close()
+            pool.unlink()
+        return
+    with PoolManager(ctx=context) as manager:
+        yield manager.SolutionPool(capacity, verbose=verbose, started_at=started_at)
+
+
 def run_processes(
     config: RunConfig,
     decoder: DecoderFn,
@@ -444,8 +391,14 @@ def run_processes(
 
     context = mp.get_context("spawn")
     groups = ProcessAssignments.groups(names, random_state, n_jobs)
-    with PoolManager(ctx=context) as manager:
-        pool = manager.SolutionPool(config.pool_size, verbose=verbose, started_at=started_at)
+    with _pool_scope(
+        config.pool_size,
+        dimension,
+        verbose,
+        started_at,
+        context,
+        _use_shared_pool(verbose, callback_options.get("trace")),
+    ) as pool:
         start = context.Event()
         keys = callback_options.get("initial_keys", InitialKeys.from_values(None, dimension))
         startup_required = config.prefill_pool or keys.has_keys
