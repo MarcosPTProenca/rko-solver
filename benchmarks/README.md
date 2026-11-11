@@ -3499,3 +3499,27 @@ on `binary_chain_48` and `ranged_integer_48`, 60 s per run, 10 paired seeds. Rec
 Reading: the three families screened are either solved by every arm (48 variables) or cannot be timed (192).
 Issue 113 cannot be decided from these families with the current Python local search. The screen with the
 correlated knapsack (above) found no benefit from late acceptance and a clear loss from restart, on one family.
+
+### Timed-run variance controls (issue 99, one host)
+
+Pilot re-runs with the shipped `utility_cli pilot`, order seed 20261201, 12 instances (4 per class), 3 repeats each,
+2 s and 10 s profiles. `algorithms/timing_cv_summary.py` computes the median per-instance coefficient of
+variation (CV) of completed evaluations per class and profile.
+Records: `references/timing-cv-*.jsonl`.
+
+| Run | Continuous 2 s / 10 s | Item 2 s / 10 s | Route 2 s / 10 s | Median CV of evals/s (2 s) |
+| --- | ---: | ---: | ---: | ---: |
+| temperature, free | 0.179 / 0.135 | 0.432 / 0.146 | 0.285 / 0.230 | 0.285 |
+| temperature, pinned to CPU 1 | 0.152 / 0.121 | 0.186 / 0.125 | 0.226 / 0.251 | 0.170 |
+| adaptive, pinned to CPU 1 | 0.228 / 0.203 | 0.199 / 0.129 | 0.299 / 0.120 | 0.245 |
+
+Reading:
+- Target is a median CV of 0.05 or less. No run reaches it in any class and profile.
+- CPU pinning (`taskset -c 1`) lowers the rate variance but does not remove it, so scheduling across cores is
+  not the main source.
+- The temperature arm runs with `--fixed` (no Q-learning), so the legacy Q-learning clock read named in the
+  issue cannot be the only cause; the same noise appears without it.
+- The raw evaluation rate varies between repeats even when pinned, so the variance is host-level throughput on
+  this WSL2 machine. The timed comparisons remain uninterpretable on this host.
+- Not run: an idle-machine repeat and a second host, both needed before any protocol change. Evaluation-limited
+  runs are unaffected and remain the basis for comparisons.
