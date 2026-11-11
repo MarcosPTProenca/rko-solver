@@ -3483,3 +3483,19 @@ five-second runs; it does not show that IPR is useless on other problems.
 Reading: on this family and budget, strict improvement is not stalling, and neither option helps. Restart
 clearly hurts. The screen covers one family, one size and one budget, and the list length and restart count
 were set from the iteration rate, not tuned; the issue's three-family ablation is still open.
+
+### ILS acceptance on two more families (issue 113, 48 variables)
+
+`algorithms/ils_acceptance_study.py --family` runs the same three arms (strict, late acceptance, restart)
+on `binary_chain_48` and `ranged_integer_48`, 60 s per run, 10 paired seeds. Records:
+`references/ils-acceptance-binary-chain48-60s.json`, `references/ils-acceptance-ranged-integer48-60s.json`.
+
+- Every arm reaches the analytic optimum in every run of both families: no run differs, so the paired
+  comparison is all ties.
+- At 192 variables a single `rvnd` call does not return within the 900-second guard that stopped a 10-second
+  smoke run. `rvnd` has no internal time check, so ILS can overrun its budget. Iteration counts at 192 keys
+  therefore cannot support an equal-time screen.
+
+Reading: the three families screened are either solved by every arm (48 variables) or cannot be timed (192).
+Issue 113 cannot be decided from these families with the current Python local search. The screen with the
+correlated knapsack (above) found no benefit from late acceptance and a clear loss from restart, on one family.
