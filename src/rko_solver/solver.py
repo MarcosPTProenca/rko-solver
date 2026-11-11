@@ -41,7 +41,6 @@ from .modeling.construction import ModelConstruction
 from .modeling.factory import ModelFactory
 from .modeling.factory import ModelOptions
 from .modeling.linear import CompiledLinearModel
-from .modeling.linear import ModelEvidence
 from .modeling.runtime import ModelRunState
 from .orchestration.adaptation import Adaptation
 from .orchestration.auto import AutoCandidate
@@ -54,6 +53,7 @@ from .orchestration.factory import build_metaheuristic
 from .orchestration.factory import normalize_hyperparameters
 from .orchestration.initialization import PoolStartup
 from .orchestration.limits import RunLimits
+from .orchestration.limits import SearchLimits
 from .orchestration.preparation import SolverPreparation
 from .orchestration.processes import run_processes
 from .orchestration.search import SearchReporting
@@ -281,13 +281,22 @@ class RKO:
         """
         return ModelFactory.create(cls, model, options)
 
-    def solve(self, time_limit: float) -> RKOResult:
+    def solve(
+        self,
+        time_limit: float,
+        *,
+        target_cost: float | None = None,
+        patience: int | None = None,
+    ) -> RKOResult:
         """Execute a fresh portfolio and retain its measured result.
 
         Args:
             time_limit (float): Positive finite search seconds, excluding startup;
                 sequential execution gives each algorithm this duration. Opt-in
                 shared initialization has a separate equal cooperative allowance.
+            target_cost (float | None): Stop each Python search when its incumbent reaches this
+                cost.
+            patience (int | None): Stop after this many completed evaluations without improvement.
 
         Returns:
             RKOResult: Best candidate and execution metadata.
@@ -299,6 +308,8 @@ class RKO:
             OSError: If parameter files cannot be read.
         """
         self.result_ = None
+        search_limits = SearchLimits(self.max_evaluations, target_cost, patience)
+        search_limits.require_python_engine(self.engine)
         self.initial_keys = InitialKeys.from_values(self._initial_keys_input, self.n_variables)
         started = time.perf_counter()
         model_state = ModelRunState(self)
@@ -343,6 +354,7 @@ class RKO:
                 search_metadata=metadata,
                 initialization_metadata=initialization,
                 process_worker_limit=n_jobs if n_jobs is not None else available_cpus,
+                search_limits=search_limits,
                 **model_state.arguments(),
             )
         model_result = model_state.finish(keys, value, started)
@@ -467,6 +479,7 @@ class RKO:
         """
         started_at = context["started_at"]
         model_evidence = context.get("model_evidence")
+        search_limits = context.get("search_limits", SearchLimits(self.max_evaluations))
         execution = EngineSelection.validate(self.engine, self.execution)
         callback_options = SearchReporting.callback_options(self.trace, model_evidence)
         if self.engine in ("rust", "cpp"):
@@ -529,7 +542,7 @@ class RKO:
                 initialization_metadata=initialization_metadata,
                 initial_keys=self.initial_keys,
                 history_limit=self.history_limit,
-                max_evaluations=self.max_evaluations,
+                limits=search_limits,
                 **callback_options,
             )
         pool.start_progress()
@@ -547,13 +560,13 @@ class RKO:
                         streams,
                         search_metadata=search_metadata,
                         history_limit=self.history_limit,
-                        max_evaluations=self.max_evaluations,
+                        limits=search_limits,
                         **callback_options,
                     ),
                     pool,
                 )
             results = self._run_sequential(
-                metaheuristics, streams, time_limit, search_metadata, model_evidence
+                metaheuristics, streams, time_limit, search_metadata, context
             )
             return select_best_result(results, pool)
         finally:
@@ -565,7 +578,7 @@ class RKO:
         streams: list[RandomStreams],
         time_limit: float,
         search_metadata: list[SearchMetadata] | None,
-        model_evidence: list[ModelEvidence] | None,
+        execution_metadata: ExecutionMetadata,
     ) -> list[RunResult]:
         """Run fresh sequential searches with independent streams and bounded evidence.
 
@@ -574,7 +587,7 @@ class RKO:
             streams (list[RandomStreams]): Independent streams in portfolio order.
             time_limit (float): Positive duration available to each algorithm.
             search_metadata (list[SearchMetadata] | None): Completed report collector.
-            model_evidence (list[ModelEvidence] | None): Completed model witness collector.
+            execution_metadata (ExecutionMetadata): Search limits and optional model collector.
 
         Returns:
             list[RunResult]: Completed scalar search outcomes in portfolio order.
@@ -583,6 +596,8 @@ class RKO:
             Exception: Original callback, algorithm or validation failures propagate.
         """
         results = []
+        search_limits = execution_metadata.get("search_limits", SearchLimits(self.max_evaluations))
+        model_evidence = execution_metadata.get("model_evidence")
         for mh, stream in zip(metaheuristics, streams, strict=True):
             with stream.activate():
                 session = (
@@ -596,7 +611,7 @@ class RKO:
                         time_limit,
                         random_state=stream.seed,
                         history_limit=self.history_limit,
-                        max_evaluations=self.max_evaluations,
+                        limits=search_limits,
                     )
                 )
                 SearchReporting.collect(session, model_evidence)

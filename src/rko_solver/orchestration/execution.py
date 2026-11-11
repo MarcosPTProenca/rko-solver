@@ -28,6 +28,7 @@ import threading
 from ..components.random_streams import RandomStreams
 from ..components.solution_pool import ElitePool
 from ..metaheuristics.base import MetaheuristicBase
+from .limits import SearchLimits
 from .search import SearchReporting
 from .search import SearchSession
 from .types import ModelCallbackOptions
@@ -43,7 +44,7 @@ def run_metaheuristics_parallel(
     *,
     search_metadata: list[SearchMetadata] | None = None,
     history_limit: int = 0,
-    max_evaluations: int | None = None,
+    limits: SearchLimits | None = None,
     **callback_options: Unpack[ModelCallbackOptions],
 ) -> list[RunResult]:
     """Run thread searches with callback-budget and failure cancellation checks.
@@ -54,7 +55,7 @@ def run_metaheuristics_parallel(
         streams (list[RandomStreams] | None): Owned streams in portfolio order.
         search_metadata (list[SearchMetadata] | None): Optional completed report collector.
         history_limit (int): Per-search scalar history cap; zero disables capture.
-        max_evaluations (int | None): Completed evaluations after which each search stops.
+        limits (SearchLimits | None): Per-search evaluation and early-stop criteria.
         callback_options (ModelCallbackOptions): Optional trace and bounded model-witness capture.
 
     Returns:
@@ -94,7 +95,7 @@ def run_metaheuristics_parallel(
                     cancelled=cancelled,
                     random_state=streams[index].seed,
                     history_limit=history_limit,
-                    max_evaluations=max_evaluations,
+                    limits=limits,
                 )
                 reports[index] = session.metadata
                 SearchReporting.collect(session, model_evidence)

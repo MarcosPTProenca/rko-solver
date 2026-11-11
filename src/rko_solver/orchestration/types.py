@@ -26,6 +26,7 @@ import numpy as np
 from ..metaheuristics.base import MetaheuristicBase
 from ..modeling.linear import ModelEvidence
 from ..tracing import TraceConfig
+from .limits import SearchLimits
 from collections.abc import Callable
 from collections.abc import Mapping
 from collections.abc import Sequence
@@ -75,11 +76,11 @@ class WorkerCaptureOptions(ModelEvidenceOptions, total=False):
     - Keep bounded generated-model transport independent of positional worker arguments.
 
     Attributes:
-        max_evaluations (int | None): Per-search successful-completion cap.
+        search_limits (SearchLimits): Per-search evaluation and early-stop criteria.
         collect_model_evidence (bool): Whether to transport bounded generated-model witnesses.
     """
 
-    max_evaluations: int | None
+    search_limits: SearchLimits
     collect_model_evidence: bool
 
 
@@ -92,9 +93,11 @@ class ExecutionMetadata(ModelEvidenceOptions, total=False):
     Attributes:
         started_at (float): Parent monotonic solve origin.
         model_evidence (list[ModelEvidence] | None): Bounded completed-model collector.
+        search_limits (SearchLimits): Per-search evaluation and early-stop criteria.
     """
 
     started_at: Required[float]
+    search_limits: Required[SearchLimits]
 
 
 class ModelCallbackOptions(ModelEvidenceOptions, total=False):
@@ -149,7 +152,8 @@ class SearchMetadata:
         parameter_grid (tuple): Adaptive axes in algorithm schema order, not a trajectory.
         random_state (int | None): Actual assigned generator seed when known.
         n_evaluations (int): Successfully completed finite objective evaluations.
-        stop_reason (str): Completed, time_limit, max_evaluations, cancelled, or not_started.
+        stop_reason (str): Completed, time_limit, max_evaluations, target_cost, stagnation,
+            cancelled, or not_started.
         time_limit (float): Assigned search seconds excluding startup; zero if not started.
         elapsed_seconds (float): Search/session duration, excluding startup and queueing.
         history (tuple[HistoryPoint, ...]): Bounded incumbent samples in local search time.
@@ -164,7 +168,13 @@ class SearchMetadata:
     random_state: int | None = None
     n_evaluations: int = 0
     stop_reason: Literal[
-        "completed", "time_limit", "max_evaluations", "cancelled", "not_started"
+        "completed",
+        "time_limit",
+        "max_evaluations",
+        "target_cost",
+        "stagnation",
+        "cancelled",
+        "not_started",
     ] = "not_started"
     time_limit: float = 0.0
     elapsed_seconds: float = 0.0

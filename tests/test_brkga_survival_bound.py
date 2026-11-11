@@ -43,6 +43,7 @@ from rko_solver.components.random_streams import RandomStreams
 from rko_solver.components.solution_pool import ElitePool
 from rko_solver.components.solution_pool import SolutionPool
 from rko_solver.metaheuristics.brkga import BRKGA
+from rko_solver.orchestration.limits import SearchLimits
 from rko_solver.orchestration.search import SearchSession
 from rko_solver.orchestration.types import CostFn
 from rko_solver.orchestration.types import DecoderFn
@@ -130,7 +131,7 @@ def hits_target(seed: int, generations: int) -> bool:
             algorithm,
             60.0,
             random_state=seed,
-            max_evaluations=POPULATION + PER_GENERATION * generations,
+            limits=SearchLimits(max_evaluations=POPULATION + PER_GENERATION * generations),
         )
     return result[2] == 0.0
 

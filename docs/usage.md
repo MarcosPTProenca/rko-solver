@@ -325,8 +325,10 @@ unchanged.
 
 Search reasons are `completed` (returned before its deadline, **not** a convergence
 claim), `time_limit` (deadline stopping or deadline elapsed by return), `max_evaluations`
-(the [evaluation limit](#evaluation-limit-and-reproducibility) was reached), `cancelled`
-(peer-failure signal), and `not_started` (queued search had no remaining budget;
+(the [evaluation limit](#evaluation-limit-and-reproducibility) was reached), `target_cost`
+(the search reached its requested objective threshold), `stagnation` (the requested number
+of completed evaluations had no strict improvement), `cancelled` (peer-failure signal), and
+`not_started` (queued search had no remaining budget;
 its assigned `time_limit` is zero). Process search limits are actual allocations
 computed at dispatch, not equal fixed fractions or the requested portfolio budget.
 The portfolio reason is `time_limit` if any search used its budget or could not
@@ -353,10 +355,34 @@ under `result.initialization` and `result.initial_keys`. The C++ reference's man
 Because it does not depend on machine speed, it is the way to compare engines, write
 regression tests or repeat a run.
 
+Python searches also accept per-call `target_cost` and `patience` controls:
+
+- `target_cost` (finite real): stop that search after its first completed evaluation leaves
+  the incumbent at or below the target.
+- `patience` (positive integer): stop after that many completed evaluations without a strict
+  improvement. The first finite evaluation establishes the initial incumbent.
+
+Both controls apply independently to each search; they do not cancel other algorithms.
+Use them with `engine="python"` only for now. `rust`, `cpp` and `auto` reject them instead
+of silently ignoring them. The per-search `SearchMetadata.stop_reason` is `target_cost` or
+`stagnation`; the portfolio summary remains `completed` for these voluntary stops.
+
 ```python
 result = RKO(decode, cost, n_variables, execution="sequential", max_evaluations=5000,
              random_state=42).solve(time_limit=60.0)
 assert all(0 < s.n_evaluations <= 5000 for s in result.searches)
+
+```
+
+<!-- doc-test: skip uses the real per-call early-stop options on Python execution -->
+```python
+result = RKO(decode, cost, n_variables, algorithms=["SA"]).solve(
+    time_limit=60.0, target_cost=0.01, patience=250,
+)
+assert all(
+    s.stop_reason in {"target_cost", "stagnation", "time_limit", "completed"}
+    for s in result.searches
+)
 ```
 
 Measured on a 60-item Knapsack with the default portfolio and a generous time limit, every

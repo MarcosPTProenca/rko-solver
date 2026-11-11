@@ -46,6 +46,7 @@ from ..tracing import TraceConfig
 from ..tracing import _ObservedCost
 from ..tracing import _TraceCell
 from ..tracing import _TraceStore
+from .limits import SearchLimits
 from .types import CostFn
 from .types import DecoderFn
 from .types import HistoryPoint
@@ -145,6 +146,9 @@ class SearchSession:
         self.deadline = math.inf
         self.cancelled: threading.Event | None = None
         self.max_evaluations: int | None = None
+        self._target_cost: float | None = None
+        self._patience: int | None = None
+        self._non_improving_evaluations = 0
         self.best: tuple[np.ndarray, float] | None = None
         self.n_evaluations = 0
         self.metadata: SearchMetadata | None = None
@@ -265,9 +269,32 @@ class SearchSession:
         if candidate.trace is not None:
             candidate.trace.seal(candidate.keys, value)
             value = _ObservedCost(value, candidate.trace)
-        if self.best is None or value < self.best[1]:
+        improved = self.best is None or value < self.best[1]
+        if improved:
             self._record_improvement(candidate, value)
+        self._check_early_stop(improved)
         return value
+
+    def _check_early_stop(self, improved: bool) -> None:
+        """Update patience and stop when an early criterion has been met.
+
+        Args:
+            improved (bool): Whether this evaluation strictly improved the incumbent.
+
+        Raises:
+            _BudgetExpired: If the target cost or stagnation limit is reached.
+        """
+        if improved:
+            self._non_improving_evaluations = 0
+        else:
+            self._non_improving_evaluations += 1
+        if self._target_cost is not None and self.best is not None:
+            if self.best[1] <= self._target_cost:
+                self._stop_reason = "target_cost"
+                raise _BudgetExpired
+        if self._patience is not None and self._non_improving_evaluations >= self._patience:
+            self._stop_reason = "stagnation"
+            raise _BudgetExpired
 
     def _record_improvement(self, candidate: _DecodedCandidate, value: float) -> None:
         """Retain a strict completed improvement and update optional bounded capture.
@@ -293,7 +320,7 @@ class SearchSession:
         cancelled: threading.Event | None = None,
         random_state: int | None = None,
         history_limit: int = 0,
-        max_evaluations: int | None = None,
+        limits: SearchLimits | None = None,
     ) -> RunResult:
         """Execute an algorithm using budget-aware callbacks and preserve its incumbent.
 
@@ -304,24 +331,21 @@ class SearchSession:
             cancelled (threading.Event | None): Shared peer-failure signal.
             random_state (int | None): Actual assigned seed for this search report.
             history_limit (int): Per-search scalar sample cap, zero disables capture.
-            max_evaluations (int | None): Positive completed-evaluation limit, or None.
+            limits (SearchLimits | None): Per-search evaluation and early-stop criteria.
 
         Returns:
             RunResult: Extras, best evaluated keys and objective; an unevaluated
                 cancelled peer has empty keys and infinite cost.
 
         Raises:
-            ValueError: If the history cap or the evaluation limit is invalid.
+            ValueError: If the history cap or stopping criteria are invalid.
             Exception: Original decoder, objective or algorithm failure is propagated.
         """
         if type(history_limit) is not int or (
             history_limit != 0 and not 2 <= history_limit <= 10000
         ):
             raise ValueError("history_limit must be 0 or an integer from 2 to 10000.")
-        if max_evaluations is not None and (
-            type(max_evaluations) is not int or max_evaluations < 1
-        ):
-            raise ValueError("max_evaluations must be a positive integer or None.")
+        limits = SearchLimits() if limits is None else limits
         if self._trace_config is not None:
             self._trace_store = _TraceStore(self._trace_config, algorithm.name)
         started = time.perf_counter()
@@ -339,13 +363,16 @@ class SearchSession:
         self._stop_reason = "completed"
         self.set_deadline(started + duration if deadline is None else deadline)
         self.cancelled = cancelled
-        self.max_evaluations = max_evaluations
+        self.max_evaluations = limits.max_evaluations
+        self._target_cost = limits.target_cost
+        self._patience = limits.patience
+        self._non_improving_evaluations = 0
         original_decoder, original_cost = algorithm.decoder, algorithm.cost
         original_cancelled = algorithm._cancelled
         original_share = algorithm._evaluation_share
         algorithm.decoder, algorithm.cost = self.decode, self.evaluate
         algorithm._cancelled = cancelled
-        algorithm._evaluation_share = self._evaluation_share_for(max_evaluations)
+        algorithm._evaluation_share = self._evaluation_share_for(limits.max_evaluations)
         trace_token = _ACTIVE_STORE.set(self._trace_store)
         try:
             try:
