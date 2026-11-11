@@ -14,6 +14,10 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- `rko_solver.worker_thread_limit(threads)`: a context manager that gives process workers started
+  inside it a fixed BLAS/OpenMP thread count, restoring the parent's environment on exit. Opt-in;
+  the default is unchanged. See [native threads](docs/native-threads.md).
+
 - `rko_solver.MIN_KEYS_CPP_IPR` (10), and `RKO(...)` now raises `ValueError` at construction for
   `engine="cpp"` with fewer keys when IPR is selected, instead of failing at `solve`.
 

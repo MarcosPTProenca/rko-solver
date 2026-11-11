@@ -42,6 +42,7 @@ from .problem import Numba
 from .rko_main import run
 from .solver import RKO
 from .solver import RKOResult
+from .thread_limits import worker_thread_limit
 
 __all__ = [
     "RKO",
@@ -63,4 +64,5 @@ __all__ = [
     "ValidationReport",
     "SolutionAssessment",
     "assess_result",
+    "worker_thread_limit",
 ]
