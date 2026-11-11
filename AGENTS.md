@@ -126,6 +126,14 @@ cargo test --release
 - Do not skip running Ruff after finishing changes.
 - Do not split a single logic into multiple separate functions unnecessarily; prefer one cohesive class.
 
+## Code quality rules
+
+- Always meet the project quality rules before calling a change finished: `tools/quality_gate.py`, `tools/debt_counter.py`, `lint-imports`, Ruff and the mypy ratchet. A change that fails a gate is not finished.
+- Never raise a recorded baseline in `.quality/*.json` to make a gate pass, and never run `--write-baseline` for that purpose. Refactor until the gate passes.
+- Do not add a parameter to a function that is already above the 6-parameter limit. Group the related values into one value object and pass that object instead.
+- Do not suppress a check (`# type: ignore`, `# noqa`) except for a third-party false positive; name that false positive in the docstring of the function that carries the suppression.
+- If a gate cannot be met without a design decision, stop and ask the owner with the options. Do not choose the baseline increase or the public API change yourself.
+
 ## Workflow autonomy
 
 - Do not ask whether to open a pull request when a piece of work is finished. Open it, following the commit-pr-conventions skill, and report the URL.
