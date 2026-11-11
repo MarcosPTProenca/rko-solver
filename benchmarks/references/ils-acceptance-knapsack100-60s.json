@@ -1,0 +1,304 @@
+{
+  "records": [
+    {
+      "arm": "restart",
+      "best_cost": -30947.0,
+      "best_profit": 30947.0,
+      "feasible": true,
+      "iterations": 158,
+      "restarts": 4,
+      "case": "correlated_knapsack_100x5",
+      "seed": 1
+    },
+    {
+      "arm": "late",
+      "best_cost": -31003.000000000004,
+      "best_profit": 31003.000000000004,
+      "feasible": true,
+      "iterations": 233,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 1
+    },
+    {
+      "arm": "strict",
+      "best_cost": -31188.4,
+      "best_profit": 31188.4,
+      "feasible": true,
+      "iterations": 362,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 1
+    },
+    {
+      "arm": "strict",
+      "best_cost": -30750.4,
+      "best_profit": 30750.4,
+      "feasible": true,
+      "iterations": 413,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 2
+    },
+    {
+      "arm": "late",
+      "best_cost": -30857.6,
+      "best_profit": 30857.6,
+      "feasible": true,
+      "iterations": 428,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 2
+    },
+    {
+      "arm": "restart",
+      "best_cost": -30618.0,
+      "best_profit": 30618.0,
+      "feasible": true,
+      "iterations": 391,
+      "restarts": 11,
+      "case": "correlated_knapsack_100x5",
+      "seed": 2
+    },
+    {
+      "arm": "restart",
+      "best_cost": -30114.000000000004,
+      "best_profit": 30114.000000000004,
+      "feasible": true,
+      "iterations": 336,
+      "restarts": 8,
+      "case": "correlated_knapsack_100x5",
+      "seed": 3
+    },
+    {
+      "arm": "late",
+      "best_cost": -30216.4,
+      "best_profit": 30216.4,
+      "feasible": true,
+      "iterations": 328,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 3
+    },
+    {
+      "arm": "strict",
+      "best_cost": -30201.8,
+      "best_profit": 30201.8,
+      "feasible": true,
+      "iterations": 327,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 3
+    },
+    {
+      "arm": "strict",
+      "best_cost": -31171.200000000004,
+      "best_profit": 31171.200000000004,
+      "feasible": true,
+      "iterations": 349,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 4
+    },
+    {
+      "arm": "late",
+      "best_cost": -31221.800000000003,
+      "best_profit": 31221.800000000003,
+      "feasible": true,
+      "iterations": 359,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 4
+    },
+    {
+      "arm": "restart",
+      "best_cost": -31127.4,
+      "best_profit": 31127.4,
+      "feasible": true,
+      "iterations": 350,
+      "restarts": 9,
+      "case": "correlated_knapsack_100x5",
+      "seed": 4
+    },
+    {
+      "arm": "restart",
+      "best_cost": -29880.999999999996,
+      "best_profit": 29880.999999999996,
+      "feasible": true,
+      "iterations": 352,
+      "restarts": 8,
+      "case": "correlated_knapsack_100x5",
+      "seed": 5
+    },
+    {
+      "arm": "late",
+      "best_cost": -29784.0,
+      "best_profit": 29784.0,
+      "feasible": true,
+      "iterations": 341,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 5
+    },
+    {
+      "arm": "strict",
+      "best_cost": -29945.600000000002,
+      "best_profit": 29945.600000000002,
+      "feasible": true,
+      "iterations": 312,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 5
+    },
+    {
+      "arm": "strict",
+      "best_cost": -30965.2,
+      "best_profit": 30965.2,
+      "feasible": true,
+      "iterations": 321,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 6
+    },
+    {
+      "arm": "late",
+      "best_cost": -30780.4,
+      "best_profit": 30780.4,
+      "feasible": true,
+      "iterations": 318,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 6
+    },
+    {
+      "arm": "restart",
+      "best_cost": -30505.400000000005,
+      "best_profit": 30505.400000000005,
+      "feasible": true,
+      "iterations": 377,
+      "restarts": 9,
+      "case": "correlated_knapsack_100x5",
+      "seed": 6
+    },
+    {
+      "arm": "restart",
+      "best_cost": -31257.400000000005,
+      "best_profit": 31257.400000000005,
+      "feasible": true,
+      "iterations": 388,
+      "restarts": 9,
+      "case": "correlated_knapsack_100x5",
+      "seed": 7
+    },
+    {
+      "arm": "late",
+      "best_cost": -31256.0,
+      "best_profit": 31256.0,
+      "feasible": true,
+      "iterations": 397,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 7
+    },
+    {
+      "arm": "strict",
+      "best_cost": -31412.8,
+      "best_profit": 31412.8,
+      "feasible": true,
+      "iterations": 400,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 7
+    },
+    {
+      "arm": "strict",
+      "best_cost": -31102.8,
+      "best_profit": 31102.8,
+      "feasible": true,
+      "iterations": 383,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 8
+    },
+    {
+      "arm": "late",
+      "best_cost": -30975.4,
+      "best_profit": 30975.4,
+      "feasible": true,
+      "iterations": 419,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 8
+    },
+    {
+      "arm": "restart",
+      "best_cost": -30812.4,
+      "best_profit": 30812.4,
+      "feasible": true,
+      "iterations": 388,
+      "restarts": 8,
+      "case": "correlated_knapsack_100x5",
+      "seed": 8
+    },
+    {
+      "arm": "restart",
+      "best_cost": -31382.200000000004,
+      "best_profit": 31382.200000000004,
+      "feasible": true,
+      "iterations": 368,
+      "restarts": 10,
+      "case": "correlated_knapsack_100x5",
+      "seed": 9
+    },
+    {
+      "arm": "late",
+      "best_cost": -31406.8,
+      "best_profit": 31406.8,
+      "feasible": true,
+      "iterations": 376,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 9
+    },
+    {
+      "arm": "strict",
+      "best_cost": -31420.0,
+      "best_profit": 31420.0,
+      "feasible": true,
+      "iterations": 369,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 9
+    },
+    {
+      "arm": "strict",
+      "best_cost": -30090.0,
+      "best_profit": 30090.0,
+      "feasible": true,
+      "iterations": 371,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 10
+    },
+    {
+      "arm": "late",
+      "best_cost": -29985.4,
+      "best_profit": 29985.4,
+      "feasible": true,
+      "iterations": 394,
+      "restarts": 0,
+      "case": "correlated_knapsack_100x5",
+      "seed": 10
+    },
+    {
+      "arm": "restart",
+      "best_cost": -29974.000000000004,
+      "best_profit": 29974.000000000004,
+      "feasible": true,
+      "iterations": 375,
+      "restarts": 11,
+      "case": "correlated_knapsack_100x5",
+      "seed": 10
+    }
+  ]
+}

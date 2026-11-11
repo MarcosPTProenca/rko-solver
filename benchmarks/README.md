@@ -3467,3 +3467,19 @@ one standard error (paired differences vary by roughly ±200 objective units), a
 separate the arms. With the pool-cost ceiling from above (IPR spends about 12% of its worker time in pool
 calls), even a free pool would not change this picture. The result is one host, two generated families and
 five-second runs; it does not show that IPR is useless on other problems.
+
+### ILS acceptance and restart screen (issue 113, one family)
+
+`algorithms/ils_acceptance_study.py` compares the shipped strict-improvement rule with late acceptance
+(list length 20) and with a restart after 30 non-improving iterations, all sharing the shipped `shake` and
+`rvnd`, on correlated knapsacks with 100 items, 60 seconds per run, 10 paired seeds.
+[Raw records](references/ils-acceptance-knapsack100-60s.json).
+
+- Iteration rate limits the regime: about 4 iterations in 10 seconds at 300 items, so stagnation cannot
+  arise there; at 100 items the run reaches about 350 iterations in 60 seconds.
+- Late acceptance against strict: 3 better, 7 worse, exact sign test p = 0.34; mean difference +76.
+- Restart against strict: 0 better, 10 worse, p = 0.002; mean difference +163 (restarts were about 9 per run).
+
+Reading: on this family and budget, strict improvement is not stalling, and neither option helps. Restart
+clearly hurts. The screen covers one family, one size and one budget, and the list length and restart count
+were set from the iteration rate, not tuned; the issue's three-family ablation is still open.
