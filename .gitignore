@@ -20,6 +20,7 @@ mutants/
 htmlcov/
 results/
 /temp_docs/
+/.pi/
 /site/
 /release/
 

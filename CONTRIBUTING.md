@@ -194,6 +194,11 @@ See [site maintenance and owner setup](docs/documentation-site.md) for file
 boundaries, main-only Pages deployment and recovery. Do not advertise a live URL
 until deployment succeeds, or confuse development docs with a stable release.
 
+## Community conduct
+
+Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md). Report
+unacceptable behavior through the owner's GitHub profile linked there.
+
 ## Bugs and pull requests
 
 For a bug report, include a minimal reader/decoder/objective, failing input or a
