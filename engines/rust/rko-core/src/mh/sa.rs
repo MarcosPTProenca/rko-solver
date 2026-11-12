@@ -107,7 +107,11 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
     let mut block = capacity.min(4);
     let mut rows: Vec<f64> = Vec::new();
     let mut row_costs: Vec<f64> = Vec::new();
+    let fixed_t0 = params.t0;
     let (mut current_cost, cutoff) = params.initialize(&mut keys, context, &mut neighbor)?;
+    context
+        .search
+        .begin_annealing(params.t0, cutoff, params.t0 != fixed_t0);
     let mut best_cost = current_cost;
     let mut searcher = NelderMead::new(PoolPolicy::Elite);
     let mut reannealing = false;
@@ -115,6 +119,7 @@ pub fn run(spec: &Spec, context: &mut Context<'_, '_>) -> Result<(), Stop> {
         context.search.check()?;
         let mut temperature = params.t0 * RESTART_SCALE[usize::from(reannealing)];
         while temperature > cutoff {
+            context.search.count_annealing_level();
             let previous_best = best_cost;
             let mut action = 0;
             let mut next_state = state;

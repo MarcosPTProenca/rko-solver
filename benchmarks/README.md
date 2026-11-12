@@ -3524,6 +3524,43 @@ No detectable quality difference. The Knapsack interval excludes a loss above 0.
 does not exclude a difference of several percent, so that instance is inconclusive. This is one host; the
 second-host acceptance criterion of issue 136 is not verified.
 
+### Simulated-annealing start temperature on KPLIB Knapsack (issue 96)
+
+`sa_t0_diagnosis.py` runs `rko_bench` with the packaged SA vector and 100,000 evaluations, once with
+the packaged start temperature and once with `--sa-t0-auto`, on one pilot-role input per KPLIB family
+and size. [Raw records](references/sa-t0-diagnosis-kplib-wsl2.jsonl): WSL2, seed 1, one thread.
+`rko_bench` now prints each SA search's `t0`, `cutoff`, `levels`, and the median and maximum of the
+calibration's sampled uphill cost differences.
+
+| Items | Family | Baseline cost | Estimator cost | Estimated t0 | Packaged t0 | Cutoff (estimator) | Levels | Sampled uphill delta median / max |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 500 | 00Uncorrelated | -202310 | -184791 | 2.27e+08 | 340.4 | 22.7 | 73 | 3.86e+07 / 1.76e+08 |
+| 500 | 01WeaklyCorrelated | -139907 | -134314 | 1.97e+08 | 340.4 | 19.7 | 76 | 3.85e+07 / 1.37e+08 |
+| 500 | 02StronglyCorrelated | -156717 | -154000 | 2.23e+08 | 340.4 | 22.3 | 75 | 4.04e+07 / 1.67e+08 |
+| 500 | 05SubsetSum | -125430 | -125430 | 1.86e+08 | 340.4 | 18.6 | 78 | 4.94e+07 / 8.8e+07 |
+| 500 | 07SpannerUncorrelated | -76752 | -73190 | 1.22e+08 | 340.4 | 12.2 | 75 | 2.62e+07 / 4.68e+07 |
+| 1000 | 00Uncorrelated | -397826 | -347621 | 2.81e+08 | 340.4 | 28.1 | 57 | 5.26e+07 / 2.11e+08 |
+| 1000 | 01WeaklyCorrelated | -269787 | -261173 | 3.81e+08 | 340.4 | 38.1 | 58 | 6.81e+07 / 2.56e+08 |
+| 1000 | 02StronglyCorrelated | -315182 | -308449 | 3.64e+08 | 340.4 | 36.4 | 59 | 6.82e+07 / 1.77e+08 |
+| 1000 | 05SubsetSum | -240886 | -240886 | 2.98e+08 | 340.4 | 29.8 | 65 | 7.29e+07 / 1.39e+08 |
+| 1000 | 07SpannerUncorrelated | -208632 | -177779 | 2e+08 | 340.4 | 20 | 58 | 4.06e+07 / 9.8e+07 |
+
+Measured mechanism. The estimator samples 32 shaken neighbours of a random start, and that start
+violates the knapsack capacity heavily, so the sampled uphill differences are dominated by the
+capacity penalty (median about 4e7). The estimated `t0` is therefore about 10^5 to 10^6 times the packaged
+340, and the cutoff `t0 * 1e-7` ends cooling at 12 to 38 instead of 1e-4.
+
+Two candidate explanations were tested and rejected:
+- A fixed cutoff of 1e-4 with the same estimator gave identical costs on all ten inputs. The 100,000
+  evaluation budget ends the search at 57 to 78 levels, before the cutoff matters; the start
+  temperature is the controlling factor.
+- A zero-key start for calibration gave no uphill sample at all (shaken zero keys select no item), so
+  the estimator fell back to the fixed value.
+
+No candidate that changes these results was found, and the verdict on a fix is not made here: any
+change to how the start temperature is calibrated changes continuous and route problems too and needs
+a fresh-cohort validation with `utility_cli`. This section documents the measured limit, not a fix.
+
 Reading: the issue's 3–14% estimate holds at the top only for IPR. A pool-free IPR would gain at most
 about 12–14% in evaluations per second, and halving the round trips (option 3) at most about 6%. Ceilings
 are upper bounds; they say nothing about the quality effect of any change. The shares are from one host

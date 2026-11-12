@@ -69,6 +69,21 @@ pub struct HistoryPoint {
     pub cost: f64,
 }
 
+/// Temperature schedule facts observed by one simulated-annealing search.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AnnealingTrace {
+    /// Initial temperature used by the first level, after calibration or the fixed fallback.
+    pub t0: f64,
+    /// Temperature at which the run stops cooling.
+    pub cutoff: f64,
+    /// Temperature levels entered, across restarts.
+    pub levels: u64,
+    /// Whether the start temperature came from the sampled estimator.
+    pub calibrated: bool,
+    /// Largest and median sampled uphill cost difference behind the estimator, when sampled.
+    pub calibration: Option<(f64, f64)>,
+}
+
 /// Budget-aware evaluator and incumbent holder for one search.
 pub struct Search<'a> {
     problem: &'a dyn Problem,
@@ -85,6 +100,8 @@ pub struct Search<'a> {
     history: Vec<HistoryPoint>,
     history_observations: u64,
     incremental: Option<Box<dyn Incremental + 'a>>,
+    annealing: Option<AnnealingTrace>,
+    calibration_sample: Option<(f64, f64)>,
 }
 
 impl<'a> Search<'a> {
@@ -112,6 +129,8 @@ impl<'a> Search<'a> {
             history: Vec::new(),
             history_observations: 0,
             incremental: None,
+            annealing: None,
+            calibration_sample: None,
         }
     }
 
@@ -428,6 +447,38 @@ impl<'a> Search<'a> {
         self.history_observations
     }
 
+    /// Retain the largest and median sampled uphill cost difference of the start estimator.
+    pub fn record_calibration(&mut self, maximum: f64, median: f64) {
+        self.calibration_sample = Some((maximum, median));
+    }
+
+    /// Start recording the annealing schedule once the start temperature and cutoff are known.
+    pub fn begin_annealing(&mut self, t0: f64, cutoff: f64, calibrated: bool) {
+        self.annealing = Some(AnnealingTrace {
+            t0,
+            cutoff,
+            levels: 0,
+            calibrated,
+            calibration: None,
+        });
+    }
+
+    /// Count one entered temperature level; ignored when no schedule was begun.
+    pub fn count_annealing_level(&mut self) {
+        if let Some(trace) = self.annealing.as_mut() {
+            trace.levels += 1;
+        }
+    }
+
+    /// Return the annealing schedule recorded so far, if the algorithm began one.
+    #[must_use]
+    pub fn annealing(&self) -> Option<AnnealingTrace> {
+        self.annealing.map(|trace| AnnealingTrace {
+            calibration: self.calibration_sample,
+            ..trace
+        })
+    }
+
     /// Extends the deadline by `extra`; used by tests of deadline behavior.
     pub fn extend_deadline(&mut self, extra: Duration) {
         self.deadline += extra;
@@ -435,166 +486,4 @@ impl<'a> Search<'a> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::problem::Knapsack;
-
-    fn fixture() -> Knapsack {
-        Knapsack::new(&[10, 20, 30], &[5, 6, 7], 12)
-    }
-
-    #[test]
-    fn tracks_best_and_counts() {
-        let problem = fixture();
-        let cancel = AtomicBool::new(false);
-        let now = Instant::now();
-        let mut search = Search::new(&problem, &cancel, now, now + Duration::from_secs(5), 0);
-        assert_eq!(search.eval(&[0.9, 0.1, 0.1]).unwrap(), -10.0);
-        assert_eq!(search.eval(&[0.9, 0.9, 0.1]).unwrap(), -30.0);
-        assert_eq!(search.eval(&[0.1, 0.1, 0.1]).unwrap(), 0.0);
-        assert_eq!(search.evaluations(), 3);
-        assert_eq!(search.best_cost(), -30.0);
-        assert_eq!(search.best_keys(), &[0.9, 0.9, 0.1]);
-    }
-
-    #[test]
-    fn first_evaluation_survives_expired_deadline() {
-        let problem = fixture();
-        let cancel = AtomicBool::new(false);
-        let now = Instant::now();
-        let mut search = Search::new(&problem, &cancel, now, now, 0);
-        assert!(search.eval(&[0.9, 0.1, 0.1]).is_ok());
-        let mut stopped = false;
-        for _ in 0..16 {
-            if search.eval(&[0.9, 0.1, 0.1]) == Err(Stop::TimeLimit) {
-                stopped = true;
-                break;
-            }
-        }
-        assert!(stopped);
-    }
-
-    #[test]
-    fn cancellation_is_immediate() {
-        let problem = fixture();
-        let cancel = AtomicBool::new(true);
-        let now = Instant::now();
-        let mut search = Search::new(&problem, &cancel, now, now + Duration::from_secs(5), 0);
-        assert_eq!(search.eval(&[0.9, 0.1, 0.1]), Err(Stop::Cancelled));
-    }
-
-    #[test]
-    fn probe_matches_eval_with_and_without_incremental_state() {
-        use crate::problem::test_support::DeltaKnapsack;
-        let knapsack = Knapsack::new(&[10, 20, 30, 15], &[5, 6, 7, 4], 12);
-        let fast = DeltaKnapsack(knapsack.clone());
-        let cancel = AtomicBool::new(false);
-        let now = Instant::now();
-        for incremental in [true, false] {
-            let problem: &dyn Problem = if incremental { &fast } else { &knapsack };
-            let mut search = Search::new(problem, &cancel, now, now + Duration::from_secs(5), 0);
-            let mut keys = vec![0.9, 0.1, 0.9, 0.1];
-            search.eval(&keys).unwrap();
-            search.sync(&keys);
-            assert_eq!(search.is_incremental(), incremental);
-            let snapshot = keys.clone();
-            let changes = [(1, 0.8), (3, 0.7)];
-            let moved = search.probe(&mut keys, &changes).unwrap();
-            assert_eq!(keys, snapshot, "probe must restore keys");
-            let mut expected = snapshot.clone();
-            expected[1] = 0.8;
-            expected[3] = 0.7;
-            assert_eq!(moved, knapsack.evaluate(&expected));
-            search.commit(&mut keys, &changes);
-            assert_eq!(keys, expected);
-            assert_eq!(
-                search.probe(&mut keys, &[]).unwrap(),
-                knapsack.evaluate(&expected)
-            );
-            assert_eq!(search.evaluations(), 3);
-        }
-    }
-
-    #[test]
-    fn evaluation_limit_is_exact_for_eval_probe_and_check() {
-        let problem = fixture();
-        let cancel = AtomicBool::new(false);
-        let now = Instant::now();
-        let mut search = Search::new(&problem, &cancel, now, now + Duration::from_secs(5), 0)
-            .with_max_evaluations(3);
-        let mut keys = vec![0.9, 0.9, 0.1];
-        assert!(search.eval(&keys).is_ok());
-        assert!(search.probe(&mut keys, &[(2, 0.8)]).is_ok());
-        assert!(search.check().is_ok());
-        assert!(search.eval(&keys).is_ok());
-        assert_eq!(search.check(), Err(Stop::MaxEvaluations));
-        assert_eq!(search.eval(&keys), Err(Stop::MaxEvaluations));
-        assert_eq!(search.probe(&mut keys, &[]), Err(Stop::MaxEvaluations));
-        assert_eq!(search.evaluations(), 3);
-        assert_eq!(Stop::MaxEvaluations.label(), "max_evaluations");
-    }
-
-    #[test]
-    fn a_zero_limit_is_raised_to_one_and_cancellation_wins() {
-        let problem = fixture();
-        let cancel = AtomicBool::new(false);
-        let now = Instant::now();
-        let mut search = Search::new(&problem, &cancel, now, now + Duration::from_secs(5), 0)
-            .with_max_evaluations(0);
-        assert!(search.eval(&[0.9, 0.1, 0.1]).is_ok());
-        assert_eq!(search.eval(&[0.9, 0.1, 0.1]), Err(Stop::MaxEvaluations));
-        cancel.store(true, Ordering::Relaxed);
-        assert_eq!(search.eval(&[0.9, 0.1, 0.1]), Err(Stop::Cancelled));
-    }
-
-    #[test]
-    fn a_block_is_truncated_at_the_limit_and_reports_the_stop() {
-        use crate::problem::test_support::BatchKnapsack;
-        let problem = BatchKnapsack::new(fixture(), 4);
-        let cancel = AtomicBool::new(false);
-        let now = Instant::now();
-        let mut search = Search::new(&problem, &cancel, now, now + Duration::from_secs(5), 0)
-            .with_max_evaluations(6);
-        let rows = [0.9, 0.1, 0.1, 0.9, 0.9, 0.1, 0.1, 0.1, 0.1, 0.1, 0.9, 0.9];
-        let mut out = [0.0; 4];
-        assert!(search.eval_batch(&rows, &mut out).is_ok());
-        assert_eq!(search.evaluations(), 4);
-        assert_eq!(
-            search.eval_batch(&rows, &mut out),
-            Err(Stop::MaxEvaluations)
-        );
-        assert_eq!(search.evaluations(), 6);
-        assert_eq!(out[..2], [-10.0, -30.0]);
-        assert_eq!(
-            search.eval_batch(&rows, &mut out),
-            Err(Stop::MaxEvaluations)
-        );
-        assert_eq!(search.evaluations(), 6);
-        assert_eq!(search.best_cost(), -30.0);
-    }
-
-    #[test]
-    fn history_compaction_keeps_cap_and_endpoints() {
-        struct Descending;
-        impl Problem for Descending {
-            fn dimension(&self) -> usize {
-                1
-            }
-            fn evaluate(&self, keys: &[f64]) -> f64 {
-                -keys[0]
-            }
-        }
-        let problem = Descending;
-        let cancel = AtomicBool::new(false);
-        let now = Instant::now();
-        let mut search = Search::new(&problem, &cancel, now, now + Duration::from_secs(5), 8);
-        for step in 0..100 {
-            search.eval(&[f64::from(step) / 100.0]).unwrap();
-        }
-        search.finish_history();
-        assert!(search.history().len() <= 8);
-        assert_eq!(search.history().first().unwrap().evaluations, 1);
-        assert_eq!(search.history().last().unwrap().cost, -0.99);
-        assert_eq!(search.history_observations(), 101);
-    }
-}
+mod tests;

@@ -69,7 +69,15 @@ impl SaTemperature {
                 count += 1;
             }
         }
-        Ok(self.solve(&deltas[..count]))
+        let sampled = &deltas[..count];
+        if !sampled.is_empty() {
+            let mut sorted = sampled.to_vec();
+            sorted.sort_by(f64::total_cmp);
+            let maximum = sorted[sorted.len() - 1];
+            let median = sorted[sorted.len() / 2];
+            context.search.record_calibration(maximum, median);
+        }
+        Ok(self.solve(sampled))
     }
 
     /// Validate the target and every sampled uphill cost difference.

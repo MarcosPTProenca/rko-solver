@@ -305,6 +305,24 @@ fn print_result(
         .map(|key| format!("{key:?}"))
         .collect();
     let sa_t0_auto = study.sa_t0_auto;
+    let annealing = result
+        .reports
+        .iter()
+        .filter_map(|report| {
+            report.annealing.map(|trace| {
+                let (maximum, median) = trace
+                    .calibration
+                    .map_or((String::from("null"), String::from("null")), |(max, med)| {
+                        (format!("{max:?}"), format!("{med:?}"))
+                    });
+                format!(
+                    "{{\"algorithm\":\"{}\",\"t0\":{:?},\"cutoff\":{:?},\"levels\":{},\"calibrated\":{},\"calibration_max\":{maximum},\"calibration_median\":{median}}}",
+                    report.algorithm, trace.t0, trace.cutoff, trace.levels, trace.calibrated
+                )
+            })
+        })
+        .collect::<Vec<_>>()
+        .join(",");
     let sa_parameters = study
         .sa_parameters
         .as_ref()
@@ -315,7 +333,7 @@ fn print_result(
         result.best_cost
     );
     println!(
-        "{{\"algorithms\":\"{algos}\",\"seed\":{seed},{extra}\"cost\":{},\"evaluations\":{evaluations},\"elapsed\":{:.6},\"workers\":{},\"stops\":[{stops}],\"sa_t0_auto\":{sa_t0_auto},\"adaptive\":{adaptive},\"sa_parameters\":{sa_parameters}}}",
+        "{{\"algorithms\":\"{algos}\",\"seed\":{seed},{extra}\"cost\":{},\"evaluations\":{evaluations},\"elapsed\":{:.6},\"workers\":{},\"stops\":[{stops}],\"sa_t0_auto\":{sa_t0_auto},\"adaptive\":{adaptive},\"sa_parameters\":{sa_parameters},\"annealing\":[{annealing}]}}",
         result.best_cost, result.elapsed, result.workers
     );
 }

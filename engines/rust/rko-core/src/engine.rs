@@ -30,7 +30,7 @@ use crate::mh::{Context, Spec};
 use crate::pool::Pool;
 use crate::problem::Problem;
 use crate::rng::{Rng, derive_seed};
-use crate::search::{HistoryPoint, Search, Stop};
+use crate::search::{AnnealingTrace, HistoryPoint, Search, Stop};
 use crate::seeding::Seeding;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
@@ -73,6 +73,8 @@ pub struct SearchReport {
     pub history: Vec<HistoryPoint>,
     /// Incumbent observations offered to the history.
     pub history_observations: u64,
+    /// Simulated-annealing schedule facts, when this search is annealing.
+    pub annealing: Option<AnnealingTrace>,
 }
 
 /// Aggregated portfolio outcome.
@@ -211,6 +213,7 @@ pub fn run_portfolio(
                                 best_keys: search.best_keys().to_vec(),
                                 history: search.history().to_vec(),
                                 history_observations: search.history_observations(),
+                                annealing: search.annealing(),
                             });
                         }
                     });
