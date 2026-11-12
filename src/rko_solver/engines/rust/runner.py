@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import dataclasses
 import secrets
+import sys
 from ...components.solution_pool import SolutionPool
 from ...orchestration.configuration import MH_SPECS
 from ...orchestration.factory import build_metaheuristic
@@ -49,6 +50,21 @@ from itertools import product
 from pathlib import Path
 from types import ModuleType
 from typing import Any
+
+
+def default_callback_workers(gil_enabled: bool) -> int | None:
+    """Choose the default native worker limit for Python callbacks on the Rust engine.
+
+    While the interpreter lock is enabled, callbacks serialize on it, so one worker is the honest
+    default. On a free-threaded interpreter they can run in parallel, so no limit is forced.
+
+    Args:
+        gil_enabled (bool): Whether the interpreter lock is enabled.
+
+    Returns:
+        int | None: 1 with the lock enabled; None when the engine chooses the worker count.
+    """
+    return 1 if gil_enabled else None
 
 
 class NativeRunner:
@@ -196,7 +212,7 @@ class NativeRunner:
             problem = native.BatchProblem(problem.scores, self.n_variables, problem.batch_size)
         gil_bound = isinstance(problem, (native.CallbackProblem, native.BatchProblem))
         if workers is None and gil_bound and self.engine == "rust":
-            workers = 1
+            workers = default_callback_workers(gil_enabled=sys._is_gil_enabled())
         seed = secrets.randbits(63) if random_state is None else random_state
         result = native.run(
             problem,

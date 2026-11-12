@@ -22,6 +22,7 @@ Inputs/Outputs:
 
 import numpy as np
 import pytest
+import sys
 from rko_solver import RKO
 from rko_solver import Blocks
 from rko_solver.engines.rust.runner import NativeRunner
@@ -329,13 +330,17 @@ def test_python_bound_problems_default_to_one_worker_and_explicit_caps_win() -> 
     problem = native.KnapsackProblem(PROFITS, WEIGHTS, CAPACITY)
     assert RKO(problem, engine="rust", algorithms=algorithms).solve(0.2).n_workers == 3
     batched = RKO(Blocks(batch_cost, 60), engine="rust", algorithms=algorithms).solve(0.3)
-    assert batched.n_workers == 1
     assert all(report.n_evaluations > 0 for report in batched.searches)
-    assert sum(report.elapsed_seconds for report in batched.searches) < 0.6
+    assert max(report.elapsed_seconds for report in batched.searches) < 0.6
     callbacks = RKO(lambda keys: keys, python_cost, 60, algorithms=algorithms, engine="rust").solve(
         0.3
     )
-    assert callbacks.n_workers == 1
+    if sys._is_gil_enabled():
+        assert batched.n_workers == 1
+        assert callbacks.n_workers == 1
+    else:
+        assert batched.n_workers == len(algorithms)
+        assert callbacks.n_workers == len(algorithms)
     explicit = RKO(Blocks(batch_cost, 60), engine="rust", algorithms=algorithms, n_jobs=3).solve(
         0.2
     )
