@@ -190,6 +190,7 @@ fn search_report(
         best_keys: keys.to_vec(),
         history,
         history_observations: raw.history_observations,
+        annealing: None,
     }
 }
 
