@@ -118,6 +118,27 @@ Both must be Numba dispatchers, and a cfunc is not accepted as the decoder in th
 decoder cannot return a Python object such as a list or a tuple of arrays: `cost` must accept
 whatever `decode` returns inside nopython mode.
 
+**Your own C objective (shared library).** If your decoder and objective already exist in C or C++,
+compile them into a shared library exporting one reentrant function with the signature
+`double objective(const double *keys, long n)`. It must not raise and must return a finite value.
+`NativeObjective` loads it and runs it on the `rust` and `cpp` engines without any Rust code:
+
+<!-- doc-test: skip needs a compiled shared library on disk -->
+```python
+from rko_solver import RKO, NativeObjective
+
+result = RKO(
+    NativeObjective("build/libobjective.so", "objective", n_variables=60),
+    engine="rust",
+    random_state=42,
+).solve(10.0)
+```
+
+The function is called from every worker thread without the interpreter lock, so it must not
+keep state between calls, and it must not write through or keep the key pointer. The library and
+symbol are resolved once when the object is created. Decoders that return Python objects cannot
+be used this way; the decoding has to happen inside the C function.
+
 **Native problem (fastest to start).** The decoder and objective run inside Rust. Python
 exposes a built-in 0/1 Knapsack as an example (`RKO(rko_solver.problems.Knapsack(...), engine="rust")`); the
 Rust core also contains TSP and Rastrigin problems used by the benchmarks. Built-in and

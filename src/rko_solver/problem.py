@@ -28,10 +28,12 @@ from __future__ import annotations
 
 from .engines.rust.batch import BatchFn
 from .engines.rust.batch import BatchObjective
+from .engines.rust.compiled import CompiledObjective
 from .engines.rust.compiled import compile_objective
 from .orchestration.types import CostFn
 from .orchestration.types import DecoderFn
 from dataclasses import dataclass
+from pathlib import Path
 from typing import ClassVar
 
 
@@ -117,6 +119,57 @@ class Numba:
                 self.entry.address, self.n_variables, self.entry.owner
             )
         return self._problem
+
+
+class NativeObjective(Numba):
+    """Describe a problem by a C function that a user compiled into a shared library.
+
+    The function must have the C signature `double f(const double *keys, long n)`, be reentrant,
+    never raise, and return a finite value. It is called from every worker of the native engines.
+
+    Responsibilities:
+    - Load the library and resolve the symbol once, keeping both alive for the solve.
+    - Reuse the compiled-objective path that `Numba` uses, so the engines call it directly.
+
+    Attributes:
+        n_variables (int): Positive key dimension.
+        entry (CompiledObjective): Native entry point and its owners.
+        kind (str): Always `native`.
+    """
+
+    def __init__(self, library: str | Path, symbol: str, n_variables: int) -> None:
+        """Load the shared library and bind the objective symbol.
+
+        Args:
+            library (str | Path): Path of the shared library exporting the objective.
+            symbol (str): Exported C function name.
+            n_variables (int): Positive key dimension.
+
+        Raises:
+            ValueError: If the dimension is invalid, the library cannot be loaded, or the
+                symbol is not exported.
+        """
+        import ctypes
+
+        if type(n_variables) is not int or n_variables <= 0:
+            raise ValueError("'n_variables' must be a positive integer.")
+        path = Path(library)
+        try:
+            handle = ctypes.CDLL(str(path))
+        except OSError as error:
+            raise ValueError(f"Cannot load native objective library {path}: {error}") from error
+        try:
+            function = getattr(handle, symbol)
+        except AttributeError as error:
+            raise ValueError(f"The library does not export the symbol {symbol!r}.") from error
+        function.restype = ctypes.c_double
+        function.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.c_ssize_t]
+        address = ctypes.cast(function, ctypes.c_void_p).value
+        if address is None:
+            raise ValueError(f"The symbol {symbol!r} has no address.")
+        self.n_variables = n_variables
+        self.entry = CompiledObjective(int(address), (handle, function))
+        self._problem: object | None = None
 
 
 class Blocks:
