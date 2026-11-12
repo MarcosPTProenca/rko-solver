@@ -280,9 +280,10 @@ def test_failed_search_does_not_announce_completion(
         control=0,
         execution=execution,
         verbose=True,
+        max_evaluations=1,
     )
     with pytest.raises((ValueError, RuntimeError), match="deliberate objective failure"):
-        optimizer.solve(0.02)
+        optimizer.solve(5.0)
     assert optimizer.result_ is None
     output = capfd.readouterr().out
     assert "RKO START" in output
