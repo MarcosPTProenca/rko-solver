@@ -3508,6 +3508,22 @@ correlated knapsacks 100x5 and 300x5 (see `modeling/hard_cases.py`).
 | 300x5 | BRKGA / GA / SA | 1.1% / 1.1% / 0.4% | — | 4.3 / 4.4 / 1.7 | ×1.01 |
 | 300x5 | IPR+BRKGA+GA+SA | 2.5% | 2.5–2.8% | 14.9 | ×1.03 |
 
+### Shared versus manager elite pool at equal wall time (issue 136, one host, 30 seeds)
+
+`runtime/pool_quality_study.py` solves each instance with the default process portfolio, four workers
+and a 10-second budget, once with the manager-hosted pool and once with the shared-memory pool, paired by
+seed. [Raw records](references/pool-quality-process-wsl2.jsonl): WSL2, 6 CPUs, 300-item correlated Knapsack
+and 300-dimensional shifted Rastrigin. Summarize with `python -m benchmarks.runtime.pool_quality_study --summarize <file>`.
+
+| Instance | Paired mean difference (shared minus manager) | 95% CI | Shared better / worse | Exact sign-test p |
+| --- | ---: | ---: | ---: | ---: |
+| Knapsack 300 | −2.7 (cost; manager mean −10930) | [−26.7, 21.2] (≈ −0.24% to +0.19%) | 16 / 14 | 0.86 |
+| Rastrigin 300 | +8.7 (manager mean 773) | [−26.3, 43.8] (≈ −3.4% to +5.7%) | 13 / 17 | 0.58 |
+
+No detectable quality difference. The Knapsack interval excludes a loss above 0.2%; the Rastrigin interval
+does not exclude a difference of several percent, so that instance is inconclusive. This is one host; the
+second-host acceptance criterion of issue 136 is not verified.
+
 Reading: the issue's 3–14% estimate holds at the top only for IPR. A pool-free IPR would gain at most
 about 12–14% in evaluations per second, and halving the round trips (option 3) at most about 6%. Ceilings
 are upper bounds; they say nothing about the quality effect of any change. The shares are from one host
