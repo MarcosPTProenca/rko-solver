@@ -29,7 +29,9 @@ Inputs/Outputs:
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -48,28 +50,27 @@ class CompiledObjective:
     owner: object
 
 
-def compile_objective(function: object) -> CompiledObjective:
+def compile_objective(function: object, cost: object | None = None) -> CompiledObjective:
     """Prepare a Numba function for the native engine.
 
     Args:
         function (object): An `@njit` function taking a 1-D float64 array and returning a
             finite float, or a `cfunc` with signature `float64(CPointer(float64), intp)`.
+            With `cost`, the decoder: an `@njit` function returning whatever `cost` accepts.
+        cost (object | None): Optional `@njit` objective applied to the decoder's output,
+            compiled into the same native entry point as `cost(function(keys))`.
 
     Returns:
         CompiledObjective: Native entry point and owner.
 
     Raises:
         ImportError: If Numba is not installed.
-        ValueError: If the object is neither a Numba dispatcher nor a cfunc.
+        ValueError: If the object is neither a Numba dispatcher nor a cfunc, or if `cost`
+            is given with a cfunc decoder or a non-Numba function.
     """
-    try:
-        from numba import carray
-        from numba import cfunc
-        from numba import types
-    except ImportError as error:
-        raise ImportError(
-            "Compiled objectives need Numba; install it with `pip install numba`."
-        ) from error
+    carray, cfunc, types = _numba_modules()
+    if cost is not None:
+        return _compile_pair(function, cost)
     if hasattr(function, "address") and hasattr(function, "ctypes"):
         return CompiledObjective(int(function.address), function)
     if not hasattr(function, "py_func"):
@@ -94,3 +95,62 @@ def compile_objective(function: object) -> CompiledObjective:
         return inner(carray(keys, size))
 
     return CompiledObjective(int(entry.address), (entry, inner))
+
+
+def _numba_modules() -> tuple[Any, Any, Any]:
+    """Import the Numba helpers used to build a native entry point.
+
+    Returns:
+        tuple[Any, Any, Any]: The `carray` adapter, the `cfunc` decorator and the type namespace.
+
+    Raises:
+        ImportError: If Numba is not installed.
+    """
+    try:
+        from numba import carray
+        from numba import cfunc
+        from numba import types
+    except ImportError as error:
+        raise ImportError(
+            "Compiled objectives need Numba; install it with `pip install numba`."
+        ) from error
+    return carray, cfunc, types
+
+
+def _compile_pair(decoder: Callable[..., object], cost: Callable[..., object]) -> CompiledObjective:
+    """Compile a Numba decoder and cost into one native entry point.
+
+    Args:
+        decoder (Callable[..., object]): Numba dispatcher mapping keys to the cost's input.
+        cost (Callable[..., object]): Numba dispatcher mapping the decoder's output to a float.
+
+    Returns:
+        CompiledObjective: Native entry point and the owned dispatchers.
+
+    Raises:
+        ImportError: If Numba is not installed.
+        ValueError: If either half is not a Numba dispatcher, or the decoder is a cfunc.
+    """
+    carray, cfunc, types = _numba_modules()
+    if (
+        hasattr(decoder, "address")
+        or not hasattr(decoder, "py_func")
+        or not hasattr(cost, "py_func")
+    ):
+        raise ValueError("With cost=, both decoder and cost must be numba @njit functions.")
+    signature = types.float64(types.CPointer(types.float64), types.intp)
+
+    @cfunc(signature, nopython=True)
+    def entry(keys: object, size: object) -> float:
+        """Adapt the pointer convention and apply the decoder before the cost.
+
+        Args:
+            keys (object): Pointer to the key buffer.
+            size (object): Number of keys.
+
+        Returns:
+            float: Cost of the decoded key vector.
+        """
+        return cost(decoder(carray(keys, size)))
+
+    return CompiledObjective(int(entry.address), (entry, decoder, cost))

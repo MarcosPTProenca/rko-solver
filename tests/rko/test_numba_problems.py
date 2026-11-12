@@ -255,3 +255,80 @@ def test_nonfinite_objective_fails_the_solve() -> None:
 
     with pytest.raises(ValueError, match="finite"):
         RKO(Numba(broken, 8), engine="rust", algorithms=["SA"]).solve(0.2)
+
+
+@numba.njit
+def order_decode(keys: np.ndarray) -> np.ndarray:
+    """Decode keys into a permutation of item indices.
+
+    Args:
+        keys (np.ndarray): Random keys.
+
+    Returns:
+        np.ndarray: Index order sorting the keys ascending.
+    """
+    return np.argsort(keys)
+
+
+@numba.njit
+def first_item_cost(order: np.ndarray) -> float:
+    """Score a permutation by its first index, a deterministic objective.
+
+    Args:
+        order (np.ndarray): Index permutation produced by the decoder.
+
+    Returns:
+        float: Index of the first item.
+    """
+    return float(order[0])
+
+
+def test_numba_pair_matches_combined_function() -> None:
+    """A decoder/cost pair behaves exactly like one combined njit function."""
+
+    @numba.njit
+    def combined(keys: np.ndarray) -> float:
+        """Compose the decoder and cost into one compiled function.
+
+        Args:
+            keys (np.ndarray): Random keys.
+
+        Returns:
+            float: Objective of the decoded order.
+        """
+        return first_item_cost(order_decode(keys))
+
+    options = {"engine": "rust", "n_jobs": 1, "max_evaluations": 200, "random_state": 7}
+    paired = RKO(Numba(order_decode, 3, cost=first_item_cost), algorithms=["SA"], **options)
+    single = RKO(Numba(combined, 3), algorithms=["SA"], **options)
+    paired_result = paired.solve(30.0)
+    single_result = single.solve(30.0)
+    assert paired_result.cost == single_result.cost
+    assert paired_result.keys == single_result.keys
+
+
+def test_numba_pair_rejects_non_numba_cost() -> None:
+    """Both halves of a pair must be Numba dispatchers."""
+    with pytest.raises(ValueError, match="both decoder and cost must be numba"):
+        RKO(Numba(order_decode, 3, cost=lambda order: 0.0), engine="rust")
+
+
+def test_numba_pair_rejects_cfunc_decoder() -> None:
+    """A cfunc cannot be composed with a separate cost in the pair form."""
+    signature = numba.types.float64(numba.types.CPointer(numba.types.float64), numba.types.intp)
+
+    @numba.cfunc(signature)
+    def entry(keys: object, size: object) -> float:
+        """Return the first key as a minimal cfunc objective.
+
+        Args:
+            keys (object): Pointer to the key buffer.
+            size (object): Number of keys.
+
+        Returns:
+            float: First key value.
+        """
+        return keys[0]
+
+    with pytest.raises(ValueError, match="both decoder and cost must be numba"):
+        RKO(Numba(entry, 3, cost=first_item_cost), engine="rust")

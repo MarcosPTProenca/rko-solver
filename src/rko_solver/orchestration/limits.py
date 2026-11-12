@@ -57,14 +57,8 @@ class SearchLimits:
             ValueError: If an evaluation cap, target cost or patience value is invalid.
         """
         RunLimits.evaluations(self.max_evaluations)
-        if self.target_cost is not None and (
-            isinstance(self.target_cost, bool)
-            or not isinstance(self.target_cost, Real)
-            or not math.isfinite(self.target_cost)
-        ):
-            raise ValueError("'target_cost' must be a finite real number or None.")
-        if self.patience is not None and (type(self.patience) is not int or self.patience < 1):
-            raise ValueError("'patience' must be a positive integer or None.")
+        RunLimits.target_cost(self.target_cost)
+        RunLimits.patience(self.patience)
 
     def require_python_engine(self, engine: str) -> None:
         """Reject early-stop criteria for engines that do not implement them yet.
@@ -119,6 +113,34 @@ class RunLimits:
             raise ValueError(
                 f"'{name}' must be positive, finite and at most {cls.MAX_SECONDS:g} seconds."
             )
+
+    @classmethod
+    def target_cost(cls, value: object) -> None:
+        """Require `None` or a finite real objective target.
+
+        Args:
+            value (object): Candidate `target_cost`, where `None` disables the criterion.
+
+        Raises:
+            ValueError: If the value is neither `None` nor a finite real number.
+        """
+        if value is not None and (
+            isinstance(value, bool) or not isinstance(value, Real) or not math.isfinite(value)
+        ):
+            raise ValueError("'target_cost' must be a finite real number or None.")
+
+    @classmethod
+    def patience(cls, value: object) -> None:
+        """Require `None` or a positive integer count of non-improving evaluations.
+
+        Args:
+            value (object): Candidate `patience`, where `None` disables the criterion.
+
+        Raises:
+            ValueError: If the value is neither `None` nor an integer of at least one.
+        """
+        if value is not None and (type(value) is not int or value < 1):
+            raise ValueError("'patience' must be a positive integer or None.")
 
     @classmethod
     def evaluations(cls, value: object) -> None:

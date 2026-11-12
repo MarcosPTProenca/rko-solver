@@ -21,6 +21,7 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Added
 
+- `rko_solver.Numba(decode, n_variables, cost=cost)` accepts a separate `@njit` decoder and objective and compiles them into one native entry point, equal to the combined function.
 - `RKO.solve(..., target_cost=..., patience=...)` adds per-search Python early stopping by target cost or consecutive non-improvements. Rust, C++ and automatic engine modes reject these options until their native support lands.
 - `rko_solver.worker_thread_limit(threads)`: a context manager that gives process workers started
   inside it a fixed BLAS/OpenMP thread count, restoring the parent's environment on exit. Opt-in;

@@ -70,7 +70,7 @@ class Numba:
 
     kind = "native"
 
-    def __init__(self, function: object, n_variables: int) -> None:
+    def __init__(self, function: object, n_variables: int, *, cost: object | None = None) -> None:
         """Compile the function and validate the dimension.
 
         Args:
@@ -78,6 +78,9 @@ class Numba:
                 float, or a `cfunc` with signature `float64(CPointer(float64), intp)`. It is
                 called from several threads, so it must be pure and must not raise.
             n_variables (int): Positive key dimension.
+            cost (object | None): Optional `@njit` objective applied to the output of `function`,
+                which then acts as a decoder. Compiled as `cost(function(keys))` in one entry
+                point; the decoder's output must be accepted by `cost` inside nopython mode.
 
         Raises:
             ImportError: If Numba is not installed.
@@ -86,7 +89,7 @@ class Numba:
         if type(n_variables) is not int or n_variables <= 0:
             raise ValueError("'n_variables' must be a positive integer.")
         self.n_variables = n_variables
-        self.entry = compile_objective(function)
+        self.entry = compile_objective(function, cost)
         self._problem: object | None = None
 
     @property
