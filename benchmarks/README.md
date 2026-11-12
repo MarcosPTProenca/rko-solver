@@ -3560,9 +3560,11 @@ Two candidate explanations were tested and rejected:
 - A zero-key start for calibration gave no uphill sample at all (shaken zero keys select no item), so
   the estimator fell back to the fixed value.
 
-No candidate that changes these results was found, and the verdict on a fix is not made here: any
-change to how the start temperature is calibrated changes continuous and route problems too and needs
-a fresh-cohort validation with `utility_cli`. This section documents the measured limit, not a fix.
+Verdict (issue 96, accepted by the owner): the sampled start temperature does not serve this
+penalised Knapsack objective. No change to the estimator is made. The packaged start temperature stays
+the default, and `--sa-t0-auto` remains a research option whose results on these ten inputs are the
+ones in the table above. The verdict covers KPLIB Knapsack only: routes and continuous problems were
+not measured for this section, because no change to the estimator was made.
 
 Reading: the issue's 3–14% estimate holds at the top only for IPR. A pool-free IPR would gain at most
 about 12–14% in evaluations per second, and halving the round trips (option 3) at most about 6%. Ceilings
