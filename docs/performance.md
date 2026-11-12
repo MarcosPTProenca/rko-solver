@@ -7,6 +7,15 @@ solution quality and time under comparable resources. A language change, passing
 CI, higher evaluations/second or a faster isolated kernel does not meet that target
 by itself. Results outside the evaluated workload/resource envelope remain unknown.
 
+**Where the target stands today, by problem type.** Built-in problems and Numba objectives run
+natively on `engine="rust"` and `engine="cpp"`. Plain Python callbacks are the case where the
+current evidence favours `engine="python", execution="process"`, and the native engines do not yet
+use several cores for them ([issue 143](https://github.com/MarcosPTProenca/rko-solver/issues/143)).
+A user's own native decoder cannot yet be plugged into the native engines without editing the
+Rust crate ([issue 169](https://github.com/MarcosPTProenca/rko-solver/issues/169)). No public
+benchmark currently reports the gap to best-known values ([issue 156](https://github.com/MarcosPTProenca/rko-solver/issues/156)),
+so a claim of matching the C++ reference for any user problem is not established.
+
 ## Outcome of the native-backend evaluation
 
 The fixed-work profile (`benchmarks/runtime/performance_profile.py`) attributed most of the
