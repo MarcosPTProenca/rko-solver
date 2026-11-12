@@ -150,7 +150,10 @@ problem means implementing the `Problem` trait in `engines/rust/rko-core` (optio
 
 - `n_jobs` sets Rust worker threads. By default problems that run without the interpreter
   lock (native, Numba) use one thread per algorithm, as the C++ driver does. Python callbacks
-  and NumPy block objectives default to **one** thread, including on free-threaded builds.
+  and NumPy block objectives default to **one** thread on a lock-enabled interpreter. On a
+  free-threaded build they default to one thread per algorithm, because the lock no longer
+  serializes them. This is a default: it is not a measured speedup, and callback state must be
+  thread-safe ([issue 143](https://github.com/MarcosPTProenca/rko-solver/issues/143)).
   On a lock-enabled interpreter, extra threads contend for the lock. The default worker
   runs the algorithms one after another, each with an equal share of the
   remaining time. On a ten-algorithm portfolio at 2 s, one thread beat ten for NumPy block
