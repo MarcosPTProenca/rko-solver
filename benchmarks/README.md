@@ -3545,10 +3545,13 @@ calibration's sampled uphill cost differences.
 | 1000 | 05SubsetSum | -240886 | -240886 | 2.98e+08 | 340.4 | 29.8 | 65 | 7.29e+07 / 1.39e+08 |
 | 1000 | 07SpannerUncorrelated | -208632 | -177779 | 2e+08 | 340.4 | 20 | 58 | 4.06e+07 / 9.8e+07 |
 
-Measured mechanism. The estimator samples 32 shaken neighbours of a random start, and that start
-violates the knapsack capacity heavily, so the sampled uphill differences are dominated by the
-capacity penalty (median about 4e7). The estimated `t0` is therefore about 10^5 to 10^6 times the packaged
-340, and the cutoff `t0 * 1e-7` ends cooling at 12 to 38 instead of 1e-4.
+Measured mechanism. The estimator samples 32 shaken neighbours of a random start. A random start is
+feasible in only 37% to 47% of cases on these inputs (200 draws per input), so the start is not
+heavily infeasible. The sampled uphill differences are dominated by the penalty scale: 1e5 per unit of
+capacity excess, which makes a neighbour that crosses the capacity cost tens of millions more (median
+about 4e7). The estimated `t0` is therefore about 10^5 to 10^6 times the packaged 340, and the cutoff
+`t0 * 1e-7` ends cooling at 12 to 38 instead of 1e-4. Starting from a feasible point would not remove
+that penalty scale for neighbours that cross the capacity, so this is not a start-feasibility effect.
 
 Two candidate explanations were tested and rejected:
 - A fixed cutoff of 1e-4 with the same estimator gave identical costs on all ten inputs. The 100,000
