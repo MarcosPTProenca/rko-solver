@@ -72,6 +72,57 @@ switching hosts/revisions. Corrupted resume input fails rather than silently
 skipping unfinished work. Results from this Windows Subsystem for Linux host
 are single-host evidence, not a portability claim.
 
+### Reference run at `329b52e` (#156)
+
+Raw rows: [`references/public-329b52e.jsonl`](references/public-329b52e.jsonl) (2,100 rows:
+42 instances x 5 arms x seeds 0–4 x budgets 10 s and 60 s). Host: one Windows Subsystem for Linux
+machine (`DESKTOP-HL0RTKA`), single run; background load was not controlled or measured. Benchmark code digest
+`b912c7d208ce`. All 2,100 rows are feasible, every solver cost equals its independent checker cost,
+and each row has a unique identity. Gaps are relative to the reference; `-` means the instance has no
+reference (mknapcb1). Evaluation rates are observed per wall second, not speedups.
+
+Reading limits: mknap1 is saturated (every arm reaches the declared optimum), so it does not rank the
+arms. mknapcb1 has no reference, so it supports no gap claim. Results come from one host; the
+TSPLIB and KPLIB gaps show the arms' ranking on these instances, not on other instances or hosts.
+
+TSPLIB (50 rows per arm and budget):
+
+| Arm | Seconds | Median gap | Best gap | Median evals/s |
+| --- | ---: | ---: | ---: | ---: |
+| python-process-default | 10 | 0.5492 | 0.0775 | 69742 |
+| python-process-default | 60 | 0.3292 | 0.0371 | 79591 |
+| rust-BRKGA | 10 | 0.5401 | 0.0728 | 259385 |
+| rust-BRKGA | 60 | 0.3996 | 0.0743 | 267291 |
+| rust-ILS | 10 | 0.1461 | 0.0000 | 509639 |
+| rust-ILS | 60 | 0.0930 | 0.0000 | 537521 |
+| rust-SA | 10 | 0.9240 | 0.0352 | 307852 |
+| rust-SA | 60 | 0.5956 | 0.0141 | 323596 |
+| rust-default | 10 | 0.1580 | 0.0000 | 1123123 |
+| rust-default | 60 | 0.1170 | 0.0000 | 1147590 |
+
+KPLIB (75 rows per arm and budget):
+
+| Arm | Seconds | Median gap | Best gap | Median evals/s |
+| --- | ---: | ---: | ---: | ---: |
+| python-process-default | 10 | 0.0200 | 0.0000 | 133701 |
+| python-process-default | 60 | 0.0058 | 0.0000 | 149843 |
+| rust-BRKGA | 10 | 0.0070 | 0.0000 | 198055 |
+| rust-BRKGA | 60 | 0.0017 | 0.0000 | 212644 |
+| rust-ILS | 10 | 0.0013 | 0.0000 | 1996799 |
+| rust-ILS | 60 | 0.0002 | 0.0000 | 2019122 |
+| rust-SA | 10 | 0.0102 | 0.0000 | 314783 |
+| rust-SA | 60 | 0.0043 | 0.0000 | 303725 |
+| rust-default | 10 | 0.0004 | 0.0000 | 3061621 |
+| rust-default | 60 | 0.0001 | 0.0000 | 3139264 |
+
+OR-Library mknap1 (35 rows per arm and budget): the best seed of every arm, budget and instance
+reaches the declared optimum (gap 0.0000). Individual seeds do not always reach it: 24 of the 350
+rows have a positive gap.
+
+OR-Library mknapcb1 (50 rows per arm and budget, no reference): evaluation rates only; the gap
+columns are empty by design. Rust default median rate 6.4 M evals/s at 10 s versus 0.2 M for the
+Python process arm.
+
 ## Layout
 
 Run studies from the repository root with `uv run --locked python -m benchmarks.<group>.<study>`.
