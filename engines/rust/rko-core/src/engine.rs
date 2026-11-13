@@ -59,6 +59,8 @@ pub struct SearchReport {
     pub seed: u64,
     /// Completed finite evaluations.
     pub evaluations: u64,
+    /// Evaluations scored as exact incremental deltas.
+    pub delta_evaluations: u64,
     /// Seconds spent in this search.
     pub elapsed: f64,
     /// Seconds this search was allotted.
@@ -206,6 +208,7 @@ pub fn run_portfolio(
                                 algorithm: spec.algorithm.name(),
                                 seed,
                                 evaluations: search.evaluations(),
+                                delta_evaluations: search.delta_evaluations(),
                                 elapsed: search.elapsed(),
                                 budget: search.budget(),
                                 stop,

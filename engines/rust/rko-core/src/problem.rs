@@ -36,6 +36,11 @@ pub trait Incremental {
 
     /// Applies `changes` to the internal state; the caller updates `keys` itself.
     fn commit(&mut self, keys: &[f64], changes: &[(usize, f64)]);
+
+    /// Whether `probe` scores `changes` as an exact delta rather than a full re-evaluation.
+    fn is_delta(&self, _keys: &[f64], _changes: &[(usize, f64)]) -> bool {
+        false
+    }
 }
 
 /// Random-key problem evaluated by the engine.
@@ -102,87 +107,7 @@ impl std::fmt::Display for InstanceError {
 
 impl std::error::Error for InstanceError {}
 
-thread_local! {
-    static TOUR_ORDER: std::cell::RefCell<Vec<u32>> = const { std::cell::RefCell::new(Vec::new()) };
-}
-
-/// Symmetric Euclidean TSP decoded by sorting keys into a visiting order.
-///
-/// Distances are rounded to the nearest integer (TSPLIB `EUC_2D`), so tour lengths
-/// are exact integers in `f64`. Keys with equal values are ordered by index.
-#[derive(Clone, Debug)]
-pub struct Tsp {
-    size: usize,
-    distances: Vec<f64>,
-}
-
-impl Tsp {
-    /// Builds an instance from city coordinates.
-    #[must_use]
-    pub fn new(coordinates: &[(f64, f64)]) -> Self {
-        let size = coordinates.len();
-        let mut distances = vec![0.0; size * size];
-        for (row, &(x1, y1)) in coordinates.iter().enumerate() {
-            for (column, &(x2, y2)) in coordinates.iter().enumerate() {
-                distances[row * size + column] = ((x1 - x2).hypot(y1 - y2) + 0.5).floor();
-            }
-        }
-        Self { size, distances }
-    }
-
-    /// Parses the city count followed by one `x y` pair per city.
-    pub fn parse(text: &str) -> Result<Self, InstanceError> {
-        let mut tokens = text.split_whitespace();
-        let count: usize = tokens
-            .next()
-            .ok_or(InstanceError::Truncated)?
-            .parse()
-            .map_err(|_| InstanceError::Malformed("city count".to_owned()))?;
-        let mut coordinates = Vec::with_capacity(count);
-        for _ in 0..count {
-            let mut coordinate = [0.0_f64; 2];
-            for slot in &mut coordinate {
-                let token = tokens.next().ok_or(InstanceError::Truncated)?;
-                *slot = token
-                    .parse()
-                    .map_err(|_| InstanceError::Malformed(token.to_owned()))?;
-            }
-            coordinates.push((coordinate[0], coordinate[1]));
-        }
-        Ok(Self::new(&coordinates))
-    }
-
-    /// Length of the tour that visits cities in `order`, closing back to the start.
-    #[must_use]
-    pub fn tour_length(&self, order: &[u32]) -> f64 {
-        let mut previous = *order.last().unwrap_or(&0) as usize;
-        let mut total = 0.0;
-        for &city in order {
-            total += self.distances[previous * self.size + city as usize];
-            previous = city as usize;
-        }
-        total
-    }
-}
-
-impl Problem for Tsp {
-    fn dimension(&self) -> usize {
-        self.size
-    }
-
-    fn evaluate(&self, keys: &[f64]) -> f64 {
-        TOUR_ORDER.with_borrow_mut(|order| {
-            order.clear();
-            order.extend(0..self.size as u32);
-            order.sort_unstable_by(|&left, &right| {
-                keys[left as usize]
-                    .total_cmp(&keys[right as usize])
-                    .then(left.cmp(&right))
-            });
-            self.tour_length(order)
-        })
-    }
-}
+pub use crate::tsp::Tsp;
 
 /// Shifted Rastrigin function over `[-5.12, 5.12)^n` decoded linearly from the keys.
 ///
@@ -493,25 +418,6 @@ mod tests {
                 assert_eq!(state.probe(&keys, &[]), problem.evaluate(&keys));
             }
         }
-    }
-
-    #[test]
-    fn tsp_decodes_by_key_order_and_rounds_distances() {
-        let problem = Tsp::new(&[(0.0, 0.0), (3.0, 4.0), (6.0, 0.0), (3.0, -4.0)]);
-        assert_eq!(problem.dimension(), 4);
-        assert_eq!(problem.evaluate(&[0.1, 0.2, 0.3, 0.4]), 20.0);
-        assert_eq!(problem.evaluate(&[0.1, 0.3, 0.2, 0.4]), 24.0);
-    }
-
-    #[test]
-    fn tsp_parses_and_breaks_key_ties_by_index() {
-        let problem = Tsp::parse("3\n0 0\n0 10\n10 0\n").unwrap();
-        assert_eq!(
-            problem.evaluate(&[0.5, 0.5, 0.5]),
-            problem.tour_length(&[0, 1, 2])
-        );
-        assert!(Tsp::parse("2\n0 0\n1").is_err());
-        assert!(Tsp::parse("").is_err());
     }
 
     #[test]

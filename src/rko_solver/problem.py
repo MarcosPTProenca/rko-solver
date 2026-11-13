@@ -30,6 +30,7 @@ from .engines.rust.batch import BatchFn
 from .engines.rust.batch import BatchObjective
 from .engines.rust.compiled import CompiledObjective
 from .engines.rust.compiled import compile_objective
+from .engines.rust.compiled import compile_swap
 from .orchestration.types import CostFn
 from .orchestration.types import DecoderFn
 from dataclasses import dataclass
@@ -71,8 +72,16 @@ class Numba:
     """
 
     kind = "native"
+    swap_entry = None
 
-    def __init__(self, function: object, n_variables: int, *, cost: object | None = None) -> None:
+    def __init__(
+        self,
+        function: object,
+        n_variables: int,
+        *,
+        cost: object | None = None,
+        swap_delta: object | None = None,
+    ) -> None:
         """Compile the function and validate the dimension.
 
         Args:
@@ -83,6 +92,10 @@ class Numba:
             cost (object | None): Optional `@njit` objective applied to the output of `function`,
                 which then acts as a decoder. Compiled as `cost(function(keys))` in one entry
                 point; the decoder's output must be accepted by `cost` inside nopython mode.
+            swap_delta (object | None): Optional exact `@njit` function `(keys, score, i, j)`
+                returning the objective after exchanging key values `i` and `j`. Only the Rust
+                engine uses it; it is incompatible with `cost`, because the delta is defined on
+                key vectors.
 
         Raises:
             ImportError: If Numba is not installed.
@@ -90,8 +103,11 @@ class Numba:
         """
         if type(n_variables) is not int or n_variables <= 0:
             raise ValueError("'n_variables' must be a positive integer.")
+        if swap_delta is not None and cost is not None:
+            raise ValueError("'swap_delta' acts on key vectors; it cannot be combined with 'cost'.")
         self.n_variables = n_variables
         self.entry = compile_objective(function, cost)
+        self.swap_entry = None if swap_delta is None else compile_swap(swap_delta)
         self._problem: object | None = None
 
     @property
@@ -115,9 +131,17 @@ class Numba:
         if self._problem is None:
             from . import _native
 
-            self._problem = _native.CompiledProblem(
-                self.entry.address, self.n_variables, self.entry.owner
-            )
+            if self.swap_entry is None:
+                self._problem = _native.CompiledProblem(
+                    self.entry.address, self.n_variables, self.entry.owner
+                )
+            else:
+                self._problem = _native.CompiledProblem(
+                    self.entry.address,
+                    self.n_variables,
+                    (self.entry.owner, self.swap_entry.owner),
+                    self.swap_entry.address,
+                )
         return self._problem
 
 

@@ -171,3 +171,22 @@ def test_report_rejects_mixed_provenance() -> None:
     rows = [{**base, "host": "first"}, {**base, "host": "second"}]
     with pytest.raises(ValueError, match="provenance"):
         summarize(rows)
+
+
+def test_public_tsp_swap_delta_matches_full_evaluation() -> None:
+    """The exact swap score equals a full tour evaluation, with and without key ties (1e-9)."""
+    rng = np.random.default_rng(157)
+    points = rng.integers(0, 200, size=(40, 2)).astype(float)
+    distances = np.floor(np.linalg.norm(points[:, None] - points[None, :], axis=2) + 0.5)
+    objective = TspObjective(distances)
+    tour = objective.numba_function()
+    swap = objective.numba_swap_delta()
+    for trial in range(300):
+        keys = rng.random(40)
+        if trial % 3 == 0:
+            keys = np.round(keys * 4) / 4
+        i, j = (int(value) for value in rng.choice(40, size=2, replace=False))
+        swapped = keys.copy()
+        swapped[i], swapped[j] = keys[j], keys[i]
+        expected = tour(swapped)
+        assert abs(swap(keys, tour(keys), i, j) - expected) <= 1e-9, (trial, i, j)

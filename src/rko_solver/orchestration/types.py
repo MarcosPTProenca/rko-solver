@@ -152,6 +152,7 @@ class SearchMetadata:
         parameter_grid (tuple): Adaptive axes in algorithm schema order, not a trajectory.
         random_state (int | None): Actual assigned generator seed when known.
         n_evaluations (int): Successfully completed finite objective evaluations.
+        delta_evaluations (int): Evaluations scored as exact swap deltas; a subset of n_evaluations.
         stop_reason (str): Completed, time_limit, max_evaluations, target_cost, stagnation,
             cancelled, or not_started.
         time_limit (float): Assigned search seconds excluding startup; zero if not started.
@@ -167,6 +168,7 @@ class SearchMetadata:
     parameter_grid: tuple[tuple[int | float, ...], ...] = ()
     random_state: int | None = None
     n_evaluations: int = 0
+    delta_evaluations: int = 0
     stop_reason: Literal[
         "completed",
         "time_limit",

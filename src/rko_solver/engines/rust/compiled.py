@@ -32,6 +32,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
+from typing import cast
 
 
 @dataclass(frozen=True)
@@ -93,6 +94,49 @@ def compile_objective(function: object, cost: object | None = None) -> CompiledO
             float: Objective of the key vector.
         """
         return inner(carray(keys, size))
+
+    return CompiledObjective(int(entry.address), (entry, inner))
+
+
+def compile_swap(function: object) -> CompiledObjective:
+    """Prepare an exact swap delta for the native engine.
+
+    Args:
+        function (object): An `@njit` function `(keys, score, i, j) -> float` returning the
+            objective after exchanging the key values of indices `i` and `j`, given the current
+            key vector and its `score`. It must be exact, pure and must not raise.
+
+    Returns:
+        CompiledObjective: Native entry point `double f(const double *keys, intptr_t n,
+        double score, intptr_t i, intptr_t j)` and its owner.
+
+    Raises:
+        ImportError: If Numba is not installed.
+        ValueError: If the object is not a Numba dispatcher.
+    """
+    carray, cfunc, types = _numba_modules()
+    if not hasattr(function, "py_func"):
+        raise ValueError("swap_delta must be an @njit function of (keys, score, i, j).")
+    inner = cast(Callable[..., float], function)
+    signature = types.float64(
+        types.CPointer(types.float64), types.intp, types.float64, types.intp, types.intp
+    )
+
+    @cfunc(signature, nopython=True)
+    def entry(keys: object, size: object, score: object, i: object, j: object) -> float:
+        """Adapt the engine's pointer calling convention to an array argument.
+
+        Args:
+            keys (object): Pointer to the key buffer.
+            size (object): Number of keys.
+            score (object): Objective of the current keys.
+            i (object): First index.
+            j (object): Second index.
+
+        Returns:
+            float: Objective after the swap.
+        """
+        return inner(carray(keys, size), score, i, j)
 
     return CompiledObjective(int(entry.address), (entry, inner))
 
