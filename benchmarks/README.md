@@ -115,8 +115,9 @@ KPLIB (75 rows per arm and budget):
 | rust-default | 10 | 0.0004 | 0.0000 | 3061621 |
 | rust-default | 60 | 0.0001 | 0.0000 | 3139264 |
 
-OR-Library mknap1 (35 rows per arm and budget): every arm, both budgets, reaches gap 0.0000 on all
-7 instances.
+OR-Library mknap1 (35 rows per arm and budget): the best seed of every arm, budget and instance
+reaches the declared optimum (gap 0.0000). Individual seeds do not always reach it: 24 of the 350
+rows have a positive gap.
 
 OR-Library mknapcb1 (50 rows per arm and budget, no reference): evaluation rates only; the gap
 columns are empty by design. Rust default median rate 6.4 M evals/s at 10 s versus 0.2 M for the
