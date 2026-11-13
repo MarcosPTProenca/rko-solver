@@ -29,9 +29,8 @@ import statistics
 from benchmarks.algorithms.timing_cv_summary import coefficient_of_variation
 from benchmarks.algorithms.timing_cv_summary import read_groups
 from benchmarks.algorithms.timing_cv_summary import summarize
+from benchmarks.references import store
 from pathlib import Path
-
-REFERENCES = Path(__file__).resolve().parents[2] / "benchmarks" / "references"
 
 
 def test_cv_matches_population_definition() -> None:
@@ -156,7 +155,7 @@ def test_reference_medians_match_readme(
     Returns:
         None: Assertion only.
     """
-    evaluations, rates = read_groups(REFERENCES / name)
+    evaluations, rates = read_groups(store.ensure(name))
     groups: dict[tuple[str, str], list[float]] = {}
     for (cls, profile, _), values in evaluations.items():
         if len(values) >= 2:
@@ -176,7 +175,7 @@ def test_summarize_prints_every_class_and_profile(capsys: pytest.CaptureFixture[
     Returns:
         None: Assertion only.
     """
-    summarize(REFERENCES / "timing-cv-temperature-free-wsl2.jsonl")
+    summarize(store.ensure("timing-cv-temperature-free-wsl2.jsonl"))
     out = capsys.readouterr().out
     assert "timing-cv-temperature-free-wsl2.jsonl" in out
     assert out.count("median=") == 6

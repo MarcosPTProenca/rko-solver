@@ -46,7 +46,7 @@ search, used for repair or used to recover missing feasible candidates.
 
 ## Identified local reference campaign
 
-Historical artifact: `benchmarks/references/modeling-validation-reference-13b6934.jsonl`.
+Historical artifact: `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/modeling-validation-reference-13b6934.jsonl`.
 These data are preserved unchanged from the qualified pre-rename implementation;
 **they are not measurements of the current `rko_solver` source**. Current code has
 hosted functional, installed-extra and structure/type checks; those checks do not
@@ -93,7 +93,7 @@ feasible, with the sixty unsuccessful runs being the deliberately inconsistent
 control. Exact-demand transport now succeeds in **60/60 runs**, across all three
 frontends and both scorers. This is local acceptance, not a universal guarantee.
 
-The same-source box-only control, `benchmarks/references/modeling-validation-box-reference-13b6934.jsonl`,
+The same-source box-only control, `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/modeling-validation-box-reference-13b6934.jsonl`,
 contains another complete 480 runs with identical models, objectives, scorers,
 seeds and budgets: **314 feasible runs**, **637,306 finite evaluations**, zero
 semantic/execution errors, minimum-demand transport **12/30** feasibility-first
@@ -161,7 +161,7 @@ All feasibility checks retain the declared rules without hidden epsilon repair.
 
 ## Callback-boundary overhead and bounded IPC
 
-Historical reference: `benchmarks/references/modeling-overhead-reference-13b6934.json`, produced by
+Historical reference: `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/modeling-overhead-reference-13b6934.json`, produced by
 `benchmarks.modeling.overhead` on the same WSL2/Python/NumPy host. This is a
 component measurement, not whole-solver throughput or a general speedup claim.
 It loads the exact `SearchSession` source from baseline `13b6934` into the same
@@ -241,7 +241,7 @@ memory/transport qualification; bounded does not mean free.
 
 ## Local platform qualification
 
-`benchmarks/references/modeling-platform-reference-13b6934.json` records historical the qualified source
+`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/modeling-platform-reference-13b6934.json` records historical the qualified source
 identities and local outcomes. Both platforms use NumPy 2.4.3 and the exact
 optional frontend versions listed above; neither needs SciPy in the core.
 
@@ -278,7 +278,7 @@ From the repository root:
 
 ```bash
 uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt python -m benchmarks.modeling.validation --seeds 10 --time-limit 0.5 --repair continuous --repair-max-sweeps 1024 --output docs/audits/my-model-validation.jsonl
-uv run --locked python -m benchmarks.modeling.validation --summarize benchmarks/references/modeling-validation-reference-13b6934.jsonl
+uv run --locked python -m benchmarks.modeling.validation --summarize https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/modeling-validation-reference-13b6934.jsonl
 uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt python -m benchmarks.modeling.validation --seeds 10 --time-limit 0.5 --repair none --output docs/audits/my-box-control.jsonl
 uv run --locked --group model-validation --extra pyomo --extra pulp --extra mathopt pytest tests/benchmarks/test_modeling_validation.py -q
 uv run --locked python -m benchmarks.modeling.overhead --repeats 51 --target-seconds 0.8 --baseline 8917000 --output docs/audits/my-model-overhead.json

@@ -23,6 +23,7 @@ Inputs/Outputs:
 
 import json
 import pytest
+from benchmarks.references import store
 from benchmarks.tuning.instances import InstanceBank
 from benchmarks.tuning.preset_analysis import PresetAnalysis
 from benchmarks.tuning.preset_analysis import PresetDesign
@@ -388,11 +389,7 @@ def test_general_preset_reference_reconstructs_selection_scales_and_gates() -> N
     """The committed reference reconstructs its locked selection, normalization and decision."""
     import hashlib
 
-    path = (
-        Path(__file__).resolve().parents[2]
-        / "benchmarks"
-        / "references/general-sa-preset-reference.json"
-    )
+    path = store.ensure("general-sa-preset-reference.json")
     data = json.loads(path.read_text())
     design = PresetDesign(**data["protocol"]["design"])
     analysis = PresetAnalysis(design)

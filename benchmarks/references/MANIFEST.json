@@ -1,0 +1,456 @@
+{
+ "base_url": "https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/",
+ "files": [
+  {
+   "bytes": 9437369,
+   "name": "cpp-python-knapsack-2s-preliminary.csv",
+   "original_path": "benchmarks/references/cpp-python-knapsack-2s-preliminary.csv",
+   "sha256": "1663785c936720f6974fae4cff90bc9db669a9f21cfc2d405d1c003ff2b1e390"
+  },
+  {
+   "bytes": 176709,
+   "name": "decoder-form-study-reference.json",
+   "original_path": "benchmarks/references/decoder-form-study-reference.json",
+   "sha256": "be60573e93111ce8cfacd617eb62be741d354e3795833316b1cacf9b85c3c74e"
+  },
+  {
+   "bytes": 75274,
+   "name": "decoder-qualification-8b85975.jsonl",
+   "original_path": "benchmarks/references/decoder-qualification-8b85975.jsonl",
+   "sha256": "2fc047d2516e551fa3d8dd31528d23f50a26a60ec56dce123ac5db2dff0eb678"
+  },
+  {
+   "bytes": 1811,
+   "name": "engine-ratio-reference.json",
+   "original_path": "benchmarks/references/engine-ratio-reference.json",
+   "sha256": "f9ae5a15f6ff86035a2e166a9857d608d0d1edb2d236a02612a213b66f84dec8"
+  },
+  {
+   "bytes": 55460,
+   "name": "general-sa-preset-engines-reference.json",
+   "original_path": "benchmarks/references/general-sa-preset-engines-reference.json",
+   "sha256": "9e840546107c345ab8099137a2aeade0e21358a944252ffa6bb97b5b13c25b1a"
+  },
+  {
+   "bytes": 251265,
+   "name": "general-sa-preset-reference.json",
+   "original_path": "benchmarks/references/general-sa-preset-reference.json",
+   "sha256": "77e8ebec4102189be540e6a0cce95899ecc368cdebf755bfc10533b6823fd442"
+  },
+  {
+   "bytes": 7662,
+   "name": "ils-acceptance-binary-chain48-60s.json",
+   "original_path": "benchmarks/references/ils-acceptance-binary-chain48-60s.json",
+   "sha256": "70026eb5ebcf634615dd4f1368ea37adc17f52a74cffe27a73116a2e3daa24fa"
+  },
+  {
+   "bytes": 6958,
+   "name": "ils-acceptance-knapsack100-60s.json",
+   "original_path": "benchmarks/references/ils-acceptance-knapsack100-60s.json",
+   "sha256": "52a6b49c639079c0fa54269384d2b0e0744877d1fe4d093431a0c5b6f57ef383"
+  },
+  {
+   "bytes": 7755,
+   "name": "ils-acceptance-ranged-integer48-60s.json",
+   "original_path": "benchmarks/references/ils-acceptance-ranged-integer48-60s.json",
+   "sha256": "dfcd443861b424466a653ccd12516e4ff6993d6af8420b0892954756fb0c3021"
+  },
+  {
+   "bytes": 40239,
+   "name": "invocation-profile-reference.json",
+   "original_path": "benchmarks/references/invocation-profile-reference.json",
+   "sha256": "8fc4b611382211f530dccbb091e5722947c3c9dc032d975f3919f7fe604afaca"
+  },
+  {
+   "bytes": 19170,
+   "name": "ipr-contribution-process-wsl2.json",
+   "original_path": "benchmarks/references/ipr-contribution-process-wsl2.json",
+   "sha256": "e85dc1e0fba89db99bf791d203caa2a52f75b5c39519ec695d76b45fa8173028"
+  },
+  {
+   "bytes": 25356,
+   "name": "ipr-diagnosis-reference.jsonl",
+   "original_path": "benchmarks/references/ipr-diagnosis-reference.jsonl",
+   "sha256": "cd0a84b6313ca94d8e6d4b73e3780fcbbd5d473d035fddcf608f279ec1022ab7"
+  },
+  {
+   "bytes": 25437,
+   "name": "ipr-pruned-blocks-reference.jsonl",
+   "original_path": "benchmarks/references/ipr-pruned-blocks-reference.jsonl",
+   "sha256": "40de7901722d4eb194d65d48b8cd1a7b7227e981e91a23e8e439b80b8418aec6"
+  },
+  {
+   "bytes": 25452,
+   "name": "ipr-unique-elites-reference.jsonl",
+   "original_path": "benchmarks/references/ipr-unique-elites-reference.jsonl",
+   "sha256": "8c3682fd20ac68af68d7f7d70a4cd5b60d6760a9a123a0b7313cd0e60954f5ee"
+  },
+  {
+   "bytes": 1247,
+   "name": "key-binary-linear-e5a773c-metadata.json",
+   "original_path": "benchmarks/references/key-binary-linear-e5a773c-metadata.json",
+   "sha256": "d2f26d93e7658bdf79d9d7599c452bda54a259bb2e98498b033865bbc6525048"
+  },
+  {
+   "bytes": 22905,
+   "name": "key-convergence-baseline-9a2968f.json",
+   "original_path": "benchmarks/references/key-convergence-baseline-9a2968f.json",
+   "sha256": "79a7a9b4dea8bbda257a9ee6032f75b9cd692630f0c0abfc8bccbf803e04aa71"
+  },
+  {
+   "bytes": 30136,
+   "name": "key-convergence-binary-linear-e5a773c.json",
+   "original_path": "benchmarks/references/key-convergence-binary-linear-e5a773c.json",
+   "sha256": "025e6a78d54c3c70ec743f9a13a3913651da03e7f387f4b7252b890945315cd2"
+  },
+  {
+   "bytes": 29999,
+   "name": "key-convergence-default-general-e5a773c.json",
+   "original_path": "benchmarks/references/key-convergence-default-general-e5a773c.json",
+   "sha256": "2dae225c0b95978943963971544bd39d728c214468fc45bf4ad9b2cc85421d97"
+  },
+  {
+   "bytes": 30012,
+   "name": "key-convergence-default-violation-run-e90e717.json",
+   "original_path": "benchmarks/references/key-convergence-default-violation-run-e90e717.json",
+   "sha256": "669e05215d2b0d0a6ad6509bed35968ae1f70913b6b50ac85f0efbe4694dd21d"
+  },
+  {
+   "bytes": 25448,
+   "name": "key-convergence-structure-e9b5ab6.json",
+   "original_path": "benchmarks/references/key-convergence-structure-e9b5ab6.json",
+   "sha256": "8fc75d1167aee792168ef4556494538c5ffe9be0ce6d07e97f552ed1070cc775"
+  },
+  {
+   "bytes": 30090,
+   "name": "key-convergence-violation-e90e717.json",
+   "original_path": "benchmarks/references/key-convergence-violation-e90e717.json",
+   "sha256": "58e1940667828c8d7bfc32d12a6c85721e18f3180bf40b4959e43b71f2986a7c"
+  },
+  {
+   "bytes": 7515,
+   "name": "key-feasibility-baseline-f4ddbfd.json",
+   "original_path": "benchmarks/references/key-feasibility-baseline-f4ddbfd.json",
+   "sha256": "4ff1ff93836de978c72b9939d8a631d28b6506c1e57234a65559ca56ec625833"
+  },
+  {
+   "bytes": 13031,
+   "name": "key-feasibility-binary-linear-e5a773c.json",
+   "original_path": "benchmarks/references/key-feasibility-binary-linear-e5a773c.json",
+   "sha256": "40a34daaa6a7ef0bcdee50b52c2408080b7485a3bb6557244473b6eac89c35ce"
+  },
+  {
+   "bytes": 10869,
+   "name": "key-feasibility-structure-e9b5ab6.json",
+   "original_path": "benchmarks/references/key-feasibility-structure-e9b5ab6.json",
+   "sha256": "d57a3f90877768c8824b3586a6896f848fb5d215eb4f4b56a9620cdb6fcbaeb6"
+  },
+  {
+   "bytes": 886,
+   "name": "knapsack-reference.csv",
+   "original_path": "benchmarks/references/knapsack-reference.csv",
+   "sha256": "26bbef2e47d718dd07a3400ef37701a4f6f1bb160fff941762c24a5bdf4bb1ec"
+  },
+  {
+   "bytes": 98332,
+   "name": "learned-priority-study-reference.json",
+   "original_path": "benchmarks/references/learned-priority-study-reference.json",
+   "sha256": "023edf1d13334121aaab2c1571deb805e9a91597a3db769444bf12306178b691"
+  },
+  {
+   "bytes": 94763,
+   "name": "modeling-overhead-reference-13b6934.json",
+   "original_path": "benchmarks/references/modeling-overhead-reference-13b6934.json",
+   "sha256": "342dd3e097b055f1e4279b6a17298faa892b034b72836e71cd1a5401e333f5e5"
+  },
+  {
+   "bytes": 17565,
+   "name": "modeling-platform-reference-13b6934.json",
+   "original_path": "benchmarks/references/modeling-platform-reference-13b6934.json",
+   "sha256": "812cdf895f313043008c8eaeed40f3cbc53ee6cbe02dfa41ba3c3ab7af9394f1"
+  },
+  {
+   "bytes": 715395,
+   "name": "modeling-validation-box-reference-13b6934.jsonl",
+   "original_path": "benchmarks/references/modeling-validation-box-reference-13b6934.jsonl",
+   "sha256": "52e64774e603fb6212d4adf00852e48a7bff3436cd1808ad229939b6e3bae5b2"
+  },
+  {
+   "bytes": 748832,
+   "name": "modeling-validation-reference-13b6934.jsonl",
+   "original_path": "benchmarks/references/modeling-validation-reference-13b6934.jsonl",
+   "sha256": "9d704a12fa8b7442c5fce5810afe94e447904bb083c79bc2acfcb71e80b07b1b"
+  },
+  {
+   "bytes": 137567,
+   "name": "native-evidence.csv.gz",
+   "original_path": "benchmarks/references/native-evidence.csv.gz",
+   "sha256": "46c14db0b07ce1e2f2902774dab3abea3fec33063a6b43312cbec3880546a985"
+  },
+  {
+   "bytes": 75511,
+   "name": "native-threads-reference.jsonl",
+   "original_path": "benchmarks/references/native-threads-reference.jsonl",
+   "sha256": "64843df8f59ad1e848571ab011353eaa9c54a0dd53a5b493755b109ecae669f7"
+  },
+  {
+   "bytes": 40220,
+   "name": "neural-adapter-screen-1-reference.json",
+   "original_path": "benchmarks/references/neural-adapter-screen-1-reference.json",
+   "sha256": "273e96c6cfe37a6c172851c88ac8360a2beab7767a618bf5b583a837dfa61604"
+  },
+  {
+   "bytes": 42612,
+   "name": "neural-adapter-screen-2-reference.json",
+   "original_path": "benchmarks/references/neural-adapter-screen-2-reference.json",
+   "sha256": "134c8721b8f5e2c651e7c9b2d6d8ef442dfc4c675c949e07a005455ce81269c5"
+  },
+  {
+   "bytes": 51842,
+   "name": "neural-adapter-screen-3-reference.json",
+   "original_path": "benchmarks/references/neural-adapter-screen-3-reference.json",
+   "sha256": "731094866f68fe9ab8a27fbf36397024c4443f7b72f30902db8b5ac4c853400c"
+  },
+  {
+   "bytes": 50729,
+   "name": "neural-adapter-screen-4-reference.json",
+   "original_path": "benchmarks/references/neural-adapter-screen-4-reference.json",
+   "sha256": "37223a5fcbb138d0926ded99a3d6ce693cf49dec03b491609cac142269acc5ac"
+  },
+  {
+   "bytes": 50203,
+   "name": "neural-adapter-screen-5-reference.json",
+   "original_path": "benchmarks/references/neural-adapter-screen-5-reference.json",
+   "sha256": "02a13af0571fcdc0788b32f453f949bea1e247abdb77245a11731d3fa0e4a232"
+  },
+  {
+   "bytes": 51368,
+   "name": "neural-adapter-screen-6-reference.json",
+   "original_path": "benchmarks/references/neural-adapter-screen-6-reference.json",
+   "sha256": "330a3dd1498d3ce9fb354ef7274dbb00bd7a6be137b5c730e25ab04d962388a7"
+  },
+  {
+   "bytes": 55830,
+   "name": "performance-baseline-reference.json",
+   "original_path": "benchmarks/references/performance-baseline-reference.json",
+   "sha256": "1bf49e9f85927f1876424cc9848585b19fb10194a32d87a5885601e4a127dff9"
+  },
+  {
+   "bytes": 37508,
+   "name": "pool-cost-process-wsl2.jsonl",
+   "original_path": "benchmarks/references/pool-cost-process-wsl2.jsonl",
+   "sha256": "99d7499f822e5bf8539c710f243bb72a91fe1291ace305ca1dc88d941fb702a5"
+  },
+  {
+   "bytes": 38041,
+   "name": "pool-quality-process-wsl2.jsonl",
+   "original_path": "benchmarks/references/pool-quality-process-wsl2.jsonl",
+   "sha256": "3512f4c131c9eb4557f39ba32d518d0d365cfeedd2a648bb4d1fddaf66563aca"
+  },
+  {
+   "bytes": 295333,
+   "name": "prefill-expanded-pairs.csv",
+   "original_path": "benchmarks/references/prefill-expanded-pairs.csv",
+   "sha256": "ab436a611a40a84f631908dce6c4f7d0b945913a0915a26f98aff9690f0ce1c1"
+  },
+  {
+   "bytes": 27009,
+   "name": "prefill-expanded-summary.json",
+   "original_path": "benchmarks/references/prefill-expanded-summary.json",
+   "sha256": "b1ee3950d2e7234292c25f7aac81fb598f8325825e1426078bb9f8915dc01ba9"
+  },
+  {
+   "bytes": 107491,
+   "name": "prefill-work-reference.jsonl",
+   "original_path": "benchmarks/references/prefill-work-reference.jsonl",
+   "sha256": "7ae7d8aadeda89d52ae68cb2e869610bfd9312acd9395c285146f277635fb858"
+  },
+  {
+   "bytes": 54805,
+   "name": "priority-decoder-e1-reference.json",
+   "original_path": "benchmarks/references/priority-decoder-e1-reference.json",
+   "sha256": "0ea91fc79320a631091960428aa2d1cf2c913fc4ce38bacf7fe9dc8929f21b02"
+  },
+  {
+   "bytes": 27565,
+   "name": "priority-seeding-control-reference.json",
+   "original_path": "benchmarks/references/priority-seeding-control-reference.json",
+   "sha256": "9680978ef20e454de46eb58fe48cd822c8bc06d1193971bd2af58bca9f04e4e7"
+  },
+  {
+   "bytes": 5751,
+   "name": "process-auto-reference.jsonl",
+   "original_path": "benchmarks/references/process-auto-reference.jsonl",
+   "sha256": "1c9661cd252e8ba17733ea298ba1f068e3d8cc6288d256fd02dbe70bc1bb78e4"
+  },
+  {
+   "bytes": 1131678,
+   "name": "public-329b52e.jsonl",
+   "original_path": "benchmarks/references/public-329b52e.jsonl",
+   "sha256": "4b3187efb75955ccfd7408844f5d35d3e5dadc12344070d9856fa04af6856061"
+  },
+  {
+   "bytes": 104147,
+   "name": "quantile-contextual-search-screen-reference.json",
+   "original_path": "benchmarks/references/quantile-contextual-search-screen-reference.json",
+   "sha256": "757b557c7c1532960b932c6420de91b5341f6b85f10a8343370bc5f12b70c128"
+  },
+  {
+   "bytes": 68802,
+   "name": "quantile-contextual-training-reference.json",
+   "original_path": "benchmarks/references/quantile-contextual-training-reference.json",
+   "sha256": "15de75261432484e4b470bbbc140f7bca33e975503af1ea217816c586fa59193"
+  },
+  {
+   "bytes": 20720,
+   "name": "quantile-tour-confirmation-reference.json",
+   "original_path": "benchmarks/references/quantile-tour-confirmation-reference.json",
+   "sha256": "5c2d3b66dc9e701df5329ad2756070514109be323d4e37a6293f43db12082e97"
+  },
+  {
+   "bytes": 5870,
+   "name": "sa-t0-diagnosis-kplib-wsl2.jsonl",
+   "original_path": "benchmarks/references/sa-t0-diagnosis-kplib-wsl2.jsonl",
+   "sha256": "529b84a3d0fb3e2040be09fe8a84f704ade99333214569f7d85ff184553c9bb9"
+  },
+  {
+   "bytes": 624022,
+   "name": "shake-sensitivity-study-reference.json",
+   "original_path": "benchmarks/references/shake-sensitivity-study-reference.json",
+   "sha256": "a2dec4f1ab62c131f68ef6827279c7d8ad3a48ec794d607293e23b596ec48f5b"
+  },
+  {
+   "bytes": 10649,
+   "name": "startup-layout-reference.jsonl",
+   "original_path": "benchmarks/references/startup-layout-reference.jsonl",
+   "sha256": "3a7932c2c1f3911702fc1b7ee62807ae71a19ecf5396980be98ba32a52d1b27e"
+  },
+  {
+   "bytes": 69871,
+   "name": "surrogate-seed-study-mlp-n300-reference.json",
+   "original_path": "benchmarks/references/surrogate-seed-study-mlp-n300-reference.json",
+   "sha256": "81c3c3dc9499c6b17692bbd25c3694fd4bd42d94281510d9ff4f7dfb79d71803"
+  },
+  {
+   "bytes": 16345,
+   "name": "surrogate-seed-study-mlp-timing-reference.json",
+   "original_path": "benchmarks/references/surrogate-seed-study-mlp-timing-reference.json",
+   "sha256": "3134736a0cf80076b4c7859ced904ba885f3dc8e0b16223af51faaa95ac27240"
+  },
+  {
+   "bytes": 69264,
+   "name": "surrogate-seed-study-n100-reference.json",
+   "original_path": "benchmarks/references/surrogate-seed-study-n100-reference.json",
+   "sha256": "41486447f9605b127989c8e79c7e3eb2df99c0efc4f46ecce4a4be8de8d636c2"
+  },
+  {
+   "bytes": 48877,
+   "name": "surrogate-seed-study-n300-reference.json",
+   "original_path": "benchmarks/references/surrogate-seed-study-n300-reference.json",
+   "sha256": "bdc8420464e27cd6fd4e9a25f2bce29a59e37b7d92edaf96a97aa2e13716233b"
+  },
+  {
+   "bytes": 34803,
+   "name": "timing-cv-adaptive-pinned-cpu1-wsl2.jsonl",
+   "original_path": "benchmarks/references/timing-cv-adaptive-pinned-cpu1-wsl2.jsonl",
+   "sha256": "be5b07e5584511c37a007116b2f88c9505d638d04254aa4d073bd96dd99b6806"
+  },
+  {
+   "bytes": 33762,
+   "name": "timing-cv-temperature-free-wsl2.jsonl",
+   "original_path": "benchmarks/references/timing-cv-temperature-free-wsl2.jsonl",
+   "sha256": "a70d532addbd4c9c4811835aa254a3d868c865ef3d95c1368e9e60352842824a"
+  },
+  {
+   "bytes": 33757,
+   "name": "timing-cv-temperature-pinned-cpu1-wsl2.jsonl",
+   "original_path": "benchmarks/references/timing-cv-temperature-pinned-cpu1-wsl2.jsonl",
+   "sha256": "76270491c6110f022789626b96ffa9f481b06da0bd6b2760654779a988944c38"
+  },
+  {
+   "bytes": 180564,
+   "name": "tsp-decoder-form-study-reference.json",
+   "original_path": "benchmarks/references/tsp-decoder-form-study-reference.json",
+   "sha256": "fb69d4ae4383b141a9dfff830ddbb5e0a55eea69d38ad756a6f840bcc34d3aee"
+  },
+  {
+   "bytes": 106651,
+   "name": "tsp-learned-study-reference.json",
+   "original_path": "benchmarks/references/tsp-learned-study-reference.json",
+   "sha256": "5f3ee0219e02a1a32fadf0410dfc22c91e0c04b3c6fef0109674d0d47193205a"
+  },
+  {
+   "bytes": 129301,
+   "name": "tsp-quantile-study-reference.json",
+   "original_path": "benchmarks/references/tsp-quantile-study-reference.json",
+   "sha256": "4cb3aaf380b093bca5dd94ed592b1b242bb654c2de5b7aa317f2f0ee2595164f"
+  },
+  {
+   "bytes": 307802,
+   "name": "tuning-bakeoff-reference.jsonl",
+   "original_path": "benchmarks/references/tuning-bakeoff-reference.jsonl",
+   "sha256": "46893420593960b6a3d6817dedcebb5aba961323e106ed60b1089c11a5e2c934"
+  },
+  {
+   "bytes": 43446,
+   "name": "tuning-confirm-reference.jsonl",
+   "original_path": "benchmarks/references/tuning-confirm-reference.jsonl",
+   "sha256": "93f0732f52e4c907880778f67c0e2d398455c2e306fa5559ccfac2201690f07d"
+  },
+  {
+   "bytes": 16474,
+   "name": "tuning-wide-expanded-confirm-reference.jsonl",
+   "original_path": "benchmarks/references/tuning-wide-expanded-confirm-reference.jsonl",
+   "sha256": "d3d59c0e397f07dc66b40d8c632d206a2091dbc43b80aae797dd85d331148aeb"
+  },
+  {
+   "bytes": 45768,
+   "name": "tuning-wide-expanded-reference.jsonl",
+   "original_path": "benchmarks/references/tuning-wide-expanded-reference.jsonl",
+   "sha256": "4aaed768bebb2275338baf17ba07923a0be6a9d7d3ca48e06657dbc7283e1bb6"
+  },
+  {
+   "bytes": 16164,
+   "name": "tuning-wide-original-confirm-reference.jsonl",
+   "original_path": "benchmarks/references/tuning-wide-original-confirm-reference.jsonl",
+   "sha256": "0c7f9ebd8eb12df75eb24d8c6a07a9f256598897a2870f904f7c7aecf1b64dc3"
+  },
+  {
+   "bytes": 45190,
+   "name": "tuning-wide-original-reference.jsonl",
+   "original_path": "benchmarks/references/tuning-wide-original-reference.jsonl",
+   "sha256": "a0ed5a167f98797e321dea3828abb52dec6d26d0e29bdd4558365b32695f1ce0"
+  },
+  {
+   "bytes": 2389,
+   "name": "violation-incremental-decode-64.json",
+   "original_path": "benchmarks/references/violation-incremental-decode-64.json",
+   "sha256": "a0d7c5733a04c6c90578b2c54d29e8d6fbec312dac0b9b8c6b34fe56f00fdd22"
+  },
+  {
+   "bytes": 22798,
+   "name": "violation-incremental-search-binary-chain.json",
+   "original_path": "benchmarks/references/violation-incremental-search-binary-chain.json",
+   "sha256": "82da57232afa3db3ffddf755d7888536bd24a1b2fafd1b82aaa07ec9f29caf65"
+  },
+  {
+   "bytes": 22303,
+   "name": "violation-incremental-search-mixed.json",
+   "original_path": "benchmarks/references/violation-incremental-search-mixed.json",
+   "sha256": "0ce4cb077c193e7ecd28522c83e179152fdfc89cb5b30f1819b7304f417eacae"
+  },
+  {
+   "bytes": 23777,
+   "name": "violation-incremental-search-ranged-integer.json",
+   "original_path": "benchmarks/references/violation-incremental-search-ranged-integer.json",
+   "sha256": "1c454b5bcdabe4b6f70905ef1969a2d78aa473d1e28087b3ba378316cf03a538"
+  },
+  {
+   "bytes": 110868,
+   "name": "worker-scheduling-reference.jsonl",
+   "original_path": "benchmarks/references/worker-scheduling-reference.jsonl",
+   "sha256": "97a108d77fc0c0e31c990cb0f217b81f1c7a67819809a51e1544daea9f357a33"
+  }
+ ],
+ "release_tag": "references-v1"
+}

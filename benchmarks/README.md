@@ -74,7 +74,7 @@ are single-host evidence, not a portability claim.
 
 ### Reference run at `329b52e` (#156)
 
-Raw rows: [`references/public-329b52e.jsonl`](references/public-329b52e.jsonl) (2,100 rows:
+Raw rows: [`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/public-329b52e.jsonl`](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/public-329b52e.jsonl) (2,100 rows:
 42 instances x 5 arms x seeds 0–4 x budgets 10 s and 60 s). Host: one Windows Subsystem for Linux
 machine (`DESKTOP-HL0RTKA`), single run; background load was not controlled or measured. Benchmark code digest
 `b912c7d208ce`. All 2,100 rows are feasible, every solver cost equals its independent checker cost,
@@ -231,12 +231,12 @@ uv run --locked python -m benchmarks.modeling.overhead --baseline 8917000 --repe
 
 Preserved **historical**, unmodified evidence from the qualified pre-rename source:
 
-- [Restored campaign](references/modeling-validation-reference-13b6934.jsonl): 480 runs,
+- [Restored campaign](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/modeling-validation-reference-13b6934.jsonl): 480 runs,
   420 feasible, zero semantic/execution errors; exact-demand transport60/60.
-- [Same-source box control](references/modeling-validation-box-reference-13b6934.jsonl):
+- [Same-source box control](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/modeling-validation-box-reference-13b6934.jsonl):
   480 runs,314 feasible, exact-demand0/60 at identical tolerances/models/budgets.
-- [Archive/IPC and feature costs](references/modeling-overhead-reference-13b6934.json) and
-  [platform qualification](references/modeling-platform-reference-13b6934.json) identify
+- [Archive/IPC and feature costs](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/modeling-overhead-reference-13b6934.json) and
+  [platform qualification](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/modeling-platform-reference-13b6934.json) identify
   their original13b6934 source, not the renamed port.
 
 No historical JSON source hashes or package paths were rewritten. Current feature
@@ -322,7 +322,7 @@ worker's first keys against its reported execution seed, validates final keys/
 objective and reports environment/source paths. `--repeats 1` supports alternating
 separate interpreter environments; the default runs three one/four-worker pairs.
 
-Explicit reference: [references/startup-layout-reference.jsonl](references/startup-layout-reference.jsonl),
+Explicit reference: [https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/startup-layout-reference.jsonl](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/startup-layout-reference.jsonl),
 2026-10-19 WSL2, four available CPUs, CPython 3.14.8 / NumPy 2.4.3, baseline
 `efc40e3`. Eighteen solves alternated three installation layouts, using the same
 32 installed distribution name/version pairs and byte-identical 55 installed
@@ -856,7 +856,7 @@ check, which uses the seeds named in its section.
 
 ### Data and regenerating this section
 
-`references/native-evidence.csv.gz` (about 140 KB) holds one row per trial with only what the
+`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/native-evidence.csv.gz` (about 140 KB) holds one row per trial with only what the
 statistics need: round, family, instance, solver, implementation, replicate, budget,
 elapsed seconds, objective and score. The full per-trial CSVs the studies write (about 5 MB,
 40-odd metadata columns) are not kept in Git: nothing in the package reads them and a rerun
@@ -865,7 +865,7 @@ reproduces the tables to within timing noise. The "Results at a glance" block an
 
 ```bash
 uv run python -m benchmarks.engines.native_report ingest --raw <directory with the study CSVs>
-uv run python -m benchmarks.engines.native_report render          # rewrite the block and figures
+uv run python -m benchmarks.engines.native_report render --evidence results/native-evidence.csv.gz  # rewrite the block and figures; fetch the verified copy first with benchmarks.references.store.ensure('native-evidence.csv.gz')
 uv run python -m benchmarks.engines.native_report render --check  # exit 1 when stale
 ```
 
@@ -1214,7 +1214,7 @@ search-time target results are censored at 2 seconds, while process latency and
 this caveat should be considered when interpreting quality comparisons.
 
 The preliminary raw diagnostic is
-[`references/cpp-python-knapsack-2s-preliminary.csv`](references/cpp-python-knapsack-2s-preliminary.csv), with
+[`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/cpp-python-knapsack-2s-preliminary.csv`](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/cpp-python-knapsack-2s-preliminary.csv), with
 10,800 trial rows and full per-trial provenance. The measured Python baseline is commit
 `759309a0d8a74324806faba6b41f806eb3721dbc`; its exact source-state hash is
 `30ec92bcaaa681be0b7e2f841e997c44d39d263a141a0b667cff1c42b745c142`. After the
@@ -1244,7 +1244,7 @@ uv run --locked python -m benchmarks.runtime.process_budget > /tmp/rko-process-b
 
 The updated script compares automatic defaults against an explicit full-portfolio
 worker limit and verifies every seeded initial candidate, worker count and result.
-An identified [automatic-default reference](references/process-auto-reference.jsonl),
+An identified [automatic-default reference](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/process-auto-reference.jsonl),
 2026-10-20, **predates remaining-time scheduling** and retains fixed longest-group
 slices. It uses the same Linux-local editable source/dependency environment for
 both variants: four available CPUs, CPython 3.14.8 / NumPy 2.4.3, ten algorithms,
@@ -1317,7 +1317,7 @@ Place both source trees on the same filesystem and use one interpreter/dependenc
 environment. The runner verifies the actual imported source paths and copies the
 same one-thread native launch settings into both policies without mutating itself.
 
-[Identified reference](references/worker-scheduling-reference.jsonl): four usable CPUs,
+[Identified reference](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/worker-scheduling-reference.jsonl): four usable CPUs,
 CPython 3.14.8 / NumPy 2.4.3, Linux-local sources/dependencies, offline parameters,
 64 keys, 1.2-second common budgets. Two balanced-order repeats over three seeds,
 sphere/ordering objectives and three portfolios produced **72 real spawned solves**.
@@ -1365,7 +1365,7 @@ before full generations or asynchronous elite feedback. Assigned initial keys,
 complete candidate fingerprints, counts and independent costs are checked; native
 teams are inspected IN workers, not inferred from a parent-only controller.
 
-[Identified reference](references/native-threads-reference.jsonl): 2026-10-20, CPython 3.14.8,
+[Identified reference](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/native-threads-reference.jsonl): 2026-10-20, CPython 3.14.8,
 NumPy 2.4.3 / OpenBLAS 0.3.31.dev, four usable CPUs, 512 keys, same Linux-local
 source/dependency environment for both variants. The final dense four-worker prefix
 measured slowest-search medians **6.016 vs 3.491 s**, end-to-end **7.564 vs 4.860 s**
@@ -1674,7 +1674,7 @@ uv run --locked python -m benchmarks.engines.knapsack \
 ```
 
 Generated `results/` directories are ignored. Do not overwrite the checked-in
-[reference CSV](references/knapsack-reference.csv) without rerunning the experiment and
+[reference CSV](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/knapsack-reference.csv) without rerunning the experiment and
 updating its date, tested revision and interpretation here.
 
 Data: KPLIB, 1000 items, capacity 252480, pinned upstream revision
@@ -1853,7 +1853,7 @@ from these replay checks.
 uv run --locked python -m benchmarks.algorithms.prefill_work > /tmp/prefill-work.jsonl
 ```
 
-`references/prefill-work-reference.jsonl` identifies 60 paired / 120 real serial Python trials:
+`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/prefill-work-reference.jsonl` identifies 60 paired / 120 real serial Python trials:
 IPR, GRASP and MultiStart; four pure objective families; 20 keys; capacity 10;
 five seeds; **256 total completed objectives including startup** per trial.
 Policy clocks are frozen offline, with a separate real emergency guard. Both
@@ -1872,7 +1872,7 @@ internal cooperative stop seam; it does not add a public fixed-evaluation API.
 
 The [hosted expansion](../docs/prefill-expanded-work.md) covers 20/100/500 keys,
 256/1024 total evaluations and 20 paired seeds: 1,440 pairs / 2,880 trials.
-`references/prefill-expanded-pairs.csv` and `references/prefill-expanded-summary.json` retain compact
+`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/prefill-expanded-pairs.csv` and `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/prefill-expanded-summary.json` retain compact
 paired evidence/provenance; `prefill_report.py` validates raw controls and recomputes
 family-specific summaries. Across non-flat pairs, IPR is 342 better/18 worse,
 GRASP 150/139/71 and MultiStart 7/342/11 (better/tied/worse). No default switch.
@@ -1887,7 +1887,7 @@ real-time, application and native-performance evidence remains separate.
 uv run --locked python -m benchmarks.algorithms.ipr_diagnosis
 ```
 
-`references/ipr-diagnosis-reference.jsonl` contains 36 cases: three seeds, three synthetic
+`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/ipr-diagnosis-reference.jsonl` contains 36 cases: three seeds, three synthetic
 objectives, two starting-population modes and a separately labeled exact-vector
 admission control, each charged exactly 1,024 completed objective evaluations.
 Production two-seed cases use 2 seed + 1,022 path evaluations; ten-elite cases use
@@ -1904,13 +1904,13 @@ See [diagnostic contracts and findings](../docs/ipr-diagnosis.md) for seed-prefi
 matching, source fingerprints, work accounting and reference-source limitations.
 The diagnosis itself changed no production policy or active Knapsack benchmark.
 The subsequent [chromosome-uniqueness correction](../docs/elite-diversity.md) is
-recorded separately in `references/ipr-unique-elites-reference.jsonl`: all 36 cases retain
+recorded separately in `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/ipr-unique-elites-reference.jsonl`: all 36 cases retain
 unique chromosomes and select zero identical-parent pairs. Equal-budget production
 traces now match the isolated control; initialization remains fully charged. Scores
 are unchanged in the two-seed cases and mixed versus old ten-seed production.
 The header also fingerprints the pool source so admission changes are identifiable.
 The subsequent [unchanged-block correction](../docs/ipr-block-pruning.md) has its
-own `references/ipr-pruned-blocks-reference.jsonl`: the direct one-differing-block case falls
+own `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/ipr-pruned-blocks-reference.jsonl`: the direct one-differing-block case falls
 from 55 to two callbacks, preserving the virtual path and deterministic minimum.
 All 36 cases still charge exactly 1,024 completed evaluations; full-search path/RNG
 counts can therefore differ from older work records. Stateful/stochastic callback
@@ -1955,14 +1955,14 @@ millions.
 
 ### Results of the 2026-10 run
 
-Reference data: [`references/tuning-bakeoff-reference.jsonl`](references/tuning-bakeoff-reference.jsonl) holds all 459
+Reference data: [`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-bakeoff-reference.jsonl`](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-bakeoff-reference.jsonl) holds all 459
 sessions (3 algorithms, 3 families, 4 tuners and the baselines, 10 repetitions each) and
-[`references/tuning-confirm-reference.jsonl`](references/tuning-confirm-reference.jsonl) the longer-budget check. They were
+[`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-confirm-reference.jsonl`](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-confirm-reference.jsonl) the longer-budget check. They were
 produced on one 6-core machine with the Rust engine and 4 workers. The harness is the one merged as
 `38b29db`; four fixes to it that do not change any score (memory use of workers, plain floats from
 the search space, failing fast, start and end logs) landed during the run. Re-running four of the
 earliest sessions with the final code reproduced their configurations and held-out scores exactly.
-`uv run --group tuning python -m benchmarks.tuning report --results benchmarks/references/tuning-bakeoff-reference.jsonl`
+`uv run --group tuning python -m benchmarks.tuning report --results https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-bakeoff-reference.jsonl`
 regenerates every per-cell table with its intervals.
 
 Mean held-out gap (0 is the calibration reference, 1 a barely started search; lower is better):
@@ -2064,10 +2064,10 @@ process-group memory peaked near 1.5 GB under a 5 GB cap.
 
 The reference files retain settings, source identity, chosen configurations and per-instance scores:
 
-- Original ranges: [`references/tuning-wide-original-reference.jsonl`](references/tuning-wide-original-reference.jsonl).
-- Expanded ranges: [`references/tuning-wide-expanded-reference.jsonl`](references/tuning-wide-expanded-reference.jsonl).
-- Longer-budget original: [`references/tuning-wide-original-confirm-reference.jsonl`](references/tuning-wide-original-confirm-reference.jsonl).
-- Longer-budget expanded: [`references/tuning-wide-expanded-confirm-reference.jsonl`](references/tuning-wide-expanded-confirm-reference.jsonl).
+- Original ranges: [`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-original-reference.jsonl`](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-original-reference.jsonl).
+- Expanded ranges: [`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-expanded-reference.jsonl`](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-expanded-reference.jsonl).
+- Longer-budget original: [`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-original-confirm-reference.jsonl`](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-original-confirm-reference.jsonl).
+- Longer-budget expanded: [`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-expanded-confirm-reference.jsonl`](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-expanded-confirm-reference.jsonl).
 
 At **50,000 evaluations**, mean normalized test gap, lower is better:
 
@@ -2109,8 +2109,8 @@ To regenerate the primary paired differences from the committed references:
 uv run --locked --group tuning python - <<'PY'
 from pathlib import Path
 from benchmarks.tuning.analysis import Analysis
-old = Analysis(Path("benchmarks/references/tuning-wide-original-reference.jsonl"))
-new = Analysis(Path("benchmarks/references/tuning-wide-expanded-reference.jsonl"))
+old = Analysis(Path("https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-original-reference.jsonl"))
+new = Analysis(Path("https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-expanded-reference.jsonl"))
 for family in ("kp", "tsp", "rastrigin"):
     first = old.matrices("SA", family)["racing"]
     second = new.matrices("SA", family)["racing"]
@@ -2125,7 +2125,7 @@ before generating a separate confirmation set. This evidence-only experiment doe
 packaged parameters and makes no claim about the library's configured adaptive mode.
 
 The candidate pool contains all 30 trained simulated-annealing configurations from
-`references/tuning-wide-expanded-reference.jsonl`, without filtering on their historical test scores,
+`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tuning-wide-expanded-reference.jsonl`, without filtering on their historical test scores,
 plus the packaged fixed default. Exact configurations are deduplicated. The selection score
 averages sizes and budgets within each family, then gives all three families equal weight.
 Candidates losing more than 0.02 normalized-gap units in any training cell are ineligible;
@@ -2165,7 +2165,7 @@ scoring resumes completed cells, but changing the design, pool or source revisio
 
 #### Cross-family preset results
 
-Reference: [`references/general-sa-preset-reference.json`](references/general-sa-preset-reference.json). The full protocol
+Reference: [`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/general-sa-preset-reference.json`](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/general-sa-preset-reference.json). The full protocol
 was committed at `aa9f29e` before measurement. All 372 training cells completed; the candidate
 was locked while zero confirmation instance files existed. Only then were 72 confirmation
 instances generated, followed by 24 paired scoring cells. The reference contains all measurements,
@@ -2220,7 +2220,7 @@ uv run --locked --group tuning python - <<'PY'
 import json
 from pathlib import Path
 from benchmarks.tuning.preset_analysis import PresetAnalysis, PresetDesign
-data = json.loads(Path("benchmarks/references/general-sa-preset-reference.json").read_text())
+data = json.loads(Path("https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/general-sa-preset-reference.json").read_text())
 analysis = PresetAnalysis(PresetDesign(**data["protocol"]["design"]))
 print(analysis.ranking(data["training"], set(data["protocol"]["candidates"]))[0])
 print(analysis.confirmation(data["confirmation"], data["selection"]["candidate"]))
@@ -2264,7 +2264,7 @@ reference hashes remain portable. No packaged solver parameter is changed by thi
 #### Cross-engine validation results
 
 The protocol and runner were committed at **`1a544ca` before either engine was scored**.
-Reference: [`references/general-sa-preset-engines-reference.json`](references/general-sa-preset-engines-reference.json).
+Reference: [`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/general-sa-preset-engines-reference.json`](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/general-sa-preset-engines-reference.json).
 All 24 scoring cells completed on Python, then all 24 on C++; the candidate, instance panel,
 calibration scales, solver seeds and regression limits stayed unchanged. Every individual search
 reached its declared evaluation limit; a truncated search would have failed the run.
@@ -2314,8 +2314,8 @@ import json
 from pathlib import Path
 from benchmarks.tuning.preset_analysis import PresetAnalysis, PresetDesign
 root = Path("benchmarks")
-original = json.loads((root / "references/general-sa-preset-reference.json").read_text())
-data = json.loads((root / "references/general-sa-preset-engines-reference.json").read_text())
+original = json.loads((root / "https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/general-sa-preset-reference.json").read_text())
+data = json.loads((root / "https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/general-sa-preset-engines-reference.json").read_text())
 analysis = PresetAnalysis(PresetDesign(**original["protocol"]["design"]))
 for engine, records in data["measurements"].items():
     print(engine, analysis.confirmation(records, data["selection"]["candidate"]))
@@ -2343,7 +2343,7 @@ exact optima from the NumPy DP oracle). The hyperparameters were chosen on valid
 and then frozen. Budgets, seeds, portfolio and cost are identical across decoders.
 
 Mean optimality gap in percent, lower is better
-([reference](references/priority-decoder-e1-reference.json), one WSL2 machine, one run):
+([reference](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/priority-decoder-e1-reference.json), one WSL2 machine, one run):
 
 | Decoder | 2 s | 10 s | Wins/losses/ties vs sort (2 s, 10 s) |
 |---|---:|---:|---|
@@ -2375,7 +2375,7 @@ The priority decoder and the quantile decoder were compared only with the plain 
 gain could come from the decoder or merely from starting near the greedy solution. The control gives
 the plain sort decoder the same prior through `initial_keys`: one key vector whose ascending order is
 the greedy value/weight order. It reruns the same 24 instances, seeds and budgets
-([reference](references/priority-seeding-control-reference.json)):
+([reference](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/priority-seeding-control-reference.json)):
 
 ```bash
 uv run --locked python -m benchmarks.engines.priority_decoder_study --candidates sort sort_seeded
@@ -2436,8 +2436,8 @@ uv run --locked python -m benchmarks.engines.surrogate_seed_study --size 300 --i
 
 | Run | Keys | Instances per family | Families won | Significant losses | Verdict |
 |---|---:|---:|---|---|---|
-| [confirmatory](references/surrogate-seed-study-n100-reference.json) | 100 | 12 | none | Knapsack threshold | not promising |
-| [exploratory](references/surrogate-seed-study-n300-reference.json) | 300 | 8 | Knapsack sort, sphere | none | not promising (2 of 5) |
+| [confirmatory](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/surrogate-seed-study-n100-reference.json) | 100 | 12 | none | Knapsack threshold | not promising |
+| [exploratory](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/surrogate-seed-study-n300-reference.json) | 300 | 8 | Knapsack sort, sphere | none | not promising (2 of 5) |
 
 Confirmatory run, 2 s: plain RKO is already at a normalized gap of 0.000 to 0.025 on every family, so
 there is almost nothing to improve and the test has little power. The surrogate is statistically tied
@@ -2499,7 +2499,7 @@ significant loss, and better mean quality than best-random on the winning groups
 uv run --locked python -m benchmarks.engines.surrogate_seed_study --model mlp --size 300 --instances 12 --budget 2 --output results/surrogate-seed-study-mlp-n300.json
 ```
 
-[Reference measurement](references/surrogate-seed-study-mlp-n300-reference.json): 240 trials, 12 instances
+[Reference measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/surrogate-seed-study-mlp-n300-reference.json): 240 trials, 12 instances
 per group, 300 keys, nominal 2-second allowance, one machine. Scores below are normalized gaps, not
 percent optimality gaps; lower is better. Intervals are unadjusted paired 95 percent bootstrap
 intervals for network minus plain, resampling instances.
@@ -2523,7 +2523,7 @@ training and search time, so they do not establish which phase caused each loss.
 training checks were much slower than the initial 0.2–0.3-second preflight; that initial timing is
 not a reliable overhead estimate.
 
-A separately labeled [timing diagnostic](references/surrogate-seed-study-mlp-timing-reference.json)
+A separately labeled [timing diagnostic](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/surrogate-seed-study-mlp-timing-reference.json)
 adds phase timing fields without changing the model or rule. On the first instance of each group,
 sampling plus training and seed generation took 1.05–2.80 seconds, leaving 0.05–0.95 seconds of search.
 Three of the five probes exhausted the nominal 2-second allowance; the existing 0.05-second minimum
@@ -2568,12 +2568,12 @@ before it ran, and confirmation seeds 4000 and above were never used.
 
 | Screen | Setup | Wins | Significant losses | Valid? |
 |---|---|---|---|---|
-| [1](references/neural-adapter-screen-1-reference.json) | bottleneck network, served per evaluation, 2 s, 300 keys | 0 | 4 | archive and seed defects below |
-| [2](references/neural-adapter-screen-2-reference.json) | full-dimensional coupling, same setup | 0 | 4 | same defects |
-| [3](references/neural-adapter-screen-3-reference.json) | coupling proposes keys checked once, original decoder serves | 0 | 2 | same defects |
-| [4](references/neural-adapter-screen-4-reference.json) | as 3 with 60 s preparation (your allowance), 300 keys | 0 | 1 | archive defect collapsed the archives; no headroom |
-| [5](references/neural-adapter-screen-5-reference.json) | as 4 at 1,000 keys, archive fixed | 0 | 0 | uninformative: warm-up shared the plain arm's seed |
-| [6](references/neural-adapter-screen-6-reference.json) | as 5 at 3,000 keys, independent warm-up seed | 0 | 1 | has headroom; see below |
+| [1](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/neural-adapter-screen-1-reference.json) | bottleneck network, served per evaluation, 2 s, 300 keys | 0 | 4 | archive and seed defects below |
+| [2](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/neural-adapter-screen-2-reference.json) | full-dimensional coupling, same setup | 0 | 4 | same defects |
+| [3](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/neural-adapter-screen-3-reference.json) | coupling proposes keys checked once, original decoder serves | 0 | 2 | same defects |
+| [4](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/neural-adapter-screen-4-reference.json) | as 3 with 60 s preparation (your allowance), 300 keys | 0 | 1 | archive defect collapsed the archives; no headroom |
+| [5](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/neural-adapter-screen-5-reference.json) | as 4 at 1,000 keys, archive fixed | 0 | 0 | uninformative: warm-up shared the plain arm's seed |
+| [6](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/neural-adapter-screen-6-reference.json) | as 5 at 3,000 keys, independent warm-up seed | 0 | 1 | has headroom; see below |
 
 Two harness defects were found along the way and fixed with tests that failed first. The archive recorder
 re-admitted a stalled incumbent on every evaluation, so a long warm-up left copies of one vector (one
@@ -2647,7 +2647,7 @@ both budgets, the learned prior beats the hand prior with the same mechanism (se
 beats plain, each with a paired 95 percent bootstrap interval below zero, and on plain Knapsack no
 learned-minus-hand interval lies above zero.
 
-[Reference measurement](references/learned-priority-study-reference.json), 12 test instances per family,
+[Reference measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/learned-priority-study-reference.json), 12 test instances per family,
 one machine, one run. Mean percentage gap below the best profit any arm found (lower is better):
 
 | Family and budget | plain | hand seed | learned seed | hand residual | learned residual |
@@ -2721,7 +2721,7 @@ Rule, committed in `4829290` before the run: advance only if, for the dual prior
 budgets, the residual decoder beats 32-order seeding and beats plain RKO, each with a paired 95 percent
 bootstrap interval entirely below zero. The ratio prior and the noise floor are reported, not decisive.
 
-[Reference measurement](references/decoder-form-study-reference.json), 12 test instances per family, 250
+[Reference measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/decoder-form-study-reference.json), 12 test instances per family, 250
 items, default portfolio, one machine, one run, 384 trials with every decoded profit re-verified. Mean
 percentage gap below the best profit any arm found (lower is better):
 
@@ -2806,7 +2806,7 @@ the merged reference index; the content is the same): advance only if, for both 
 budgets, the residual decoder beats 32-order seeding and beats plain RKO, each with a paired 95 percent
 bootstrap interval entirely below zero; the 2-opt prior alone is a partial result and does not advance.
 
-[Reference measurement](references/tsp-decoder-form-study-reference.json), 12 test instances per family,
+[Reference measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tsp-decoder-form-study-reference.json), 12 test instances per family,
 384 trials with every decoded tour length re-verified. Mean percentage gap above the shortest tour any
 arm found (lower is better):
 
@@ -2892,7 +2892,7 @@ both budgets, the quantile decoder beats 32-order seeding and beats plain RKO, e
 95 percent bootstrap interval entirely below zero; the 2-opt prior alone is a partial result and
 does not advance.
 
-[Reference measurement](references/tsp-quantile-study-reference.json), 12 test instances per
+[Reference measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tsp-quantile-study-reference.json), 12 test instances per
 family, 288 trials with every decoded tour length re-verified. Mean percentage gap above the
 shortest tour any arm found (lower is better):
 
@@ -2980,7 +2980,7 @@ Rule, committed in `698432b` before the run: advance only if, on both families a
 the learned score beats the 2-opt prior with the same mechanism (seeded and residual), each with a
 paired 95 percent bootstrap interval entirely below zero.
 
-[Reference measurement](references/tsp-learned-study-reference.json), 12 test instances per
+[Reference measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/tsp-learned-study-reference.json), 12 test instances per
 family, 240 trials with every decoded tour length re-verified. Training took 117 and 124 seconds
 per family (CPU only); mean validation reward after training was 0.573 (uniform) and 0.576
 (clustered), against 0.21 and 0.18 before training. Mean percentage gap above the shortest tour any
@@ -3059,7 +3059,7 @@ uv run --locked python -m benchmarks.quantile.confirm_cli \
 
 ### Training: the scorer beats the cheap controls at construction
 
-[Reference measurement](references/quantile-contextual-training-reference.json), validation seeds
+[Reference measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/quantile-contextual-training-reference.json), validation seeds
 600000 and up, mean sampled-construction cost divided by the analytic greedy cost (lower is better),
 export parity 72 and 73 states with no decision mismatch:
 
@@ -3080,7 +3080,7 @@ frozen scorer), `portfolio` (BRKGA, SA, ILS, frozen scorer). Cell rule, fixed be
 cell wins if `genetic` or `portfolio` beats `independent` with a paired 95 percent bootstrap
 interval below zero and neither is beaten by `classical` with an interval above zero; the screen
 advances only if all four family-and-budget cells win. [Reference
-measurement](references/quantile-contextual-search-screen-reference.json): 10 test instances per
+measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/quantile-contextual-search-screen-reference.json): 10 test instances per
 family (seeds 710000 and up), 3 randomizations, 480 trials, every solution re-verified. Paired
 differences in raw cost (negative favors the left arm):
 
@@ -3105,7 +3105,7 @@ time. The seed noise was tuned on four validation instances (grid 0.005 to 0.3, 
 
 Rule, committed in `1f85a41` before any measurement: advance only if `genetic` beats
 `twoopt_genetic` or `portfolio` beats `twoopt_portfolio` with a paired 95 percent bootstrap
-interval entirely below zero. [Reference measurement](references/quantile-tour-confirmation-reference.json):
+interval entirely below zero. [Reference measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/quantile-tour-confirmation-reference.json):
 20 fresh instances (seeds 720000 and up, none used by training or the screen), 100 cities, 60 s,
 one randomization, 80 trials, every tour re-verified.
 
@@ -3169,7 +3169,7 @@ This is a measurement, not a kill-or-continue comparison: no design decision fol
 from either a gradual or an abrupt profile, so there is no pre-registered rule and no `advance`
 verdict.
 
-[Reference measurement](references/shake-sensitivity-study-reference.json), 200 items/cities, 10
+[Reference measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/shake-sensitivity-study-reference.json), 200 items/cities, 10
 test instances, 5 repeats per intensity and 1800 decoded trials for the aggregate curve, plus 20
 repeats per operator and 2400 trials for the isolated-operator breakdown, every changed fraction
 with a bootstrap interval. Mean changed fraction against `shake`'s own intensity parameter (both
@@ -3250,7 +3250,7 @@ uv run --locked --group model-validation python -m benchmarks.modeling.key_feasi
 ```
 
 Baseline of the decoder at `f4ddbfd` (2048 keys, seed 2026, 1,024-sweep restoration cap, Python
-3.14.7, NumPy 2.5.4, i7-1255U, 6 CPUs; raw file `references/key-feasibility-baseline-f4ddbfd.json`).
+3.14.7, NumPy 2.5.4, i7-1255U, 6 CPUs; raw file `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/key-feasibility-baseline-f4ddbfd.json`).
 Gaps are relative to the known optimum, positive is worse.
 
 | Case | Box only | Restoration | Best gap | Median gap |
@@ -3284,7 +3284,7 @@ uv run --locked --group model-validation python -m benchmarks.modeling.key_conve
 ```
 
 Baseline at `9a2968f` (SA, IPR and BRKGA; budgets 200, 800, 3200; seeds 0 to 2; same host as the
-feasibility baseline). Full summary: `references/key-convergence-baseline-9a2968f.json`. Median gap
+feasibility baseline). Full summary: `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/key-convergence-baseline-9a2968f.json`. Median gap
 over feasible runs; the count is shown only when some of the 3 runs found nothing feasible.
 
 | Case | SA 200 | SA 3200 | BRKGA 200 | BRKGA 3200 |
@@ -3321,7 +3321,7 @@ uv run --locked --group model-validation python -m benchmarks.modeling.key_conve
 ```
 
 Same host, seeds and budgets as the baselines above (measured at `e9b5ab6`; files
-`references/key-feasibility-structure-e9b5ab6.json` and `references/key-convergence-structure-e9b5ab6.json`).
+`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/key-feasibility-structure-e9b5ab6.json` and `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/key-convergence-structure-e9b5ab6.json`).
 Feasible keys out of 2048: assignment 2 to 2048, cardinality_linking 619 to 2048, set_cover 1383 to 2048;
 every other case is unchanged. Median gap to the optimum (positive is worse):
 
@@ -3390,7 +3390,7 @@ independently by HiGHS (`status=certified_optimal`). Each search arm charges mod
 2-second total; SA and BRKGA run separately with five paired seeds, alternating arm order. Fixed-key
 probes use 128 keys per decoder and report exact output collisions, not evolving-population diversity.
 
-Reference: `references/decoder-qualification-8b85975.jsonl` (metadata revision `b1e688d`; 120 search
+Reference: `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/decoder-qualification-8b85975.jsonl` (metadata revision `b1e688d`; 120 search
 records, 0 errors; the campaign completed). An earlier run was stopped during a probe and is not
 retained; its partial output does not contribute to any table.
 
@@ -3482,7 +3482,7 @@ incremental version. The latter caches row activities and recomputes only rows i
 candidate variable move. The `FullRescanViolation` class preserves the old benchmark algorithm as a
 reference; neither approach changes `src/`.
 
-[Decode measurement](references/violation-incremental-decode-64.json): 64 identical seeded keys per
+[Decode measurement](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/violation-incremental-decode-64.json): 64 identical seeded keys per
 generated family and size (48, 192). Timing includes complete model decoding and protected
 assignment evaluation. Exact assignments agree except on 41 of 64 `mixed_192` keys; there the
 objective delta is zero and the maximum total-violation delta is 7.1e-15, consistent with floating-
@@ -3542,12 +3542,21 @@ The next useful experiment is stronger adversarial model generation or a solver-
 step for the still-infeasible large binary and mixed cases. This optimization is benchmark-only and
 not a general decoder guarantee.
 
+## Reference data
+
+Identified reference outputs are not stored in Git (issue 183). They are assets of the
+[`references-v1` release](https://github.com/MarcosPTProenca/rko-solver/releases/tag/references-v1).
+Each file's SHA-256 is in [`references/MANIFEST.json`](references/MANIFEST.json). Code and tests get a
+file through `benchmarks.references.store.ensure(name)`, which uses a verified local copy when one
+exists, downloads otherwise, and never accepts a file whose digest does not match. Set
+`RKO_REFERENCE_CACHE` to choose the cache directory. A failed download raises an error; it is never a pass.
+
 ### Elite-pool cost in process mode (issue 136, one host)
 
 `runtime/pool_cost_study.py` runs one `execution="process"` solve with `runtime/pool_call_probe.py`
 imported first, so spawned workers time each manager round trip. Totals are written once a second per
 process, so each worker's final partial second is not counted, and the probe adds two clock reads per call.
-[Raw records](references/pool-cost-process-wsl2.jsonl): WSL2, five seconds, seeds 1 to 3, fixtures
+[Raw records](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/pool-cost-process-wsl2.jsonl): WSL2, five seconds, seeds 1 to 3, fixtures
 correlated knapsacks 100x5 and 300x5 (see `modeling/hard_cases.py`).
 
 | Fixture | Algorithms | Pool share of worker time (median) | Range | Calls per 1000 evaluations | Ceiling if pool were free |
@@ -3563,7 +3572,7 @@ correlated knapsacks 100x5 and 300x5 (see `modeling/hard_cases.py`).
 
 `runtime/pool_quality_study.py` solves each instance with the default process portfolio, four workers
 and a 10-second budget, once with the manager-hosted pool and once with the shared-memory pool, paired by
-seed. [Raw records](references/pool-quality-process-wsl2.jsonl): WSL2, 6 CPUs, 300-item correlated Knapsack
+seed. [Raw records](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/pool-quality-process-wsl2.jsonl): WSL2, 6 CPUs, 300-item correlated Knapsack
 and 300-dimensional shifted Rastrigin. Summarize with `python -m benchmarks.runtime.pool_quality_study --summarize <file>`.
 
 | Instance | Paired mean difference (shared minus manager) | 95% CI | Shared better / worse | Exact sign-test p |
@@ -3579,7 +3588,7 @@ second-host acceptance criterion of issue 136 is not verified.
 
 `sa_t0_diagnosis.py` runs `rko_bench` with the packaged SA vector and 100,000 evaluations, once with
 the packaged start temperature and once with `--sa-t0-auto`, on one pilot-role input per KPLIB family
-and size. [Raw records](references/sa-t0-diagnosis-kplib-wsl2.jsonl): WSL2, seed 1, one thread.
+and size. [Raw records](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/sa-t0-diagnosis-kplib-wsl2.jsonl): WSL2, seed 1, one thread.
 `rko_bench` now prints each SA search's `t0`, `cutoff`, `levels`, and the median and maximum of the
 calibration's sampled uphill cost differences.
 
@@ -3627,7 +3636,7 @@ only; the issue's acceptance asks for at least two, so this does not yet meet it
 `runtime/ipr_contribution_study.py` runs the default portfolio (SA, IPR, BRKGA, GA) and the same portfolio
 without IPR (SA, BRKGA, GA), in process mode, five seconds each, on the correlated knapsacks 100x5 and
 300x5, 30 paired seeds. Arms alternate order by seed and run one at a time.
-[Raw records and summary](references/ipr-contribution-process-wsl2.json).
+[Raw records and summary](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/ipr-contribution-process-wsl2.json).
 
 | Fixture | Mean difference (with − without IPR) | Median difference | Wins / losses | Exact sign test (two-sided) |
 | --- | ---: | ---: | ---: | ---: |
@@ -3645,7 +3654,7 @@ five-second runs; it does not show that IPR is useless on other problems.
 `algorithms/ils_acceptance_study.py` compares the shipped strict-improvement rule with late acceptance
 (list length 20) and with a restart after 30 non-improving iterations, all sharing the shipped `shake` and
 `rvnd`, on correlated knapsacks with 100 items, 60 seconds per run, 10 paired seeds.
-[Raw records](references/ils-acceptance-knapsack100-60s.json).
+[Raw records](https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/ils-acceptance-knapsack100-60s.json).
 
 - Iteration rate limits the regime: about 4 iterations in 10 seconds at 300 items, so stagnation cannot
   arise there; at 100 items the run reaches about 350 iterations in 60 seconds.
@@ -3660,7 +3669,7 @@ were set from the iteration rate, not tuned; the issue's three-family ablation i
 
 `algorithms/ils_acceptance_study.py --family` runs the same three arms (strict, late acceptance, restart)
 on `binary_chain_48` and `ranged_integer_48`, 60 s per run, 10 paired seeds. Records:
-`references/ils-acceptance-binary-chain48-60s.json`, `references/ils-acceptance-ranged-integer48-60s.json`.
+`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/ils-acceptance-binary-chain48-60s.json`, `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/ils-acceptance-ranged-integer48-60s.json`.
 
 - Every arm reaches the analytic optimum in every run of both families: no run differs, so the paired
   comparison is all ties.

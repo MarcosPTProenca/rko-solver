@@ -23,11 +23,11 @@ Inputs/Outputs:
 
 import numpy as np
 import pytest
-from benchmarks.engines.native_report import EVIDENCE
 from benchmarks.engines.native_report import FIGURES
 from benchmarks.engines.native_report import README
 from benchmarks.engines.native_report import ROUNDS
 from benchmarks.engines.native_report import NativeReport
+from benchmarks.references import store
 
 
 def synthetic(
@@ -131,9 +131,7 @@ def test_marginal_difference_is_a_tie_not_a_win() -> None:
 
 def test_committed_outputs_match_a_fresh_render_of_the_evidence() -> None:
     """README block and figures are exactly what the committed evidence produces."""
-    if not EVIDENCE.exists():
-        pytest.skip("evidence file not present")
-    outputs = NativeReport.load(EVIDENCE).render(README, FIGURES)
+    outputs = NativeReport.load(store.ensure("native-evidence.csv.gz")).render(README, FIGURES)
     stale = [
         path.name
         for path, text in outputs.items()

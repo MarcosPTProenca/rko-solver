@@ -123,7 +123,7 @@ VMs, so their latency difference is not a controlled hardware-scaling experiment
 
 [Run 39809649686](https://github.com/MarcosPTProenca/rko-solver/actions/runs/39809649686)
 validated all 216 trials / 108 exact replay pairs / 36 groups. The selected compact
-[reference record](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/references/performance-baseline-reference.json) retains input
+[reference record](https://github.com/MarcosPTProenca/rko-solver/https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/performance-baseline-reference.json) retains input
 and analysis SHA256 digests, producer revision, run URL and explicit limits. Both
 raw shards had clean Git state and the same source/runtime identity: Python 3.14.9,
 NumPy 2.4.3. The dimension-20 VM reported Intel Xeon Platinum 8573C; dimension 500

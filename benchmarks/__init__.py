@@ -5,7 +5,8 @@ Objective:
 
 Technical approach:
 - Keep command-line experiments outside the installed runtime package.
-- Group studies by purpose and keep identified measurements in `references/`.
+- Group studies by purpose; identified measurements live in the `references-v1` release
+  and are read through `benchmarks.references.store`.
 
 Flow (pseudocode):
 1. Select a documented workload and build its isolated runner.

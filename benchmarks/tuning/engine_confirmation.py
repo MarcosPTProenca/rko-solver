@@ -32,6 +32,7 @@ import argparse
 import hashlib
 import json
 import subprocess
+from benchmarks.references import store
 from benchmarks.tuning.instances import InstanceBank
 from benchmarks.tuning.preset import PresetStudy
 from benchmarks.tuning.preset import PresetTask
@@ -237,12 +238,14 @@ def main() -> None:
     parser.add_argument(
         "--reference",
         type=Path,
-        default=Path(__file__).resolve().parents[1] / "references/general-sa-preset-reference.json",
+        default=None,
     )
     parser.add_argument("--engine", choices=("python", "cpp"), required=True)
     parser.add_argument("--workers", type=int, default=3)
     args = parser.parse_args()
-    study = EngineConfirmation(args.directory, args.reference)
+    study = EngineConfirmation(
+        args.directory, store.resolve(args.reference, "general-sa-preset-reference.json")
+    )
     result = (
         study.run(args.engine, args.workers) if args.command == "run" else study.report(args.engine)
     )

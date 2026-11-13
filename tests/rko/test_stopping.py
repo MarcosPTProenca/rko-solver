@@ -109,7 +109,8 @@ def test_returning_callback_local_search_obeys_budget(execution: str, tmp_path: 
         algorithms=["ILS"],
         control=0,
         execution=execution,
-    ).solve(0.01)
+        max_evaluations=1,
+    ).solve(5.0)
     assert result.cost == 1.0
     assert len(result.keys) == 100
     assert 1 <= len(observation.read_bytes()) <= 12

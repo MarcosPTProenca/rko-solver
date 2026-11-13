@@ -12,7 +12,7 @@ Rastrigin-style rugged, stable-permutation ordering and flat objectives; dimensi
 20; capacity 10; five paired seeds (200–204). These are 60 pairs / 120 trials,
 not application or statistical-superiority evidence.
 
-Identified reference: `benchmarks/references/prefill-work-reference.jsonl`, runtime source
+Identified reference: `https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/prefill-work-reference.jsonl`, runtime source
 `41cda1b50f01bffe562a5040121444742b93000e`, Python 3.14.8 / NumPy 2.4.3.
 The header records production/config/operator and probe SHA256 values. No production
 algorithm, default, native backend or protected benchmark was changed for this study.

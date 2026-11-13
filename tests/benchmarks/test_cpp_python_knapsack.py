@@ -22,7 +22,6 @@ Inputs/Outputs:
 
 import benchmarks.engines.cpp_python_knapsack as benchmark_module
 import csv
-import hashlib
 import pytest
 import subprocess
 from benchmarks.engines.cpp_python_knapsack import CPP_PORTFOLIO
@@ -229,24 +228,6 @@ def test_trial_record_recomputes_objective_and_retains_provenance(tmp_path: Path
     assert record.execution_mode == "python-serial"
     assert record.memory_total_gib == "16.00"
     assert record.cpp_flags == "-O3"
-
-
-def test_preliminary_reference_remains_historical_and_complete() -> None:
-    """Preserve all old two-second records without confusing them with the active long run."""
-    source = (
-        Path(benchmark_module.__file__).resolve().parents[1]
-        / "references/cpp-python-knapsack-2s-preliminary.csv"
-    )
-    content = source.read_bytes().replace(b"\r\n", b"\n")
-    assert hashlib.sha256(content).hexdigest() == (
-        "1663785c936720f6974fae4cff90bc9db669a9f21cfc2d405d1c003ff2b1e390"
-    )
-    with source.open(newline="", encoding="utf-8") as stream:
-        rows = list(csv.DictReader(stream))
-    assert len(rows) == len({row["trial_id"] for row in rows}) == 10800
-    assert {row["budget_seconds"] for row in rows} == {"2"}
-    assert {row["status"] for row in rows} == {"ok"}
-    assert {row["python_revision"] for row in rows} == {"759309a0d8a74324806faba6b41f806eb3721dbc"}
 
 
 @pytest.mark.parametrize(

@@ -179,7 +179,7 @@ jobs:
       - name: Sync locked dependencies
         run: uv sync --locked --group dev
       - name: Rust over Python throughput ratio stays within 30 percent of the reference
-        run: uv run --locked python -m benchmarks.engines.engine_ratio --reference benchmarks/references/engine-ratio-reference.json
+        run: uv run --locked python -m benchmarks.engines.engine_ratio --reference "$(uv run --locked python -m benchmarks.references.store engine-ratio-reference.json)"
 
   quality-gate:
     runs-on: ubuntu-latest

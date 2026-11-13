@@ -25,6 +25,7 @@ import importlib
 import pytest
 import subprocess
 import sys
+from benchmarks.references import store
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -80,8 +81,7 @@ def test_grouped_benchmark_module_has_a_usable_entry_point(module: str) -> None:
 def test_report_resolves_maintained_reference_and_asset_directories() -> None:
     """Resolve native-study evidence and outputs without assuming the report lives at the root."""
     report = importlib.import_module("benchmarks.engines.native_report")
-    assert report.EVIDENCE == BENCHMARKS / "references" / "native-evidence.csv.gz"
-    assert report.EVIDENCE.is_file()
+    assert store.ensure("native-evidence.csv.gz").is_file()
     assert report.README == BENCHMARKS / "README.md"
     assert report.README.is_file()
     assert report.FIGURES == BENCHMARKS / "figures"
