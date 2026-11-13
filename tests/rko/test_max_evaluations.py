@@ -215,7 +215,7 @@ def test_auto_engine_applies_the_limit_to_probes_and_the_final_run() -> None:
             {"engine": "python", "execution": "process", "n_jobs": 1}, id="python-process"
         ),
         pytest.param({"engine": "rust", "n_jobs": 1}, id="rust-one-worker"),
-        pytest.param({"engine": "rust"}, id="rust-callbacks"),
+        pytest.param({"engine": "rust", "n_jobs": 1}, id="rust-callbacks"),
     ],
 )
 def test_runs_without_concurrent_pool_exchange_repeat_exactly(
