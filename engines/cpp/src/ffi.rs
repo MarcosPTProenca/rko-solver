@@ -179,6 +179,7 @@ fn search_report(
         algorithm: spec.algorithm.name(),
         seed: config.seed,
         evaluations: raw.evaluations,
+        delta_evaluations: 0,
         elapsed: raw.elapsed,
         budget: config.time_limit,
         stop: if raw.hit_limit != 0 {
