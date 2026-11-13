@@ -81,7 +81,7 @@ C++ parity or default-policy superiority follows from a shorter invocation.
 
 [Run 39843491836](https://github.com/MarcosPTProenca/rko-solver/actions/runs/39843491836)
 passed all registered cases and existing seed/objective/accounting/native-team
-checks. The selected [compact reference](https://github.com/MarcosPTProenca/rko-solver/blob/main/benchmarks/references/invocation-profile-reference.json)
+checks. The selected [compact reference](https://github.com/MarcosPTProenca/rko-solver/https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/invocation-profile-reference.json)
 retains manifests, host summaries, input hashes and aggregation definitions. These
 are descriptive three-observation medians, not acceptance intervals.
 

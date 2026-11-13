@@ -46,7 +46,7 @@ from html import escape
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EVIDENCE = ROOT / "references" / "native-evidence.csv.gz"
+EVIDENCE = ROOT / "results" / "native-evidence.csv.gz"
 README = ROOT / "README.md"
 FIGURES = ROOT / "figures"
 START = "<!-- native-report:start -->"

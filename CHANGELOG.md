@@ -7,6 +7,7 @@ versions must be verified against their tag, manifest and package-index metadata
 
 ### Changed
 
+- Benchmark reference data (75 files, 16.3 MB) moved out of Git into the `references-v1` release. Each file is listed with its SHA-256 in `benchmarks/references/MANIFEST.json` and read through `benchmarks.references.store`, which checks the digest. The package and the source distribution never contained `benchmarks/`; this change reduces the repository only. `python -m benchmarks.engines.native_report render` now reads `results/native-evidence.csv.gz` by default; fetch the verified copy first (issue 183).
 - The `RKO.from_model` error for CP-SAT/MPSolver models now names MathOpt as the supported
   alternative and points to `docs/modeling.md`.
 - Docs state that plain Python callbacks ran faster on `engine="python", execution="process"`

@@ -28,6 +28,7 @@ import json
 import numpy as np
 import pytest
 import random
+from benchmarks.references import store
 from benchmarks.tuning import instances as instance_module
 from benchmarks.tuning.analysis import Analysis
 from benchmarks.tuning.instances import FAMILIES
@@ -617,10 +618,9 @@ def test_expanded_reference_files_are_complete_and_paired(
         count (int): Expected number of measurement records per profile.
         field (str): Key holding each record's per-instance scores.
     """
-    root = Path(__file__).resolve().parents[2] / "benchmarks" / "references"
     measurements = {}
     for profile in ("original", "expanded"):
-        path = root / f"tuning-wide-{profile}{suffix}-reference.jsonl"
+        path = store.ensure(f"tuning-wide-{profile}{suffix}-reference.jsonl")
         rows = [json.loads(line) for line in path.read_text().splitlines()]
         assert rows[0]["source_sha"].startswith("2455be0")
         assert rows[0]["settings"]["seed_offset"] == 1_000_000

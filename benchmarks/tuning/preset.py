@@ -38,6 +38,7 @@ import numpy as np
 import subprocess
 import sys
 import time
+from benchmarks.references import store
 from benchmarks.tuning.instances import InstanceBank
 from benchmarks.tuning.preset_analysis import PresetAnalysis
 from benchmarks.tuning.preset_analysis import PresetDesign
@@ -493,11 +494,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--source",
         type=Path,
-        default=Path("benchmarks/references/tuning-wide-expanded-reference.jsonl"),
+        default=None,
     )
     parser.add_argument("--workers", type=int, default=3)
     args = parser.parse_args(argv)
-    study = PresetStudy(args.directory, args.source)
+    study = PresetStudy(
+        args.directory, store.resolve(args.source, "tuning-wide-expanded-reference.jsonl")
+    )
     if args.stage == "report":
         print(study._json(study.report()))
     else:

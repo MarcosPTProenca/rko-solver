@@ -27,6 +27,7 @@ import numpy as np
 import pickle
 import pytest
 import random
+from benchmarks.references import store
 from pathlib import Path
 from types import ModuleType
 
@@ -99,7 +100,7 @@ def test_reference_summaries_match_raw_paired_trials(study: ModuleType) -> None:
     Args:
         study (ModuleType): Runner location used to find the identified reference.
     """
-    path = Path(study.__file__).resolve().parents[1] / "references/prefill-work-reference.jsonl"
+    path = store.ensure("prefill-work-reference.jsonl")
     rows = [json.loads(line) for line in path.read_text().splitlines()]
     trials = [row for row in rows if row["kind"] == "trial"]
     summaries = [row for row in rows if row["kind"] == "summary"]

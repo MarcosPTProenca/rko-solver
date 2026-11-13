@@ -30,6 +30,7 @@ import pytest
 from benchmarks.modeling.cases import PracticalCase
 from benchmarks.modeling.cases import PracticalModels
 from benchmarks.modeling.validation import ModelValidationCampaign
+from benchmarks.references import store
 from pathlib import Path
 from rko_solver import RKO
 from rko_solver.modeling.adapters import ModelAdapter
@@ -319,8 +320,8 @@ def test_invalid_campaign_settings_fail_before_output(
 @pytest.mark.parametrize(
     "filename",
     [
-        "references/modeling-validation-reference-13b6934.jsonl",
-        "references/modeling-validation-box-reference-13b6934.jsonl",
+        "modeling-validation-reference-13b6934.jsonl",
+        "modeling-validation-box-reference-13b6934.jsonl",
     ],
 )
 def test_identified_reference_preserves_every_outcome_and_fixture(filename: str) -> None:
@@ -329,8 +330,7 @@ def test_identified_reference_preserves_every_outcome_and_fixture(filename: str)
     Args:
         filename (str): Explicit continuous-restoration or box-only reference artifact.
     """
-    root = Path(__file__).resolve().parents[2]
-    path = root / "benchmarks" / filename
+    path = store.ensure(filename)
     records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     metadata, runs = records[0], records[1:]
     assert len(runs) == 480

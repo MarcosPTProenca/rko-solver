@@ -48,7 +48,7 @@ checks cover signed zero, mixed dtypes, original callback failures, an expired
 session before the next changed candidate, owned parent snapshots and the scalar
 copy-kernel benchmark control.
 
-`benchmarks/references/ipr-pruned-blocks-reference.jsonl` repeats the bounded 36-case matrix at
+`https://github.com/MarcosPTProenca/rko-solver/releases/download/references-v1/ipr-pruned-blocks-reference.jsonl` repeats the bounded 36-case matrix at
 1,024 **completed objective evaluations** each, charging all initialization. Pools
 remain unique and identical-parent selections remain zero. Pruning lets a fixed
 callback budget cover different numbers of paths and consume different RNG draws;
