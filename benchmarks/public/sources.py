@@ -50,6 +50,16 @@ TSPLIB_DIGESTS = {
     "rat783": "b9535dc5e44549f613bf6e34ee8667eed6f7a13e6b74c0b0451de95a480cabde",
 }
 TSPLIB_SOLUTIONS_DIGEST = "d6fa81c754f9b559bfbf19121c577d06aa3da195142d16d5fc2a14569f9be47c"
+QAP_MIRROR = "https://raw.githubusercontent.com/didoudiaz/QAP-instances/main/QAPLIB"
+QAP_DIGESTS = {
+    "nug12": "ccae60f58f8bbea4d970b142b7cd760c7e923e2a06fd1863d93ca1ede1f3ab65",
+    "nug14": "4e5c0bb65d490640c791586af82f443311bd3c5b38a89e2f11ae7f0540074150",
+    "nug20": "858f0b261a659665ae0841a9b3f25c316e5d181feb5976951ce853f070061f08",
+    "had12": "0970c6f537cadbdd59919c6625863a5ccea1223c142505c193d6b7a540df37dd",
+    "chr12a": "88215cb3042dd1122b367b983f51f0f2024de55ced2057b61c28243faa299eeb",
+    "tai12a": "b614c9b042c8fd38495af3abeb57d218039240cea24b3d11c7c9d76c86be6f34",
+}
+
 ORLIB_DIGESTS = {
     "mknap1.txt": "727c5f90b6acafa0896ce4b5b5559e2995303b735ee083a07e9b724738fac283",
     "mknapcb1.txt": "53011406c49617c8fe0bd783cf4bd3f0552657a70d56529c926304f750d995c3",
@@ -107,6 +117,18 @@ class PublicSources:
         return tuple(
             Source(f"orlib/{name}", f"{ORLIB_BASE}/{name}", digest)
             for name, digest in ORLIB_DIGESTS.items()
+        )
+
+    @staticmethod
+    def qap() -> tuple[Source, ...]:
+        """Return the pinned QAPLIB instances from the named mirror, enriched `.qap` form.
+
+        Returns:
+            tuple[Source, ...]: One source per instance in the digest table.
+        """
+        return tuple(
+            Source(f"qap/{name}.qap", f"{QAP_MIRROR}/{name}.qap", digest)
+            for name, digest in QAP_DIGESTS.items()
         )
 
     @staticmethod
