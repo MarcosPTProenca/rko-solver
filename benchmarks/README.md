@@ -123,6 +123,61 @@ OR-Library mknapcb1 (50 rows per arm and budget, no reference): evaluation rates
 columns are empty by design. Rust default median rate 6.4 M evals/s at 10 s versus 0.2 M for the
 Python process arm.
 
+### Exact swap delta on TSPLIB (#157)
+
+Raw rows: [`references/delta-tsplib-fec633a.jsonl`](references/delta-tsplib-fec633a.jsonl) (600 rows:
+10 TSPLIB instances x 6 arms x seeds 0\u20134 x budgets 10 s and 60 s), commit `fec633a`, one host.
+That hash predates a rebase onto `main` at `5038a1d`; the measured engine, Python and benchmark sources are unchanged by it.
+Arms `+delta` pass an exact Numba `swap_delta` to the Rust engine; their plain counterparts run the
+same objective without it. Every row is feasible; solver cost equals checker cost on all 600 rows.
+
+Result: the stateless delta **does not improve** quality here, and it **lowers the evaluation rate**.
+The sign tests show no detectable difference (p from 0.18 to 1.00, no multiplicity correction).
+The likely cause is structural: the stateless hook receives only the keys, so it sorts them again
+(O(n log n)), the same order of work as a full evaluation, and it does not keep the tour between
+calls. The O(1) path of the built-in `Tsp` (Rust incremental state) is not measured by this study,
+because the study uses the Numba objective; no speedup is claimed for it.
+
+Controls and limits:
+
+- `rust-SA+delta` is a control, not a test of the delta: simulated annealing does not perform swap
+  sweeps, so it reports zero delta evaluations, and its gap difference from `rust-SA` (0.94 vs 0.88
+  at 10 s) measures run-to-run variance on this host.
+- Zero delta evaluations occur in all 100 `rust-SA+delta` runs (expected, since SA does no swap
+  sweep), in 10 of 100 `rust-ILS+delta` runs and in 15 of 100 `rust-default+delta` runs. In the
+  two arms that do use swaps, every zero run is on `pcb442` or `rat783`: for `rat783` at 60 s, all
+  five default-portfolio seeds recorded zero exact swap probes.
+- Budgets are wall-clock; a trajectory-equality check runs with a fixed evaluation budget in
+  `tests/rko/test_numba_swap_delta.py`, not in this study.
+- The `+delta` rows carry the same `benchmark_sha256` as the code at `fec633a`. The digest changes
+  once `benchmarks/public/delta_report.py` is added, so these rows can no longer be resumed.
+
+Tables reproduce with `uv run python -m benchmarks.public.delta_report benchmarks/references/delta-tsplib-fec633a.jsonl`:
+
+| Arm | Seconds | Median gap | Best gap | Median evals/s | Delta evals (share) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| rust-ILS | 10 | 0.1591 | 0.0000 | 579478 | 0.000 |
+| rust-ILS | 60 | 0.1000 | 0.0000 | 650512 | 0.000 |
+| rust-ILS+delta | 10 | 0.1681 | 0.0000 | 526439 | 0.215 |
+| rust-ILS+delta | 60 | 0.1086 | 0.0000 | 543828 | 0.214 |
+| rust-SA | 10 | 0.8776 | 0.0352 | 280063 | 0.000 |
+| rust-SA | 60 | 0.5875 | 0.0070 | 294484 | 0.000 |
+| rust-SA+delta | 10 | 0.9383 | 0.0141 | 264796 | 0.000 |
+| rust-SA+delta | 60 | 0.6181 | 0.0057 | 306958 | 0.000 |
+| rust-default | 10 | 0.1671 | 0.0117 | 1126083 | 0.000 |
+| rust-default | 60 | 0.1297 | 0.0000 | 1171498 | 0.000 |
+| rust-default+delta | 10 | 0.1698 | 0.0000 | 947198 | 0.108 |
+| rust-default+delta | 60 | 0.1146 | 0.0000 | 1172046 | 0.115 |
+
+| Algorithm | Seconds | Wins | Losses | Ties | Sign-test p | Median rel. diff |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| default | 10 | 6 | 3 | 1 | 0.508 | -0.00917 |
+| default | 60 | 6 | 4 | 0 | 0.754 | -0.00390 |
+| SA | 10 | 4 | 5 | 1 | 1.000 | +0.00695 |
+| SA | 60 | 3 | 7 | 0 | 0.344 | +0.00623 |
+| ILS | 10 | 3 | 6 | 1 | 0.508 | +0.00315 |
+| ILS | 60 | 2 | 7 | 1 | 0.180 | +0.00642 |
+
 ## Layout
 
 Run studies from the repository root with `uv run --locked python -m benchmarks.<group>.<study>`.
