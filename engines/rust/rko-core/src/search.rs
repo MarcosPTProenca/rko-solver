@@ -93,6 +93,7 @@ pub struct Search<'a> {
     stride: u32,
     tick: u32,
     evaluations: u64,
+    delta_evaluations: u64,
     max_evaluations: u64,
     best_cost: f64,
     best_keys: Vec<f64>,
@@ -122,6 +123,7 @@ impl<'a> Search<'a> {
             stride: problem.check_stride().max(1),
             tick: 0,
             evaluations: 0,
+            delta_evaluations: 0,
             max_evaluations: u64::MAX,
             best_cost: f64::INFINITY,
             best_keys: Vec::new(),
@@ -174,6 +176,12 @@ impl<'a> Search<'a> {
     #[must_use]
     pub fn evaluations(&self) -> u64 {
         self.evaluations
+    }
+
+    /// Completed evaluations scored as exact incremental deltas, a subset of `evaluations`.
+    #[must_use]
+    pub fn delta_evaluations(&self) -> u64 {
+        self.delta_evaluations
     }
 
     /// Best completed cost, or infinity before the first evaluation.
@@ -355,33 +363,14 @@ impl<'a> Search<'a> {
                 return Err(Stop::TimeLimit);
             }
         }
-        let value = if let Some(state) = self.incremental.as_ref() {
-            state.probe(keys, changes)
-        } else {
-            let mut previous = [0.0_f64; 4];
-            let spill: Vec<f64>;
-            let saved: &[f64] = if changes.len() <= previous.len() {
-                for (slot, &(index, _)) in previous.iter_mut().zip(changes) {
-                    *slot = keys[index];
-                }
-                &previous[..changes.len()]
-            } else {
-                spill = changes.iter().map(|&(index, _)| keys[index]).collect();
-                &spill
-            };
-            for &(index, value) in changes {
-                keys[index] = value;
-            }
-            let value = self.problem.evaluate(keys);
-            for (&(index, _), &old) in changes.iter().zip(saved) {
-                keys[index] = old;
-            }
-            value
-        };
+        let (value, delta) = self.score_changes(keys, changes);
         if !value.is_finite() {
             return Err(Stop::InvalidCost);
         }
         self.evaluations += 1;
+        if delta {
+            self.delta_evaluations += 1;
+        }
         if value < self.best_cost {
             self.best_cost = value;
             self.best_keys.clear();
@@ -394,6 +383,34 @@ impl<'a> Search<'a> {
             }
         }
         Ok(value)
+    }
+
+    /// Scores `changes` through the incremental state when present, else by full evaluation.
+    ///
+    /// Returns the cost and whether it was an exact delta; `keys` is left unchanged.
+    fn score_changes(&self, keys: &mut [f64], changes: &[(usize, f64)]) -> (f64, bool) {
+        if let Some(state) = self.incremental.as_ref() {
+            return (state.probe(keys, changes), state.is_delta(keys, changes));
+        }
+        let mut previous = [0.0_f64; 4];
+        let spill: Vec<f64>;
+        let saved: &[f64] = if changes.len() <= previous.len() {
+            for (slot, &(index, _)) in previous.iter_mut().zip(changes) {
+                *slot = keys[index];
+            }
+            &previous[..changes.len()]
+        } else {
+            spill = changes.iter().map(|&(index, _)| keys[index]).collect();
+            &spill
+        };
+        for &(index, value) in changes {
+            keys[index] = value;
+        }
+        let value = self.problem.evaluate(keys);
+        for (&(index, _), &old) in changes.iter().zip(saved) {
+            keys[index] = old;
+        }
+        (value, false)
     }
 
     /// Applies `changes` to `keys` and to the incremental state.

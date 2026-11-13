@@ -265,6 +265,18 @@ fn parse_specs(specs: Vec<SpecTuple>) -> PyResult<Vec<Spec>> {
         .collect()
 }
 
+fn initialization_to_dict<'py>(
+    py: Python<'py>,
+    init: &rko_core::engine::Initialization,
+) -> PyResult<Bound<'py, PyDict>> {
+    let entry = PyDict::new(py);
+    entry.set_item("seed", init.seed)?;
+    entry.set_item("evaluations", init.evaluations)?;
+    entry.set_item("elapsed", init.elapsed)?;
+    entry.set_item("pool_len", init.pool_len)?;
+    Ok(entry)
+}
+
 fn result_to_dict<'py>(py: Python<'py>, result: &PortfolioResult) -> PyResult<Bound<'py, PyDict>> {
     let output = PyDict::new(py);
     output.set_item("keys", result.best_keys.clone())?;
@@ -272,12 +284,7 @@ fn result_to_dict<'py>(py: Python<'py>, result: &PortfolioResult) -> PyResult<Bo
     output.set_item("elapsed", result.elapsed)?;
     output.set_item("workers", result.workers)?;
     if let Some(init) = &result.initialization {
-        let entry = PyDict::new(py);
-        entry.set_item("seed", init.seed)?;
-        entry.set_item("evaluations", init.evaluations)?;
-        entry.set_item("elapsed", init.elapsed)?;
-        entry.set_item("pool_len", init.pool_len)?;
-        output.set_item("initialization", entry)?;
+        output.set_item("initialization", initialization_to_dict(py, init)?)?;
     }
     let reports = PyList::empty(py);
     for report in &result.reports {
@@ -285,6 +292,7 @@ fn result_to_dict<'py>(py: Python<'py>, result: &PortfolioResult) -> PyResult<Bo
         entry.set_item("algorithm", report.algorithm)?;
         entry.set_item("seed", report.seed)?;
         entry.set_item("evaluations", report.evaluations)?;
+        entry.set_item("delta_evaluations", report.delta_evaluations)?;
         entry.set_item("elapsed", report.elapsed)?;
         entry.set_item("budget", report.budget)?;
         entry.set_item("stop", report.stop.label())?;

@@ -116,6 +116,14 @@ class TspObjective:
         Returns:
             Callable[[np.ndarray], float]: Lazily compiled tour objective.
         """
+        return self._tour_kernel()
+
+    def _tour_kernel(self) -> Callable[[np.ndarray], float]:
+        """Compile the closed-tour length of the stable key order.
+
+        Returns:
+            Callable[[np.ndarray], float]: Compiled function of one key vector.
+        """
         distances = self.distances
 
         @njit(cache=False)
@@ -135,6 +143,92 @@ class TspObjective:
             return total
 
         return tour
+
+    def numba_swap_delta(self) -> Callable[[np.ndarray, float, int, int], float]:
+        """Compile an exact tour score after exchanging the key values of two cities.
+
+        Ties fall back to a full evaluation. Otherwise the decoded order is computed once, and only
+        the edges touching the two exchanged positions are rescored.
+
+        Returns:
+            Callable[[np.ndarray, float, int, int], float]: Lazily compiled swap score.
+        """
+        distances = self.distances
+        tour_of = self._tour_kernel()
+
+        @njit(cache=False)
+        def shares_a_key(keys: np.ndarray, i: int, j: int) -> bool:
+            """Report whether another city has the key value of city i or city j.
+
+            Args:
+                keys (np.ndarray): Current keys.
+                i (int): First city.
+                j (int): Second city.
+
+            Returns:
+                bool: True when a third city ties with either exchanged key.
+            """
+            for k in range(keys.size):
+                if k != i and k != j and (keys[k] == keys[i] or keys[k] == keys[j]):
+                    return True
+            return False
+
+        @njit(cache=False)
+        def edge_change(order: np.ndarray, p: int, q: int, edge: int) -> float:
+            """Return the change of one edge of the tour after exchanging positions p and q.
+
+            Args:
+                order (np.ndarray): Decoded city order before the exchange.
+                p (int): Lower exchanged position.
+                q (int): Higher exchanged position.
+                edge (int): Position whose edge to the next position changes.
+
+            Returns:
+                float: New edge length minus old edge length.
+            """
+            n = order.size
+            nxt = (edge + 1) % n
+            c = order[q] if edge == p else (order[p] if edge == q else order[edge])
+            d = order[q] if nxt == p else (order[p] if nxt == q else order[nxt])
+            return distances[c, d] - distances[order[edge], order[nxt]]
+
+        @njit(cache=False)
+        def swap_score(keys: np.ndarray, score: float, i: int, j: int) -> float:
+            """Return the tour length after exchanging the key values of cities i and j.
+
+            Args:
+                keys (np.ndarray): Current keys, not modified.
+                score (float): Tour length of `keys`.
+                i (int): First city.
+                j (int): Second city.
+
+            Returns:
+                float: Tour length of the exchanged keys.
+            """
+            n = keys.size
+            if keys[i] == keys[j]:
+                return score
+            if shares_a_key(keys, i, j):
+                swapped = keys.copy()
+                swapped[i], swapped[j] = keys[j], keys[i]
+                return tour_of(swapped)
+            order = np.argsort(keys, kind="mergesort")
+            position = np.empty(n, dtype=np.int64)
+            for place in range(n):
+                position[order[place]] = place
+            p = min(position[i], position[j])
+            q = max(position[i], position[j])
+            edges = np.array([p, (p + n - 1) % n, q, (q + n - 1) % n])
+            edges.sort()
+            delta = 0.0
+            previous = -1
+            for slot in range(edges.size):
+                if edges[slot] != previous:
+                    previous = edges[slot]
+                    delta += edge_change(order, p, q, previous)
+            return score + delta
+
+        return swap_score
 
 
 class KnapsackObjective:

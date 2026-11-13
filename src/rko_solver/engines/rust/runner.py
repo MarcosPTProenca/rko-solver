@@ -239,6 +239,7 @@ class NativeRunner:
                         base,
                         random_state=report["seed"],
                         n_evaluations=report["evaluations"],
+                        delta_evaluations=report["delta_evaluations"],
                         stop_reason=report["stop"],
                         time_limit=report["budget"],
                         elapsed_seconds=report["elapsed"],

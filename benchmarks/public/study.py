@@ -41,6 +41,7 @@ from .parsers import PublicParsers
 from .parsers import TspInstance
 from .problems import KnapsackObjective
 from .problems import PublicProblem
+from .problems import TspObjective
 from .problems import identity
 from .sources import PublicSources
 from benchmarks.problems.knapsack_utils import exact_profit
@@ -60,6 +61,12 @@ ARMS = {
     "rust-ILS": ("rust", ("ILS",), None),
     "python-process-default": ("python", None, "process"),
 }
+SWAP_ARMS = {
+    "rust-default+delta": ("rust", None, None),
+    "rust-SA+delta": ("rust", ("SA",), None),
+    "rust-ILS+delta": ("rust", ("ILS",), None),
+}
+ALL_ARMS = {**ARMS, **SWAP_ARMS}
 FAMILIES = ("tsplib", "kplib", "orlib-mknap1", "orlib-mknapcb1")
 ROW_FIELDS = (
     "family",
@@ -290,6 +297,7 @@ class PublicStudy:
         seed: int,
         seconds: float,
         native: Callable[[np.ndarray], float] | None,
+        swap: Callable[[np.ndarray, float, int, int], float] | None = None,
     ) -> dict[str, object]:
         """Run one arm on one problem and return its row.
 
@@ -299,28 +307,15 @@ class PublicStudy:
             seed (int): Search seed.
             seconds (float): Wall-clock budget.
             native (Callable[[np.ndarray], float] | None): Prepared native objective, if available.
+            swap (Callable[[np.ndarray, float, int, int], float] | None): Prepared swap delta for
+                `+delta` arms; compiled on demand when absent.
 
         Returns:
             dict[str, object]: Row with the fields in `ROW_FIELDS`.
         """
-        engine, algorithms, _ = ARMS[arm]
+        engine, algorithms, _ = ALL_ARMS[arm]
         began = time.perf_counter()
-        if engine == "rust":
-            objective_fn = native if native is not None else problem.objective.numba_function()
-            solver = RKO(
-                Numba(objective_fn, problem.n_variables),
-                engine="rust",
-                algorithms=list(algorithms) if algorithms else None,
-                random_state=seed,
-            )
-        else:
-            solver = RKO(
-                Callbacks(identity, problem.objective.cost, problem.n_variables),
-                engine="python",
-                execution="process",
-                algorithms=list(algorithms) if algorithms else None,
-                random_state=seed,
-            )
+        solver = PublicStudy.build(problem, arm, seed, native, swap)
         result = solver.solve(seconds)
         wall = time.perf_counter() - began
         checked = problem.check(np.asarray(result.keys, dtype=float))
@@ -350,6 +345,39 @@ class PublicStudy:
         }
 
     @staticmethod
+    def build(
+        problem: PublicProblem,
+        arm: str,
+        seed: int,
+        native: Callable[[np.ndarray], float] | None,
+        swap: Callable[[np.ndarray, float, int, int], float] | None,
+    ) -> RKO:
+        """Create the solver an arm runs, with its objective and optional swap delta.
+
+        Args:
+            problem (PublicProblem): Instance with objective.
+            arm (str): Key of `ALL_ARMS`.
+            seed (int): Search seed.
+            native (Callable[[np.ndarray], float] | None): Prepared native objective, if any.
+            swap (Callable[[np.ndarray, float, int, int], float] | None): Prepared swap delta.
+
+        Returns:
+            RKO: Solver configured for the arm.
+        """
+        engine, algorithms, _ = ALL_ARMS[arm]
+        names = list(algorithms) if algorithms else None
+        if engine == "rust":
+            objective_fn = native if native is not None else problem.objective.numba_function()
+            problem_spec = Numba(
+                objective_fn, problem.n_variables, swap_delta=_delta_for(arm, problem, swap)
+            )
+            return RKO(problem_spec, engine="rust", algorithms=names, random_state=seed)
+        callbacks = Callbacks(identity, problem.objective.cost, problem.n_variables)
+        return RKO(
+            callbacks, engine="python", execution="process", algorithms=names, random_state=seed
+        )
+
+    @staticmethod
     def commit() -> str:
         """Identify the source checkout without changing its state.
 
@@ -362,6 +390,75 @@ class PublicStudy:
             ).strip()
         except OSError, subprocess.CalledProcessError:
             return "unknown"
+
+
+def _tsp_swap(problem: PublicProblem) -> Callable[[np.ndarray, float, int, int], float]:
+    """Return the exact swap delta of a TSP instance.
+
+    Args:
+        problem (PublicProblem): Instance whose objective supplies the delta.
+
+    Returns:
+        Callable[[np.ndarray, float, int, int], float]: Compiled swap score.
+
+    Raises:
+        ValueError: If the instance is not a TSP, so no swap delta exists for it.
+    """
+    if not isinstance(problem.objective, TspObjective):
+        raise ValueError(f"{problem.name}: swap deltas are defined for TSP instances only.")
+    return problem.objective.numba_swap_delta()
+
+
+def _delta_for(
+    arm: str, problem: PublicProblem, swap: Callable[[np.ndarray, float, int, int], float] | None
+) -> Callable[[np.ndarray, float, int, int], float] | None:
+    """Return the swap delta an arm needs, or None for arms without one.
+
+    Args:
+        arm (str): Arm key from `ALL_ARMS`.
+        problem (PublicProblem): Instance the arm runs on.
+        swap (Callable[[np.ndarray, float, int, int], float] | None): Prepared delta, if any.
+
+    Returns:
+        Callable[[np.ndarray, float, int, int], float] | None: Delta for `+delta` arms.
+    """
+    if arm not in SWAP_ARMS:
+        return None
+    return swap if swap is not None else _tsp_swap(problem)
+
+
+def _arms_for(problem: PublicProblem, arms: tuple[str, ...]) -> list[str]:
+    """Select the arms runnable on an instance; `+delta` arms need a TSP.
+
+    Args:
+        problem (PublicProblem): Instance to run.
+        arms (tuple[str, ...]): Requested arm keys.
+
+    Returns:
+        list[str]: Arms to run on this instance, in request order.
+    """
+    return [arm for arm in arms if arm not in SWAP_ARMS or problem.family == "tsplib"]
+
+
+def _prepared_swap(
+    problem: PublicProblem, selected: list[str], native: Callable[[np.ndarray], float]
+) -> Callable[[np.ndarray, float, int, int], float] | None:
+    """Compile and warm the swap delta once when any selected arm needs it.
+
+    Args:
+        problem (PublicProblem): Instance to run.
+        selected (list[str]): Arms that will run on the instance.
+        native (Callable[[np.ndarray], float]): Compiled objective used to warm the delta.
+
+    Returns:
+        Callable[[np.ndarray, float, int, int], float] | None: Warm delta, or None.
+    """
+    if not any(arm in SWAP_ARMS for arm in selected):
+        return None
+    swap = _tsp_swap(problem)
+    probe = np.arange(problem.n_variables, dtype=float) / problem.n_variables
+    swap(probe, native(probe), 0, 1)
+    return swap
 
 
 def _selected(problems: list[PublicProblem], pilot: bool) -> list[PublicProblem]:
@@ -387,6 +484,7 @@ def _run(
     seeds: range,
     seconds: tuple[float, ...],
     output: Path,
+    arms: tuple[str, ...] = tuple(ARMS),
 ) -> None:
     """Solve every missing (instance, arm, seed, budget) and append its row to the output.
 
@@ -395,17 +493,20 @@ def _run(
         seeds (range): Search seeds.
         seconds (tuple[float, ...]): Wall-clock budgets.
         output (Path): JSONL file that receives one row per run.
+        arms (tuple[str, ...]): Arm keys from `ALL_ARMS` to run; `+delta` arms need a TSP instance.
     """
     done = PublicStudy.existing(output)
     with output.open("a", encoding="utf-8") as sink:
         for problem in problems:
             native = problem.objective.numba_function()
             native(np.zeros(problem.n_variables, dtype=float))
-            for arm, seed, budget in product(ARMS, seeds, seconds):
+            selected = _arms_for(problem, arms)
+            swap = _prepared_swap(problem, selected, native)
+            for arm, seed, budget in product(selected, seeds, seconds):
                 key = (problem.name, arm, seed, float(budget))
                 if key in done:
                     continue
-                row = PublicStudy.solve(problem, arm, seed, budget, native)
+                row = PublicStudy.solve(problem, arm, seed, budget, native, swap)
                 sink.write(json.dumps({field: row[field] for field in ROW_FIELDS}) + "\n")
                 sink.flush()
                 done.add(key)
@@ -425,6 +526,13 @@ def main() -> None:
         "--resume", action="store_true", help="Skip compatible rows already written."
     )
     parser.add_argument("--families", nargs="+", choices=FAMILIES, default=FAMILIES)
+    parser.add_argument(
+        "--arms",
+        nargs="+",
+        choices=tuple(ALL_ARMS),
+        default=tuple(ARMS),
+        help="Arms to run; '+delta' arms apply to TSP only.",
+    )
     parser.add_argument("--seconds", type=float, nargs="+", default=(10.0, 60.0))
     parser.add_argument("--seeds", type=int, default=5)
     parser.add_argument(
@@ -439,9 +547,15 @@ def main() -> None:
         PublicLoader.load(arguments.cache_dir, tuple(arguments.families)), arguments.pilot
     )
     if arguments.pilot:
-        _run(problems, range(1), (2.0,), arguments.output)
+        _run(problems, range(1), (2.0,), arguments.output, tuple(arguments.arms))
     else:
-        _run(problems, range(arguments.seeds), tuple(arguments.seconds), arguments.output)
+        _run(
+            problems,
+            range(arguments.seeds),
+            tuple(arguments.seconds),
+            arguments.output,
+            tuple(arguments.arms),
+        )
 
 
 if __name__ == "__main__":

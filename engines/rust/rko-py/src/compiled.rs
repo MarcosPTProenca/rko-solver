@@ -26,13 +26,14 @@
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use rko_core::problem::Problem;
+use rko_core::problem::{Incremental, Problem};
 
 /// Native objective called through a function pointer.
 #[pyclass(frozen, module = "rko_solver._native")]
 pub struct CompiledProblem {
     address: usize,
     dimension: usize,
+    swap: Option<usize>,
     #[allow(dead_code)]
     owner: Py<PyAny>,
 }
@@ -40,8 +41,14 @@ pub struct CompiledProblem {
 #[pymethods]
 impl CompiledProblem {
     #[new]
-    fn new(address: usize, dimension: usize, owner: Py<PyAny>) -> PyResult<Self> {
-        if address == 0 || dimension == 0 {
+    #[pyo3(signature = (address, dimension, owner, swap_address=None))]
+    fn new(
+        address: usize,
+        dimension: usize,
+        owner: Py<PyAny>,
+        swap_address: Option<usize>,
+    ) -> PyResult<Self> {
+        if address == 0 || dimension == 0 || swap_address == Some(0) {
             return Err(PyValueError::new_err(
                 "address and dimension must be nonzero",
             ));
@@ -49,6 +56,7 @@ impl CompiledProblem {
         Ok(Self {
             address,
             dimension,
+            swap: swap_address,
             owner,
         })
     }
@@ -74,5 +82,78 @@ impl Problem for CompiledAdapter<'_> {
             std::mem::transmute::<usize, extern "C" fn(*const f64, isize) -> f64>(self.0.address)
         };
         function(keys.as_ptr(), keys.len() as isize)
+    }
+
+    fn incremental<'a>(&'a self, keys: &[f64]) -> Option<Box<dyn Incremental + 'a>> {
+        self.0.swap?;
+        let mut state = NativeSwapState {
+            problem: self.0,
+            score: 0.0,
+        };
+        state.reset(keys);
+        Some(Box::new(state))
+    }
+}
+
+/// Two-change swap of key values `(i, keys[j])` and `(j, keys[i])`, if the changes have that shape.
+fn swap_pair(keys: &[f64], changes: &[(usize, f64)]) -> Option<(usize, usize)> {
+    match changes {
+        [(i, vi), (j, vj)] if i != j && *vi == keys[*j] && *vj == keys[*i] => Some((*i, *j)),
+        _ => None,
+    }
+}
+
+/// Incremental state over a native swap delta that receives the current score.
+struct NativeSwapState<'a> {
+    problem: &'a CompiledProblem,
+    score: f64,
+}
+
+impl NativeSwapState<'_> {
+    #[allow(unsafe_code)]
+    fn native_swap(&self, keys: &[f64], score: f64, i: usize, j: usize) -> f64 {
+        let address = self.problem.swap.unwrap_or(0);
+        let function: extern "C" fn(*const f64, isize, f64, isize, isize) -> f64 = unsafe {
+            std::mem::transmute::<usize, extern "C" fn(*const f64, isize, f64, isize, isize) -> f64>(
+                address,
+            )
+        };
+        function(
+            keys.as_ptr(),
+            keys.len() as isize,
+            score,
+            i as isize,
+            j as isize,
+        )
+    }
+
+    fn full(&self, keys: &[f64], changes: &[(usize, f64)]) -> f64 {
+        let mut moved = keys.to_vec();
+        for &(index, value) in changes {
+            moved[index] = value;
+        }
+        CompiledAdapter(self.problem).evaluate(&moved)
+    }
+}
+
+impl Incremental for NativeSwapState<'_> {
+    fn reset(&mut self, keys: &[f64]) {
+        self.score = CompiledAdapter(self.problem).evaluate(keys);
+    }
+
+    fn probe(&self, keys: &[f64], changes: &[(usize, f64)]) -> f64 {
+        match swap_pair(keys, changes) {
+            Some((i, j)) if keys[i] == keys[j] => self.score,
+            Some((i, j)) => self.native_swap(keys, self.score, i, j),
+            None => self.full(keys, changes),
+        }
+    }
+
+    fn commit(&mut self, keys: &[f64], changes: &[(usize, f64)]) {
+        self.score = self.probe(keys, changes);
+    }
+
+    fn is_delta(&self, keys: &[f64], changes: &[(usize, f64)]) -> bool {
+        swap_pair(keys, changes).is_some()
     }
 }
