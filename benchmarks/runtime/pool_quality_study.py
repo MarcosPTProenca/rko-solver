@@ -32,6 +32,7 @@ import math
 import numpy as np
 import rko_solver.orchestration.processes as processes
 import statistics
+from benchmarks.measurement.paired import sign_test_p
 from collections import defaultdict
 from collections.abc import Callable
 from pathlib import Path
@@ -159,23 +160,6 @@ def run_once(
         "stop_reason": result.stop_reason,
         "stops": [report.stop_reason for report in result.searches],
     }
-
-
-def sign_test_p(wins: int, losses: int) -> float:
-    """Return the exact two-sided sign-test p-value for paired wins and losses.
-
-    Args:
-        wins (int): Pairs where the shared arm has lower cost.
-        losses (int): Pairs where the manager arm has lower cost.
-
-    Returns:
-        float: Two-sided exact binomial p-value, capped at one.
-    """
-    trials = wins + losses
-    if trials == 0:
-        return 1.0
-    tail = sum(math.comb(trials, count) for count in range(min(wins, losses) + 1)) / 2**trials
-    return min(1.0, 2.0 * tail)
 
 
 def paired_runs(
