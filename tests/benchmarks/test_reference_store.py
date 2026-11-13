@@ -114,3 +114,18 @@ def test_concurrent_writers_do_not_share_a_partial_file(tmp_path: Path, manifest
     path = store.ensure("sample.csv", cache_dir=tmp_path, fetch=lambda url: PAYLOAD)
     assert path.read_bytes() == PAYLOAD
     assert (tmp_path / "sample.csv.stale.part").read_bytes() == b"left by another writer"
+
+
+def test_refused_replace_keeps_an_already_verified_copy(
+    tmp_path: Path, manifest: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep a verified copy that another worker wrote when this platform refuses the replace."""
+    (tmp_path / "sample.csv").write_bytes(PAYLOAD)
+
+    def refuse(source: str, target: str) -> None:
+        raise PermissionError("target is open in another process")
+
+    monkeypatch.setattr(store.os, "replace", refuse)
+    path = store.ensure("sample.csv", cache_dir=tmp_path, fetch=lambda url: PAYLOAD)
+    assert path.read_bytes() == PAYLOAD
+    assert not list(tmp_path.glob("sample.csv.*.part"))

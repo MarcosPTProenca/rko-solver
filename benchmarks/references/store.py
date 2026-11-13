@@ -29,9 +29,11 @@ Inputs/Outputs:
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
+import sys
 import tempfile
 import urllib.request
 from collections.abc import Callable
@@ -42,6 +44,7 @@ MANIFEST_PATH = Path(__file__).with_name("MANIFEST.json")
 
 READ_BY_CODE_AND_TESTS = (
     "general-sa-preset-engines-reference.json",
+    "engine-ratio-reference.json",
     "general-sa-preset-reference.json",
     "modeling-validation-box-reference-13b6934.jsonl",
     "modeling-validation-reference-13b6934.jsonl",
@@ -166,22 +169,97 @@ def ensure(
     entry = _entry(name, manifest)
     directory = cache_dir if cache_dir is not None else cache_directory()
     target = directory / name
-    if target.exists() and _digest(target.read_bytes()) == entry["sha256"]:
+    if _is_verified(target, entry):
         return target
+    content = _fetch_verified(manifest, entry, fetch)
+    return _store(directory, target, content, entry)
+
+
+def _is_verified(path: Path, entry: dict[str, Any]) -> bool:
+    """Tell whether a local file exists and matches its manifest digest.
+
+    Args:
+        path (Path): Local file to check.
+        entry (dict[str, Any]): Manifest entry carrying the expected digest.
+
+    Returns:
+        bool: True when the file exists and its SHA-256 matches.
+    """
+    return path.exists() and _digest(path.read_bytes()) == entry["sha256"]
+
+
+def _fetch_verified(
+    manifest: dict[str, Any], entry: dict[str, Any], fetch: Callable[[str], bytes] | None
+) -> bytes:
+    """Download one reference file and check its digest before any use.
+
+    Args:
+        manifest (dict[str, Any]): Loaded manifest, for the base URL.
+        entry (dict[str, Any]): Manifest entry of the file.
+        fetch (Callable[[str], bytes] | None): Downloader; None uses HTTPS.
+
+    Returns:
+        bytes: The verified content.
+
+    Raises:
+        ReferenceUnavailable: If the download fails.
+        ReferenceDigestError: If the content does not match the digest.
+    """
     download = fetch if fetch is not None else _download
-    url = manifest["base_url"] + name
+    url = manifest["base_url"] + entry["name"]
     try:
         content = download(url)
     except OSError as error:
-        raise ReferenceUnavailable(f"could not download {name} from {url}: {error}") from error
+        raise ReferenceUnavailable(
+            f"could not download {entry['name']} from {url}: {error}"
+        ) from error
     if _digest(content) != entry["sha256"]:
-        raise ReferenceDigestError(f"downloaded {name} does not match its manifest digest")
+        raise ReferenceDigestError(f"downloaded {entry['name']} does not match its manifest digest")
+    return content
+
+
+def _store(directory: Path, target: Path, content: bytes, entry: dict[str, Any]) -> Path:
+    """Write verified content atomically, tolerating a concurrent writer on refused replaces.
+
+    Args:
+        directory (Path): Cache directory, created when missing.
+        target (Path): Final path of the reference file.
+        content (bytes): Verified content to store.
+        entry (dict[str, Any]): Manifest entry, to recognise a copy another writer finished.
+
+    Returns:
+        Path: The stored file.
+
+    Raises:
+        PermissionError: If the replace is refused and no verified copy exists.
+    """
     directory.mkdir(parents=True, exist_ok=True)
-    handle, temporary = tempfile.mkstemp(dir=directory, prefix=name + ".", suffix=".part")
+    handle, temporary = tempfile.mkstemp(dir=directory, prefix=target.name + ".", suffix=".part")
     with os.fdopen(handle, "wb") as sink:
         sink.write(content)
-    os.replace(temporary, target)
+    try:
+        os.replace(temporary, target)
+    except PermissionError:
+        Path(temporary).unlink(missing_ok=True)
+        if _is_verified(target, entry):
+            return target
+        raise
     return target
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Print the verified local path of a reference file, fetching it when needed.
+
+    Args:
+        argv (list[str] | None): Command-line arguments; None reads `sys.argv`.
+
+    Returns:
+        int: Process exit status, zero on success.
+    """
+    parser = argparse.ArgumentParser(description="Print the verified path of a reference file.")
+    parser.add_argument("name")
+    print(ensure(parser.parse_args(argv).name))
+    return 0
 
 
 def _digest(content: bytes) -> str:
@@ -194,3 +272,7 @@ def _digest(content: bytes) -> str:
         str: Lowercase hexadecimal SHA-256.
     """
     return hashlib.sha256(content).hexdigest()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
