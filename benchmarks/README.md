@@ -3757,5 +3757,26 @@ Reading:
   issue cannot be the only cause; the same noise appears without it.
 - The raw evaluation rate varies between repeats even when pinned, so the variance is host-level throughput on
   this WSL2 machine. The timed comparisons remain uninterpretable on this host.
-- Not run: an idle-machine repeat and a second host, both needed before any protocol change. Evaluation-limited
+- Superseded by the idle-host control below. The loaded runs above were taken under host load (median 2.6 to 19),
+  so their conclusion about the host is withdrawn. A second host is still not run. Evaluation-limited
   runs are unaffected and remain the basis for comparisons.
+
+#### Idle-host control (issue 99)
+
+Same shipped `utility_cli pilot`, same manifest and order seed, 108 trials per arm. Each mechanism ran pinned to CPU 2
+and unpinned, on commit `7ab9714`. The load of the host was recorded every 10 seconds during each run.
+
+| Mechanism | Condition | Load 1-min median (max) | Max CV across classes and profiles | Interpretable | Deterministic on evaluation repeats |
+| --- | --- | ---: | ---: | --- | --- |
+| temperature | pinned CPU 2 | 1.02 (1.20) | 0.012 | all | yes, 0 mismatches |
+| temperature | unpinned | 1.07 (1.23) | 0.012 | all | yes, 0 mismatches |
+| adaptive | pinned CPU 2 | 1.36 (1.79) | 0.015 | all | yes, 0 mismatches |
+| adaptive | unpinned | 1.07 (1.32) | 0.032 | all | yes, 0 mismatches |
+
+Reading:
+- Every CV is below the 0.05 bound, for both mechanisms and both conditions. The adaptive mechanism passes too.
+- The loaded failures do not reproduce on an idle host, so their source was host contention, not the controller.
+- CPU pinning did not change the CV visibly, so with an idle host it is not needed to meet the bound.
+- Limit: one host (WSL2, 6 CPUs) and one idle window. The idle condition was checked by the recorded load, not by
+  a guarantee that no other process started later. A second host is still needed before a general claim.
+- Raw rows are kept on the measuring host, not committed, so this table is the record.
