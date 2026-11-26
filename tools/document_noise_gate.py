@@ -111,7 +111,7 @@ def _is_allowed(path: str) -> bool:
     Returns:
         bool: Whether the path is permitted.
     """
-    return path in DOC_ALLOW or Path(path).name in DOC_ALLOW
+    return path == "VISION.md" or path in DOC_ALLOW or Path(path).name in DOC_ALLOW
 
 
 def _noise_paths(listing: str) -> list[str]:

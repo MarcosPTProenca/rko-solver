@@ -102,9 +102,8 @@ jobs:
         if: runner.os == 'Linux'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
-          pattern: ci-artifact-contract-${{ github.run_attempt }}
+          name: ci-artifact-contract-${{ github.run_attempt }}
           path: ${{ runner.temp }}/rko-artifact-contract
-          merge-multiple: true
       - name: Verify artifact round trip
         if: runner.os == 'Linux'
         shell: bash
