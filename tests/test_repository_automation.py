@@ -145,8 +145,11 @@ def test_security_policy_states_scope_route_and_limits() -> None:
 
 def test_document_noise_gate_admits_the_policy_documents() -> None:
     """Policy files are maintained project documents, not session scratch."""
-    listing = ".github/pull_request_template.md\nSECURITY.md\ndocs/scratch-notes.md"
-    assert document_noise_gate._noise_paths(listing) == ["docs/scratch-notes.md"]
+    listing = (
+        ".github/pull_request_template.md\nSECURITY.md\nVISION.md\n"
+        "docs/VISION.md\ndocs/scratch-notes.md"
+    )
+    assert document_noise_gate._noise_paths(listing) == ["docs/VISION.md", "docs/scratch-notes.md"]
 
 
 def test_document_noise_gate_admits_the_scientific_reference_index() -> None:
