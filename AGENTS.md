@@ -9,6 +9,16 @@ Do not commit local audits, agent plans, migration diaries, generated analysis o
 editor settings. Keep those ignored; retain only maintained user documentation,
 benchmark code and an explicitly identified reference measurement in Git.
 
+## Project vision and acceptance
+
+- Read [VISION.md](VISION.md) from the current branch at the start of every task, before selecting issues, designing changes, or implementing code. It is the canonical strategic scope and acceptance policy; AGENTS.md governs execution and does not override it.
+- Before creating or picking up an issue, identify the specific vision principle it advances, the user or research outcome, existing evidence, dependencies, and the smallest independently verifiable slice. Check for duplicates, obsolete assumptions and negative results first.
+- Reject or re-scope out-of-vision work rather than implementing it because it is in the backlog. Use #192 for execution order, not as authority to override the vision. If VISION.md is missing or a material conflict cannot be resolved, stop and ask the owner; do not silently rewrite the vision.
+- Before opening a PR and before declaring an issue complete, re-read VISION.md and record a concise **Vision alignment** verdict in the PR: principle, concrete benefit, scope/non-goals, compatibility and complexity impact, evidence and remaining limitations. A reviewer must independently check the actual diff against these claims and the vision's acceptance and resistance criteria.
+- Preserve a domain-neutral random-key core, lightweight optional modules, stable public contracts and scientifically qualified applicability/fallbacks. Prefer existing extension contracts and measured vertical slices over speculative abstractions or duplicate backends.
+- Do not promote an algorithmic, modeling, performance or adaptive-policy change on tests alone; apply the scientific protocol below, including equal-work and equal-wall-time evidence where relevant. For documentation, CI and correctness-only changes, state why no optimization-performance claim is made and provide the corresponding verification evidence.
+- For owner-authorized backlog triage, close duplicate, superseded or out-of-scope issues with an explicit reason and link to retained work/evidence where relevant; never describe unimplemented or unverified research as completed.
+
 ## DO
 
 - Write production-grade code, prioritizing readability, consistency, and maintainability.
